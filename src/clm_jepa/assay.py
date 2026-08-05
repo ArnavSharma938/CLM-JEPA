@@ -1,12 +1,75 @@
 from __future__ import annotations
 
-import itertools
 import math
 import random
 from collections import defaultdict
 
 import torch
 import torch.nn.functional as F
+
+
+def _minimum_cost_derangement(costs: list[list[int]]) -> tuple[list[int], int]:
+    """Solve the exact minimum-cost derangement assignment in O(n^3)."""
+    count = len(costs)
+    if count < 2 or any(len(row) != count for row in costs):
+        raise ValueError("matched derangement requires at least two identities")
+    max_off_diagonal = max(
+        costs[left][right]
+        for left in range(count)
+        for right in range(count)
+        if left != right
+    )
+    forbidden = count * max_off_diagonal + 1
+    matrix = [
+        [forbidden if left == right else costs[left][right] for right in range(count)]
+        for left in range(count)
+    ]
+    row_potential = [0] * (count + 1)
+    column_potential = [0] * (count + 1)
+    matched_row = [0] * (count + 1)
+    predecessor = [0] * (count + 1)
+    for row in range(1, count + 1):
+        matched_row[0] = row
+        minimum = [math.inf] * (count + 1)
+        used = [False] * (count + 1)
+        column = 0
+        while True:
+            used[column] = True
+            current_row = matched_row[column]
+            delta = math.inf
+            next_column = 0
+            for candidate in range(1, count + 1):
+                if used[candidate]:
+                    continue
+                reduced = matrix[current_row - 1][candidate - 1] - row_potential[current_row] - column_potential[candidate]
+                if reduced < minimum[candidate]:
+                    minimum[candidate] = reduced
+                    predecessor[candidate] = column
+                if minimum[candidate] < delta:
+                    delta = minimum[candidate]
+                    next_column = candidate
+            for candidate in range(count + 1):
+                if used[candidate]:
+                    row_potential[matched_row[candidate]] += delta
+                    column_potential[candidate] -= delta
+                else:
+                    minimum[candidate] -= delta
+            column = next_column
+            if matched_row[column] == 0:
+                break
+        while True:
+            previous = predecessor[column]
+            matched_row[column] = matched_row[previous]
+            column = previous
+            if column == 0:
+                break
+    assignment = [0] * count
+    for column in range(1, count + 1):
+        assignment[matched_row[column] - 1] = column - 1
+    if any(left == right for left, right in enumerate(assignment)):
+        raise RuntimeError("minimum-cost assignment unexpectedly contains a fixed point")
+    total = sum(costs[left][right] for left, right in enumerate(assignment))
+    return assignment, total
 
 
 def identity_mappings(identities: list[str], token_lengths: dict[str, int], heavy_atoms: dict[str, int], seed: int):
@@ -19,21 +82,19 @@ def identity_mappings(identities: list[str], token_lengths: dict[str, int], heav
             break
     random_map = dict(zip(unique, random_order))
 
-    best = None
-    for permutation in itertools.permutations(unique):
-        if any(left == right for left, right in zip(unique, permutation)):
-            continue
-        cost = sum(
+    costs = [
+        [
             abs(token_lengths[left] - token_lengths[right])
             + abs(heavy_atoms[left] - heavy_atoms[right])
-            for left, right in zip(unique, permutation)
-        )
-        candidate = (cost, permutation)
-        if best is None or candidate < best:
-            best = candidate
-    if best is None:
-        raise ValueError("matched derangement requires at least two identities")
-    return random_map, dict(zip(unique, best[1])), best[0]
+            for right in unique
+        ]
+        for left in unique
+    ]
+    assignment, matched_cost = _minimum_cost_derangement(costs)
+    matched_map = {
+        identity: unique[assignment[index]] for index, identity in enumerate(unique)
+    }
+    return random_map, matched_map, matched_cost
 
 
 def effective_rank(values: torch.Tensor) -> float:

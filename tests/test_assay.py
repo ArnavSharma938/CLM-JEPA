@@ -1,3 +1,4 @@
+import itertools
 import sys
 from pathlib import Path
 
@@ -6,7 +7,19 @@ import torch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from clm_jepa.assay import identity_mappings, relationship_metrics
+from clm_jepa.assay import _minimum_cost_derangement, identity_mappings, relationship_metrics
+
+
+def test_polynomial_solver_matches_exhaustive_minimum():
+    costs = [[0, 4, 1, 3], [2, 0, 5, 1], [3, 2, 0, 4], [1, 3, 2, 0]]
+    assignment, total = _minimum_cost_derangement(costs)
+    exhaustive = min(
+        sum(costs[left][right] for left, right in enumerate(permutation))
+        for permutation in itertools.permutations(range(len(costs)))
+        if all(left != right for left, right in enumerate(permutation))
+    )
+    assert total == exhaustive
+    assert all(left != right for left, right in enumerate(assignment))
 
 
 def test_identity_mappings_are_deterministic_and_deranged():

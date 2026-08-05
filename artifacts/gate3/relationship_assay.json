@@ -1,0 +1,124 @@
+{
+  "checkpoint": "ChemFM/ChemFM-1B f99dc2e89726539bb9cf31b2e2b4360650bac6a8",
+  "manifest": "data/manifests/gate1/train_128.csv",
+  "examples": 128,
+  "unique_target_identities": 26,
+  "selection_rule": "positive correct-vs-random and correct-vs-matched margins, matched retrieval top-1 above candidate chance, target effective rank > 1.5",
+  "raw": {
+    "0": {
+      "centered_normalized_rescue": false,
+      "correct_cosine": 0.6620543003082275,
+      "random_cosine": 0.6504399180412292,
+      "matched_shuffle_cosine": 0.6439743041992188,
+      "correct_minus_random": 0.011614314280450344,
+      "correct_minus_matched": 0.018079927191138268,
+      "matched_assignment_cost": 114,
+      "target_variance": 0.022155050188302994,
+      "target_effective_rank": 18.24199867248535,
+      "target_mean_direction_energy": 0.6723707914352417,
+      "ridge_explained_variance": -0.48910277030388216,
+      "retrieval_top1": 0.359375,
+      "retrieval_mrr": 0.6028645833333334,
+      "retrieval_chance_top1": 0.25,
+      "heldout_identities": [
+        "OC(c1ccc(Oc2ncccc2C2=CCOCC2)cc1)c1nc2ccccc2s1",
+        "c1csc(-c2ccn3ccnc3c2)n1"
+      ],
+      "retains_pair_signal": true
+    },
+    "1": {
+      "centered_normalized_rescue": false,
+      "correct_cosine": 0.672498881816864,
+      "random_cosine": 0.6600801944732666,
+      "matched_shuffle_cosine": 0.6559767723083496,
+      "correct_minus_random": 0.01241869293153286,
+      "correct_minus_matched": 0.016522109508514404,
+      "matched_assignment_cost": 114,
+      "target_variance": 0.022155050188302994,
+      "target_effective_rank": 18.24199867248535,
+      "target_mean_direction_energy": 0.6723707914352417,
+      "ridge_explained_variance": -0.3859960032401186,
+      "retrieval_top1": 0.328125,
+      "retrieval_mrr": 0.5826822916666666,
+      "retrieval_chance_top1": 0.25,
+      "heldout_identities": [
+        "OC(c1ccc(Oc2ncccc2C2=CCOCC2)cc1)c1nc2ccccc2s1",
+        "c1csc(-c2ccn3ccnc3c2)n1"
+      ],
+      "retains_pair_signal": true
+    },
+    "2": {
+      "centered_normalized_rescue": false,
+      "correct_cosine": 0.6709839701652527,
+      "random_cosine": 0.6606068015098572,
+      "matched_shuffle_cosine": 0.6560657024383545,
+      "correct_minus_random": 0.010377135127782822,
+      "correct_minus_matched": 0.014918210916221142,
+      "matched_assignment_cost": 114,
+      "target_variance": 0.022155050188302994,
+      "target_effective_rank": 18.24199867248535,
+      "target_mean_direction_energy": 0.6723707914352417,
+      "ridge_explained_variance": -0.32340321198084054,
+      "retrieval_top1": 0.2890625,
+      "retrieval_mrr": 0.5690104166666666,
+      "retrieval_chance_top1": 0.25,
+      "heldout_identities": [
+        "OC(c1ccc(Oc2ncccc2C2=CCOCC2)cc1)c1nc2ccccc2s1",
+        "c1csc(-c2ccn3ccnc3c2)n1"
+      ],
+      "retains_pair_signal": true
+    },
+    "3": {
+      "centered_normalized_rescue": false,
+      "correct_cosine": 0.6603682637214661,
+      "random_cosine": 0.6547061800956726,
+      "matched_shuffle_cosine": 0.6474037766456604,
+      "correct_minus_random": 0.005662123207002878,
+      "correct_minus_matched": 0.012964464724063873,
+      "matched_assignment_cost": 114,
+      "target_variance": 0.022155050188302994,
+      "target_effective_rank": 18.24199867248535,
+      "target_mean_direction_energy": 0.6723707914352417,
+      "ridge_explained_variance": -0.3044305677079231,
+      "retrieval_top1": 0.2890625,
+      "retrieval_mrr": 0.5670572916666666,
+      "retrieval_chance_top1": 0.25,
+      "heldout_identities": [
+        "OC(c1ccc(Oc2ncccc2C2=CCOCC2)cc1)c1nc2ccccc2s1",
+        "c1csc(-c2ccn3ccnc3c2)n1"
+      ],
+      "retains_pair_signal": true
+    },
+    "4": {
+      "centered_normalized_rescue": false,
+      "correct_cosine": 0.6501296162605286,
+      "random_cosine": 0.6461688280105591,
+      "matched_shuffle_cosine": 0.6386893391609192,
+      "correct_minus_random": 0.003960772417485714,
+      "correct_minus_matched": 0.011440315283834934,
+      "matched_assignment_cost": 114,
+      "target_variance": 0.022155050188302994,
+      "target_effective_rank": 18.24199867248535,
+      "target_mean_direction_energy": 0.6723707914352417,
+      "ridge_explained_variance": -0.31769896240756257,
+      "retrieval_top1": 0.2734375,
+      "retrieval_mrr": 0.556640625,
+      "retrieval_chance_top1": 0.25,
+      "heldout_identities": [
+        "OC(c1ccc(Oc2ncccc2C2=CCOCC2)cc1)c1nc2ccccc2s1",
+        "c1csc(-c2ccn3ccnc3c2)n1"
+      ],
+      "retains_pair_signal": true
+    }
+  },
+  "rescue": null,
+  "retained_k": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "stop": false,
+  "peak_cuda_bytes": 2309488640
+}
