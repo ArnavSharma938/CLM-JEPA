@@ -1,0 +1,1025 @@
+system,src,tgt
+Convert natural language to regular expression.,"lines with words with a character, the string 'dog', and a capital letter",\b(.)&(dog)&([A-Z])\b
+Convert natural language to regular expression.,"lines with a lower-case letter, 3 or more times before a character","(([a-z]){3,}).*(.).*"
+Convert natural language to regular expression.,"lines having either a lower-case letter, a capital letter, or the string 'dog' before a vowel",(([a-z])|([A-Z])|(dog)).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,lines not ending with a lower-case letter at least once,~(((.*)([a-z]))+)
+Convert natural language to regular expression.,lines starting with a character or a letter,((.)|([A-Za-z]))(.*)
+Convert natural language to regular expression.,lines with the string 'dog' or a character before a number,((dog)|(.)).*([0-9]).*
+Convert natural language to regular expression.,"lines with the string 'dog' before not a vowel, 2 or more times","(dog).*(~(([AEIOUaeiou]){2,})).*"
+Convert natural language to regular expression.,"lines with words with starting with the string 'dog', 2 or more times","\b((dog)(.*)){2,}\b"
+Convert natural language to regular expression.,lines with words with a capital letter and a lower-case letter,\b([A-Z])&([a-z])\b
+Convert natural language to regular expression.,lines containing a capital letter before a lower-case letter followed by a vowel,(.*[A-Z].*).*([a-z].*[AEIOUaeiou].*).*
+Convert natural language to regular expression.,"lines with words with either a lower-case letter, a character, or a letter",\b([a-z])|(.)|([A-Za-z])\b
+Convert natural language to regular expression.,lines with words with the string 'dog' or starting with a vowel,\b(dog)|(([AEIOUaeiou])(.*))\b
+Convert natural language to regular expression.,lines with a lower-case letter before the string 'dog' or a vowel,([a-z]).*((dog)|([AEIOUaeiou])).*
+Convert natural language to regular expression.,"lines with a vowel, 5 or more times before a character","(([AEIOUaeiou]){5,}).*(.).*"
+Convert natural language to regular expression.,"lines not having a number, a vowel, or a character",~(([0-9])|([AEIOUaeiou])|(.))
+Convert natural language to regular expression.,"lines not having a capital letter, not a number, and not a letter",~(([A-Z])&([0-9])&([A-Za-z]))
+Convert natural language to regular expression.,lines with words with a vowel or a capital letter,\b([AEIOUaeiou])|([A-Z])\b
+Convert natural language to regular expression.,lines ending with the string 'dog' followed by the string 'truck',(.*)(dog.*truck.*)
+Convert natural language to regular expression.,lines with a letter or the string 'dog' before a lower-case letter,(([A-Za-z])|(dog)).*([a-z]).*
+Convert natural language to regular expression.,lines with words that don't have a number before a vowel,\b(~([0-9])).*([AEIOUaeiou]).*\b
+Convert natural language to regular expression.,"lines ending with the string 'dog', 4 or more times or a capital letter","(.*)(((dog){4,})|([A-Z]))"
+Convert natural language to regular expression.,"lines with a lower-case letter or a letter, 4 or more times","(([a-z])|([A-Za-z])){4,}"
+Convert natural language to regular expression.,lines with the string 'dog' or not a character at least once,((dog)|(~(.)))+
+Convert natural language to regular expression.,lines starting with a lower-case letter before a capital letter,(([a-z])(.*)).*([A-Z]).*
+Convert natural language to regular expression.,lines with a character or the string 'dog' before the string 'truck',((.)|(dog)).*(truck).*
+Convert natural language to regular expression.,lines with a capital letter at least once and starting with the string 'dog',(([A-Z])+)&((dog)(.*))
+Convert natural language to regular expression.,"lines with words with a letter, the string 'dog', and a vowel",\b([A-Za-z])&(dog)&([AEIOUaeiou])\b
+Convert natural language to regular expression.,"lines with words with either the string 'dog', a lower-case letter, or a vowel",\b(dog)|([a-z])|([AEIOUaeiou])\b
+Convert natural language to regular expression.,"lines containing words with a character, zero or more times",.*\b(.)*\b.*
+Convert natural language to regular expression.,"lines with words with either a character, the string 'dog', or a vowel",\b(.)|(dog)|([AEIOUaeiou])\b
+Convert natural language to regular expression.,"lines not having the string 'dog' or the string 'truck', zero or more times",~(((dog)|(truck))*)
+Convert natural language to regular expression.,"lines having a character, a lower-case letter, and a capital letter before the string 'dog'",((.)&([a-z])&([A-Z])).*(dog).*
+Convert natural language to regular expression.,lines ending with a lower-case letter before a number,((.*)([a-z])).*([0-9]).*
+Convert natural language to regular expression.,"lines having a character, a letter, and a number before a vowel",((.)&([A-Za-z])&([0-9])).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,"lines containing a letter, a number, and a vowel",.*([A-Za-z])&([0-9])&([AEIOUaeiou]).*
+Convert natural language to regular expression.,lines with a number followed by a vowel before a letter,([0-9].*[AEIOUaeiou].*).*([A-Za-z]).*
+Convert natural language to regular expression.,lines with the string 'dog' at least once before a vowel,((dog)+).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,"lines containing a capital letter, a letter, and a character",.*([A-Z])&([A-Za-z])&(.).*
+Convert natural language to regular expression.,lines ending with a number and the string 'dog' followed by a character,((.*)([0-9]))&(dog.*..*)
+Convert natural language to regular expression.,lines with words with a capital letter and the string 'dog',\b([A-Z])&(dog)\b
+Convert natural language to regular expression.,lines starting with a number before a capital letter followed by a lower-case letter,(([0-9])(.*)).*([A-Z].*[a-z].*).*
+Convert natural language to regular expression.,lines with a lower-case letter followed by a vowel before a capital letter,([a-z].*[AEIOUaeiou].*).*([A-Z]).*
+Convert natural language to regular expression.,"lines starting with words with either a character, the string 'dog', or a vowel",(\b(.)|(dog)|([AEIOUaeiou])\b)(.*)
+Convert natural language to regular expression.,lines containing a lower-case letter before a vowel or the string 'dog',(.*[a-z].*).*(([AEIOUaeiou])|(dog)).*
+Convert natural language to regular expression.,lines containing a number and the string 'dog',.*([0-9])&(dog).*
+Convert natural language to regular expression.,"lines with the string 'dog' followed by the string 'truck' before either the string 'ring', the string 'lake', or a character",(dog.*truck.*).*((ring)|(lake)|(.)).*
+Convert natural language to regular expression.,"lines with the string 'dog' followed by a vowel before a capital letter, the string 'truck', and a lower-case letter",(dog.*[AEIOUaeiou].*).*(([A-Z])&(truck)&([a-z])).*
+Convert natural language to regular expression.,"lines with words with ending with a capital letter, 5 or more times","(\b(.*)([A-Z])\b){5,}"
+Convert natural language to regular expression.,"lines with the string 'dog' before a capital letter, 4 or more times","(dog).*(([A-Z]){4,}).*"
+Convert natural language to regular expression.,"lines with a letter, 6 or more times before the string 'dog'","(([A-Za-z]){6,}).*(dog).*"
+Convert natural language to regular expression.,lines with words with a vowel followed by a character before a capital letter,\b([AEIOUaeiou].*..*).*([A-Z]).*\b
+Convert natural language to regular expression.,"lines not having the string 'dog', 7 or more times and not a vowel","~(((dog){7,})&([AEIOUaeiou]))"
+Convert natural language to regular expression.,lines with a number before a letter at least once,([0-9]).*(([A-Za-z])+).*
+Convert natural language to regular expression.,"lines having a letter, a vowel, and a character before the string 'dog'",(([A-Za-z])&([AEIOUaeiou])&(.)).*(dog).*
+Convert natural language to regular expression.,"lines having a character, a vowel, and a letter before the string 'dog'",((.)&([AEIOUaeiou])&([A-Za-z])).*(dog).*
+Convert natural language to regular expression.,lines not having a number before a vowel,~(([0-9]).*([AEIOUaeiou]).*)
+Convert natural language to regular expression.,"lines with a character followed by a lower-case letter, 5 or more times","(..*[a-z].*){5,}"
+Convert natural language to regular expression.,lines containing a letter or a character,.*([A-Za-z])|(.).*
+Convert natural language to regular expression.,"lines with words with a vowel, the string 'dog', and the string 'truck'",\b([AEIOUaeiou])&(dog)&(truck)\b
+Convert natural language to regular expression.,"lines with words with a letter, a vowel, and the string 'dog'",\b([A-Za-z])&([AEIOUaeiou])&(dog)\b
+Convert natural language to regular expression.,lines containing ending with a number and the string 'dog',.*((.*)([0-9]))&(dog).*
+Convert natural language to regular expression.,lines with a number before not a character,([0-9]).*(~(.)).*
+Convert natural language to regular expression.,"lines with a capital letter followed by a number, 3 or more times","([A-Z].*[0-9].*){3,}"
+Convert natural language to regular expression.,"lines with the string 'dog', zero or more times and a lower-case letter or the string 'truck'",((dog)*)&(([a-z])|(truck))
+Convert natural language to regular expression.,lines with words with a character and a letter,\b(.)&([A-Za-z])\b
+Convert natural language to regular expression.,"lines having either the string 'dog', a number, or the string 'truck' before the string 'ring'",((dog)|([0-9])|(truck)).*(ring).*
+Convert natural language to regular expression.,lines with a lower-case letter followed by a capital letter before a character,([a-z].*[A-Z].*).*(.).*
+Convert natural language to regular expression.,"lines with a number, 3 or more times before a vowel","(([0-9]){3,}).*([AEIOUaeiou]).*"
+Convert natural language to regular expression.,lines with words with a vowel or the string 'dog' at least once,(\b([AEIOUaeiou])|(dog)\b)+
+Convert natural language to regular expression.,"lines not having a lower-case letter, a capital letter, or a vowel",~(([a-z])|([A-Z])|([AEIOUaeiou]))
+Convert natural language to regular expression.,lines with words with ending with a capital letter before the string 'dog',\b((.*)([A-Z])).*(dog).*\b
+Convert natural language to regular expression.,lines with a lower-case letter or the string 'dog' before a number,(([a-z])|(dog)).*([0-9]).*
+Convert natural language to regular expression.,"lines not having a lower-case letter, the string 'dog', or a capital letter",~(([a-z])|(dog)|([A-Z]))
+Convert natural language to regular expression.,lines with a letter before ending with a number,([A-Za-z]).*((.*)([0-9])).*
+Convert natural language to regular expression.,"lines not having the string 'dog', a character, or a vowel",~((dog)|(.)|([AEIOUaeiou]))
+Convert natural language to regular expression.,lines not ending with containing a vowel,~((.*)(.*[AEIOUaeiou].*))
+Convert natural language to regular expression.,lines with a letter and a vowel before a character,(([A-Za-z])&([AEIOUaeiou])).*(.).*
+Convert natural language to regular expression.,"lines with a vowel or a lower-case letter, 5 or more times","(([AEIOUaeiou])|([a-z])){5,}"
+Convert natural language to regular expression.,"lines with a lower-case letter, 6 or more times before a vowel","(([a-z]){6,}).*([AEIOUaeiou]).*"
+Convert natural language to regular expression.,"lines with a letter before the string 'dog', a character, and the string 'truck'",([A-Za-z]).*((dog)&(.)&(truck)).*
+Convert natural language to regular expression.,lines with a character followed by the string 'dog' before a letter,(..*dog.*).*([A-Za-z]).*
+Convert natural language to regular expression.,"lines with a capital letter followed by a lower-case letter, 4 or more times","([A-Z].*[a-z].*){4,}"
+Convert natural language to regular expression.,lines with a letter before a capital letter followed by the string 'dog',([A-Za-z]).*([A-Z].*dog.*).*
+Convert natural language to regular expression.,lines containing a capital letter and the string 'dog' before a vowel,.*(([A-Z])&(dog)).*([AEIOUaeiou]).*.*
+Convert natural language to regular expression.,lines with a letter before a capital letter and the string 'dog',([A-Za-z]).*(([A-Z])&(dog)).*
+Convert natural language to regular expression.,lines containing words with a number at least once,.*\b([0-9])+\b.*
+Convert natural language to regular expression.,"lines with a lower-case letter or a number, 2 or more times","(([a-z])|([0-9])){2,}"
+Convert natural language to regular expression.,lines with words that contain the string 'dog' or a capital letter,\b.*(dog)|([A-Z]).*\b
+Convert natural language to regular expression.,lines ending with the string 'dog' followed by a lower-case letter at least once,((.*)(dog.*[a-z].*))+
+Convert natural language to regular expression.,"lines containing a lower-case letter, a letter, and the string 'dog'",.*([a-z])&([A-Za-z])&(dog).*
+Convert natural language to regular expression.,"lines not having a lower-case letter before a vowel, zero or more times",~(([a-z]).*(([AEIOUaeiou])*).*)
+Convert natural language to regular expression.,"lines with a letter or the string 'dog', 6 or more times","(([A-Za-z])|(dog)){6,}"
+Convert natural language to regular expression.,"lines with words with the string 'dog' or a letter, zero or more times",\b((dog)|([A-Za-z]))*\b
+Convert natural language to regular expression.,lines containing the string 'dog' and a vowel or the string 'truck',(.*dog.*)&(([AEIOUaeiou])|(truck))
+Convert natural language to regular expression.,lines containing a character at least once and the string 'dog',.*((.)+)&(dog).*
+Convert natural language to regular expression.,lines with a number before a letter or the string 'dog',([0-9]).*(([A-Za-z])|(dog)).*
+Convert natural language to regular expression.,lines ending with not the string 'dog' or a vowel,(.*)((~(dog))|([AEIOUaeiou]))
+Convert natural language to regular expression.,lines not having a lower-case letter before a capital letter,~(([a-z]).*([A-Z]).*)
+Convert natural language to regular expression.,"lines with the string 'dog', zero or more times or a lower-case letter before a character",((dog)*)|(([a-z]).*(.).*)
+Convert natural language to regular expression.,lines ending with a lower-case letter or a number,(.*)(([a-z])|([0-9]))
+Convert natural language to regular expression.,"lines with the string 'dog' before either the string 'truck', a capital letter, or a letter",(dog).*((truck)|([A-Z])|([A-Za-z])).*
+Convert natural language to regular expression.,"lines with the string 'dog', zero or more times before the string 'truck' or the string 'ring'",((dog)*).*((truck)|(ring)).*
+Convert natural language to regular expression.,lines with a letter followed by the string 'dog' before a character,([A-Za-z].*dog.*).*(.).*
+Convert natural language to regular expression.,"lines with words with either a capital letter, the string 'dog', or a letter",\b([A-Z])|(dog)|([A-Za-z])\b
+Convert natural language to regular expression.,lines with words with a vowel before the string 'dog',\b([AEIOUaeiou]).*(dog).*\b
+Convert natural language to regular expression.,"lines containing a vowel, a character, and a lower-case letter",.*([AEIOUaeiou])&(.)&([a-z]).*
+Convert natural language to regular expression.,"lines with a number before a vowel, 5 or more times","([0-9]).*(([AEIOUaeiou]){5,}).*"
+Convert natural language to regular expression.,"lines with a number before either the string 'dog', a vowel, or a lower-case letter",([0-9]).*((dog)|([AEIOUaeiou])|([a-z])).*
+Convert natural language to regular expression.,lines with a lower-case letter followed by the string 'dog' before a number,([a-z].*dog.*).*([0-9]).*
+Convert natural language to regular expression.,"lines containing a letter, a capital letter, and a vowel",.*([A-Za-z])&([A-Z])&([AEIOUaeiou]).*
+Convert natural language to regular expression.,lines with a capital letter followed by a number and not the string 'dog',([A-Z].*[0-9].*)&(~(dog))
+Convert natural language to regular expression.,"lines starting with the string 'dog' or the string 'truck', 7 or more times","(((dog)|(truck)){7,})(.*)"
+Convert natural language to regular expression.,"lines not having a letter, not a lower-case letter, and not a capital letter",~(([A-Za-z])&([a-z])&([A-Z]))
+Convert natural language to regular expression.,lines with a vowel before ending with a character,([AEIOUaeiou]).*((.*)(.)).*
+Convert natural language to regular expression.,lines with a number followed by a capital letter and the string 'dog' at least once,([0-9].*[A-Z].*)&((dog)+)
+Convert natural language to regular expression.,"lines with a vowel followed by a capital letter, zero or more times",([AEIOUaeiou].*[A-Z].*)*
+Convert natural language to regular expression.,"lines with words with either a lower-case letter, a number, or a character",\b([a-z])|([0-9])|(.)\b
+Convert natural language to regular expression.,"lines ending with a vowel, 2 or more times before the string 'dog'","(((.*)([AEIOUaeiou])){2,}).*(dog).*"
+Convert natural language to regular expression.,"lines with a character followed by the string 'dog', 2 or more times","(..*dog.*){2,}"
+Convert natural language to regular expression.,lines with a number before a letter and the string 'dog',([0-9]).*(([A-Za-z])&(dog)).*
+Convert natural language to regular expression.,"lines with the string 'dog', 6 or more times before ending with the string 'truck'","((dog){6,}).*((.*)(truck)).*"
+Convert natural language to regular expression.,"lines having either the string 'dog', the string 'truck', or a letter before the string 'ring'",((dog)|(truck)|([A-Za-z])).*(ring).*
+Convert natural language to regular expression.,"lines ending with a vowel, zero or more times",((.*)([AEIOUaeiou]))*
+Convert natural language to regular expression.,"lines with a letter before ending with a capital letter, zero or more times",([A-Za-z]).*((.*)(([A-Z])*)).*
+Convert natural language to regular expression.,lines with a character at least once or ending with the string 'dog',((.)+)|((.*)(dog))
+Convert natural language to regular expression.,"lines with a vowel followed by a lower-case letter, 3 or more times","([AEIOUaeiou].*[a-z].*){3,}"
+Convert natural language to regular expression.,"lines containing the string 'dog' before a letter, 3 or more times","(.*(dog).*([A-Za-z]).*.*){3,}"
+Convert natural language to regular expression.,"lines with the string 'dog', 2 or more times or containing a lower-case letter","((dog){2,})|(.*[a-z].*)"
+Convert natural language to regular expression.,lines with words with a number followed by a vowel,\b[0-9].*[AEIOUaeiou].*\b
+Convert natural language to regular expression.,lines with a lower-case letter before ending with a vowel,([a-z]).*((.*)([AEIOUaeiou])).*
+Convert natural language to regular expression.,lines containing words with a number and the string 'dog',.*\b([0-9])&(dog)\b.*
+Convert natural language to regular expression.,lines with the string 'dog' before a vowel and the string 'truck' at least once,((dog).*([AEIOUaeiou]).*)&((truck)+)
+Convert natural language to regular expression.,"lines not having the string 'dog', not a vowel, and not a number",~((dog)&([AEIOUaeiou])&([0-9]))
+Convert natural language to regular expression.,lines with a vowel followed by a letter,[AEIOUaeiou].*[A-Za-z].*
+Convert natural language to regular expression.,lines not having a vowel before the string 'dog',~(([AEIOUaeiou]).*(dog).*)
+Convert natural language to regular expression.,lines with a number followed by a letter before a capital letter,([0-9].*[A-Za-z].*).*([A-Z]).*
+Convert natural language to regular expression.,lines with a vowel before a capital letter or a letter at least once,((([AEIOUaeiou]).*([A-Z]).*)|([A-Za-z]))+
+Convert natural language to regular expression.,"lines containing either a lower-case letter, a letter, or a capital letter",.*([a-z])|([A-Za-z])|([A-Z]).*
+Convert natural language to regular expression.,"lines containing a character, a vowel, and a number",.*(.)&([AEIOUaeiou])&([0-9]).*
+Convert natural language to regular expression.,lines with a capital letter or a lower-case letter before the string 'dog',(([A-Z])|([a-z])).*(dog).*
+Convert natural language to regular expression.,"lines with a letter followed by the string 'dog', zero or more times",([A-Za-z].*dog.*)*
+Convert natural language to regular expression.,lines with a capital letter before the string 'dog' or a lower-case letter,([A-Z]).*((dog)|([a-z])).*
+Convert natural language to regular expression.,"lines ending with words with the string 'dog', a letter, and a lower-case letter",(.*)(\b(dog)&([A-Za-z])&([a-z])\b)
+Convert natural language to regular expression.,"lines with words with the string 'dog', a letter, and a capital letter",\b(dog)&([A-Za-z])&([A-Z])\b
+Convert natural language to regular expression.,lines with a number followed by a vowel before the string 'dog',([0-9].*[AEIOUaeiou].*).*(dog).*
+Convert natural language to regular expression.,lines with a letter or a lower-case letter at least once,(([A-Za-z])|([a-z]))+
+Convert natural language to regular expression.,lines with the string 'dog' at least once or not the string 'truck',((dog)+)|(~(truck))
+Convert natural language to regular expression.,lines containing the string 'dog' before ending with the string 'truck',(.*dog.*).*((.*)(truck)).*
+Convert natural language to regular expression.,lines with a letter followed by a character before not the string 'dog',([A-Za-z].*..*).*(~(dog)).*
+Convert natural language to regular expression.,lines ending with the string 'dog' and a capital letter or a number,((.*)(dog))&(([A-Z])|([0-9]))
+Convert natural language to regular expression.,lines starting with the string 'dog' or ending with a letter,((dog)|((.*)([A-Za-z])))(.*)
+Convert natural language to regular expression.,lines with words with a number or a letter at least once,\b(([0-9])|([A-Za-z]))+\b
+Convert natural language to regular expression.,lines ending with the string 'dog' before a letter,((.*)(dog)).*([A-Za-z]).*
+Convert natural language to regular expression.,"lines ending with the string 'dog' followed by a lower-case letter, 4 or more times","((.*)(dog.*[a-z].*)){4,}"
+Convert natural language to regular expression.,lines with the string 'dog' at least once or the string 'truck' and a number,((dog)+)|((truck)&([0-9]))
+Convert natural language to regular expression.,"lines with the string 'dog' before the string 'truck' and a vowel, 3 or more times","((dog).*(truck).*)&(([AEIOUaeiou]){3,})"
+Convert natural language to regular expression.,lines with the string 'dog' followed by a vowel before a character,(dog.*[AEIOUaeiou].*).*(.).*
+Convert natural language to regular expression.,"lines not having the string 'dog', not a number, and not a letter",~((dog)&([0-9])&([A-Za-z]))
+Convert natural language to regular expression.,"lines with a lower-case letter before the string 'dog', the string 'truck', and a capital letter",([a-z]).*((dog)&(truck)&([A-Z])).*
+Convert natural language to regular expression.,lines not having the string 'dog' or a number,~((dog)|([0-9]))
+Convert natural language to regular expression.,lines ending with a character or a number,(.*)((.)|([0-9]))
+Convert natural language to regular expression.,"lines with a letter before either the string 'dog', a character, or a number",([A-Za-z]).*((dog)|(.)|([0-9])).*
+Convert natural language to regular expression.,lines ending with containing a vowel followed by a character,(.*)(.*[AEIOUaeiou].*..*.*)
+Convert natural language to regular expression.,lines with a letter before the string 'dog' and a character,([A-Za-z]).*((dog)&(.)).*
+Convert natural language to regular expression.,lines ending with a lower-case letter or the string 'dog' and the string 'truck',(.*)(([a-z])|((dog)&(truck)))
+Convert natural language to regular expression.,lines containing the string 'dog' and a capital letter or the string 'truck',.*(dog)&(([A-Z])|(truck)).*
+Convert natural language to regular expression.,"lines having either a vowel, a number, or the string 'dog' before the string 'truck'",(([AEIOUaeiou])|([0-9])|(dog)).*(truck).*
+Convert natural language to regular expression.,"lines having either a number, the string 'dog', or a capital letter before the string 'truck'",(([0-9])|(dog)|([A-Z])).*(truck).*
+Convert natural language to regular expression.,lines ending with a capital letter before the string 'dog' and a character,((.*)([A-Z])).*((dog)&(.)).*
+Convert natural language to regular expression.,lines not having the string 'dog' followed by the string 'truck' at least once,~((dog.*truck.*)+)
+Convert natural language to regular expression.,"lines with the string 'dog' followed by the string 'truck' or a vowel, zero or more times",((dog.*truck.*)|([AEIOUaeiou]))*
+Convert natural language to regular expression.,lines starting with a character followed by a capital letter,(..*[A-Z].*)(.*)
+Convert natural language to regular expression.,"lines with the string 'dog' or starting with a character, 5 or more times","((dog)|((.)(.*))){5,}"
+Convert natural language to regular expression.,lines containing a capital letter or the string 'dog' and the string 'truck',.*(([A-Z])|(dog))&(truck).*
+Convert natural language to regular expression.,"lines with a letter before ending with the string 'dog', 3 or more times","([A-Za-z]).*(((.*)(dog)){3,}).*"
+Convert natural language to regular expression.,lines containing the string 'dog' or not the string 'truck',.*(dog)|(~(truck)).*
+Convert natural language to regular expression.,"lines containing the string 'dog', 5 or more times",".*(dog){5,}.*"
+Convert natural language to regular expression.,lines not having a letter followed by a capital letter,~([A-Za-z].*[A-Z].*)
+Convert natural language to regular expression.,lines with words with a capital letter or a character at least once,\b(([A-Z])|(.))+\b
+Convert natural language to regular expression.,"lines with words with either the string 'dog', a letter, or a vowel",\b(dog)|([A-Za-z])|([AEIOUaeiou])\b
+Convert natural language to regular expression.,lines with a vowel before containing a capital letter,([AEIOUaeiou]).*(.*[A-Z].*).*
+Convert natural language to regular expression.,lines with a character and a vowel before a number,((.)&([AEIOUaeiou])).*([0-9]).*
+Convert natural language to regular expression.,lines not having the string 'dog' or containing a number,~((dog)|(.*[0-9].*))
+Convert natural language to regular expression.,"lines with a capital letter or a vowel, 2 or more times","(([A-Z])|([AEIOUaeiou])){2,}"
+Convert natural language to regular expression.,lines with words with a letter followed by a number,\b[A-Za-z].*[0-9].*\b
+Convert natural language to regular expression.,lines with the string 'dog' and a lower-case letter before a character,((dog)&([a-z])).*(.).*
+Convert natural language to regular expression.,"lines starting with a capital letter or the string 'dog', 4 or more times","(([A-Z])|((dog){4,}))(.*)"
+Convert natural language to regular expression.,"lines not having a letter, not a vowel, and not a lower-case letter",~(([A-Za-z])&([AEIOUaeiou])&([a-z]))
+Convert natural language to regular expression.,"lines ending with a letter, 6 or more times","((.*)([A-Za-z])){6,}"
+Convert natural language to regular expression.,lines containing a lower-case letter before the string 'dog' and the string 'truck',(.*[a-z].*).*((dog)&(truck)).*
+Convert natural language to regular expression.,"lines with words with ending with a character, 4 or more times","(\b(.*)(.)\b){4,}"
+Convert natural language to regular expression.,"lines containing the string 'dog' followed by a lower-case letter, zero or more times",.*(dog.*[a-z].*)*.*
+Convert natural language to regular expression.,"lines having the string 'dog', a letter, and the string 'truck' before the string 'ring'",((dog)&([A-Za-z])&(truck)).*(ring).*
+Convert natural language to regular expression.,"lines containing words with the string 'dog', the string 'truck', and the string 'ring'",.*\b(dog)&(truck)&(ring)\b.*
+Convert natural language to regular expression.,lines with a vowel before a character followed by a capital letter,([AEIOUaeiou]).*(..*[A-Z].*).*
+Convert natural language to regular expression.,lines with the string 'dog' before a lower-case letter followed by a number,(dog).*([a-z].*[0-9].*).*
+Convert natural language to regular expression.,lines with the string 'dog' before the string 'truck' and ending with the string 'ring',((dog).*(truck).*)&((.*)(ring))
+Convert natural language to regular expression.,"lines starting with words with a letter, 7 or more times","(\b([A-Za-z]){7,}\b)(.*)"
+Convert natural language to regular expression.,lines containing the string 'dog' and starting with a capital letter,.*(dog)&(([A-Z])(.*)).*
+Convert natural language to regular expression.,"lines with a letter before words with the string 'dog', zero or more times",([A-Za-z]).*(\b(dog)*\b).*
+Convert natural language to regular expression.,lines with a capital letter followed by the string 'dog' or a letter and a character,([A-Z].*dog.*)|(([A-Za-z])&(.))
+Convert natural language to regular expression.,"lines with words with the string 'dog' followed by a letter, zero or more times",(\bdog.*[A-Za-z].*\b)*
+Convert natural language to regular expression.,"lines ending with a vowel or the string 'dog', 3 or more times","((.*)(([AEIOUaeiou])|(dog))){3,}"
+Convert natural language to regular expression.,"lines with words with a number or a vowel, zero or more times",(\b([0-9])|([AEIOUaeiou])\b)*
+Convert natural language to regular expression.,"lines with words with the string 'dog' followed by a lower-case letter, 7 or more times","(\bdog.*[a-z].*\b){7,}"
+Convert natural language to regular expression.,lines not having a vowel followed by a letter at least once,~(([AEIOUaeiou].*[A-Za-z].*)+)
+Convert natural language to regular expression.,"lines not having a number, a character, or the string 'dog' before the string 'truck'",~((([0-9])|(.)|(dog)).*(truck).*)
+Convert natural language to regular expression.,"lines with words with a number before a vowel, zero or more times",\b([0-9]).*(([AEIOUaeiou])*).*\b
+Convert natural language to regular expression.,lines not having the string 'dog' at least once before a letter,(~((dog)+)).*([A-Za-z]).*
+Convert natural language to regular expression.,"lines with a number followed by a capital letter, zero or more times",([0-9].*[A-Z].*)*
+Convert natural language to regular expression.,lines containing a lower-case letter,.*[a-z].*
+Convert natural language to regular expression.,"lines containing a number, the string 'dog', and a letter",.*([0-9])&(dog)&([A-Za-z]).*
+Convert natural language to regular expression.,lines with the string 'dog' or the string 'truck' before a lower-case letter and a character,((dog)|(truck)).*(([a-z])&(.)).*
+Convert natural language to regular expression.,"lines with a number followed by a character, zero or more times",([0-9].*..*)*
+Convert natural language to regular expression.,"lines with a number before a lower-case letter, zero or more times",([0-9]).*(([a-z])*).*
+Convert natural language to regular expression.,"lines having a letter, the string 'dog', and a number before the string 'truck'",(([A-Za-z])&(dog)&([0-9])).*(truck).*
+Convert natural language to regular expression.,lines with a letter and the string 'dog' before the string 'truck',(([A-Za-z])&(dog)).*(truck).*
+Convert natural language to regular expression.,lines starting with words with a vowel and the string 'dog',(\b([AEIOUaeiou])&(dog)\b)(.*)
+Convert natural language to regular expression.,lines not starting with a character followed by a number,~((..*[0-9].*)(.*))
+Convert natural language to regular expression.,"lines having either a character, the string 'dog', or a capital letter before a vowel",((.)|(dog)|([A-Z])).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,"lines with a letter, 2 or more times and a lower-case letter followed by a capital letter","(([A-Za-z]){2,})&([a-z].*[A-Z].*)"
+Convert natural language to regular expression.,"lines with words with a vowel followed by a lower-case letter, zero or more times",\b([AEIOUaeiou].*[a-z].*)*\b
+Convert natural language to regular expression.,lines not starting with a letter,~(([A-Za-z])(.*))
+Convert natural language to regular expression.,lines with the string 'dog' before the string 'truck' or a number and the string 'ring',((dog).*(truck).*)|(([0-9])&(ring))
+Convert natural language to regular expression.,lines containing the string 'dog' or a vowel,.*(dog)|([AEIOUaeiou]).*
+Convert natural language to regular expression.,"lines having either a vowel, the string 'dog', or a letter before the string 'truck'",(([AEIOUaeiou])|(dog)|([A-Za-z])).*(truck).*
+Convert natural language to regular expression.,"lines with words with a character or the string 'dog', 6 or more times","(\b(.)|(dog)\b){6,}"
+Convert natural language to regular expression.,"lines containing ending with the string 'dog', 2 or more times",".*(.*)((dog){2,}).*"
+Convert natural language to regular expression.,"lines with words with either the string 'dog', a letter, or a number",\b(dog)|([A-Za-z])|([0-9])\b
+Convert natural language to regular expression.,lines with words that contain only a character or the string 'dog',\b(.)|(dog)\b
+Convert natural language to regular expression.,"lines with the string 'dog' before either the string 'truck', a letter, or a capital letter",(dog).*((truck)|([A-Za-z])|([A-Z])).*
+Convert natural language to regular expression.,lines with a number at least once and starting with the string 'dog',(([0-9])+)&((dog)(.*))
+Convert natural language to regular expression.,"lines having either a capital letter, a lower-case letter, or the string 'dog' before the string 'truck'",(([A-Z])|([a-z])|(dog)).*(truck).*
+Convert natural language to regular expression.,"lines with words with either a vowel, a lower-case letter, or a capital letter",\b([AEIOUaeiou])|([a-z])|([A-Z])\b
+Convert natural language to regular expression.,"lines with the string 'dog' before a vowel, a letter, and a number",(dog).*(([AEIOUaeiou])&([A-Za-z])&([0-9])).*
+Convert natural language to regular expression.,lines with words with the string 'dog' and a character,\b(dog)&(.)\b
+Convert natural language to regular expression.,"lines with a capital letter, 7 or more times","([A-Z]){7,}"
+Convert natural language to regular expression.,"lines with words with either a lower-case letter, a letter, or a character",\b([a-z])|([A-Za-z])|(.)\b
+Convert natural language to regular expression.,lines with words with the string 'dog' before containing the string 'truck',\b(dog).*(.*truck.*).*\b
+Convert natural language to regular expression.,"lines with a number or a vowel, zero or more times",(([0-9])|([AEIOUaeiou]))*
+Convert natural language to regular expression.,"lines with a letter before either a number, a lower-case letter, or a capital letter",([A-Za-z]).*(([0-9])|([a-z])|([A-Z])).*
+Convert natural language to regular expression.,lines with a lower-case letter at least once before a number or a character,(([a-z])+).*(([0-9])|(.)).*
+Convert natural language to regular expression.,"lines not having a lower-case letter, not a vowel, and not a letter",~(([a-z])&([AEIOUaeiou])&([A-Za-z]))
+Convert natural language to regular expression.,"lines with a capital letter before either the string 'dog', a vowel, or a character",([A-Z]).*((dog)|([AEIOUaeiou])|(.)).*
+Convert natural language to regular expression.,"lines with a capital letter or a lower-case letter, zero or more times",(([A-Z])|([a-z]))*
+Convert natural language to regular expression.,"lines starting with words with the string 'dog', 3 or more times","(\b(dog){3,}\b)(.*)"
+Convert natural language to regular expression.,lines not having a number before the string 'dog',(~([0-9])).*(dog).*
+Convert natural language to regular expression.,lines with a capital letter followed by a letter before a vowel,([A-Z].*[A-Za-z].*).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,"lines with a number at least once or either the string 'dog', a capital letter, or the string 'truck'",(([0-9])+)|((dog)|([A-Z])|(truck))
+Convert natural language to regular expression.,"lines with a capital letter or a vowel, 7 or more times","(([A-Z])|([AEIOUaeiou])){7,}"
+Convert natural language to regular expression.,lines with words that contain a lower-case letter or the string 'dog',\b(.*[a-z].*)|(dog)\b
+Convert natural language to regular expression.,lines with words with a capital letter followed by the string 'dog' before a character,\b([A-Z].*dog.*).*(.).*\b
+Convert natural language to regular expression.,"lines not having the string 'dog', not a vowel, and not a lower-case letter",~((dog)&([AEIOUaeiou])&([a-z]))
+Convert natural language to regular expression.,"lines with a letter followed by a vowel, 4 or more times","([A-Za-z].*[AEIOUaeiou].*){4,}"
+Convert natural language to regular expression.,lines not having a letter before a number,~(([A-Za-z]).*([0-9]).*)
+Convert natural language to regular expression.,lines with a capital letter or a vowel before a number,(([A-Z])|([AEIOUaeiou])).*([0-9]).*
+Convert natural language to regular expression.,"lines with a vowel before a character, the string 'dog', and a letter",([AEIOUaeiou]).*((.)&(dog)&([A-Za-z])).*
+Convert natural language to regular expression.,lines with a number before a lower-case letter or a capital letter,([0-9]).*(([a-z])|([A-Z])).*
+Convert natural language to regular expression.,lines ending with containing a character,(.*)(.*..*)
+Convert natural language to regular expression.,"lines containing a letter or the string 'dog', a capital letter, and the string 'truck'",.*([A-Za-z])|((dog)&([A-Z])&(truck)).*
+Convert natural language to regular expression.,lines with a capital letter followed by the string 'dog' and starting with the string 'truck',([A-Z].*dog.*)&((truck)(.*))
+Convert natural language to regular expression.,lines starting with a lower-case letter followed by a character or a vowel,(([a-z].*..*)|([AEIOUaeiou]))(.*)
+Convert natural language to regular expression.,"lines not having the string 'dog', 4 or more times","~((dog){4,})"
+Convert natural language to regular expression.,lines with a capital letter followed by the string 'dog' before a lower-case letter,([A-Z].*dog.*).*([a-z]).*
+Convert natural language to regular expression.,lines with a character at least once before a number,((.)+).*([0-9]).*
+Convert natural language to regular expression.,lines starting with a lower-case letter or a vowel,(([a-z])|([AEIOUaeiou]))(.*)
+Convert natural language to regular expression.,"lines with a lower-case letter followed by a number, 2 or more times","([a-z].*[0-9].*){2,}"
+Convert natural language to regular expression.,"lines containing either a capital letter, a character, or a number",.*([A-Z])|(.)|([0-9]).*
+Convert natural language to regular expression.,"lines not ending with the string 'dog', 7 or more times","~(((.*)(dog)){7,})"
+Convert natural language to regular expression.,"lines with words with a lower-case letter, a character, and the string 'dog'",\b([a-z])&(.)&(dog)\b
+Convert natural language to regular expression.,"lines with a number, zero or more times or containing the string 'dog'",(([0-9])*)|(.*dog.*)
+Convert natural language to regular expression.,"lines with the string 'dog' before a vowel, the string 'truck', and a capital letter",(dog).*(([AEIOUaeiou])&(truck)&([A-Z])).*
+Convert natural language to regular expression.,"lines starting with a number, 5 or more times","(([0-9]){5,})(.*)"
+Convert natural language to regular expression.,lines with a number before containing a lower-case letter,([0-9]).*(.*[a-z].*).*
+Convert natural language to regular expression.,"lines with words with a number, a vowel, and a letter",\b([0-9])&([AEIOUaeiou])&([A-Za-z])\b
+Convert natural language to regular expression.,"lines ending with a vowel, 6 or more times","((.*)([AEIOUaeiou])){6,}"
+Convert natural language to regular expression.,lines with words with a number followed by the string 'dog',\b[0-9].*dog.*\b
+Convert natural language to regular expression.,"lines with a capital letter, 3 or more times or containing the string 'dog'","(([A-Z]){3,})|(.*dog.*)"
+Convert natural language to regular expression.,lines containing words with ending with a lower-case letter,.*\b(.*)([a-z])\b.*
+Convert natural language to regular expression.,lines not having the string 'dog' or a number before a lower-case letter,~(((dog)|([0-9])).*([a-z]).*)
+Convert natural language to regular expression.,lines starting with a capital letter followed by a character at least once,(([A-Z].*..*)(.*))+
+Convert natural language to regular expression.,lines with a number followed by the string 'dog' before a vowel,([0-9].*dog.*).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,"lines having either a vowel, the string 'dog', or a character before the string 'truck'",(([AEIOUaeiou])|(dog)|(.)).*(truck).*
+Convert natural language to regular expression.,"lines having either a lower-case letter, a letter, or the string 'dog' before the string 'truck'",(([a-z])|([A-Za-z])|(dog)).*(truck).*
+Convert natural language to regular expression.,lines with words with a capital letter followed by a lower-case letter,\b[A-Z].*[a-z].*\b
+Convert natural language to regular expression.,lines containing containing only a capital letter at least once,.*([A-Z])+.*
+Convert natural language to regular expression.,"lines with the string 'dog' or a character, 4 or more times","((dog)|(.)){4,}"
+Convert natural language to regular expression.,lines with a vowel before the string 'dog' and a letter,([AEIOUaeiou]).*((dog)&([A-Za-z])).*
+Convert natural language to regular expression.,lines with the string 'dog' and a vowel before the string 'truck',((dog)&([AEIOUaeiou])).*(truck).*
+Convert natural language to regular expression.,lines containing ending with a lower-case letter followed by a letter,.*(.*)([a-z].*[A-Za-z].*).*
+Convert natural language to regular expression.,lines with words with the string 'dog' before a lower-case letter or a letter,\b((dog).*([a-z]).*)|([A-Za-z])\b
+Convert natural language to regular expression.,"lines with a character, 7 or more times before a letter","((.){7,}).*([A-Za-z]).*"
+Convert natural language to regular expression.,lines with a character before not a capital letter,(.).*(~([A-Z])).*
+Convert natural language to regular expression.,lines with a character and the string 'dog' before a capital letter,((.)&(dog)).*([A-Z]).*
+Convert natural language to regular expression.,"lines not having a number, a lower-case letter, or the string 'dog'",~(([0-9])|([a-z])|(dog))
+Convert natural language to regular expression.,lines not words with a letter at least once,~(\b([A-Za-z])+\b)
+Convert natural language to regular expression.,"lines having the string 'dog', a number, and the string 'truck' before the string 'ring'",((dog)&([0-9])&(truck)).*(ring).*
+Convert natural language to regular expression.,"lines with words that don't the string 'dog', the string 'truck', or a character",\b~((dog)|(truck)|(.))\b
+Convert natural language to regular expression.,"lines with the string 'dog' or containing only the string 'truck', zero or more times",((dog)|(truck))*
+Convert natural language to regular expression.,"lines having a number, a lower-case letter, and a vowel before a capital letter",(([0-9])&([a-z])&([AEIOUaeiou])).*([A-Z]).*
+Convert natural language to regular expression.,"lines with a capital letter followed by a number, 4 or more times","([A-Z].*[0-9].*){4,}"
+Convert natural language to regular expression.,"lines not words with the string 'dog', 5 or more times","~(\b(dog){5,}\b)"
+Convert natural language to regular expression.,"lines with the string 'dog' followed by the string 'truck', 6 or more times","(dog.*truck.*){6,}"
+Convert natural language to regular expression.,lines not having the string 'dog' followed by the string 'truck' before a lower-case letter,~((dog.*truck.*).*([a-z]).*)
+Convert natural language to regular expression.,lines containing containing only a letter at least once,(.*[A-Za-z].*)+
+Convert natural language to regular expression.,lines ending with a lower-case letter,(.*)([a-z])
+Convert natural language to regular expression.,"lines with the string 'dog', zero or more times or not the string 'truck'",((dog)*)|(~(truck))
+Convert natural language to regular expression.,"lines having a character, the string 'dog', and a letter before a number",((.)&(dog)&([A-Za-z])).*([0-9]).*
+Convert natural language to regular expression.,lines with words that don't ending with the string 'dog',\b~((.*)(dog))\b
+Convert natural language to regular expression.,"lines ending with a capital letter, 5 or more times","(.*)(([A-Z]){5,})"
+Convert natural language to regular expression.,"lines with words with a vowel, a number, and a letter",\b([AEIOUaeiou])&([0-9])&([A-Za-z])\b
+Convert natural language to regular expression.,"lines with a number or the string 'dog', 7 or more times","(([0-9])|(dog)){7,}"
+Convert natural language to regular expression.,"lines containing containing only a number, 2 or more times","(.*[0-9].*){2,}"
+Convert natural language to regular expression.,"lines having either a lower-case letter, a capital letter, or a number before a vowel",(([a-z])|([A-Z])|([0-9])).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,"lines ending with the string 'dog' followed by a character, 4 or more times","(.*)((dog.*..*){4,})"
+Convert natural language to regular expression.,"lines with the string 'dog' or the string 'truck', 3 or more times before a character","(((dog)|(truck)){3,}).*(.).*"
+Convert natural language to regular expression.,lines with a number before the string 'dog' and a character,([0-9]).*((dog)&(.)).*
+Convert natural language to regular expression.,lines not having a letter before a number followed by the string 'dog',(~([A-Za-z])).*([0-9].*dog.*).*
+Convert natural language to regular expression.,"lines with the string 'dog' before a lower-case letter, the string 'truck', and a number",(dog).*(([a-z])&(truck)&([0-9])).*
+Convert natural language to regular expression.,lines ending with the string 'dog' or a character,(.*)((dog)|(.))
+Convert natural language to regular expression.,lines with a capital letter and a lower-case letter before the string 'dog',(([A-Z])&([a-z])).*(dog).*
+Convert natural language to regular expression.,lines with the string 'dog' and a character or the string 'truck' at least once,(((dog)&(.))|(truck))+
+Convert natural language to regular expression.,"lines with words with ending with a letter, 4 or more times","(\b(.*)([A-Za-z])\b){4,}"
+Convert natural language to regular expression.,lines with words with a character or a capital letter,\b(.)|([A-Z])\b
+Convert natural language to regular expression.,lines with words with the string 'dog' at least once or the string 'truck',\b((dog)+)|(truck)\b
+Convert natural language to regular expression.,"lines having a number, a character, and a letter before the string 'dog'",(([0-9])&(.)&([A-Za-z])).*(dog).*
+Convert natural language to regular expression.,lines with words with a letter followed by a capital letter,\b[A-Za-z].*[A-Z].*\b
+Convert natural language to regular expression.,lines with words with starting with a lower-case letter,\b([a-z])(.*)\b
+Convert natural language to regular expression.,"lines with a letter before a number, a character, and a vowel",([A-Za-z]).*(([0-9])&(.)&([AEIOUaeiou])).*
+Convert natural language to regular expression.,"lines ending with a character before either the string 'dog', a number, or the string 'truck'",((.*)(.)).*((dog)|([0-9])|(truck)).*
+Convert natural language to regular expression.,"lines with words with a capital letter followed by a character, zero or more times",(\b[A-Z].*..*\b)*
+Convert natural language to regular expression.,"lines with a capital letter followed by a letter, 5 or more times","([A-Z].*[A-Za-z].*){5,}"
+Convert natural language to regular expression.,"lines with a number, 6 or more times or the string 'dog' and a letter","(([0-9]){6,})|((dog)&([A-Za-z]))"
+Convert natural language to regular expression.,lines with the string 'dog' or the string 'truck' at least once before the string 'ring',(((dog)|(truck))+).*(ring).*
+Convert natural language to regular expression.,"lines with a capital letter before a lower-case letter, zero or more times",([A-Z]).*(([a-z])*).*
+Convert natural language to regular expression.,lines with a lower-case letter before the string 'dog' or ending with a number,(([a-z]).*(dog).*)|((.*)([0-9]))
+Convert natural language to regular expression.,"lines containing a lower-case letter, a capital letter, and the string 'dog'",.*([a-z])&([A-Z])&(dog).*
+Convert natural language to regular expression.,"lines with words with the string 'dog', a number, and a vowel",\b(dog)&([0-9])&([AEIOUaeiou])\b
+Convert natural language to regular expression.,lines with words with the string 'dog' or the string 'truck' before the string 'ring',\b((dog)|(truck)).*(ring).*\b
+Convert natural language to regular expression.,"lines with words with the string 'dog' before a vowel, 3 or more times","(\b(dog).*([AEIOUaeiou]).*\b){3,}"
+Convert natural language to regular expression.,"lines containing a capital letter, 3 or more times","(.*[A-Z].*){3,}"
+Convert natural language to regular expression.,lines starting with a letter and a vowel followed by the string 'dog',(([A-Za-z])(.*))&([AEIOUaeiou].*dog.*)
+Convert natural language to regular expression.,"lines with a capital letter before the string 'dog' or a character, 2 or more times","(([A-Z]).*(dog).*)|((.){2,})"
+Convert natural language to regular expression.,"lines with a vowel, zero or more times before the string 'dog'",(([AEIOUaeiou])*).*(dog).*
+Convert natural language to regular expression.,lines with words with ending with containing a lower-case letter,\b(.*)(.*[a-z].*)\b
+Convert natural language to regular expression.,lines with a letter before containing the string 'dog' or a character,([A-Za-z]).*(.*(dog)|(.).*).*
+Convert natural language to regular expression.,lines starting with a letter at least once before a capital letter,((([A-Za-z])+)(.*)).*([A-Z]).*
+Convert natural language to regular expression.,lines with words with ending with a capital letter and the string 'dog',\b((.*)([A-Z]))&(dog)\b
+Convert natural language to regular expression.,"lines having either the string 'dog', a vowel, or a capital letter before a character",((dog)|([AEIOUaeiou])|([A-Z])).*(.).*
+Convert natural language to regular expression.,lines not having a character or a capital letter,~((.)|([A-Z]))
+Convert natural language to regular expression.,"lines not containing a capital letter, the string 'dog', or a character",~(.*([A-Z])|(dog)|(.).*)
+Convert natural language to regular expression.,lines ending with a number or a character at least once,(((.*)([0-9]))|(.))+
+Convert natural language to regular expression.,"lines not having a character, a letter, or a lower-case letter",~((.)|([A-Za-z])|([a-z]))
+Convert natural language to regular expression.,"lines with a letter, 7 or more times before a lower-case letter","(([A-Za-z]){7,}).*([a-z]).*"
+Convert natural language to regular expression.,"lines with the string 'dog' followed by the string 'truck', 3 or more times","(dog.*truck.*){3,}"
+Convert natural language to regular expression.,"lines containing either a letter, a lower-case letter, or a number",.*([A-Za-z])|([a-z])|([0-9]).*
+Convert natural language to regular expression.,"lines with a lower-case letter or a number, 4 or more times","(([a-z])|([0-9])){4,}"
+Convert natural language to regular expression.,lines starting with a capital letter followed by a letter,([A-Z].*[A-Za-z].*)(.*)
+Convert natural language to regular expression.,"lines with words with a character or a number, 3 or more times","\b((.)|([0-9])){3,}\b"
+Convert natural language to regular expression.,lines with words with the string 'dog' before ending with a lower-case letter,\b(dog).*((.*)([a-z])).*\b
+Convert natural language to regular expression.,"lines starting with a character, 3 or more times","((.){3,})(.*)"
+Convert natural language to regular expression.,lines with words with ending with the string 'dog' at least once,\b((.*)(dog))+\b
+Convert natural language to regular expression.,lines not containing the string 'dog' or a lower-case letter,~((.*dog.*)|([a-z]))
+Convert natural language to regular expression.,"lines with words with ending with a letter, 3 or more times","\b((.*)([A-Za-z])){3,}\b"
+Convert natural language to regular expression.,"lines containing a lower-case letter and a capital letter, zero or more times",(.*([a-z])&([A-Z]).*)*
+Convert natural language to regular expression.,lines with the string 'dog' or the string 'truck' before a lower-case letter and the string 'ring',((dog)|(truck)).*(([a-z])&(ring)).*
+Convert natural language to regular expression.,lines with a lower-case letter and a letter before a character followed by the string 'dog',(([a-z])&([A-Za-z])).*(..*dog.*).*
+Convert natural language to regular expression.,"lines containing either a lower-case letter, a capital letter, or a number",.*([a-z])|([A-Z])|([0-9]).*
+Convert natural language to regular expression.,"lines with words with the string 'dog', a lower-case letter, and a capital letter",\b(dog)&([a-z])&([A-Z])\b
+Convert natural language to regular expression.,lines with a capital letter at least once before containing a lower-case letter,(([A-Z])+).*(.*[a-z].*).*
+Convert natural language to regular expression.,lines starting with a character before a vowel at least once,((.)(.*)).*(([AEIOUaeiou])+).*
+Convert natural language to regular expression.,"lines with a character or a capital letter, 4 or more times","((.)|([A-Z])){4,}"
+Convert natural language to regular expression.,lines not having the string 'dog' or a character followed by a letter,(~(dog))|(..*[A-Za-z].*)
+Convert natural language to regular expression.,"lines not having the string 'dog', not a character, and not the string 'truck'",~((dog)&(.)&(truck))
+Convert natural language to regular expression.,lines with a lower-case letter followed by a number before not the string 'dog',([a-z].*[0-9].*).*(~(dog)).*
+Convert natural language to regular expression.,"lines having a letter, a lower-case letter, and the string 'dog' before a capital letter",(([A-Za-z])&([a-z])&(dog)).*([A-Z]).*
+Convert natural language to regular expression.,lines with words with a lower-case letter before containing the string 'dog',\b([a-z]).*(.*dog.*).*\b
+Convert natural language to regular expression.,"lines with words with a character or the string 'dog', 5 or more times","(\b(.)|(dog)\b){5,}"
+Convert natural language to regular expression.,lines with a vowel before a lower-case letter and a number followed by a character,(([AEIOUaeiou]).*([a-z]).*)&([0-9].*..*)
+Convert natural language to regular expression.,"lines with the string 'dog' or starting with the string 'truck', zero or more times",((dog)|((truck)(.*)))*
+Convert natural language to regular expression.,"lines ending with containing only a character, 7 or more times","(.*)((.){7,})"
+Convert natural language to regular expression.,"lines not having a lower-case letter, not a character, and not the string 'dog'",~(([a-z])&(.)&(dog))
+Convert natural language to regular expression.,lines starting with a vowel before the string 'dog',(([AEIOUaeiou])(.*)).*(dog).*
+Convert natural language to regular expression.,"lines having either the string 'dog', a capital letter, or a number before a character",((dog)|([A-Z])|([0-9])).*(.).*
+Convert natural language to regular expression.,lines with a character before a number followed by a capital letter,(.).*([0-9].*[A-Z].*).*
+Convert natural language to regular expression.,lines containing words with ending with the string 'dog',.*\b(.*)(dog)\b.*
+Convert natural language to regular expression.,"lines not having a lower-case letter, a capital letter, or the string 'dog'",~(([a-z])|([A-Z])|(dog))
+Convert natural language to regular expression.,"lines having either a vowel, the string 'dog', or a number before a capital letter",(([AEIOUaeiou])|(dog)|([0-9])).*([A-Z]).*
+Convert natural language to regular expression.,"lines with words with the string 'dog' before the string 'truck', 3 or more times","\b(dog).*((truck){3,}).*\b"
+Convert natural language to regular expression.,"lines having a lower-case letter, a capital letter, and a letter before a vowel",(([a-z])&([A-Z])&([A-Za-z])).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,lines ending with a lower-case letter and a character followed by the string 'dog',((.*)([a-z]))&(..*dog.*)
+Convert natural language to regular expression.,lines with a capital letter before the string 'dog' and a lower-case letter,([A-Z]).*((dog)&([a-z])).*
+Convert natural language to regular expression.,"lines having either a capital letter, a vowel, or the string 'dog' before a letter",(([A-Z])|([AEIOUaeiou])|(dog)).*([A-Za-z]).*
+Convert natural language to regular expression.,lines not containing only a lower-case letter and not the string 'dog',~(([a-z])&(dog))
+Convert natural language to regular expression.,"lines not having a letter, not the string 'dog', and not the string 'truck'",~(([A-Za-z])&(dog)&(truck))
+Convert natural language to regular expression.,"lines containing a character or a number, 2 or more times","(.*(.)|([0-9]).*){2,}"
+Convert natural language to regular expression.,"lines with words with the string 'dog' before a lower-case letter, zero or more times",(\b(dog).*([a-z]).*\b)*
+Convert natural language to regular expression.,"lines containing a number, the string 'dog', and a capital letter",.*([0-9])&(dog)&([A-Z]).*
+Convert natural language to regular expression.,"lines having either the string 'dog', a number, or a lower-case letter before a character",((dog)|([0-9])|([a-z])).*(.).*
+Convert natural language to regular expression.,lines with a lower-case letter followed by a letter before a character,([a-z].*[A-Za-z].*).*(.).*
+Convert natural language to regular expression.,lines ending with words that contain only a capital letter,(.*)(\b[A-Z]\b)
+Convert natural language to regular expression.,lines not having a capital letter and not a lower-case letter,~(([A-Z])&([a-z]))
+Convert natural language to regular expression.,"lines with words with either a lower-case letter, the string 'dog', or the string 'truck'",\b([a-z])|(dog)|(truck)\b
+Convert natural language to regular expression.,"lines with words with a vowel, the string 'dog', and the string 'truck' and the string 'ring'",\b(([AEIOUaeiou])&(dog)&(truck))&(ring)\b
+Convert natural language to regular expression.,"lines with a vowel, zero or more times",([AEIOUaeiou])*
+Convert natural language to regular expression.,lines with words with the string 'dog' or the string 'truck' at least once,\b((dog)|(truck))+\b
+Convert natural language to regular expression.,lines with words with the string 'dog' before a vowel or a character,\b((dog).*([AEIOUaeiou]).*)|(.)\b
+Convert natural language to regular expression.,lines ending with a letter or a lower-case letter before the string 'dog',((.*)([A-Za-z]))|(([a-z]).*(dog).*)
+Convert natural language to regular expression.,lines containing the string 'dog' and a capital letter,.*(dog)&([A-Z]).*
+Convert natural language to regular expression.,"lines containing either a lower-case letter, a vowel, or a character",.*([a-z])|([AEIOUaeiou])|(.).*
+Convert natural language to regular expression.,"lines having either a number, a vowel, or the string 'dog' before a lower-case letter",(([0-9])|([AEIOUaeiou])|(dog)).*([a-z]).*
+Convert natural language to regular expression.,lines ending with containing a number,(.*)(.*[0-9].*)
+Convert natural language to regular expression.,lines with a character before a letter at least once,(.).*(([A-Za-z])+).*
+Convert natural language to regular expression.,lines not words that contain a capital letter,~(\b.*[A-Z].*\b)
+Convert natural language to regular expression.,"lines with a number before a character, a capital letter, and the string 'dog'",([0-9]).*((.)&([A-Z])&(dog)).*
+Convert natural language to regular expression.,"lines with words with a character before a letter, zero or more times",\b(.).*(([A-Za-z])*).*\b
+Convert natural language to regular expression.,lines with a character before a vowel or a letter,(.).*(([AEIOUaeiou])|([A-Za-z])).*
+Convert natural language to regular expression.,"lines with a vowel, zero or more times or the string 'dog', the string 'truck', and a number",(([AEIOUaeiou])*)|((dog)&(truck)&([0-9]))
+Convert natural language to regular expression.,lines with words with the string 'dog' before a character or a capital letter,\b(dog).*((.)|([A-Z])).*\b
+Convert natural language to regular expression.,lines with a number or the string 'dog' before a character,(([0-9])|(dog)).*(.).*
+Convert natural language to regular expression.,lines ending with words with a letter and a number,(.*)(\b([A-Za-z])&([0-9])\b)
+Convert natural language to regular expression.,lines with words with a letter before the string 'dog',\b([A-Za-z]).*(dog).*\b
+Convert natural language to regular expression.,lines with the string 'dog' before a letter followed by a lower-case letter,(dog).*([A-Za-z].*[a-z].*).*
+Convert natural language to regular expression.,"lines with a capital letter, 5 or more times before a number","(([A-Z]){5,}).*([0-9]).*"
+Convert natural language to regular expression.,"lines having either a character, a number, or the string 'dog' before a letter",((.)|([0-9])|(dog)).*([A-Za-z]).*
+Convert natural language to regular expression.,"lines containing a capital letter before a number, 7 or more times",".*([A-Z]).*(([0-9]){7,}).*.*"
+Convert natural language to regular expression.,lines with words with a capital letter followed by a letter,\b[A-Z].*[A-Za-z].*\b
+Convert natural language to regular expression.,"lines with a capital letter before either a character, a lower-case letter, or the string 'dog'",([A-Z]).*((.)|([a-z])|(dog)).*
+Convert natural language to regular expression.,lines with the string 'dog' before a letter followed by a vowel,(dog).*([A-Za-z].*[AEIOUaeiou].*).*
+Convert natural language to regular expression.,lines with a number before the string 'dog' followed by a letter,([0-9]).*(dog.*[A-Za-z].*).*
+Convert natural language to regular expression.,"lines having a character, the string 'dog', and a vowel before a capital letter",((.)&(dog)&([AEIOUaeiou])).*([A-Z]).*
+Convert natural language to regular expression.,lines with the string 'dog' before not a capital letter,(dog).*(~([A-Z])).*
+Convert natural language to regular expression.,lines with a capital letter at least once before the string 'dog' or a lower-case letter,(([A-Z])+).*((dog)|([a-z])).*
+Convert natural language to regular expression.,"lines with a character or the string 'dog', zero or more times",((.)|(dog))*
+Convert natural language to regular expression.,lines ending with not containing a lower-case letter,(.*)(.*~([a-z]).*)
+Convert natural language to regular expression.,"lines with words with a number, the string 'dog', and the string 'truck'",\b([0-9])&(dog)&(truck)\b
+Convert natural language to regular expression.,"lines with the string 'dog' before either a vowel, a lower-case letter, or a character",(dog).*(([AEIOUaeiou])|([a-z])|(.)).*
+Convert natural language to regular expression.,lines with words with starting with a number before a capital letter,\b(([0-9])(.*)).*([A-Z]).*\b
+Convert natural language to regular expression.,lines not containing the string 'dog' followed by a capital letter,.*~(dog.*[A-Z].*).*
+Convert natural language to regular expression.,"lines not having the string 'dog' or the string 'truck', 5 or more times","(~(dog))|((truck){5,})"
+Convert natural language to regular expression.,lines with words with a letter or a capital letter at least once,(\b([A-Za-z])|([A-Z])\b)+
+Convert natural language to regular expression.,"lines with words with either a capital letter, a lower-case letter, or the string 'dog' and the string 'truck'",\b(([A-Z])|([a-z])|(dog))&(truck)\b
+Convert natural language to regular expression.,lines ending with a lower-case letter followed by the string 'dog' at least once,(.*)(([a-z].*dog.*)+)
+Convert natural language to regular expression.,lines with a lower-case letter followed by a letter before the string 'dog',([a-z].*[A-Za-z].*).*(dog).*
+Convert natural language to regular expression.,lines with a vowel before a number or the string 'dog',([AEIOUaeiou]).*(([0-9])|(dog)).*
+Convert natural language to regular expression.,lines containing a vowel before a letter,.*([AEIOUaeiou]).*([A-Za-z]).*.*
+Convert natural language to regular expression.,lines ending with words with a character and a letter,(.*)(\b(.)&([A-Za-z])\b)
+Convert natural language to regular expression.,lines with a vowel or a capital letter before the string 'dog',(([AEIOUaeiou])|([A-Z])).*(dog).*
+Convert natural language to regular expression.,"lines with words with either a number, a vowel, or a character",\b([0-9])|([AEIOUaeiou])|(.)\b
+Convert natural language to regular expression.,"lines not having a number, a lower-case letter, or a character",~(([0-9])|([a-z])|(.))
+Convert natural language to regular expression.,lines with a letter before containing a character,([A-Za-z]).*(.*..*).*
+Convert natural language to regular expression.,"lines having either the string 'dog', the string 'truck', or a lower-case letter before the string 'ring'",((dog)|(truck)|([a-z])).*(ring).*
+Convert natural language to regular expression.,lines not having a character followed by a capital letter,~(..*[A-Z].*)
+Convert natural language to regular expression.,"lines with a vowel, 2 or more times","([AEIOUaeiou]){2,}"
+Convert natural language to regular expression.,lines containing a lower-case letter or a number,.*([a-z])|([0-9]).*
+Convert natural language to regular expression.,lines with a letter before a lower-case letter followed by a capital letter,([A-Za-z]).*([a-z].*[A-Z].*).*
+Convert natural language to regular expression.,"lines with a number before a vowel, 3 or more times","([0-9]).*(([AEIOUaeiou]){3,}).*"
+Convert natural language to regular expression.,lines with words with a lower-case letter or ending with the string 'dog',\b([a-z])|((.*)(dog))\b
+Convert natural language to regular expression.,"lines not having a vowel, not a number, and not a lower-case letter",~(([AEIOUaeiou])&([0-9])&([a-z]))
+Convert natural language to regular expression.,lines containing only a capital letter,[A-Z]
+Convert natural language to regular expression.,"lines not having a capital letter, a vowel, or a character",~(([A-Z])|([AEIOUaeiou])|(.))
+Convert natural language to regular expression.,"lines containing a number, a lower-case letter, and the string 'dog'",.*([0-9])&([a-z])&(dog).*
+Convert natural language to regular expression.,lines not having a letter before a vowel,(~([A-Za-z])).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,lines with the string 'dog' at least once and a capital letter or the string 'truck',((dog)+)&(([A-Z])|(truck))
+Convert natural language to regular expression.,"lines not having a vowel, 6 or more times","~(([AEIOUaeiou]){6,})"
+Convert natural language to regular expression.,"lines with words with the string 'dog', a number, and a lower-case letter",\b(dog)&([0-9])&([a-z])\b
+Convert natural language to regular expression.,"lines with a character followed by a vowel, 5 or more times","(..*[AEIOUaeiou].*){5,}"
+Convert natural language to regular expression.,lines ending with a number before a character at least once,((.*)([0-9])).*((.)+).*
+Convert natural language to regular expression.,lines starting with the string 'dog' or a lower-case letter,((dog)|([a-z]))(.*)
+Convert natural language to regular expression.,"lines with a character or a number, zero or more times",((.)|([0-9]))*
+Convert natural language to regular expression.,"lines with the string 'dog' before words with a lower-case letter, zero or more times",(dog).*(\b([a-z])*\b).*
+Convert natural language to regular expression.,"lines with words with starting with a capital letter, 7 or more times","\b(([A-Z]){7,})(.*)\b"
+Convert natural language to regular expression.,"lines not having a lower-case letter followed by a letter, zero or more times",~(([a-z].*[A-Za-z].*)*)
+Convert natural language to regular expression.,"lines with words with either a character, a lower-case letter, or the string 'dog'",\b(.)|([a-z])|(dog)\b
+Convert natural language to regular expression.,lines not having the string 'dog' or the string 'truck' before the string 'ring',~(((dog)|(truck)).*(ring).*)
+Convert natural language to regular expression.,lines not having the string 'dog' at least once and not the string 'truck',~(((dog)+)&(truck))
+Convert natural language to regular expression.,lines with words that contain the string 'dog' before a capital letter,\b(.*dog.*).*([A-Z]).*\b
+Convert natural language to regular expression.,"lines having the string 'dog', the string 'truck', and the string 'ring' before a vowel",((dog)&(truck)&(ring)).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,lines not containing only a number or a letter,~(([0-9])|([A-Za-z]))
+Convert natural language to regular expression.,"lines with the string 'dog' before a number, the string 'truck', and the string 'ring'",(dog).*(([0-9])&(truck)&(ring)).*
+Convert natural language to regular expression.,lines with words with a number and a letter,\b([0-9])&([A-Za-z])\b
+Convert natural language to regular expression.,"lines with the string 'dog', zero or more times before a capital letter",((dog)*).*([A-Z]).*
+Convert natural language to regular expression.,lines not having a letter before a number and not a vowel,~((([A-Za-z]).*([0-9]).*)&([AEIOUaeiou]))
+Convert natural language to regular expression.,lines with the string 'dog' at least once or containing a letter,((dog)+)|(.*[A-Za-z].*)
+Convert natural language to regular expression.,"lines having a vowel, a capital letter, and a letter before the string 'dog'",(([AEIOUaeiou])&([A-Z])&([A-Za-z])).*(dog).*
+Convert natural language to regular expression.,"lines not having a letter, the string 'dog', or a vowel",~(([A-Za-z])|(dog)|([AEIOUaeiou]))
+Convert natural language to regular expression.,"lines with a character followed by a number or a capital letter, zero or more times",(..*[0-9].*)|(([A-Z])*)
+Convert natural language to regular expression.,"lines with a number, 6 or more times before a lower-case letter","(([0-9]){6,}).*([a-z]).*"
+Convert natural language to regular expression.,lines with the string 'dog' and a lower-case letter before the string 'truck',((dog)&([a-z])).*(truck).*
+Convert natural language to regular expression.,lines ending with words with a lower-case letter followed by the string 'dog',(.*)(\b[a-z].*dog.*\b)
+Convert natural language to regular expression.,lines containing a lower-case letter or a capital letter at least once,((.*[a-z].*)|([A-Z]))+
+Convert natural language to regular expression.,lines with words with the string 'dog' followed by a letter and the string 'truck',\b(dog.*[A-Za-z].*)&(truck)\b
+Convert natural language to regular expression.,"lines with the string 'dog' followed by the string 'truck' and the string 'ring', the string 'lake', and a lower-case letter",(dog.*truck.*)&((ring)&(lake)&([a-z]))
+Convert natural language to regular expression.,lines ending with a number followed by a capital letter or the string 'dog',(.*)(([0-9].*[A-Z].*)|(dog))
+Convert natural language to regular expression.,lines starting with a letter or a capital letter,(([A-Za-z])|([A-Z]))(.*)
+Convert natural language to regular expression.,lines with a number before a vowel or a capital letter,([0-9]).*(([AEIOUaeiou])|([A-Z])).*
+Convert natural language to regular expression.,lines with a character before the string 'dog' followed by a vowel,(.).*(dog.*[AEIOUaeiou].*).*
+Convert natural language to regular expression.,"lines containing either a letter, the string 'dog', or a lower-case letter",.*([A-Za-z])|(dog)|([a-z]).*
+Convert natural language to regular expression.,"lines with words with the string 'dog', a capital letter, and a vowel",\b(dog)&([A-Z])&([AEIOUaeiou])\b
+Convert natural language to regular expression.,lines with the string 'dog' before ending with a capital letter,(dog).*((.*)([A-Z])).*
+Convert natural language to regular expression.,lines ending with containing a character at least once,(.*)((.*..*)+)
+Convert natural language to regular expression.,lines with a vowel and a letter before a number,(([AEIOUaeiou])&([A-Za-z])).*([0-9]).*
+Convert natural language to regular expression.,lines with words with a number followed by a character,\b[0-9].*..*\b
+Convert natural language to regular expression.,"lines not having the string 'dog', a character, or the string 'truck'",~((dog)|(.)|(truck))
+Convert natural language to regular expression.,lines with a vowel before the string 'dog' and a number,([AEIOUaeiou]).*((dog)&([0-9])).*
+Convert natural language to regular expression.,lines ending with the string 'dog' and a vowel or a character,(.*)(((dog)&([AEIOUaeiou]))|(.))
+Convert natural language to regular expression.,lines not having the string 'dog' followed by a letter at least once,~((dog.*[A-Za-z].*)+)
+Convert natural language to regular expression.,lines with words with a letter and a character at least once,(\b([A-Za-z])&(.)\b)+
+Convert natural language to regular expression.,lines starting with a capital letter or containing the string 'dog',(([A-Z])|(.*dog.*))(.*)
+Convert natural language to regular expression.,lines with a vowel followed by a character at least once,([AEIOUaeiou].*..*)+
+Convert natural language to regular expression.,lines not words with a capital letter at least once,~(\b([A-Z])+\b)
+Convert natural language to regular expression.,"lines with a capital letter before the string 'dog', a number, and a letter",([A-Z]).*((dog)&([0-9])&([A-Za-z])).*
+Convert natural language to regular expression.,lines not starting with the string 'dog' at least once,~(((dog)+)(.*))
+Convert natural language to regular expression.,"lines with the string 'dog', 5 or more times and ending with a letter","((dog){5,})&((.*)([A-Za-z]))"
+Convert natural language to regular expression.,lines with a letter and a character before a number,(([A-Za-z])&(.)).*([0-9]).*
+Convert natural language to regular expression.,lines with a number or a vowel before a letter,(([0-9])|([AEIOUaeiou])).*([A-Za-z]).*
+Convert natural language to regular expression.,"lines with words with a character, the string 'dog', and the string 'truck'",\b(.)&(dog)&(truck)\b
+Convert natural language to regular expression.,"lines with words with a letter, the string 'dog', and a number",\b([A-Za-z])&(dog)&([0-9])\b
+Convert natural language to regular expression.,lines ending with a lower-case letter followed by a letter,(.*)([a-z].*[A-Za-z].*)
+Convert natural language to regular expression.,lines with the string 'dog' followed by a capital letter before a number,(dog.*[A-Z].*).*([0-9]).*
+Convert natural language to regular expression.,lines not having a character before the string 'dog' and not the string 'truck',~(((.).*(dog).*)&(truck))
+Convert natural language to regular expression.,"lines with the string 'dog' before a number, 3 or more times","(dog).*(([0-9]){3,}).*"
+Convert natural language to regular expression.,lines ending with words with the string 'dog' and a vowel,(.*)(\b(dog)&([AEIOUaeiou])\b)
+Convert natural language to regular expression.,lines with words with a number or a vowel,\b([0-9])|([AEIOUaeiou])\b
+Convert natural language to regular expression.,"lines not having a character, a vowel, or a number",~((.)|([AEIOUaeiou])|([0-9]))
+Convert natural language to regular expression.,lines ending with containing the string 'dog' and a vowel,(.*)(.*(dog)&([AEIOUaeiou]).*)
+Convert natural language to regular expression.,"lines with a vowel before a letter, 7 or more times","([AEIOUaeiou]).*(([A-Za-z]){7,}).*"
+Convert natural language to regular expression.,lines containing a vowel or a lower-case letter at least once,(.*[AEIOUaeiou].*)|(([a-z])+)
+Convert natural language to regular expression.,"lines containing a number before a vowel, 7 or more times","(.*([0-9]).*([AEIOUaeiou]).*.*){7,}"
+Convert natural language to regular expression.,lines starting with a vowel or containing the string 'dog',(([AEIOUaeiou])(.*))|(.*dog.*)
+Convert natural language to regular expression.,lines containing ending with the string 'dog' or a capital letter,.*(.*)((dog)|([A-Z])).*
+Convert natural language to regular expression.,lines with a number and a lower-case letter before the string 'dog',(([0-9])&([a-z])).*(dog).*
+Convert natural language to regular expression.,"lines with words with either a letter, the string 'dog', or the string 'truck'",\b([A-Za-z])|(dog)|(truck)\b
+Convert natural language to regular expression.,"lines with a character or a lower-case letter, 3 or more times","((.)|([a-z])){3,}"
+Convert natural language to regular expression.,"lines with words with either the string 'dog', a character, or a capital letter, 6 or more times","(\b(dog)|(.)|([A-Z])\b){6,}"
+Convert natural language to regular expression.,lines with the string 'dog' before words with a capital letter and a letter,(dog).*(\b([A-Z])&([A-Za-z])\b).*
+Convert natural language to regular expression.,lines with a character followed by the string 'dog' before a lower-case letter or a vowel,(..*dog.*).*(([a-z])|([AEIOUaeiou])).*
+Convert natural language to regular expression.,lines with a letter before containing the string 'dog',([A-Za-z]).*(.*dog.*).*
+Convert natural language to regular expression.,"lines not having a number, 6 or more times","~(([0-9]){6,})"
+Convert natural language to regular expression.,"lines containing the string 'dog' or the string 'truck', 2 or more times","(.*dog.*)|((truck){2,})"
+Convert natural language to regular expression.,lines with words that don't have a character at least once,(\b~(.)\b)+
+Convert natural language to regular expression.,lines with a lower-case letter before the string 'dog' followed by a letter,([a-z]).*(dog.*[A-Za-z].*).*
+Convert natural language to regular expression.,"lines with words with either a letter, a character, or a number",\b([A-Za-z])|(.)|([0-9])\b
+Convert natural language to regular expression.,lines with the string 'dog' before a vowel or the string 'truck' at least once,(dog).*((([AEIOUaeiou])|(truck))+).*
+Convert natural language to regular expression.,"lines with a lower-case letter, 4 or more times before a letter","(([a-z]){4,}).*([A-Za-z]).*"
+Convert natural language to regular expression.,lines starting with a capital letter followed by a vowel,([A-Z].*[AEIOUaeiou].*)(.*)
+Convert natural language to regular expression.,lines with the string 'dog' before a letter or a vowel,(dog).*(([A-Za-z])|([AEIOUaeiou])).*
+Convert natural language to regular expression.,lines with a letter before a character and a number,([A-Za-z]).*((.)&([0-9])).*
+Convert natural language to regular expression.,"lines with the string 'dog' before either a character, the string 'truck', or a lower-case letter",(dog).*((.)|(truck)|([a-z])).*
+Convert natural language to regular expression.,"lines with words that contain a vowel, 4 or more times","\b.*([AEIOUaeiou]){4,}.*\b"
+Convert natural language to regular expression.,lines with the string 'dog' before a character or a vowel,(dog).*((.)|([AEIOUaeiou])).*
+Convert natural language to regular expression.,"lines having a lower-case letter, the string 'dog', and a number before the string 'truck'",(([a-z])&(dog)&([0-9])).*(truck).*
+Convert natural language to regular expression.,"lines with words with either the string 'dog', the string 'truck', or a number",\b(dog)|(truck)|([0-9])\b
+Convert natural language to regular expression.,lines with a lower-case letter followed by a capital letter before the string 'dog',([a-z].*[A-Z].*).*(dog).*
+Convert natural language to regular expression.,"lines not having a character, not a capital letter, and not a number",~((.)&([A-Z])&([0-9]))
+Convert natural language to regular expression.,lines with words with ending with a number and the string 'dog',\b((.*)([0-9]))&(dog)\b
+Convert natural language to regular expression.,lines starting with a character and the string 'dog' followed by the string 'truck',((.)(.*))&(dog.*truck.*)
+Convert natural language to regular expression.,"lines not having the string 'dog', not a capital letter, and not a character",~((dog)&([A-Z])&(.))
+Convert natural language to regular expression.,lines starting with the string 'dog' or ending with the string 'truck',((dog)(.*))|((.*)(truck))
+Convert natural language to regular expression.,lines with a character before a vowel and containing a lower-case letter,((.).*([AEIOUaeiou]).*)&(.*[a-z].*)
+Convert natural language to regular expression.,lines containing a letter or a character and a lower-case letter,(.*[A-Za-z].*)|((.)&([a-z]))
+Convert natural language to regular expression.,"lines with the string 'dog' before a letter, 5 or more times","(dog).*(([A-Za-z]){5,}).*"
+Convert natural language to regular expression.,"lines not having the string 'dog', not a character, and not a number",~((dog)&(.)&([0-9]))
+Convert natural language to regular expression.,"lines containing a letter, the string 'dog', and the string 'truck'",.*([A-Za-z])&(dog)&(truck).*
+Convert natural language to regular expression.,"lines with a letter, zero or more times before not a number",(([A-Za-z])*).*(~([0-9])).*
+Convert natural language to regular expression.,"lines containing a number, a vowel, and the string 'dog'",.*([0-9])&([AEIOUaeiou])&(dog).*
+Convert natural language to regular expression.,lines not having a character before ending with a lower-case letter,(~(.)).*((.*)([a-z])).*
+Convert natural language to regular expression.,"lines containing either a number, a lower-case letter, or a letter",.*([0-9])|([a-z])|([A-Za-z]).*
+Convert natural language to regular expression.,"lines having either a capital letter, the string 'dog', or a letter before a character",(([A-Z])|(dog)|([A-Za-z])).*(.).*
+Convert natural language to regular expression.,"lines containing either a lower-case letter, the string 'dog', or the string 'truck', zero or more times",(.*([a-z])|(dog)|(truck).*)*
+Convert natural language to regular expression.,"lines not having a character, not a number, and not a capital letter",~((.)&([0-9])&([A-Z]))
+Convert natural language to regular expression.,lines with a lower-case letter before containing a vowel,([a-z]).*(.*[AEIOUaeiou].*).*
+Convert natural language to regular expression.,lines not having the string 'dog' before a number,~((dog).*([0-9]).*)
+Convert natural language to regular expression.,lines containing a character or a letter,.*(.)|([A-Za-z]).*
+Convert natural language to regular expression.,"lines with a vowel followed by a number, zero or more times",([AEIOUaeiou].*[0-9].*)*
+Convert natural language to regular expression.,"lines starting with the string 'dog' and a capital letter, 6 or more times","((dog)(.*))&(([A-Z]){6,})"
+Convert natural language to regular expression.,lines with a letter before the string 'dog' or a number,([A-Za-z]).*((dog)|([0-9])).*
+Convert natural language to regular expression.,"lines having a vowel, a lower-case letter, and the string 'dog' before a character",(([AEIOUaeiou])&([a-z])&(dog)).*(.).*
+Convert natural language to regular expression.,"lines with the string 'dog', 5 or more times before a capital letter","((dog){5,}).*([A-Z]).*"
+Convert natural language to regular expression.,lines containing the string 'dog' at least once before a character,.*((dog)+).*(.).*.*
+Convert natural language to regular expression.,lines with a capital letter before the string 'dog' or a vowel,([A-Z]).*((dog)|([AEIOUaeiou])).*
+Convert natural language to regular expression.,lines containing the string 'dog' at least once before the string 'truck',((.*dog.*)+).*(truck).*
+Convert natural language to regular expression.,lines containing a character,.*..*
+Convert natural language to regular expression.,"lines containing words with either a lower-case letter, a character, or the string 'dog'",.*\b([a-z])|(.)|(dog)\b.*
+Convert natural language to regular expression.,lines with a capital letter and a number before a vowel,(([A-Z])&([0-9])).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,lines with a letter before containing only a capital letter at least once,([A-Za-z]).*(([A-Z])+).*
+Convert natural language to regular expression.,"lines with a capital letter before a number, 3 or more times","([A-Z]).*(([0-9]){3,}).*"
+Convert natural language to regular expression.,lines starting with the string 'dog' at least once,((dog)+)(.*)
+Convert natural language to regular expression.,"lines with the string 'dog', 3 or more times before a vowel","((dog){3,}).*([AEIOUaeiou]).*"
+Convert natural language to regular expression.,"lines containing a capital letter, the string 'dog', and a number",.*([A-Z])&(dog)&([0-9]).*
+Convert natural language to regular expression.,"lines having either the string 'dog', the string 'truck', or a lower-case letter before a capital letter",((dog)|(truck)|([a-z])).*([A-Z]).*
+Convert natural language to regular expression.,lines with a vowel and the string 'dog' before the string 'truck' or a capital letter,(([AEIOUaeiou])&(dog)).*((truck)|([A-Z])).*
+Convert natural language to regular expression.,lines with words with starting with a lower-case letter or a number,\b(([a-z])(.*))|([0-9])\b
+Convert natural language to regular expression.,lines containing words with not a lower-case letter,.*\b~([a-z])\b.*
+Convert natural language to regular expression.,lines containing the string 'dog' before not the string 'truck',(.*dog.*).*(~(truck)).*
+Convert natural language to regular expression.,lines with a character followed by a number before a capital letter,(..*[0-9].*).*([A-Z]).*
+Convert natural language to regular expression.,"lines with a vowel before a number, 7 or more times","([AEIOUaeiou]).*(([0-9]){7,}).*"
+Convert natural language to regular expression.,"lines containing either a capital letter, a vowel, or a lower-case letter",.*([A-Z])|([AEIOUaeiou])|([a-z]).*
+Convert natural language to regular expression.,lines with a capital letter or a letter before a vowel,(([A-Z])|([A-Za-z])).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,lines ending with a vowel followed by a character,(.*)([AEIOUaeiou].*..*)
+Convert natural language to regular expression.,lines starting with a vowel or a capital letter,(([AEIOUaeiou])|([A-Z]))(.*)
+Convert natural language to regular expression.,"lines having either the string 'dog', a capital letter, or the string 'truck' before a number",((dog)|([A-Z])|(truck)).*([0-9]).*
+Convert natural language to regular expression.,"lines with words with a vowel, 3 or more times","\b([AEIOUaeiou]){3,}\b"
+Convert natural language to regular expression.,lines with a vowel at least once before a capital letter,(([AEIOUaeiou])+).*([A-Z]).*
+Convert natural language to regular expression.,"lines starting with words with a letter, a lower-case letter, and the string 'dog'",(\b([A-Za-z])&([a-z])&(dog)\b)(.*)
+Convert natural language to regular expression.,"lines with a letter before the string 'dog', zero or more times",([A-Za-z]).*((dog)*).*
+Convert natural language to regular expression.,"lines with a number followed by a vowel, 3 or more times","([0-9].*[AEIOUaeiou].*){3,}"
+Convert natural language to regular expression.,"lines with words with the string 'dog' before a capital letter, zero or more times",(\b(dog).*([A-Z]).*\b)*
+Convert natural language to regular expression.,"lines containing a letter, a character, and the string 'dog'",.*([A-Za-z])&(.)&(dog).*
+Convert natural language to regular expression.,"lines with words with the string 'dog', 2 or more times before a capital letter","\b((dog){2,}).*([A-Z]).*\b"
+Convert natural language to regular expression.,lines containing a character and a number,.*(.)&([0-9]).*
+Convert natural language to regular expression.,lines containing a letter or a number at least once,((.*[A-Za-z].*)|([0-9]))+
+Convert natural language to regular expression.,lines not ending with a character at least once,~((.*)((.)+))
+Convert natural language to regular expression.,"lines with words with either the string 'dog', a vowel, or a capital letter",\b(dog)|([AEIOUaeiou])|([A-Z])\b
+Convert natural language to regular expression.,"lines having either a capital letter, a character, or the string 'dog' before the string 'truck'",(([A-Z])|(.)|(dog)).*(truck).*
+Convert natural language to regular expression.,lines with words with starting with a letter or the string 'dog',\b(([A-Za-z])|(dog))(.*)\b
+Convert natural language to regular expression.,"lines not having the string 'dog', not a vowel, and not a character",~((dog)&([AEIOUaeiou])&(.))
+Convert natural language to regular expression.,lines with a vowel followed by a number before a capital letter,([AEIOUaeiou].*[0-9].*).*([A-Z]).*
+Convert natural language to regular expression.,"lines with words with a number, a vowel, and a character",\b([0-9])&([AEIOUaeiou])&(.)\b
+Convert natural language to regular expression.,lines not having a capital letter before the string 'dog' and not a vowel,~((([A-Z]).*(dog).*)&([AEIOUaeiou]))
+Convert natural language to regular expression.,"lines with words with a vowel, a number, and the string 'dog'",\b([AEIOUaeiou])&([0-9])&(dog)\b
+Convert natural language to regular expression.,lines with a letter followed by the string 'dog' before the string 'truck' and a vowel,([A-Za-z].*dog.*).*((truck)&([AEIOUaeiou])).*
+Convert natural language to regular expression.,lines not starting with a vowel before the string 'dog',(~(([AEIOUaeiou])(.*))).*(dog).*
+Convert natural language to regular expression.,lines with a character before a capital letter,(.).*([A-Z]).*
+Convert natural language to regular expression.,"lines with a character followed by the string 'dog', 5 or more times","(..*dog.*){5,}"
+Convert natural language to regular expression.,lines starting with the string 'dog' or a number at least once,((dog)|(([0-9])+))(.*)
+Convert natural language to regular expression.,"lines with the string 'dog' before ending with a capital letter, zero or more times",(dog).*(((.*)([A-Z]))*).*
+Convert natural language to regular expression.,"lines with a letter, zero or more times before a vowel",(([A-Za-z])*).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,lines with a lower-case letter before containing a capital letter,([a-z]).*(.*[A-Z].*).*
+Convert natural language to regular expression.,"lines not having the string 'dog', zero or more times and not a letter",~(((dog)*)&([A-Za-z]))
+Convert natural language to regular expression.,lines not containing a lower-case letter before a capital letter,~(.*([a-z]).*([A-Z]).*.*)
+Convert natural language to regular expression.,lines with the string 'dog' or a capital letter before the string 'truck',((dog)|([A-Z])).*(truck).*
+Convert natural language to regular expression.,lines containing ending with the string 'dog' followed by the string 'truck',.*(.*)(dog.*truck.*).*
+Convert natural language to regular expression.,"lines containing either a vowel, a number, or the string 'dog'",.*([AEIOUaeiou])|([0-9])|(dog).*
+Convert natural language to regular expression.,"lines with the string 'dog' before a letter, a lower-case letter, and a character",(dog).*(([A-Za-z])&([a-z])&(.)).*
+Convert natural language to regular expression.,lines with a letter before the string 'dog' followed by a number,([A-Za-z]).*(dog.*[0-9].*).*
+Convert natural language to regular expression.,lines with a number followed by a letter before a lower-case letter,([0-9].*[A-Za-z].*).*([a-z]).*
+Convert natural language to regular expression.,"lines with the string 'dog' or the string 'truck' followed by a number, 3 or more times","((dog)|(truck.*[0-9].*)){3,}"
+Convert natural language to regular expression.,"lines with words with either a number, a vowel, or a letter, zero or more times",(\b([0-9])|([AEIOUaeiou])|([A-Za-z])\b)*
+Convert natural language to regular expression.,"lines not having a number before a vowel, a capital letter, and a lower-case letter",(~([0-9])).*(([AEIOUaeiou])&([A-Z])&([a-z])).*
+Convert natural language to regular expression.,"lines with a letter and the string 'dog' before a number, zero or more times",(([A-Za-z])&(dog)).*(([0-9])*).*
+Convert natural language to regular expression.,lines with a vowel at least once before a lower-case letter,(([AEIOUaeiou])+).*([a-z]).*
+Convert natural language to regular expression.,lines with a lower-case letter and a vowel before ending with the string 'dog',(([a-z])&([AEIOUaeiou])).*((.*)(dog)).*
+Convert natural language to regular expression.,"lines containing the string 'dog', a capital letter, and a character",.*(dog)&([A-Z])&(.).*
+Convert natural language to regular expression.,lines with a capital letter before a lower-case letter followed by a number,([A-Z]).*([a-z].*[0-9].*).*
+Convert natural language to regular expression.,"lines with a lower-case letter, 2 or more times before a letter","(([a-z]){2,}).*([A-Za-z]).*"
+Convert natural language to regular expression.,lines with the string 'dog' before the string 'truck' or the string 'ring',(dog).*((truck)|(ring)).*
+Convert natural language to regular expression.,"lines not having the string 'dog', a number, or a capital letter",~((dog)|([0-9])|([A-Z]))
+Convert natural language to regular expression.,"lines having a capital letter, the string 'dog', and the string 'truck' before a number",(([A-Z])&(dog)&(truck)).*([0-9]).*
+Convert natural language to regular expression.,lines with a letter before the string 'dog' followed by a lower-case letter,([A-Za-z]).*(dog.*[a-z].*).*
+Convert natural language to regular expression.,lines with words with the string 'dog' or not a vowel,\b(dog)|(~([AEIOUaeiou]))\b
+Convert natural language to regular expression.,"lines with a capital letter, zero or more times or the string 'dog' before a character",(([A-Z])*)|((dog).*(.).*)
+Convert natural language to regular expression.,"lines not having a capital letter, not a letter, and not a vowel",~(([A-Z])&([A-Za-z])&([AEIOUaeiou]))
+Convert natural language to regular expression.,lines ending with a capital letter and a vowel followed by a letter,((.*)([A-Z]))&([AEIOUaeiou].*[A-Za-z].*)
+Convert natural language to regular expression.,lines containing ending with a capital letter before the string 'dog',.*((.*)([A-Z])).*(dog).*.*
+Convert natural language to regular expression.,"lines with the string 'dog' followed by a lower-case letter, 6 or more times","(dog.*[a-z].*){6,}"
+Convert natural language to regular expression.,"lines with the string 'dog' at least once and a vowel, a character, and the string 'truck'",((dog)+)&(([AEIOUaeiou])&(.)&(truck))
+Convert natural language to regular expression.,"lines with a capital letter before a vowel, 3 or more times","([A-Z]).*(([AEIOUaeiou]){3,}).*"
+Convert natural language to regular expression.,"lines having the string 'dog', a number, and a capital letter before a character",((dog)&([0-9])&([A-Z])).*(.).*
+Convert natural language to regular expression.,"lines having a capital letter, the string 'dog', and the string 'truck' before the string 'ring'",(([A-Z])&(dog)&(truck)).*(ring).*
+Convert natural language to regular expression.,"lines with a capital letter followed by a vowel, 6 or more times","([A-Z].*[AEIOUaeiou].*){6,}"
+Convert natural language to regular expression.,"lines not containing the string 'dog', 5 or more times","~(.*(dog){5,}.*)"
+Convert natural language to regular expression.,lines ending with a vowel or a number at least once,((.*)([AEIOUaeiou]))|(([0-9])+)
+Convert natural language to regular expression.,lines starting with a letter followed by the string 'dog',([A-Za-z].*dog.*)(.*)
+Convert natural language to regular expression.,lines containing ending with the string 'dog' and a lower-case letter,.*((.*)(dog))&([a-z]).*
+Convert natural language to regular expression.,"lines containing a letter, 7 or more times",".*([A-Za-z]){7,}.*"
+Convert natural language to regular expression.,"lines with the string 'dog' before either a letter, a capital letter, or a vowel",(dog).*(([A-Za-z])|([A-Z])|([AEIOUaeiou])).*
+Convert natural language to regular expression.,"lines having a vowel, the string 'dog', and the string 'truck' before a number",(([AEIOUaeiou])&(dog)&(truck)).*([0-9]).*
+Convert natural language to regular expression.,"lines having the string 'dog', a letter, and the string 'truck' before a lower-case letter",((dog)&([A-Za-z])&(truck)).*([a-z]).*
+Convert natural language to regular expression.,lines with the string 'dog' before a capital letter and a number followed by the string 'truck',((dog).*([A-Z]).*)&([0-9].*truck.*)
+Convert natural language to regular expression.,lines with a capital letter before a character,([A-Z]).*(.).*
+Convert natural language to regular expression.,"lines with the string 'dog' before either a lower-case letter, the string 'truck', or a number",(dog).*(([a-z])|(truck)|([0-9])).*
+Convert natural language to regular expression.,lines with words with a number before not a vowel,\b([0-9]).*(~([AEIOUaeiou])).*\b
+Convert natural language to regular expression.,lines with a capital letter before the string 'dog',([A-Z]).*(dog).*
+Convert natural language to regular expression.,"lines not having a capital letter, 2 or more times and not the string 'dog'","~((([A-Z]){2,})&(dog))"
+Convert natural language to regular expression.,"lines with words with either a character, the string 'dog', or a capital letter",\b(.)|(dog)|([A-Z])\b
+Convert natural language to regular expression.,"lines with a lower-case letter before the string 'dog', 4 or more times","([a-z]).*((dog){4,}).*"
+Convert natural language to regular expression.,lines starting with words with a number before the string 'dog',(\b([0-9]).*(dog).*\b)(.*)
+Convert natural language to regular expression.,"lines containing the string 'dog' and the string 'truck', a lower-case letter, and a letter",(.*dog.*)&((truck)&([a-z])&([A-Za-z]))
+Convert natural language to regular expression.,lines with the string 'dog' before a number followed by a letter,(dog).*([0-9].*[A-Za-z].*).*
+Convert natural language to regular expression.,lines with the string 'dog' and a character before a number,((dog)&(.)).*([0-9]).*
+Convert natural language to regular expression.,lines starting with a vowel or the string 'dog' before the string 'truck',(([AEIOUaeiou])(.*))|((dog).*(truck).*)
+Convert natural language to regular expression.,lines with a character before a number and the string 'dog' followed by the string 'truck',((.).*([0-9]).*)&(dog.*truck.*)
+Convert natural language to regular expression.,"lines with a letter or containing a number, 4 or more times","(([A-Za-z])|(.*[0-9].*)){4,}"
+Convert natural language to regular expression.,"lines having either the string 'dog', a capital letter, or a vowel before a number",((dog)|([A-Z])|([AEIOUaeiou])).*([0-9]).*
+Convert natural language to regular expression.,"lines not having a character, a number, or the string 'dog'",~((.)|([0-9])|(dog))
+Convert natural language to regular expression.,lines with a lower-case letter or a letter before a vowel,(([a-z])|([A-Za-z])).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,"lines with words with either a lower-case letter, a number, or a vowel",\b([a-z])|([0-9])|([AEIOUaeiou])\b
+Convert natural language to regular expression.,lines with the string 'dog' before a vowel and the string 'truck',(dog).*(([AEIOUaeiou])&(truck)).*
+Convert natural language to regular expression.,"lines starting with a capital letter or the string 'dog', zero or more times",(([A-Z])|((dog)*))(.*)
+Convert natural language to regular expression.,"lines not having a capital letter, not a letter, and not the string 'dog'",~(([A-Z])&([A-Za-z])&(dog))
+Convert natural language to regular expression.,"lines with words with a letter or a number, zero or more times",\b([A-Za-z])|(([0-9])*)\b
+Convert natural language to regular expression.,"lines having either the string 'dog', the string 'truck', or a character before a lower-case letter",((dog)|(truck)|(.)).*([a-z]).*
+Convert natural language to regular expression.,"lines with a number or a lower-case letter, 7 or more times","(([0-9])|([a-z])){7,}"
+Convert natural language to regular expression.,lines not having a lower-case letter or a capital letter at least once,((~([a-z]))|([A-Z]))+
+Convert natural language to regular expression.,"lines with a lower-case letter or a vowel, 4 or more times","(([a-z])|([AEIOUaeiou])){4,}"
+Convert natural language to regular expression.,"lines with a vowel followed by a letter, 5 or more times","([AEIOUaeiou].*[A-Za-z].*){5,}"
+Convert natural language to regular expression.,lines starting with a letter before the string 'dog' and a vowel,(([A-Za-z])(.*)).*((dog)&([AEIOUaeiou])).*
+Convert natural language to regular expression.,lines not having a character or a lower-case letter,~((.)|([a-z]))
+Convert natural language to regular expression.,"lines having either the string 'dog', a lower-case letter, or a vowel before a letter",((dog)|([a-z])|([AEIOUaeiou])).*([A-Za-z]).*
+Convert natural language to regular expression.,lines starting with a capital letter before a character,(([A-Z])(.*)).*(.).*
+Convert natural language to regular expression.,lines ending with a vowel or the string 'dog',(.*)(([AEIOUaeiou])|(dog))
+Convert natural language to regular expression.,lines with a lower-case letter and a letter before a vowel,(([a-z])&([A-Za-z])).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,"lines containing either the string 'dog', a capital letter, or a vowel",.*(dog)|([A-Z])|([AEIOUaeiou]).*
+Convert natural language to regular expression.,lines with the string 'dog' followed by a character,dog.*..*
+Convert natural language to regular expression.,"lines with the string 'dog' before a lower-case letter, the string 'truck', and a letter",(dog).*(([a-z])&(truck)&([A-Za-z])).*
+Convert natural language to regular expression.,"lines not having a character, a number, or a capital letter",~((.)|([0-9])|([A-Z]))
+Convert natural language to regular expression.,lines containing a lower-case letter and starting with the string 'dog',(.*[a-z].*)&((dog)(.*))
+Convert natural language to regular expression.,lines with a vowel before a lower-case letter followed by a letter,([AEIOUaeiou]).*([a-z].*[A-Za-z].*).*
+Convert natural language to regular expression.,"lines with the string 'dog' before either a vowel, the string 'truck', or a character",(dog).*(([AEIOUaeiou])|(truck)|(.)).*
+Convert natural language to regular expression.,lines not having the string 'dog' and not a number,~((dog)&([0-9]))
+Convert natural language to regular expression.,"lines with words with ending with a letter, zero or more times",(\b(.*)([A-Za-z])\b)*
+Convert natural language to regular expression.,"lines having either the string 'dog', a vowel, or a character before a letter",((dog)|([AEIOUaeiou])|(.)).*([A-Za-z]).*
+Convert natural language to regular expression.,lines not ending with containing a lower-case letter,~((.*)(.*[a-z].*))
+Convert natural language to regular expression.,"lines with words that contain the string 'dog', zero or more times",(\b.*dog.*\b)*
+Convert natural language to regular expression.,lines with words with a letter before a capital letter at least once,\b([A-Za-z]).*(([A-Z])+).*\b
+Convert natural language to regular expression.,lines with a lower-case letter or the string 'dog' before the string 'truck',(([a-z])|(dog)).*(truck).*
+Convert natural language to regular expression.,lines with the string 'dog' followed by a character before the string 'truck',(dog.*..*).*(truck).*
+Convert natural language to regular expression.,lines containing a vowel and the string 'dog' or a capital letter,(.*[AEIOUaeiou].*)&((dog)|([A-Z]))
+Convert natural language to regular expression.,lines not words that contain a number,~(\b.*[0-9].*\b)
+Convert natural language to regular expression.,"lines with the string 'dog' before the string 'truck', a character, and a lower-case letter",(dog).*((truck)&(.)&([a-z])).*
+Convert natural language to regular expression.,lines containing the string 'dog' and a number at least once,(.*dog.*)&(([0-9])+)
+Convert natural language to regular expression.,"lines with a character and the string 'dog' or the string 'truck', zero or more times",(((.)&(dog))|(truck))*
+Convert natural language to regular expression.,"lines ending with the string 'dog' or a vowel, 4 or more times","(.*)((dog)|(([AEIOUaeiou]){4,}))"
+Convert natural language to regular expression.,"lines with a number followed by a vowel, zero or more times",([0-9].*[AEIOUaeiou].*)*
+Convert natural language to regular expression.,"lines with the string 'dog' before a number, the string 'truck', and a capital letter",(dog).*(([0-9])&(truck)&([A-Z])).*
+Convert natural language to regular expression.,"lines not having the string 'dog' before either a character, the string 'truck', or the string 'ring'",(~(dog)).*((.)|(truck)|(ring)).*
+Convert natural language to regular expression.,lines with a capital letter followed by a vowel before a letter,([A-Z].*[AEIOUaeiou].*).*([A-Za-z]).*
+Convert natural language to regular expression.,"lines not having a capital letter, not a number, and not a character",~(([A-Z])&([0-9])&(.))
+Convert natural language to regular expression.,lines with a capital letter before a lower-case letter followed by a character,([A-Z]).*([a-z].*..*).*
+Convert natural language to regular expression.,"lines ending with containing only a capital letter, zero or more times",((.*)([A-Z]))*
+Convert natural language to regular expression.,lines containing the string 'dog' and a number,.*(dog)&([0-9]).*
+Convert natural language to regular expression.,"lines not having a vowel, a character, or a letter",~(([AEIOUaeiou])|(.)|([A-Za-z]))
+Convert natural language to regular expression.,"lines with a capital letter, 5 or more times before a vowel","(([A-Z]){5,}).*([AEIOUaeiou]).*"
+Convert natural language to regular expression.,lines with words with ending with containing only the string 'dog',\b(.*)(dog)\b
+Convert natural language to regular expression.,"lines having a lower-case letter, a vowel, and a character before a capital letter",(([a-z])&([AEIOUaeiou])&(.)).*([A-Z]).*
+Convert natural language to regular expression.,lines with a lower-case letter before a capital letter and a letter,([a-z]).*(([A-Z])&([A-Za-z])).*
+Convert natural language to regular expression.,lines starting with a vowel or the string 'dog',(([AEIOUaeiou])|(dog))(.*)
+Convert natural language to regular expression.,"lines with words with either a character, a letter, or a capital letter",\b(.)|([A-Za-z])|([A-Z])\b
+Convert natural language to regular expression.,"lines with a character or a number, 7 or more times","((.)|([0-9])){7,}"
+Convert natural language to regular expression.,lines with words that don't containing a vowel,\b.*~([AEIOUaeiou]).*\b
+Convert natural language to regular expression.,lines with a vowel before the string 'dog' and ending with a lower-case letter,(([AEIOUaeiou]).*(dog).*)&((.*)([a-z]))
+Convert natural language to regular expression.,"lines with a number before the string 'dog', a vowel, and the string 'truck'",([0-9]).*((dog)&([AEIOUaeiou])&(truck)).*
+Convert natural language to regular expression.,lines not having a number and the string 'dog' at least once,(~([0-9]))&((dog)+)
+Convert natural language to regular expression.,"lines containing either a letter, a vowel, or the string 'dog'",.*([A-Za-z])|([AEIOUaeiou])|(dog).*
+Convert natural language to regular expression.,lines with the string 'dog' or a vowel at least once,((dog)|([AEIOUaeiou]))+
+Convert natural language to regular expression.,lines with words with ending with a vowel before a letter,(\b(.*)([AEIOUaeiou])\b).*([A-Za-z]).*
+Convert natural language to regular expression.,"lines having a capital letter, a vowel, and a letter before the string 'dog'",(([A-Z])&([AEIOUaeiou])&([A-Za-z])).*(dog).*
+Convert natural language to regular expression.,"lines with a lower-case letter, 5 or more times before a number","(([a-z]){5,}).*([0-9]).*"
+Convert natural language to regular expression.,lines containing a letter or the string 'dog' at least once,(.*([A-Za-z])|(dog).*)+
+Convert natural language to regular expression.,lines starting with not a number or the string 'dog',((~([0-9]))|(dog))(.*)
+Convert natural language to regular expression.,"lines with a lower-case letter, 4 or more times before a number","(([a-z]){4,}).*([0-9]).*"
+Convert natural language to regular expression.,lines containing the string 'dog' or a letter before the string 'truck',.*((dog)|([A-Za-z])).*(truck).*.*
+Convert natural language to regular expression.,"lines with the string 'dog', zero or more times before the string 'truck' or a vowel",((dog)*).*((truck)|([AEIOUaeiou])).*
+Convert natural language to regular expression.,"lines starting with the string 'dog', 3 or more times","((dog){3,})(.*)"
+Convert natural language to regular expression.,"lines with the string 'dog' before either a vowel, the string 'truck', or the string 'ring'",(dog).*(([AEIOUaeiou])|(truck)|(ring)).*
+Convert natural language to regular expression.,lines with words with starting with a vowel at least once,(\b([AEIOUaeiou])(.*)\b)+
+Convert natural language to regular expression.,lines with a character before a vowel followed by a number,(.).*([AEIOUaeiou].*[0-9].*).*
+Convert natural language to regular expression.,"lines with words with a lower-case letter, zero or more times",\b([a-z])*\b
+Convert natural language to regular expression.,"lines having either the string 'dog', a vowel, or a capital letter or the string 'truck' at least once",(((dog)|([AEIOUaeiou])|([A-Z]))|(truck))+
+Convert natural language to regular expression.,"lines with the string 'dog' before either a number, a character, or the string 'truck'",(dog).*(([0-9])|(.)|(truck)).*
+Convert natural language to regular expression.,lines not containing a letter before the string 'dog',.*~(([A-Za-z]).*(dog).*).*
+Convert natural language to regular expression.,"lines with words with a character, a vowel, and a number",\b(.)&([AEIOUaeiou])&([0-9])\b
+Convert natural language to regular expression.,"lines with the string 'dog' before either a capital letter, a vowel, or a letter",(dog).*(([A-Z])|([AEIOUaeiou])|([A-Za-z])).*
+Convert natural language to regular expression.,"lines containing either a lower-case letter, a character, or the string 'dog', zero or more times",(.*([a-z])|(.)|(dog).*)*
+Convert natural language to regular expression.,"lines not starting with a number, 4 or more times","~((([0-9])(.*)){4,})"
+Convert natural language to regular expression.,"lines having either the string 'dog', the string 'truck', or the string 'ring' before a lower-case letter",((dog)|(truck)|(ring)).*([a-z]).*
+Convert natural language to regular expression.,"lines not having a vowel, a number, or a letter",~(([AEIOUaeiou])|([0-9])|([A-Za-z]))
+Convert natural language to regular expression.,"lines containing the string 'dog', 7 or more times or a capital letter",".*((dog){7,})|([A-Z]).*"
+Convert natural language to regular expression.,"lines containing either a number, a capital letter, or the string 'dog'",.*([0-9])|([A-Z])|(dog).*
+Convert natural language to regular expression.,lines not having a letter and the string 'dog' at least once,(~([A-Za-z]))&((dog)+)
+Convert natural language to regular expression.,lines with a character or a capital letter at least once,((.)|([A-Z]))+
+Convert natural language to regular expression.,lines with words with starting with a lower-case letter at least once,\b(([a-z])(.*))+\b
+Convert natural language to regular expression.,"lines with words that contain only the string 'dog', 3 or more times","(\bdog\b){3,}"
+Convert natural language to regular expression.,"lines with a number, 3 or more times before the string 'dog'","(([0-9]){3,}).*(dog).*"
+Convert natural language to regular expression.,"lines with a vowel before either the string 'dog', a capital letter, or a number",([AEIOUaeiou]).*((dog)|([A-Z])|([0-9])).*
+Convert natural language to regular expression.,lines with a lower-case letter followed by the string 'dog' before a character,([a-z].*dog.*).*(.).*
+Convert natural language to regular expression.,lines with a letter or a character before a vowel,(([A-Za-z])|(.)).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,lines with a number before containing a character,([0-9]).*(.*..*).*
+Convert natural language to regular expression.,"lines ending with a character, 5 or more times","((.*)(.)){5,}"
+Convert natural language to regular expression.,lines with a lower-case letter followed by a vowel at least once,([a-z].*[AEIOUaeiou].*)+
+Convert natural language to regular expression.,"lines containing a character, a vowel, and the string 'dog'",.*(.)&([AEIOUaeiou])&(dog).*
+Convert natural language to regular expression.,"lines ending with the string 'dog', 6 or more times or the string 'truck'","(.*)(((dog){6,})|(truck))"
+Convert natural language to regular expression.,lines ending with containing a number at least once,(.*)((.*[0-9].*)+)
+Convert natural language to regular expression.,"lines starting with the string 'dog' before the string 'truck', zero or more times",((dog)(.*)).*((truck)*).*
+Convert natural language to regular expression.,"lines having a vowel, the string 'dog', and a number before the string 'truck'",(([AEIOUaeiou])&(dog)&([0-9])).*(truck).*
+Convert natural language to regular expression.,"lines with words with either a lower-case letter, a letter, or a capital letter",\b([a-z])|([A-Za-z])|([A-Z])\b
+Convert natural language to regular expression.,lines ending with a letter or the string 'dog',(.*)(([A-Za-z])|(dog))
+Convert natural language to regular expression.,lines containing ending with a lower-case letter,.*(.*)([a-z]).*
+Convert natural language to regular expression.,"lines with a number followed by the string 'dog', 5 or more times","([0-9].*dog.*){5,}"
+Convert natural language to regular expression.,"lines with a lower-case letter, 5 or more times before a letter","(([a-z]){5,}).*([A-Za-z]).*"
+Convert natural language to regular expression.,"lines having either the string 'dog', a lower-case letter, or the string 'truck' before a capital letter",((dog)|([a-z])|(truck)).*([A-Z]).*
+Convert natural language to regular expression.,"lines containing the string 'dog', a letter, and the string 'truck'",.*(dog)&([A-Za-z])&(truck).*
+Convert natural language to regular expression.,"lines with words with starting with a lower-case letter, 2 or more times","(\b([a-z])(.*)\b){2,}"
+Convert natural language to regular expression.,"lines having the string 'dog', the string 'truck', and a character before the string 'ring'",((dog)&(truck)&(.)).*(ring).*
+Convert natural language to regular expression.,lines not words with starting with a character,~(\b(.)(.*)\b)
+Convert natural language to regular expression.,lines with words with ending with a lower-case letter and the string 'dog',\b((.*)([a-z]))&(dog)\b
+Convert natural language to regular expression.,lines with a lower-case letter before a vowel followed by a capital letter,([a-z]).*([AEIOUaeiou].*[A-Z].*).*
+Convert natural language to regular expression.,"lines not having the string 'dog', a character, or a letter",~((dog)|(.)|([A-Za-z]))
+Convert natural language to regular expression.,"lines containing either a lower-case letter, a letter, or a character",.*([a-z])|([A-Za-z])|(.).*
+Convert natural language to regular expression.,"lines with a number before a capital letter or either a lower-case letter, the string 'dog', or the string 'truck'",(([0-9]).*([A-Z]).*)|(([a-z])|(dog)|(truck))
+Convert natural language to regular expression.,"lines containing the string 'dog', a lower-case letter, and the string 'truck', zero or more times",(.*(dog)&([a-z])&(truck).*)*
+Convert natural language to regular expression.,lines with the string 'dog' at least once and containing a number,((dog)+)&(.*[0-9].*)
+Convert natural language to regular expression.,"lines with words with either the string 'dog', the string 'truck', or the string 'ring' or the string 'lake'",\b((dog)|(truck)|(ring))|(lake)\b
+Convert natural language to regular expression.,"lines with a letter at least once and the string 'dog', the string 'truck', and a lower-case letter",(([A-Za-z])+)&((dog)&(truck)&([a-z]))
+Convert natural language to regular expression.,lines containing the string 'dog' or a number followed by the string 'truck',(.*dog.*)|([0-9].*truck.*)
+Convert natural language to regular expression.,"lines with a letter, 4 or more times before a capital letter","(([A-Za-z]){4,}).*([A-Z]).*"
+Convert natural language to regular expression.,"lines having a character, a number, and the string 'dog' before a letter",((.)&([0-9])&(dog)).*([A-Za-z]).*
+Convert natural language to regular expression.,"lines with words with either a lower-case letter, a vowel, or a number",\b([a-z])|([AEIOUaeiou])|([0-9])\b
+Convert natural language to regular expression.,"lines starting with a number, 3 or more times","(([0-9])(.*)){3,}"
+Convert natural language to regular expression.,"lines not having the string 'dog', a lower-case letter, or a letter",~((dog)|([a-z])|([A-Za-z]))
+Convert natural language to regular expression.,"lines containing the string 'dog', a vowel, and the string 'truck'",.*(dog)&([AEIOUaeiou])&(truck).*
+Convert natural language to regular expression.,lines starting with a vowel followed by a letter,([AEIOUaeiou].*[A-Za-z].*)(.*)
+Convert natural language to regular expression.,lines with a vowel or the string 'dog' before the string 'truck',(([AEIOUaeiou])|(dog)).*(truck).*
+Convert natural language to regular expression.,lines with a capital letter before a character and the string 'dog',([A-Z]).*((.)&(dog)).*
+Convert natural language to regular expression.,"lines ending with a letter or a capital letter, 3 or more times","(.*)(([A-Za-z])|(([A-Z]){3,}))"
+Convert natural language to regular expression.,lines with a letter before a character followed by the string 'dog',([A-Za-z]).*(..*dog.*).*
+Convert natural language to regular expression.,lines ending with a lower-case letter or a letter at least once,((.*)([a-z]))|(([A-Za-z])+)
+Convert natural language to regular expression.,"lines containing either a letter, a capital letter, or the string 'dog'",.*([A-Za-z])|([A-Z])|(dog).*
+Convert natural language to regular expression.,"lines starting with a capital letter, 6 or more times","(([A-Z]){6,})(.*)"
+Convert natural language to regular expression.,lines with a character followed by a letter before a number,(..*[A-Za-z].*).*([0-9]).*
+Convert natural language to regular expression.,"lines with a number or a capital letter, 2 or more times","(([0-9])|([A-Z])){2,}"
+Convert natural language to regular expression.,"lines not having a character, a vowel, or a capital letter",~((.)|([AEIOUaeiou])|([A-Z]))
+Convert natural language to regular expression.,lines containing a capital letter followed by a number,.*[A-Z].*[0-9].*.*
+Convert natural language to regular expression.,"lines with a character or a capital letter, zero or more times before the string 'dog'",(((.)|([A-Z]))*).*(dog).*
+Convert natural language to regular expression.,"lines with a number or a vowel, 4 or more times","(([0-9])|([AEIOUaeiou])){4,}"
+Convert natural language to regular expression.,"lines having the string 'dog', a character, and the string 'truck' before a letter",((dog)&(.)&(truck)).*([A-Za-z]).*
+Convert natural language to regular expression.,"lines not containing a letter, 3 or more times",".*~(([A-Za-z]){3,}).*"
+Convert natural language to regular expression.,"lines with a character before a vowel, a capital letter, and the string 'dog'",(.).*(([AEIOUaeiou])&([A-Z])&(dog)).*
+Convert natural language to regular expression.,lines with a vowel and the string 'dog' before a number,(([AEIOUaeiou])&(dog)).*([0-9]).*
+Convert natural language to regular expression.,"lines with a vowel before a number, 5 or more times","([AEIOUaeiou]).*(([0-9]){5,}).*"
+Convert natural language to regular expression.,"lines with a lower-case letter, 4 or more times before a character","(([a-z]){4,}).*(.).*"
+Convert natural language to regular expression.,"lines with the string 'dog' before a lower-case letter, a vowel, and a capital letter",(dog).*(([a-z])&([AEIOUaeiou])&([A-Z])).*
+Convert natural language to regular expression.,lines not having a letter before the string 'dog' followed by a number,(~([A-Za-z])).*(dog.*[0-9].*).*
+Convert natural language to regular expression.,lines with a letter followed by the string 'dog' before a number,([A-Za-z].*dog.*).*([0-9]).*
+Convert natural language to regular expression.,"lines with words with the string 'dog', zero or more times or the string 'truck'",\b((dog)*)|(truck)\b
+Convert natural language to regular expression.,"lines not having a lower-case letter, a number, or the string 'dog'",~(([a-z])|([0-9])|(dog))
+Convert natural language to regular expression.,lines with the string 'dog' followed by a vowel before the string 'truck',(dog.*[AEIOUaeiou].*).*(truck).*
+Convert natural language to regular expression.,"lines ending with the string 'dog' followed by the string 'truck', zero or more times",((.*)(dog.*truck.*))*
+Convert natural language to regular expression.,"lines containing either the string 'dog', a vowel, or a character",.*(dog)|([AEIOUaeiou])|(.).*
+Convert natural language to regular expression.,lines with words that contain a lower-case letter or a character,\b.*([a-z])|(.).*\b
+Convert natural language to regular expression.,"lines with a number, 5 or more times before a capital letter","(([0-9]){5,}).*([A-Z]).*"
+Convert natural language to regular expression.,"lines with a vowel before either the string 'dog', a capital letter, or the string 'truck'",([AEIOUaeiou]).*((dog)|([A-Z])|(truck)).*
+Convert natural language to regular expression.,"lines with a lower-case letter or a number, 5 or more times","(([a-z])|([0-9])){5,}"
+Convert natural language to regular expression.,lines with a lower-case letter before a vowel or the string 'dog',([a-z]).*(([AEIOUaeiou])|(dog)).*
+Convert natural language to regular expression.,"lines having either a character, a capital letter, or a lower-case letter before the string 'dog'",((.)|([A-Z])|([a-z])).*(dog).*
+Convert natural language to regular expression.,lines with a vowel followed by the string 'dog' before a character,([AEIOUaeiou].*dog.*).*(.).*
+Convert natural language to regular expression.,"lines with a vowel followed by a number, 5 or more times","([AEIOUaeiou].*[0-9].*){5,}"
+Convert natural language to regular expression.,"lines starting with a character or a vowel, 7 or more times","((.)|(([AEIOUaeiou]){7,}))(.*)"
+Convert natural language to regular expression.,lines not having a capital letter or a number,~(([A-Z])|([0-9]))
+Convert natural language to regular expression.,lines containing the string 'dog' before a capital letter,(.*dog.*).*([A-Z]).*
+Convert natural language to regular expression.,"lines not having the string 'dog', 2 or more times and not a letter","~(((dog){2,})&([A-Za-z]))"
+Convert natural language to regular expression.,lines with a letter before a character or a lower-case letter,([A-Za-z]).*((.)|([a-z])).*
+Convert natural language to regular expression.,"lines with the string 'dog' before the string 'truck', a character, and the string 'ring'",(dog).*((truck)&(.)&(ring)).*
+Convert natural language to regular expression.,"lines not having a character, a letter, or a number",~((.)|([A-Za-z])|([0-9]))
+Convert natural language to regular expression.,"lines not having a letter before the string 'dog', 7 or more times","~(([A-Za-z]).*((dog){7,}).*)"
+Convert natural language to regular expression.,lines with a number and the string 'dog' before a capital letter,(([0-9])&(dog)).*([A-Z]).*
+Convert natural language to regular expression.,lines with the string 'dog' before a letter or the string 'truck' at least once,(((dog).*([A-Za-z]).*)|(truck))+
+Convert natural language to regular expression.,lines containing a vowel followed by the string 'dog' at least once,(.*[AEIOUaeiou].*dog.*.*)+
+Convert natural language to regular expression.,lines ending with a vowel followed by a character or a number,(.*)(([AEIOUaeiou].*..*)|([0-9]))
+Convert natural language to regular expression.,lines with the string 'dog' before a character at least once,(dog).*((.)+).*
+Convert natural language to regular expression.,lines not having a vowel before a number,~(([AEIOUaeiou]).*([0-9]).*)
+Convert natural language to regular expression.,lines with words that contain a letter before a number,\b(.*[A-Za-z].*).*([0-9]).*\b
+Convert natural language to regular expression.,lines with words with the string 'dog' or a number,\b(dog)|([0-9])\b
+Convert natural language to regular expression.,"lines with words with either a character, a vowel, or a letter",\b(.)|([AEIOUaeiou])|([A-Za-z])\b
+Convert natural language to regular expression.,lines containing the string 'dog' followed by a vowel at least once,(.*dog.*[AEIOUaeiou].*.*)+
+Convert natural language to regular expression.,lines with the string 'dog' and a number before the string 'truck' at least once,((dog)&([0-9])).*((truck)+).*
+Convert natural language to regular expression.,lines with the string 'dog' before a letter or a capital letter,(dog).*(([A-Za-z])|([A-Z])).*
+Convert natural language to regular expression.,"lines with a letter or a lower-case letter before a vowel, a number, and a character",(([A-Za-z])|([a-z])).*(([AEIOUaeiou])&([0-9])&(.)).*
+Convert natural language to regular expression.,"lines with the string 'dog' before either the string 'truck', the string 'ring', or a letter",(dog).*((truck)|(ring)|([A-Za-z])).*
+Convert natural language to regular expression.,lines with a character and a vowel before the string 'dog' followed by a lower-case letter,((.)&([AEIOUaeiou])).*(dog.*[a-z].*).*
+Convert natural language to regular expression.,lines with a capital letter and a character before a vowel,(([A-Z])&(.)).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,lines not having a capital letter and not a character before a letter,~((([A-Z])&(.)).*([A-Za-z]).*)
+Convert natural language to regular expression.,lines with a capital letter before the string 'dog' followed by a letter,([A-Z]).*(dog.*[A-Za-z].*).*
+Convert natural language to regular expression.,"lines with a lower-case letter followed by a vowel before a capital letter, zero or more times",([a-z].*[AEIOUaeiou].*).*(([A-Z])*).*
+Convert natural language to regular expression.,"lines starting with a letter before the string 'dog', a number, and the string 'truck'",(([A-Za-z])(.*)).*((dog)&([0-9])&(truck)).*
+Convert natural language to regular expression.,lines with a lower-case letter before containing a number,([a-z]).*(.*[0-9].*).*
+Convert natural language to regular expression.,lines ending with a letter or a lower-case letter,(.*)(([A-Za-z])|([a-z]))
+Convert natural language to regular expression.,"lines with the string 'dog', zero or more times before a lower-case letter",((dog)*).*([a-z]).*
+Convert natural language to regular expression.,"lines with a lower-case letter followed by a character, 3 or more times","([a-z].*..*){3,}"
+Convert natural language to regular expression.,lines with the string 'dog' before the string 'truck' and not a lower-case letter,((dog).*(truck).*)&(~([a-z]))
+Convert natural language to regular expression.,"lines containing a vowel, zero or more times",(.*[AEIOUaeiou].*)*
+Convert natural language to regular expression.,"lines with the string 'dog' before words with a capital letter, 6 or more times","(dog).*(\b([A-Z]){6,}\b).*"
+Convert natural language to regular expression.,"lines with a lower-case letter followed by the string 'dog', 6 or more times","([a-z].*dog.*){6,}"
+Convert natural language to regular expression.,lines containing a letter before a lower-case letter followed by a capital letter,(.*[A-Za-z].*).*([a-z].*[A-Z].*).*
+Convert natural language to regular expression.,"lines with a letter before a lower-case letter, zero or more times",([A-Za-z]).*(([a-z])*).*
+Convert natural language to regular expression.,lines with a letter before a number at least once,([A-Za-z]).*(([0-9])+).*
+Convert natural language to regular expression.,lines ending with a letter or the string 'dog' and the string 'truck',((.*)([A-Za-z]))|((dog)&(truck))
+Convert natural language to regular expression.,"lines with a character before either a lower-case letter, the string 'dog', or a number",(.).*(([a-z])|(dog)|([0-9])).*
+Convert natural language to regular expression.,lines not having a vowel and ending with a number,(~([AEIOUaeiou]))&((.*)([0-9]))
+Convert natural language to regular expression.,"lines having the string 'dog', a letter, and a capital letter or a lower-case letter at least once",(((dog)&([A-Za-z])&([A-Z]))|([a-z]))+
+Convert natural language to regular expression.,lines starting with words with a letter followed by the string 'dog',(\b[A-Za-z].*dog.*\b)(.*)
+Convert natural language to regular expression.,"lines with a number before a letter, zero or more times",([0-9]).*(([A-Za-z])*).*
+Convert natural language to regular expression.,lines with a letter followed by a lower-case letter at least once,([A-Za-z].*[a-z].*)+
+Convert natural language to regular expression.,lines not containing a character followed by a lower-case letter,.*~(..*[a-z].*).*
+Convert natural language to regular expression.,"lines with words with a vowel, zero or more times",\b([AEIOUaeiou])*\b
+Convert natural language to regular expression.,lines not starting with a lower-case letter or a capital letter,~((([a-z])(.*))|([A-Z]))
+Convert natural language to regular expression.,"lines with words that don't have a lower-case letter, zero or more times",\b~(([a-z])*)\b
+Convert natural language to regular expression.,"lines not having a capital letter or a vowel, zero or more times",(~([A-Z]))|(([AEIOUaeiou])*)
+Convert natural language to regular expression.,lines with a letter before not a lower-case letter,([A-Za-z]).*(~([a-z])).*
+Convert natural language to regular expression.,"lines with a lower-case letter followed by a letter, 5 or more times","([a-z].*[A-Za-z].*){5,}"
+Convert natural language to regular expression.,"lines not having a letter, a number, or the string 'dog'",~(([A-Za-z])|([0-9])|(dog))
+Convert natural language to regular expression.,"lines with a character before a letter, zero or more times",(.).*(([A-Za-z])*).*
+Convert natural language to regular expression.,lines not having a character or containing the string 'dog',(~(.))|(.*dog.*)
+Convert natural language to regular expression.,"lines having the string 'dog', a lower-case letter, and a capital letter before a number",((dog)&([a-z])&([A-Z])).*([0-9]).*
+Convert natural language to regular expression.,"lines with words with a lower-case letter, a letter, and the string 'dog'",\b([a-z])&([A-Za-z])&(dog)\b
+Convert natural language to regular expression.,lines with a number followed by a character before a lower-case letter,([0-9].*..*).*([a-z]).*
+Convert natural language to regular expression.,"lines with the string 'dog' or the string 'truck', 2 or more times before a character","(((dog)|(truck)){2,}).*(.).*"
+Convert natural language to regular expression.,lines with words with ending with a capital letter and a letter,\b((.*)([A-Z]))&([A-Za-z])\b
+Convert natural language to regular expression.,lines with the string 'dog' before not a vowel at least once,(dog).*(~(([AEIOUaeiou])+)).*
+Convert natural language to regular expression.,lines starting with a capital letter before not a lower-case letter,(([A-Z])(.*)).*(~([a-z])).*
+Convert natural language to regular expression.,lines not containing a character,~(.*..*)
+Convert natural language to regular expression.,"lines with the string 'dog' before a capital letter, 5 or more times","(dog).*(([A-Z]){5,}).*"
+Convert natural language to regular expression.,lines ending with a character before a capital letter or a letter,(.*)(((.).*([A-Z]).*)|([A-Za-z]))
+Convert natural language to regular expression.,lines with a vowel followed by a letter before a character,([AEIOUaeiou].*[A-Za-z].*).*(.).*
+Convert natural language to regular expression.,"lines with a character followed by a capital letter, 6 or more times","(..*[A-Z].*){6,}"
+Convert natural language to regular expression.,"lines having the string 'dog', a number, and a letter before a character",((dog)&([0-9])&([A-Za-z])).*(.).*
+Convert natural language to regular expression.,lines not having a number before a vowel at least once,~(([0-9]).*(([AEIOUaeiou])+).*)
+Convert natural language to regular expression.,"lines with a number before the string 'dog', the string 'truck', and a character",([0-9]).*((dog)&(truck)&(.)).*
+Convert natural language to regular expression.,"lines having either a vowel, a lower-case letter, or a number before the string 'dog'",(([AEIOUaeiou])|([a-z])|([0-9])).*(dog).*
+Convert natural language to regular expression.,"lines with a vowel or a number, 2 or more times","(([AEIOUaeiou])|([0-9])){2,}"
+Convert natural language to regular expression.,"lines having either a letter, the string 'dog', or the string 'truck' before the string 'ring'",(([A-Za-z])|(dog)|(truck)).*(ring).*
+Convert natural language to regular expression.,"lines with words with either the string 'dog', a lower-case letter, or a character",\b(dog)|([a-z])|(.)\b
+Convert natural language to regular expression.,"lines not having the string 'dog', a capital letter, or a vowel",~((dog)|([A-Z])|([AEIOUaeiou]))
+Convert natural language to regular expression.,lines with the string 'dog' at least once before containing a character,((dog)+).*(.*..*).*
+Convert natural language to regular expression.,lines with a character followed by a lower-case letter before ending with the string 'dog',(..*[a-z].*).*((.*)(dog)).*
+Convert natural language to regular expression.,"lines not containing a character, 4 or more times","~(.*(.){4,}.*)"
+Convert natural language to regular expression.,lines with a character before the string 'dog' or a letter followed by the string 'truck',((.).*(dog).*)|([A-Za-z].*truck.*)
+Convert natural language to regular expression.,"lines with words with either a vowel, a number, or a lower-case letter",\b([AEIOUaeiou])|([0-9])|([a-z])\b
+Convert natural language to regular expression.,"lines with words with a lower-case letter or either the string 'dog', the string 'truck', or a capital letter",\b([a-z])|((dog)|(truck)|([A-Z]))\b
+Convert natural language to regular expression.,lines with a lower-case letter and a vowel before a capital letter,(([a-z])&([AEIOUaeiou])).*([A-Z]).*
+Convert natural language to regular expression.,lines containing a character before the string 'dog',(.*..*).*(dog).*
+Convert natural language to regular expression.,lines not having a capital letter at least once or a character,~((([A-Z])+)|(.))
+Convert natural language to regular expression.,"lines containing a capital letter, 5 or more times","(.*[A-Z].*){5,}"
+Convert natural language to regular expression.,lines with words with ending with a number before a lower-case letter,(\b(.*)([0-9])\b).*([a-z]).*
+Convert natural language to regular expression.,"lines having either a capital letter, the string 'dog', or the string 'truck' before a letter",(([A-Z])|(dog)|(truck)).*([A-Za-z]).*
+Convert natural language to regular expression.,lines starting with a number before a letter followed by the string 'dog',(([0-9])(.*)).*([A-Za-z].*dog.*).*
+Convert natural language to regular expression.,"lines with a lower-case letter before either the string 'dog', the string 'truck', or a number",([a-z]).*((dog)|(truck)|([0-9])).*
+Convert natural language to regular expression.,lines containing the string 'dog' and not the string 'truck',.*(dog)&(~(truck)).*
+Convert natural language to regular expression.,"lines containing either a lower-case letter, the string 'dog', or a number",.*([a-z])|(dog)|([0-9]).*
+Convert natural language to regular expression.,"lines having a number, a lower-case letter, and the string 'dog' before the string 'truck'",(([0-9])&([a-z])&(dog)).*(truck).*
+Convert natural language to regular expression.,lines starting with words with the string 'dog' before a character,(\b(dog).*(.).*\b)(.*)
+Convert natural language to regular expression.,lines with words that contain a character at least once,\b(.*..*)+\b
+Convert natural language to regular expression.,"lines with words with ending with a vowel, zero or more times",(\b(.*)([AEIOUaeiou])\b)*
+Convert natural language to regular expression.,"lines with a vowel, 3 or more times","([AEIOUaeiou]){3,}"
+Convert natural language to regular expression.,"lines containing a vowel followed by the string 'dog', 3 or more times",".*([AEIOUaeiou].*dog.*){3,}.*"
+Convert natural language to regular expression.,"lines containing either the string 'dog', the string 'truck', or a number",.*(dog)|(truck)|([0-9]).*
+Convert natural language to regular expression.,"lines having a number, a vowel, and a lower-case letter before the string 'dog'",(([0-9])&([AEIOUaeiou])&([a-z])).*(dog).*
+Convert natural language to regular expression.,"lines with a letter or a capital letter before either the string 'dog', a vowel, or the string 'truck'",(([A-Za-z])|([A-Z])).*((dog)|([AEIOUaeiou])|(truck)).*
+Convert natural language to regular expression.,lines with words with a lower-case letter and the string 'dog',\b([a-z])&(dog)\b
+Convert natural language to regular expression.,"lines with the string 'dog' before the string 'truck', a character, and a number",(dog).*((truck)&(.)&([0-9])).*
+Convert natural language to regular expression.,lines not starting with a number before a capital letter,~((([0-9])(.*)).*([A-Z]).*)
+Convert natural language to regular expression.,lines not having a character before a lower-case letter,~((.).*([a-z]).*)
+Convert natural language to regular expression.,lines with a lower-case letter before not a letter,([a-z]).*(~([A-Za-z])).*
+Convert natural language to regular expression.,"lines not having the string 'dog', 5 or more times and not a lower-case letter","~(((dog){5,})&([a-z]))"
+Convert natural language to regular expression.,"lines with a capital letter followed by a letter, 6 or more times","([A-Z].*[A-Za-z].*){6,}"
+Convert natural language to regular expression.,lines with the string 'dog' or a lower-case letter before the string 'truck' and the string 'ring',((dog)|([a-z])).*((truck)&(ring)).*
+Convert natural language to regular expression.,lines with words that don't have a lower-case letter followed by a capital letter,\b~([a-z].*[A-Z].*)\b
+Convert natural language to regular expression.,lines containing containing only a letter before the string 'dog',.*([A-Za-z]).*(dog).*.*
+Convert natural language to regular expression.,"lines with words with either a letter, a capital letter, or a lower-case letter at least once",(\b([A-Za-z])|([A-Z])|([a-z])\b)+
+Convert natural language to regular expression.,"lines containing a letter or either the string 'dog', a vowel, or the string 'truck'",(.*[A-Za-z].*)|((dog)|([AEIOUaeiou])|(truck))
+Convert natural language to regular expression.,lines starting with words with ending with the string 'dog',(\b(.*)(dog)\b)(.*)
+Convert natural language to regular expression.,"lines with the string 'dog', zero or more times before containing a vowel",((dog)*).*(.*[AEIOUaeiou].*).*
+Convert natural language to regular expression.,"lines not containing a character, zero or more times",.*~((.)*).*
+Convert natural language to regular expression.,lines with a vowel before a letter or a lower-case letter and the string 'dog',(([AEIOUaeiou]).*([A-Za-z]).*)|(([a-z])&(dog))
+Convert natural language to regular expression.,"lines not having a character, not a vowel, and not the string 'dog'",~((.)&([AEIOUaeiou])&(dog))
+Convert natural language to regular expression.,lines starting with a lower-case letter followed by the string 'dog',([a-z].*dog.*)(.*)
+Convert natural language to regular expression.,"lines with the string 'dog' before either a character, a letter, or a number",(dog).*((.)|([A-Za-z])|([0-9])).*
+Convert natural language to regular expression.,lines starting with the string 'dog' or the string 'truck' before a capital letter,((dog)(.*))|((truck).*([A-Z]).*)
+Convert natural language to regular expression.,"lines not words with a number, zero or more times",~(\b([0-9])*\b)
+Convert natural language to regular expression.,"lines with the string 'dog', 3 or more times and a lower-case letter or a letter","((dog){3,})&(([a-z])|([A-Za-z]))"
+Convert natural language to regular expression.,"lines with the string 'dog', 7 or more times","(dog){7,}"
+Convert natural language to regular expression.,lines ending with a lower-case letter or containing a letter,((.*)([a-z]))|(.*[A-Za-z].*)
+Convert natural language to regular expression.,"lines not having a capital letter, not the string 'dog', and not the string 'truck'",~(([A-Z])&(dog)&(truck))
+Convert natural language to regular expression.,"lines not having a number, the string 'dog', or a lower-case letter",~(([0-9])|(dog)|([a-z]))
+Convert natural language to regular expression.,"lines with words that contain only a letter, 6 or more times","(\b[A-Za-z]\b){6,}"
+Convert natural language to regular expression.,lines containing words with ending with a vowel,.*\b(.*)([AEIOUaeiou])\b.*
+Convert natural language to regular expression.,"lines having a character, a lower-case letter, and a letter before the string 'dog'",((.)&([a-z])&([A-Za-z])).*(dog).*
+Convert natural language to regular expression.,lines with words with a character at least once or a letter,\b((.)+)|([A-Za-z])\b
+Convert natural language to regular expression.,"lines not having a letter, not a vowel, and not a number",~(([A-Za-z])&([AEIOUaeiou])&([0-9]))
+Convert natural language to regular expression.,lines with a vowel before a letter or the string 'dog',([AEIOUaeiou]).*(([A-Za-z])|(dog)).*
+Convert natural language to regular expression.,lines starting with a letter and a character at least once,(([A-Za-z])(.*))&((.)+)
+Convert natural language to regular expression.,"lines starting with words with either a lower-case letter, the string 'dog', or the string 'truck'",(\b([a-z])|(dog)|(truck)\b)(.*)
+Convert natural language to regular expression.,"lines not having the string 'dog', a number, or a letter",~((dog)|([0-9])|([A-Za-z]))
+Convert natural language to regular expression.,"lines with words with the string 'dog', a number, and the string 'truck'",\b(dog)&([0-9])&(truck)\b
+Convert natural language to regular expression.,"lines with a capital letter, zero or more times or ending with a lower-case letter",(([A-Z])*)|((.*)([a-z]))
+Convert natural language to regular expression.,"lines having a letter, a lower-case letter, and the string 'dog' before a number",(([A-Za-z])&([a-z])&(dog)).*([0-9]).*
+Convert natural language to regular expression.,"lines ending with a lower-case letter before a vowel, zero or more times",((.*)([a-z])).*(([AEIOUaeiou])*).*
+Convert natural language to regular expression.,lines with a character before a vowel or a lower-case letter,(.).*(([AEIOUaeiou])|([a-z])).*
+Convert natural language to regular expression.,"lines containing a letter, a capital letter, and a number",.*([A-Za-z])&([A-Z])&([0-9]).*
+Convert natural language to regular expression.,"lines with words with starting with a capital letter, 2 or more times","(\b([A-Z])(.*)\b){2,}"
+Convert natural language to regular expression.,lines with a number before a character or the string 'dog',([0-9]).*((.)|(dog)).*
+Convert natural language to regular expression.,lines containing words with the string 'dog' and the string 'truck',.*\b(dog)&(truck)\b.*
+Convert natural language to regular expression.,"lines with the string 'dog' before words with the string 'truck', zero or more times",(dog).*(\b(truck)*\b).*
+Convert natural language to regular expression.,"lines with the string 'dog' and the string 'truck' or the string 'ring', zero or more times",(((dog)&(truck))|(ring))*
+Convert natural language to regular expression.,"lines containing the string 'dog', a character, and the string 'truck' at least once",(.*(dog)&(.)&(truck).*)+
+Convert natural language to regular expression.,"lines with words with the string 'dog' or a number, 4 or more times","(\b(dog)|([0-9])\b){4,}"
+Convert natural language to regular expression.,lines with a capital letter followed by the string 'dog' before a vowel,([A-Z].*dog.*).*([AEIOUaeiou]).*
+Convert natural language to regular expression.,"lines ending with a character, 6 or more times","((.*)(.)){6,}"
+Convert natural language to regular expression.,"lines with the string 'dog' before not the string 'truck', the string 'ring', or a character",(dog).*(~((truck)|(ring)|(.))).*
+Convert natural language to regular expression.,"lines with a character followed by a vowel, 3 or more times","(..*[AEIOUaeiou].*){3,}"
+Convert natural language to regular expression.,"lines containing either a character, the string 'dog', or the string 'truck'",.*(.)|(dog)|(truck).*
+Convert natural language to regular expression.,"lines with words with either a capital letter, a letter, or a vowel",\b([A-Z])|([A-Za-z])|([AEIOUaeiou])\b
+Convert natural language to regular expression.,lines ending with a lower-case letter followed by a letter before the string 'dog',((.*)([a-z].*[A-Za-z].*)).*(dog).*
+Convert natural language to regular expression.,lines with the string 'dog' at least once before a lower-case letter,((dog)+).*([a-z]).*
+Convert natural language to regular expression.,"lines having a letter, a number, and a vowel before a lower-case letter",(([A-Za-z])&([0-9])&([AEIOUaeiou])).*([a-z]).*
+Convert natural language to regular expression.,lines with a capital letter before containing a vowel,([A-Z]).*(.*[AEIOUaeiou].*).*
+Convert natural language to regular expression.,"lines not having a capital letter and not the string 'dog', zero or more times",~(([A-Z])&((dog)*))
+Convert natural language to regular expression.,lines with a capital letter before a number,([A-Z]).*([0-9]).*
+Convert natural language to regular expression.,lines not containing a number and not a vowel,~((.*[0-9].*)&([AEIOUaeiou]))
+Convert natural language to regular expression.,"lines with a number or a letter, 6 or more times","(([0-9])|([A-Za-z])){6,}"
+Convert natural language to regular expression.,"lines with words with either a vowel, a letter, or the string 'dog'",\b([AEIOUaeiou])|([A-Za-z])|(dog)\b
+Convert natural language to regular expression.,lines with a capital letter and a vowel before a letter,(([A-Z])&([AEIOUaeiou])).*([A-Za-z]).*
+Convert natural language to regular expression.,lines with a vowel followed by a capital letter before the string 'dog',([AEIOUaeiou].*[A-Z].*).*(dog).*
+Convert natural language to regular expression.,"lines containing either a vowel, a lower-case letter, or a letter and a number",.*(([AEIOUaeiou])|([a-z])|([A-Za-z]))&([0-9]).*
+Convert natural language to regular expression.,"lines with the string 'dog' followed by a vowel and the string 'truck', 6 or more times","(dog.*[AEIOUaeiou].*)&((truck){6,})"
+Convert natural language to regular expression.,"lines ending with the string 'dog' and a character, zero or more times",((.*)(dog))&((.)*)
+Convert natural language to regular expression.,lines with the string 'dog' before a capital letter,(dog).*([A-Z]).*
+Convert natural language to regular expression.,"lines with a capital letter before containing a character, zero or more times",([A-Z]).*((.*..*)*).*
+Convert natural language to regular expression.,"lines not having a number, a vowel, or the string 'dog'",~(([0-9])|([AEIOUaeiou])|(dog))
+Convert natural language to regular expression.,"lines not having a character, not a capital letter, and not a vowel",~((.)&([A-Z])&([AEIOUaeiou]))
+Convert natural language to regular expression.,"lines with a character or a letter, 2 or more times","((.)|([A-Za-z])){2,}"
+Convert natural language to regular expression.,lines with a letter and a capital letter before a lower-case letter,(([A-Za-z])&([A-Z])).*([a-z]).*
+Convert natural language to regular expression.,lines not having a lower-case letter or the string 'dog' before a capital letter,~(([a-z])|((dog).*([A-Z]).*))

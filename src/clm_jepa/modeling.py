@@ -112,8 +112,8 @@ class CLMJEPA:
                 shuffle_indices=None,
             )
 
-        if not 0 <= k <= len(self.predictor_token_ids):
-            raise ValueError(f"k must be in [0, {len(self.predictor_token_ids)}]")
+        if k != -1 and not 0 <= k <= len(self.predictor_token_ids):
+            raise ValueError(f"k must be -1 or in [0, {len(self.predictor_token_ids)}]")
         sources, native_targets = extract_source_and_target(batch)
         targets = list(jepa_targets) if jepa_targets is not None else native_targets
         if len(targets) != len(sources):
@@ -124,7 +124,7 @@ class CLMJEPA:
             targets = [targets[index] for index in shuffle_indices]
 
         # LLM-JEPA appends <|predictor_k|>, ..., <|predictor_1|> in that order.
-        predictor_suffix = list(reversed(self.predictor_token_ids[:k]))
+        predictor_suffix = [] if k == -1 else list(reversed(self.predictor_token_ids[:k]))
         source_rows = [
             torch.cat((source, source.new_tensor(predictor_suffix))) if predictor_suffix else source
             for source in sources
@@ -138,7 +138,9 @@ class CLMJEPA:
         outputs = model(input_ids=padded, attention_mask=attention, output_hidden_states=True)
         hidden = outputs.hidden_states[-1]
         batch_size = len(sources)
-        source_indices = attention[:batch_size].sum(dim=1) - 1
+        source_indices = attention[:batch_size].sum(dim=1) - (2 if k == -1 else 1)
+        if (source_indices < 0).any():
+            raise ValueError("k=-1 requires every source to contain at least two active tokens")
         target_indices = attention[batch_size:].sum(dim=1) - 1
         row_indices = torch.arange(batch_size, device=hidden.device)
         source_states = hidden[row_indices, source_indices]

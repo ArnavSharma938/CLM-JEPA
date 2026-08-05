@@ -87,6 +87,16 @@ def test_source_changes_predictor_state_and_target_eos_is_extracted():
         assert int(row[index]) == tokenizer.eos_token_id
 
 
+def test_k_minus_one_selects_second_to_last_source_token():
+    model, _, method, batch = setup_case()
+    result = method(model, batch, k=-1, jepa_weight=1.0)
+    sources, targets = extract_source_and_target(batch)
+    for source, index in zip(sources, result.source_final_indices):
+        assert int(index) == len(source) - 2
+    for target, index in zip(targets, result.target_final_indices):
+        assert int(index) == len(target) - 1
+
+
 def test_jepa_gradients_reach_shared_backbone_but_monitor_only_adds_none():
     model, _, method, batch = setup_case()
     model.train()

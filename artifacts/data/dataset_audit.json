@@ -1,0 +1,133 @@
+{
+  "sample_policy": "1024 smallest SHA-256 priorities over first valid row per canonical target identity",
+  "sample_size": 1024,
+  "seed": 533,
+  "datasets": [
+    {
+      "dataset": "uspto_mit_synthesis",
+      "provenance": "ChemFM Box train.csv (official R-SMILES synthesis training split)",
+      "rows_seen": 2042390,
+      "valid_rows": 1630474,
+      "empty_target_rows": 0,
+      "source_target_component_overlap": 48425,
+      "duplicate_target_identities": 363491,
+      "sample_size": 1024,
+      "manifest": "data/manifests/gate3_multi/uspto_mit_synthesis.csv",
+      "seed": 533
+    },
+    {
+      "dataset": "uspto_stereo_mixed",
+      "provenance": "MolecularTransformer Box STEREO_mixed published training split",
+      "rows_seen": 902581,
+      "valid_rows": 818677,
+      "empty_target_rows": 0,
+      "source_target_component_overlap": 2387,
+      "duplicate_target_identities": 81517,
+      "sample_size": 1024,
+      "manifest": "data/manifests/gate3_multi/uspto_stereo_mixed.csv",
+      "seed": 533
+    },
+    {
+      "dataset": "orderly_forward",
+      "provenance": "ORDerly Figshare forward train, exactly one product",
+      "rows_seen": 809731,
+      "valid_rows": 739673,
+      "empty_target_rows": 0,
+      "source_target_component_overlap": 0,
+      "duplicate_target_identities": 70058,
+      "sample_size": 1024,
+      "manifest": "data/manifests/gate3_multi/orderly_forward.csv",
+      "seed": 533
+    },
+    {
+      "dataset": "non_uspto_forward",
+      "provenance": "ORDerly Figshare non-USPTO forward release",
+      "rows_seen": 28400,
+      "valid_rows": 22621,
+      "empty_target_rows": 0,
+      "source_target_component_overlap": 11,
+      "duplicate_target_identities": 5768,
+      "sample_size": 1024,
+      "manifest": "data/manifests/gate3_multi/non_uspto_forward.csv",
+      "seed": 533
+    },
+    {
+      "dataset": "metatrans_full",
+      "provenance": "MetaTrans author-released full training collection",
+      "rows_seen": 11414,
+      "valid_rows": 6534,
+      "empty_target_rows": 0,
+      "source_target_component_overlap": 33,
+      "duplicate_target_identities": 4847,
+      "sample_size": 1024,
+      "manifest": "data/manifests/gate3_multi/metatrans_full.csv",
+      "seed": 533
+    },
+    {
+      "dataset": "uspto_50k_retro",
+      "provenance": "ChemFM Box USPTO-50K single-enumeration training split, reversed for retrosynthesis",
+      "rows_seen": 160012,
+      "valid_rows": 150957,
+      "empty_target_rows": 0,
+      "source_target_component_overlap": 0,
+      "duplicate_target_identities": 9055,
+      "sample_size": 1024,
+      "manifest": "data/manifests/gate3_multi/uspto_50k_retro.csv",
+      "seed": 533
+    },
+    {
+      "dataset": "uspto_480k_template_heldout",
+      "provenance": "Retrosynthesis-Extrapolation Figshare frequency/template-held-out training split",
+      "rows_seen": 383784,
+      "valid_rows": 359244,
+      "empty_target_rows": 0,
+      "source_target_component_overlap": 765,
+      "duplicate_target_identities": 23775,
+      "sample_size": 1024,
+      "manifest": "data/manifests/gate3_multi/uspto_480k_template_heldout.csv",
+      "seed": 533
+    },
+    {
+      "dataset": "non_uspto_retro",
+      "provenance": "ORDerly Figshare non-USPTO retrosynthesis release",
+      "rows_seen": 23334,
+      "valid_rows": 12105,
+      "empty_target_rows": 0,
+      "source_target_component_overlap": 3,
+      "duplicate_target_identities": 11226,
+      "sample_size": 1024,
+      "manifest": "data/manifests/gate3_multi/non_uspto_retro.csv",
+      "seed": 533
+    }
+  ],
+  "released_split_leakage": {
+    "uspto_stereo_train_test_pairs": {
+      "left_unique": 902244,
+      "right_unique": 50257,
+      "overlap": 38
+    },
+    "orderly_forward_train_test_pairs": {
+      "left_unique": 809705,
+      "right_unique": 83819,
+      "overlap": 7
+    },
+    "metatrans_train_valid_parents": {
+      "left_unique": 5852,
+      "right_unique": 100,
+      "overlap": 3
+    },
+    "uspto_50k_train_test_pairs": {
+      "left_unique": 151113,
+      "right_unique": 5005,
+      "overlap": 16
+    },
+    "uspto_480k_train_test_pairs": {
+      "left_unique": 361504,
+      "right_unique": 46481,
+      "overlap": 0
+    }
+  },
+  "validity_boundary": "Gate 3 uses the authors' released canonical strings. Full RDKit sanitization is deferred to task preprocessing because RDKit 2024.9.1 segfaults on malformed released strings; exact source-target component overlap is excluded here.",
+  "metatrans_curated_subset": "omitted: released source/target files contain no per-pair provenance",
+  "non_uspto_source": "ORDerly public Figshare release; Bradshaw Pistachio splits are proprietary and were not substituted"
+}

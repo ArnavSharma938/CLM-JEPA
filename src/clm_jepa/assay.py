@@ -6,6 +6,7 @@ from collections import defaultdict
 
 import torch
 import torch.nn.functional as F
+from scipy.optimize import linear_sum_assignment
 
 
 def _minimum_cost_derangement(costs: list[list[int]]) -> tuple[list[int], int]:
@@ -24,48 +25,10 @@ def _minimum_cost_derangement(costs: list[list[int]]) -> tuple[list[int], int]:
         [forbidden if left == right else costs[left][right] for right in range(count)]
         for left in range(count)
     ]
-    row_potential = [0] * (count + 1)
-    column_potential = [0] * (count + 1)
-    matched_row = [0] * (count + 1)
-    predecessor = [0] * (count + 1)
-    for row in range(1, count + 1):
-        matched_row[0] = row
-        minimum = [math.inf] * (count + 1)
-        used = [False] * (count + 1)
-        column = 0
-        while True:
-            used[column] = True
-            current_row = matched_row[column]
-            delta = math.inf
-            next_column = 0
-            for candidate in range(1, count + 1):
-                if used[candidate]:
-                    continue
-                reduced = matrix[current_row - 1][candidate - 1] - row_potential[current_row] - column_potential[candidate]
-                if reduced < minimum[candidate]:
-                    minimum[candidate] = reduced
-                    predecessor[candidate] = column
-                if minimum[candidate] < delta:
-                    delta = minimum[candidate]
-                    next_column = candidate
-            for candidate in range(count + 1):
-                if used[candidate]:
-                    row_potential[matched_row[candidate]] += delta
-                    column_potential[candidate] -= delta
-                else:
-                    minimum[candidate] -= delta
-            column = next_column
-            if matched_row[column] == 0:
-                break
-        while True:
-            previous = predecessor[column]
-            matched_row[column] = matched_row[previous]
-            column = previous
-            if column == 0:
-                break
+    rows, columns = linear_sum_assignment(matrix)
     assignment = [0] * count
-    for column in range(1, count + 1):
-        assignment[matched_row[column] - 1] = column - 1
+    for row, column in zip(rows.tolist(), columns.tolist()):
+        assignment[row] = column
     if any(left == right for left, right in enumerate(assignment)):
         raise RuntimeError("minimum-cost assignment unexpectedly contains a fixed point")
     total = sum(costs[left][right] for left, right in enumerate(assignment))
@@ -113,18 +76,21 @@ def ridge_explained_variance(
     heldout_identities: set[str],
     alpha: float = 1.0,
 ) -> float:
-    train = torch.tensor([identity not in heldout_identities for identity in identities])
+    train = torch.tensor(
+        [identity not in heldout_identities for identity in identities], device=sources.device
+    )
     test = ~train
-    x_train = sources[train].double()
-    y_train = targets[train].double()
-    x_test = sources[test].double()
-    y_test = targets[test].double()
+    x_train = sources[train].float()
+    y_train = targets[train].float()
+    x_test = sources[test].float()
+    y_test = targets[test].float()
     x_mean = x_train.mean(dim=0, keepdim=True)
     y_mean = y_train.mean(dim=0, keepdim=True)
     x_train = x_train - x_mean
     kernel = x_train @ x_train.T
     coefficients = torch.linalg.solve(
-        kernel + alpha * torch.eye(len(kernel), dtype=kernel.dtype), y_train - y_mean
+        kernel + alpha * torch.eye(len(kernel), dtype=kernel.dtype, device=kernel.device),
+        y_train - y_mean,
     )
     predictions = (x_test - x_mean) @ x_train.T @ coefficients + y_mean
     residual = (y_test - predictions).square().sum()
@@ -142,8 +108,11 @@ def relationship_metrics(
     centered: bool = False,
 ) -> dict:
     unique = sorted(set(identities))
-    heldout = set(unique[-2:])
-    train_mask = torch.tensor([identity not in heldout for identity in identities])
+    heldout_count = max(2, math.ceil(0.2 * len(unique)))
+    heldout = set(unique[-heldout_count:])
+    train_mask = torch.tensor(
+        [identity not in heldout for identity in identities], device=sources.device
+    )
     raw_sources = sources.float()
     raw_targets = targets.float()
     if centered:
@@ -188,7 +157,7 @@ def relationship_metrics(
             ),
         )[:3]
         candidates = [identity] + negatives
-        scores = torch.tensor([
+        scores = torch.stack([
             torch.dot(normalized_sources[index], prototypes[candidate]) for candidate in candidates
         ])
         rank = int((scores > scores[0]).sum()) + 1
@@ -221,7 +190,7 @@ def relationship_metrics(
         "retrieval_top1": top1,
         "retrieval_mrr": sum(reciprocal_ranks) / len(reciprocal_ranks),
         "retrieval_chance_top1": chance,
-        "heldout_identities": sorted(heldout),
+        "heldout_identity_count": len(heldout),
     }
     result["retains_pair_signal"] = bool(
         random_margin > 0.0
