@@ -1,0 +1,12 @@
+.venv/
+_references/
+models/
+data/official/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+artifacts/pytest_tmp/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
