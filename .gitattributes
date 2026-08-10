@@ -3,3 +3,6 @@
 
 # Vendored upstream sources are retained byte-for-byte for fidelity audits.
 references/** -whitespace
+
+# The frozen panel hash includes its original CRLF byte serialization.
+data/gate5_decoder_coupling/*.csv -text -whitespace
