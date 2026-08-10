@@ -8,6 +8,7 @@ import math
 import os
 import random
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Mapping
@@ -25,8 +26,8 @@ from transformers import get_scheduler, set_seed
 ROOT = Path(__file__).resolve().parents[1]
 
 from chemfm import (  # noqa: E402
-    IGNORE_INDEX, MODEL_DIR, TOKENIZER_DIR, ReactionCollator, generate_products,
-    canonicalize, load_lora_model, load_reaction_tokenizer,
+    IGNORE_INDEX, MODEL_DIR, TOKENIZER_DIR, ReactionCollator,
+    generate_products_batch, canonicalize, load_lora_model, load_reaction_tokenizer,
 )
 from jepa import CLMJEPA, add_predictor_tokens, extract_source_and_target  # noqa: E402
 from metrics import (  # noqa: E402
@@ -334,27 +335,59 @@ def native_loss(model, loader) -> float:
     return total / max(1, tokens)
 
 
-def beam_evaluate(model, tokenizer, collator, rows, task, windows=10):
+def beam_evaluate(
+    model, tokenizer, collator, rows, task, windows=10,
+    generation_batch_size: int = 1,
+):
+    if generation_batch_size < 1:
+        raise ValueError("generation batch size must be positive")
     grouped: dict[str, list[dict[str, str]]] = {}
     for index, row in enumerate(rows):
         grouped.setdefault(row.get("group_id", f"row-{index}"), []).append(row)
     evaluation_rows = []
-    candidate_rows = []
+    prompts = []
+    prompt_locations = []
+    augmentations = []
     model.eval()
-    for group in grouped.values():
+    for group_index, group in enumerate(grouped.values()):
         target_identity = _target_identity(group[0]["tgt"], task)
         if any(_target_identity(row["tgt"], task) != target_identity for row in group):
             raise ValueError("every R-SMILES validation group must share one target identity")
-        augmentations = []
-        for row in group:
-            prompt = collator([row])["generation_prompts"]
-            augmentations.append(generate_products(
-                model, tokenizer, prompt,
-                max_length=collator.source_max_len + collator.target_max_len,
-                num_beams=windows, num_return_sequences=windows,
-            ))
         evaluation_rows.append(group[0])
-        candidate_rows.append(rank_augmented_candidates(augmentations, task, windows))
+        augmentations.append([None] * len(group))
+        group_prompts = collator(group)["generation_prompts"]
+        for augmentation_index, prompt in enumerate(group_prompts):
+            prompts.append(prompt)
+            prompt_locations.append((group_index, augmentation_index))
+
+    encoded_prompts = tokenizer(
+        prompts, add_special_tokens=False, truncation=True
+    )["input_ids"]
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    prompt_order = list(range(len(prompts)))
+    if generation_batch_size > 1:
+        prompt_order.sort(key=lambda index: (len(encoded_prompts[index]), index))
+    for start in range(0, len(prompt_order), generation_batch_size):
+        indices = prompt_order[start:start + generation_batch_size]
+        predictions = generate_products_batch(
+            model, tokenizer, [prompts[index] for index in indices],
+            max_length=collator.source_max_len + collator.target_max_len,
+            num_beams=windows, num_return_sequences=windows,
+            pad_unequal_prompts=generation_batch_size > 1,
+        )
+        for prompt_index, candidates in zip(indices, predictions):
+            group_index, augmentation_index = prompt_locations[prompt_index]
+            augmentations[group_index][augmentation_index] = candidates
+
+    if any(candidates is None for group in augmentations for candidates in group):
+        raise RuntimeError("generation did not populate every R-SMILES view")
+    workers = min(8, max(1, (os.cpu_count() or 2) - 1), len(augmentations))
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        candidate_rows = list(executor.map(
+            lambda values: rank_augmented_candidates(values, task, windows),
+            augmentations,
+        ))
     return score_candidates(evaluation_rows, candidate_rows, task)
 
 
@@ -582,6 +615,7 @@ def train(args):
     torch.set_float32_matmul_precision("high")
     set_seed(args.seed)
     task = TASKS[args.dataset]
+    evaluation_beam_size = 20 if task == "metabolism" else 10
     train_path = args.train_manifest.resolve()
     validation_path = args.validation_manifest.resolve()
     train_rows = read_rows(args.dataset, path=train_path)
@@ -635,7 +669,10 @@ def train(args):
         num_training_steps=steps,
         scheduler_specific_kwargs={"min_lr": MIN_LEARNING_RATE},
     )
-    has_jepa = args.condition in {"monitor", "clm_jepa", "shuffled", "jepa_only"}
+    has_jepa = args.condition in {
+        "monitor", "clm_jepa", "clm_jepa_target_sg", "shuffled", "jepa_only"
+    }
+    stop_gradient_target = args.condition == "clm_jepa_target_sg"
     ratio = 1.0 - args.dropout
     resolved_ratio = ratio if has_jepa else -1.0
     actual_lambda = args.lambda_eff / ratio if has_jepa else 0.0
@@ -650,6 +687,7 @@ def train(args):
         "lambda_eff": args.lambda_eff, "actual_lambda": actual_lambda,
         "jepa_loss_dropout": args.dropout if has_jepa else None,
         "jepa_ratio": resolved_ratio,
+        "jepa_target_stop_gradient": stop_gradient_target,
         "train_size": len(train_rows), "validation_size": len(val_rows),
         "train_manifest": str(train_path),
         "train_manifest_sha256": file_sha256(train_path),
@@ -660,6 +698,8 @@ def train(args):
         "fused_adamw": args.fused_adamw,
         "gradient_checkpointing": args.gradient_checkpointing,
         "pin_memory": args.pin_memory,
+        "evaluation_generation_batch_size": args.eval_generation_batch_size,
+        "evaluation_beam_size": evaluation_beam_size,
         "adam_beta1": ADAM_BETAS[0], "adam_beta2": ADAM_BETAS[1],
         "adam_epsilon": ADAM_EPSILON, "weight_decay": WEIGHT_DECAY,
         "scheduler": "cosine_with_min_lr", "warmup_ratio": WARMUP_RATIO,
@@ -728,6 +768,7 @@ def train(args):
                     jepa_weight=actual_lambda if has_jepa else 0.0,
                     native_weight=native_weight,
                     monitor_only=args.condition == "monitor",
+                    stop_gradient_target=stop_gradient_target,
                     jepa_ratio=resolved_ratio,
                     jepa_targets=jepa_targets,
                 )
@@ -834,7 +875,8 @@ def train(args):
             val_loss = native_loss(model, validation)
             metrics, predictions = beam_evaluate(
                 model, tokenizer, collator, val_rows, task,
-                windows=20 if task == "metabolism" else 10,
+                windows=evaluation_beam_size,
+                generation_batch_size=args.eval_generation_batch_size,
             )
             selector = validation_selector(metrics, task)
             checkpoint = args.checkpoint_dir.resolve() / f"epoch_{epoch_index + 1}"
@@ -926,7 +968,10 @@ def main():
     parser.add_argument("--dataset", choices=sorted(TASKS), required=True)
     parser.add_argument(
         "--condition",
-        choices=("native", "monitor", "clm_jepa", "shuffled", "jepa_only"),
+        choices=(
+            "native", "monitor", "clm_jepa", "clm_jepa_target_sg",
+            "shuffled", "jepa_only",
+        ),
         required=True,
     )
     parser.add_argument("--seed", type=int, default=533)
@@ -957,6 +1002,13 @@ def main():
     )
     parser.add_argument(
         "--pin-memory", action=argparse.BooleanOptionalAction, default=False,
+    )
+    parser.add_argument(
+        "--eval-generation-batch-size", type=int, choices=(1, 2, 4), default=1,
+        help=(
+            "number of length-sorted, left-padded prompts evaluated together; does not "
+            "change beam width, stopping, generation length, or R-SMILES aggregation"
+        ),
     )
     parser.add_argument("--data-fraction", type=float, default=1.0)
     parser.add_argument("--train-manifest", type=Path, required=True)

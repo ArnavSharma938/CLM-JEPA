@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from chemfm import (
     IGNORE_INDEX, TOKENIZER_DIR, ReactionCollator, canonicalize,
-    generate_products, load_reaction_tokenizer,
+    generate_products, generate_products_batch, load_reaction_tokenizer,
     resize_chemfm_then_predictors,
 )
 
@@ -78,6 +78,7 @@ def test_canonicalization_clears_atom_maps_and_retains_stereochemistry():
 class GenerationTokenizer:
     eos_token_id = 2
     pad_token_id = 0
+    padding_side = "right"
 
     def __call__(self, prompts, **kwargs):
         return {
@@ -125,3 +126,47 @@ def test_generation_rejects_batched_r_smiles_views_like_official_evaluator():
             GenerationModel(), GenerationTokenizer(), ["view-1", "view-2"],
             num_beams=2, num_return_sequences=2,
         )
+
+
+def test_equal_length_batched_generation_preserves_prompt_and_beam_order():
+    model = GenerationModel()
+    values = generate_products_batch(
+        model, GenerationTokenizer(), ["view-1", "view-2"],
+        max_length=1024, num_beams=2, num_return_sequences=2,
+    )
+    assert values == [["CC", "CC"], ["CC", "CC"]]
+    assert model.kwargs["input_ids"].shape == (2, 2)
+    assert model.kwargs["num_beams"] == 2
+    assert model.kwargs["early_stopping"] == "never"
+    assert model.config.use_cache is False
+
+
+def test_batched_generation_rejects_unequal_token_lengths():
+    class UnequalTokenizer(GenerationTokenizer):
+        def __call__(self, prompts, **kwargs):
+            return {
+                "input_ids": torch.tensor([[4, 5, 0], [4, 5, 6]]),
+                "attention_mask": torch.tensor([[1, 1, 0], [1, 1, 1]]),
+                "token_type_ids": torch.zeros((2, 3), dtype=torch.long),
+            }
+
+    with pytest.raises(ValueError, match="equal tokenized lengths"):
+        generate_products_batch(
+            GenerationModel(), UnequalTokenizer(), ["short", "long"],
+            num_beams=2, num_return_sequences=2,
+        )
+
+
+def test_left_padded_batched_generation_restores_tokenizer_and_output_order():
+    tokenizer = GenerationTokenizer()
+    model = GenerationModel()
+    values = generate_products_batch(
+        model,
+        tokenizer,
+        ["short", "long"],
+        num_beams=2,
+        num_return_sequences=2,
+        pad_unequal_prompts=True,
+    )
+    assert values == [["CC", "CC"], ["CC", "CC"]]
+    assert tokenizer.padding_side == "right"

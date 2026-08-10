@@ -220,20 +220,40 @@ def main() -> None:
     )
     parser.add_argument("--native-checkpoint", type=Path, required=True)
     parser.add_argument("--clm-checkpoint", type=Path, required=True)
+    parser.add_argument("--target-sg-checkpoint", type=Path)
     parser.add_argument("--cache-dir", type=Path, default=ROOT / "runs" / "diagnostics" / "geometry_cache")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--batch-size", type=int, default=16)
+    parser.add_argument("--examples", type=int, default=1024)
     args = parser.parse_args()
     with args.manifest.open(newline="", encoding="utf-8") as handle:
-        records = list(csv.DictReader(handle))
-    if len(records) != 1024:
-        raise ValueError(f"expected the frozen 1024-row Gate 3 sample, got {len(records)}")
+        raw_records = list(csv.DictReader(handle))
+    records = []
+    seen_groups = set()
+    for row in raw_records:
+        group = row.get("group_id", row.get("example_id", str(len(records))))
+        if group in seen_groups:
+            continue
+        seen_groups.add(group)
+        records.append({
+            **row,
+            "src": row.get("src") or row.get("source", ""),
+            "tgt": row.get("tgt") or row.get("target", ""),
+        })
+        if len(records) == args.examples:
+            break
+    if len(records) != args.examples:
+        raise ValueError(
+            f"expected {args.examples} unique reaction identities, got {len(records)}"
+        )
 
     conditions = [
         ("base", None),
         ("native_epoch3", args.native_checkpoint),
         ("clm_jepa_epoch3", args.clm_checkpoint),
     ]
+    if args.target_sg_checkpoint is not None:
+        conditions.append(("clm_jepa_target_sg_selected", args.target_sg_checkpoint))
     output = {
         "manifest": str(args.manifest.resolve()),
         "examples": len(records),

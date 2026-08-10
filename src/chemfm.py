@@ -190,20 +190,37 @@ def canonicalize(smiles: str) -> str:
 
 
 @torch.inference_mode()
-def generate_products(
+def generate_products_batch(
     model,
     tokenizer,
     prompts: list[str],
     max_length: int = 1024,
     num_beams: int = 1,
     num_return_sequences: int = 1,
+    pad_unequal_prompts: bool = False,
 ):
-    if len(prompts) != 1:
-        raise ValueError("ChemFM standalone evaluation generates one R-SMILES view at a time")
-    encoded = tokenizer(
-        prompts, return_tensors="pt", padding=True, truncation=True, add_special_tokens=False
-    )
+    if not prompts:
+        raise ValueError("at least one generation prompt is required")
+    original_padding_side = tokenizer.padding_side
+    if pad_unequal_prompts:
+        tokenizer.padding_side = "left"
+    try:
+        encoded = tokenizer(
+            prompts,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            add_special_tokens=False,
+        )
+    finally:
+        tokenizer.padding_side = original_padding_side
     encoded.pop("token_type_ids", None)
+    prompt_lengths = encoded["attention_mask"].sum(dim=1)
+    if (
+        not pad_unequal_prompts
+        and not torch.equal(prompt_lengths, prompt_lengths[:1].expand_as(prompt_lengths))
+    ):
+        raise ValueError("batched ChemFM prompts must have equal tokenized lengths")
     encoded = {key: value.to(model.device) for key, value in encoded.items()}
     model.config.use_cache = True
     try:
@@ -222,4 +239,32 @@ def generate_products(
         model.config.use_cache = False
     prompt_width = encoded["input_ids"].shape[1]
     decoded = tokenizer.batch_decode(outputs[:, prompt_width:], skip_special_tokens=True)
-    return [text.replace(" ", "") for text in decoded]
+    decoded = [text.replace(" ", "") for text in decoded]
+    expected = len(prompts) * num_return_sequences
+    if len(decoded) != expected:
+        raise RuntimeError(f"expected {expected} generated sequences, got {len(decoded)}")
+    return [
+        decoded[start:start + num_return_sequences]
+        for start in range(0, expected, num_return_sequences)
+    ]
+
+
+def generate_products(
+    model,
+    tokenizer,
+    prompts: list[str],
+    max_length: int = 1024,
+    num_beams: int = 1,
+    num_return_sequences: int = 1,
+):
+    if len(prompts) != 1:
+        raise ValueError("ChemFM standalone evaluation generates one R-SMILES view at a time")
+    return generate_products_batch(
+        model,
+        tokenizer,
+        prompts,
+        max_length=max_length,
+        num_beams=num_beams,
+        num_return_sequences=num_return_sequences,
+        pad_unequal_prompts=False,
+    )[0]

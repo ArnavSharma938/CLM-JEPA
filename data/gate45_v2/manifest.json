@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "selection_seed": 533,
+  "dataset": "uspto_mit_synthesis",
+  "source_train": "data\\uspto_mit_synthesis\\train_r_smiles.csv",
+  "source_train_sha256": "b5f9e1ecf4a6c7c780a25c460613af975a2fddba70611cf23b7496c8b5a596f8",
+  "source_validation": "data\\uspto_mit_synthesis\\validation_r_smiles.csv",
+  "source_validation_sha256": "6f17fdc91f671bc9e62a0ea2a2717bc818cbcf6d908f12939298de0062b21829",
+  "train_groups": 256,
+  "train_augmentations_per_group": 5,
+  "train_rows": 1280,
+  "validation_groups": 32,
+  "validation_augmentations_per_group": 5,
+  "validation_rows": 160,
+  "train_selection_audit": {
+    "candidate_groups_evaluated": 256,
+    "invalid_target_groups_skipped": 0,
+    "target_identity_mismatch_groups_skipped": 0
+  },
+  "validation_selection_audit": {
+    "candidate_groups_evaluated": 32,
+    "invalid_target_groups_skipped": 0,
+    "target_identity_mismatch_groups_skipped": 0
+  },
+  "selected_target_identity_overlap_count": 0,
+  "selected_reaction_pair_overlap_count": 0,
+  "train_manifest_sha256": "b5900bc7e4f1a858ecf3fdf3732da63e08fc0f955f1cb9ccf90534e2273c8dba",
+  "validation_manifest_sha256": "cb4b8873243a9232e0831bf87b37957e18aec0856540d5427ca7f115227445ae"
+}

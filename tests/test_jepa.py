@@ -139,6 +139,94 @@ def test_jepa_gradients_reach_shared_backbone_but_monitor_only_adds_none():
     assert parameter.grad is not None and torch.count_nonzero(parameter.grad) == 0
 
 
+def test_target_stop_gradient_changes_only_jepa_gradient_path():
+    symmetric_model, _, symmetric_method, batch = setup_case()
+    asymmetric_model = copy.deepcopy(symmetric_model)
+    asymmetric_method = CLMJEPA(
+        symmetric_method.predictor_token_ids,
+        symmetric_method.eos_token_id,
+        symmetric_method.pad_token_id,
+    )
+    symmetric_model.eval()
+    asymmetric_model.eval()
+
+    symmetric = symmetric_method(
+        symmetric_model, batch, k=1, jepa_weight=1.0, native_weight=0.0
+    )
+    asymmetric = asymmetric_method(
+        asymmetric_model,
+        batch,
+        k=1,
+        jepa_weight=1.0,
+        native_weight=0.0,
+        stop_gradient_target=True,
+    )
+    torch.testing.assert_close(asymmetric.loss, symmetric.loss, rtol=0.0, atol=0.0)
+    torch.testing.assert_close(
+        asymmetric.target_states, symmetric.target_states, rtol=0.0, atol=0.0
+    )
+
+    symmetric.source_states.retain_grad()
+    symmetric.target_states.retain_grad()
+    asymmetric.source_states.retain_grad()
+    asymmetric.target_states.retain_grad()
+    symmetric.loss.backward()
+    asymmetric.loss.backward()
+
+    assert symmetric.source_states.grad is not None
+    assert symmetric.target_states.grad is not None
+    assert asymmetric.source_states.grad is not None
+    assert asymmetric.target_states.grad is None
+    assert asymmetric.source_states.grad.abs().sum() > 0
+
+
+def test_target_stop_gradient_preserves_native_parameter_updates():
+    combined_model, _, combined_method, batch = setup_case()
+    native_model = copy.deepcopy(combined_model)
+    jepa_model = copy.deepcopy(combined_model)
+    combined_model.eval()
+    native_model.eval()
+    jepa_model.eval()
+
+    combined = combined_method(
+        combined_model,
+        batch,
+        k=1,
+        jepa_weight=1.3,
+        native_weight=1.0,
+        stop_gradient_target=True,
+    )
+    native = native_model(**batch)
+    jepa_method = CLMJEPA(
+        combined_method.predictor_token_ids,
+        combined_method.eos_token_id,
+        combined_method.pad_token_id,
+    )
+    jepa = jepa_method(
+        jepa_model,
+        batch,
+        k=1,
+        jepa_weight=1.3,
+        native_weight=0.0,
+        stop_gradient_target=True,
+    )
+    combined.loss.backward()
+    native.loss.backward()
+    jepa.loss.backward()
+
+    combined_parameters = dict(combined_model.named_parameters())
+    native_parameters = dict(native_model.named_parameters())
+    jepa_parameters = dict(jepa_model.named_parameters())
+    checked = 0
+    for name, parameter in combined_parameters.items():
+        if parameter.grad is None:
+            continue
+        expected = native_parameters[name].grad + jepa_parameters[name].grad
+        torch.testing.assert_close(parameter.grad, expected, rtol=2e-5, atol=2e-6, msg=name)
+        checked += 1
+    assert checked > 0
+
+
 def test_shuffled_targets_are_reproducible_and_never_correct():
     _, _, _, batch = setup_case()
     _, targets = extract_source_and_target(batch)

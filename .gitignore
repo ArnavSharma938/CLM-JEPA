@@ -5,6 +5,8 @@ data/*
 !data/gate3/**
 !data/gate45/
 !data/gate45/**
+!data/gate45_v2/
+!data/gate45_v2/**
 !data/gate5_decoder_coupling/
 !data/gate5_decoder_coupling/**
 
@@ -40,6 +42,18 @@ runs/diagnostics/decoder_coupling/*
 !runs/diagnostics/decoder_coupling/native_generation_512.jsonl
 !runs/diagnostics/decoder_coupling/clm_jepa_generation_512.jsonl
 !runs/diagnostics/decoder_coupling/summary_512.json
+!runs/diagnostics/target_sg_geometry_32.json
+!runs/diagnostics/target_sg_representation_32.json
+!runs/diagnostics/target_sg_geometry_cache_32/
+!runs/diagnostics/target_sg_geometry_cache_32/**
+!runs/gate4_rescue/
+runs/gate4_rescue/*
+!runs/gate4_rescue/target_sg-s533-batched.json
+!runs/gate4_rescue/beam_full_parity_b4.json
+!runs/gate4_rescue/target_sg-s533-batched-checkpoints/
+runs/gate4_rescue/target_sg-s533-batched-checkpoints/*
+!runs/gate4_rescue/target_sg-s533-batched-checkpoints/epoch_4/
+!runs/gate4_rescue/target_sg-s533-batched-checkpoints/epoch_4/**
 __pycache__/
 *.py[cod]
 .pytest_cache/

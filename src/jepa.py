@@ -92,6 +92,7 @@ class CLMJEPA:
         jepa_weight: float,
         native_weight: float = 1.0,
         monitor_only: bool = False,
+        stop_gradient_target: bool = False,
         jepa_ratio: float = -1.0,
         jepa_targets: Sequence[torch.Tensor] | None = None,
         shuffle_seed: int | None = None,
@@ -162,7 +163,10 @@ class CLMJEPA:
         row_indices = torch.arange(batch_size, device=hidden.device)
         source_states = hidden[row_indices + batch_size, source_indices]
         target_states = hidden[row_indices + 2 * batch_size, target_indices]
-        jepa_loss = 1.0 - F.cosine_similarity(source_states, target_states, dim=-1).mean()
+        jepa_target_states = target_states.detach() if stop_gradient_target else target_states
+        jepa_loss = 1.0 - F.cosine_similarity(
+            source_states, jepa_target_states, dim=-1
+        ).mean()
         applied_jepa = outputs.loss.new_zeros(()) if monitor_only else jepa_weight * jepa_loss
         loss = native_weight * outputs.loss + applied_jepa
         return CLMJEPAOutput(
