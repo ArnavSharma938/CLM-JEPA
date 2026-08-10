@@ -4,6 +4,8 @@
 
 This report covers the single targeted seed-533 cLM-JEPA rescue experiment motivated by the earlier USPTO-MIT geometry and decoder-coupling diagnosis. It is intentionally separate from that parent diagnosis.
 
+The subsequent frozen-checkpoint 512-reaction evaluation is reported separately in [`USPTO_MIT_TARGET_STOP_GRADIENT_RESCUE_512.md`](USPTO_MIT_TARGET_STOP_GRADIENT_RESCUE_512.md).
+
 The run changed only the JEPA gradient path:
 
 `L = L_native + lambda * [1 - cos(z_source, sg(z_target))]`.

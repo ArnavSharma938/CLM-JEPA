@@ -225,9 +225,24 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--examples", type=int, default=1024)
+    parser.add_argument(
+        "--identity-reference", type=Path,
+        help="JSONL artifact whose reaction_identity values define the exact analysis subset",
+    )
     args = parser.parse_args()
     with args.manifest.open(newline="", encoding="utf-8") as handle:
         raw_records = list(csv.DictReader(handle))
+    if args.identity_reference is not None:
+        with args.identity_reference.open(encoding="utf-8") as handle:
+            reference_rows = [json.loads(line) for line in handle if line.strip()]
+        reference_rows.sort(key=lambda row: row["panel_index"])
+        wanted = [row["reaction_identity"] for row in reference_rows]
+        raw_by_identity = {row.get("reaction_identity"): row for row in raw_records}
+        missing = [identity for identity in wanted if identity not in raw_by_identity]
+        if missing:
+            raise ValueError(f"identity reference contains {len(missing)} unknown reactions")
+        raw_records = [raw_by_identity[identity] for identity in wanted]
+
     records = []
     seen_groups = set()
     for row in raw_records:

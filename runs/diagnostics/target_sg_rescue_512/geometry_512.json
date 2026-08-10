@@ -1,0 +1,230 @@
+{
+  "manifest": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\data\\gate5_decoder_coupling\\uspto_mit_validation_1024.csv",
+  "examples": 512,
+  "seed": 533,
+  "k": 1,
+  "pca_policy": "subtract one mean fitted to concatenated source and target states; fit shared PCs to the concatenated centered states and project both views through the same basis",
+  "conditions": {
+    "base": {
+      "cache": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\runs\\diagnostics\\target_sg_rescue_512\\geometry_cache_512\\base.pt",
+      "inference_seconds": 17.552316799992695,
+      "peak_cuda_bytes": 2422420992,
+      "metrics": {
+        "raw": {
+          "correct_cosine": 0.5246267318725586,
+          "matched_shuffle_cosine": 0.4958454370498657,
+          "correct_minus_matched": 0.028781313449144363,
+          "retrieval_top1": 0.34375,
+          "retrieval_mrr": 0.5799153447151184,
+          "retrieval_chance_top1": 0.25,
+          "target_variance": 0.02299387753009796,
+          "target_effective_rank": 23.94839096069336,
+          "target_mean_direction_energy": 0.6517720222473145,
+          "matched_assignment_cost": 334
+        },
+        "mean_centered": {
+          "correct_cosine": -0.06898898631334305,
+          "matched_shuffle_cosine": -0.1378472000360489,
+          "correct_minus_matched": 0.06885821372270584,
+          "retrieval_top1": 0.33203125,
+          "retrieval_mrr": 0.5769856572151184,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc1": {
+          "correct_cosine": -0.14445076882839203,
+          "matched_shuffle_cosine": -0.15999992191791534,
+          "correct_minus_matched": 0.015549144707620144,
+          "retrieval_top1": 0.34375,
+          "retrieval_mrr": 0.58544921875,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc2": {
+          "correct_cosine": -0.011790364049375057,
+          "matched_shuffle_cosine": -0.02654687687754631,
+          "correct_minus_matched": 0.014756513759493828,
+          "retrieval_top1": 0.291015625,
+          "retrieval_mrr": 0.5439453125,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc4": {
+          "correct_cosine": 0.03556331247091293,
+          "matched_shuffle_cosine": -0.00812673568725586,
+          "correct_minus_matched": 0.04369004815816879,
+          "retrieval_top1": 0.314453125,
+          "retrieval_mrr": 0.5651041865348816,
+          "retrieval_chance_top1": 0.25
+        },
+        "whitening": {
+          "status": "not_run",
+          "reason": "full joint whitening is not stable without regularization: the 2N by D centered matrix is rank-deficient by construction, and choosing a shrinkage constant would add a new unfrozen hyperparameter"
+        }
+      }
+    },
+    "native_epoch3": {
+      "cache": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\runs\\diagnostics\\target_sg_rescue_512\\geometry_cache_512\\native_epoch3.pt",
+      "inference_seconds": 17.379620800027624,
+      "peak_cuda_bytes": 2422289920,
+      "metrics": {
+        "raw": {
+          "correct_cosine": 0.4380951523780823,
+          "matched_shuffle_cosine": 0.42367345094680786,
+          "correct_minus_matched": 0.01442171260714531,
+          "retrieval_top1": 0.240234375,
+          "retrieval_mrr": 0.5016276240348816,
+          "retrieval_chance_top1": 0.25,
+          "target_variance": 0.018809206783771515,
+          "target_effective_rank": 2.6254119873046875,
+          "target_mean_direction_energy": 0.7193191051483154,
+          "matched_assignment_cost": 334
+        },
+        "mean_centered": {
+          "correct_cosine": -0.45812124013900757,
+          "matched_shuffle_cosine": -0.5005574226379395,
+          "correct_minus_matched": 0.04243616759777069,
+          "retrieval_top1": 0.435546875,
+          "retrieval_mrr": 0.6609700918197632,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc1": {
+          "correct_cosine": 0.13072629272937775,
+          "matched_shuffle_cosine": 0.04829593002796173,
+          "correct_minus_matched": 0.08243036270141602,
+          "retrieval_top1": 0.484375,
+          "retrieval_mrr": 0.6708984375,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc2": {
+          "correct_cosine": 0.1368153989315033,
+          "matched_shuffle_cosine": 0.013039560057222843,
+          "correct_minus_matched": 0.12377583235502243,
+          "retrieval_top1": 0.5078125,
+          "retrieval_mrr": 0.6988932490348816,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc4": {
+          "correct_cosine": 0.10368762910366058,
+          "matched_shuffle_cosine": 0.010240912437438965,
+          "correct_minus_matched": 0.09344671666622162,
+          "retrieval_top1": 0.45703125,
+          "retrieval_mrr": 0.66796875,
+          "retrieval_chance_top1": 0.25
+        },
+        "whitening": {
+          "status": "not_run",
+          "reason": "full joint whitening is not stable without regularization: the 2N by D centered matrix is rank-deficient by construction, and choosing a shrinkage constant would add a new unfrozen hyperparameter"
+        }
+      }
+    },
+    "clm_jepa_epoch3": {
+      "cache": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\runs\\diagnostics\\target_sg_rescue_512\\geometry_cache_512\\clm_jepa_epoch3.pt",
+      "inference_seconds": 17.392691399902105,
+      "peak_cuda_bytes": 2422289920,
+      "metrics": {
+        "raw": {
+          "correct_cosine": 0.9996212720870972,
+          "matched_shuffle_cosine": 0.9995282888412476,
+          "correct_minus_matched": 9.292422328144312e-05,
+          "retrieval_top1": 0.654296875,
+          "retrieval_mrr": 0.7941080331802368,
+          "retrieval_chance_top1": 0.25,
+          "target_variance": 3.37630117428489e-05,
+          "target_effective_rank": 44.824405670166016,
+          "target_mean_direction_energy": 0.9995960593223572,
+          "matched_assignment_cost": 334
+        },
+        "mean_centered": {
+          "correct_cosine": 0.11223065853118896,
+          "matched_shuffle_cosine": -0.10242246836423874,
+          "correct_minus_matched": 0.2146531194448471,
+          "retrieval_top1": 0.765625,
+          "retrieval_mrr": 0.86328125,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc1": {
+          "correct_cosine": 0.3327799141407013,
+          "matched_shuffle_cosine": 0.07432198524475098,
+          "correct_minus_matched": 0.2584579288959503,
+          "retrieval_top1": 0.791015625,
+          "retrieval_mrr": 0.87890625,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc2": {
+          "correct_cosine": 0.30435910820961,
+          "matched_shuffle_cosine": 0.023529458791017532,
+          "correct_minus_matched": 0.28082963824272156,
+          "retrieval_top1": 0.806640625,
+          "retrieval_mrr": 0.8878580331802368,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc4": {
+          "correct_cosine": 0.2944701910018921,
+          "matched_shuffle_cosine": 0.010595959611237049,
+          "correct_minus_matched": 0.2838742136955261,
+          "retrieval_top1": 0.853515625,
+          "retrieval_mrr": 0.9161784052848816,
+          "retrieval_chance_top1": 0.25
+        },
+        "whitening": {
+          "status": "not_run",
+          "reason": "full joint whitening is not stable without regularization: the 2N by D centered matrix is rank-deficient by construction, and choosing a shrinkage constant would add a new unfrozen hyperparameter"
+        }
+      }
+    },
+    "clm_jepa_target_sg_selected": {
+      "cache": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\runs\\diagnostics\\target_sg_rescue_512\\geometry_cache_512\\clm_jepa_target_sg_selected.pt",
+      "inference_seconds": 17.416684600058943,
+      "peak_cuda_bytes": 2422289920,
+      "metrics": {
+        "raw": {
+          "correct_cosine": 0.992516815662384,
+          "matched_shuffle_cosine": 0.9917728900909424,
+          "correct_minus_matched": 0.0007438913453370333,
+          "retrieval_top1": 0.4140625,
+          "retrieval_mrr": 0.6319987177848816,
+          "retrieval_chance_top1": 0.25,
+          "target_variance": 0.00040629057912155986,
+          "target_effective_rank": 38.74919128417969,
+          "target_mean_direction_energy": 0.9946566224098206,
+          "matched_assignment_cost": 334
+        },
+        "mean_centered": {
+          "correct_cosine": -0.25552898645401,
+          "matched_shuffle_cosine": -0.380898118019104,
+          "correct_minus_matched": 0.1253691464662552,
+          "retrieval_top1": 0.59375,
+          "retrieval_mrr": 0.7579752802848816,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc1": {
+          "correct_cosine": 0.2771795988082886,
+          "matched_shuffle_cosine": 0.05152009427547455,
+          "correct_minus_matched": 0.22565950453281403,
+          "retrieval_top1": 0.755859375,
+          "retrieval_mrr": 0.8577474355697632,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc2": {
+          "correct_cosine": 0.3139593303203583,
+          "matched_shuffle_cosine": 0.060956601053476334,
+          "correct_minus_matched": 0.25300273299217224,
+          "retrieval_top1": 0.8046875,
+          "retrieval_mrr": 0.88623046875,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc4": {
+          "correct_cosine": 0.2846454083919525,
+          "matched_shuffle_cosine": 0.01365758664906025,
+          "correct_minus_matched": 0.2709878087043762,
+          "retrieval_top1": 0.876953125,
+          "retrieval_mrr": 0.9293619394302368,
+          "retrieval_chance_top1": 0.25
+        },
+        "whitening": {
+          "status": "not_run",
+          "reason": "full joint whitening is not stable without regularization: the 2N by D centered matrix is rank-deficient by construction, and choosing a shrinkage constant would add a new unfrozen hyperparameter"
+        }
+      }
+    }
+  },
+  "total_inference_seconds": 69.74131359998137
+}

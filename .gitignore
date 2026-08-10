@@ -46,6 +46,12 @@ runs/diagnostics/decoder_coupling/*
 !runs/diagnostics/target_sg_representation_32.json
 !runs/diagnostics/target_sg_geometry_cache_32/
 !runs/diagnostics/target_sg_geometry_cache_32/**
+!runs/diagnostics/target_sg_rescue_512/
+runs/diagnostics/target_sg_rescue_512/*
+!runs/diagnostics/target_sg_rescue_512/summary_512.json
+!runs/diagnostics/target_sg_rescue_512/target_sg_generation_512.jsonl
+!runs/diagnostics/target_sg_rescue_512/target_sg_diagnostics_512.json
+!runs/diagnostics/target_sg_rescue_512/geometry_512.json
 !runs/gate4_rescue/
 runs/gate4_rescue/*
 !runs/gate4_rescue/target_sg-s533-batched.json
