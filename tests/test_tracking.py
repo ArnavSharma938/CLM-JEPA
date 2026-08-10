@@ -7,7 +7,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from clm_jepa.tracking import TrackingContext, WandbTracker
+from train import TrackingContext, WandbTracker
 
 
 class FakeRun:
@@ -34,13 +34,23 @@ class FakeWandb:
 
 
 def context():
-    return TrackingContext("forward", "USPTO-STEREO", "clm-jepa", 533, 0.1, {"lr": 1e-4})
+    return TrackingContext("forward", "uspto_mit_synthesis", "clm-jepa", 533, 0.1, {"lr": 1e-4})
 
 
 def test_tracker_requires_environment_key(monkeypatch):
     monkeypatch.delenv("WANDB_API_KEY", raising=False)
+    monkeypatch.delenv("WANDB_MODE", raising=False)
     with pytest.raises(EnvironmentError):
         WandbTracker(context(), run_name="missing", wandb_module=FakeWandb())
+
+
+def test_tracker_allows_offline_runs_without_key(monkeypatch):
+    monkeypatch.delenv("WANDB_API_KEY", raising=False)
+    monkeypatch.setenv("WANDB_MODE", "offline")
+    fake = FakeWandb()
+    tracker = WandbTracker(context(), run_name="offline", wandb_module=fake)
+    assert fake.kwargs["dir"] == "runs/wandb"
+    tracker.finish()
 
 
 def test_tracker_logs_required_training_and_evaluation_fields(monkeypatch):
@@ -52,6 +62,8 @@ def test_tracker_logs_required_training_and_evaluation_fields(monkeypatch):
         step=1, native_loss=1.2, jepa_loss=0.3, total_loss=1.5,
         gradient_norm=2.0, learning_rate=1e-4, jepa_active=True,
         batch_tokens=100, model_calls=3, effective_tokens=240,
+        max_gradient_parameter="base_model.layer.lora_A",
+        max_parameter_gradient_norm=3.5,
         peak_vram_bytes=1024, estimated_flops=500.0,
     )
     tracker.log_evaluation(
@@ -59,7 +71,11 @@ def test_tracker_logs_required_training_and_evaluation_fields(monkeypatch):
         validity=0.9, native_loss=1.1,
     )
     train = fake.run.logged[0][1]
-    assert {"train/native_loss", "train/jepa_loss", "train/total_loss", "train/gradient_norm"} <= train.keys()
+    assert {
+        "train/native_loss", "train/jepa_loss", "train/total_loss",
+        "train/gradient_norm", "train/max_gradient_parameter",
+        "train/max_parameter_gradient_norm",
+    } <= train.keys()
     assert {"compute/jepa_active_batches", "compute/total_tokens", "compute/tokens_per_second", "compute/peak_vram_bytes"} <= train.keys()
     assert fake.run.logged[1][1]["validation/top1"] == 0.4
     assert "WANDB_API_KEY" not in str(fake.kwargs)

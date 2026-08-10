@@ -1,0 +1,76 @@
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+import torch
+from transformers import set_seed
+
+from chemfm import MODEL_DIR, TOKENIZER_DIR, ReactionCollator, load_lora_model, load_reaction_tokenizer
+from jepa import CLMJEPA, add_predictor_tokens
+from train import TASKS, load_adapter_checkpoint, read_rows, representation_diagnostics
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Recompute corrected Section 11 diagnostics")
+    parser.add_argument("--dataset", choices=sorted(TASKS), required=True)
+    parser.add_argument("--validation-manifest", type=Path, required=True)
+    parser.add_argument("--run-json", type=Path, action="append", default=[])
+    parser.add_argument("--include-pretrained", action="store_true")
+    parser.add_argument("--seed", type=int, default=533)
+    parser.add_argument("--k", type=int, default=1)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args()
+
+    rows = read_rows(args.dataset, split="validation", path=args.validation_manifest.resolve())
+    task = TASKS[args.dataset]
+    conditions = []
+    if args.include_pretrained:
+        conditions.append(("pretrained", None, None))
+    for path in args.run_json:
+        result = json.loads(path.read_text(encoding="utf-8"))
+        if result["dataset"] != args.dataset:
+            raise ValueError(f"{path} belongs to {result['dataset']}, not {args.dataset}")
+        conditions.append((result["condition"], Path(result["selected_checkpoint"]), path))
+
+    output = {
+        "dataset": args.dataset,
+        "task": task,
+        "validation_manifest": str(args.validation_manifest.resolve()),
+        "seed": args.seed,
+        "k": args.k,
+        "conditions": {},
+    }
+    for label, checkpoint, source_result in conditions:
+        set_seed(args.seed)
+        tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
+        chemfm_vocab_size = len(tokenizer)
+        predictor_ids = add_predictor_tokens(tokenizer)
+        collator = ReactionCollator(tokenizer, task=task)
+        model = load_lora_model(
+            MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size
+        ).cuda().eval()
+        if checkpoint is not None:
+            load_adapter_checkpoint(model, checkpoint.resolve())
+        method = CLMJEPA(predictor_ids, tokenizer.eos_token_id, tokenizer.pad_token_id)
+        torch.cuda.reset_peak_memory_stats()
+        metrics = representation_diagnostics(
+            model, method, collator, rows, args.k, args.seed, task
+        )
+        output["conditions"][label] = {
+            "source_result": None if source_result is None else str(source_result),
+            "checkpoint": None if checkpoint is None else str(checkpoint),
+            "metrics": metrics,
+            "peak_cuda_bytes": int(torch.cuda.max_memory_allocated()),
+        }
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
+        del method, model
+        torch.cuda.empty_cache()
+
+    print(json.dumps({"output": str(args.output), "conditions": list(output["conditions"])}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()
