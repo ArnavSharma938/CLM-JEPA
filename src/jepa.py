@@ -13,6 +13,57 @@ from chemfm import IGNORE_INDEX
 PREDICTOR_TOKENS = [f"<|predictor_{index}|>" for index in range(1, 11)]
 
 
+class SIGReg:
+    """LeJEPA Epps-Pulley SIGReg on random one-dimensional projections."""
+
+    def __init__(
+        self, *, knots: int = 17, t_max: float = 3.0,
+        num_slices: int = 1024, seed: int = 0,
+    ):
+        if knots < 3 or knots % 2 == 0:
+            raise ValueError("SIGReg knots must be an odd integer of at least three")
+        if not 0 < t_max or num_slices < 1:
+            raise ValueError("SIGReg t_max and num_slices must be positive")
+        self.knots = knots
+        self.t_max = t_max
+        self.num_slices = num_slices
+        self.seed = seed
+        self.global_step = 0
+
+    def __call__(self, representations: torch.Tensor) -> torch.Tensor:
+        if representations.ndim < 2:
+            raise ValueError("SIGReg expects (..., samples, dimensions)")
+        sample_count = representations.size(-2)
+        if sample_count < 2:
+            raise ValueError("SIGReg requires at least two samples")
+        values = representations.float()
+        generator = torch.Generator(device=values.device).manual_seed(
+            self.seed + self.global_step
+        )
+        directions = torch.randn(
+            values.size(-1), self.num_slices,
+            device=values.device, dtype=values.dtype, generator=generator,
+        )
+        directions = directions / directions.norm(dim=0, keepdim=True).clamp_min(1e-12)
+        self.global_step += 1
+
+        t = torch.linspace(
+            0.0, self.t_max, self.knots, device=values.device, dtype=values.dtype
+        )
+        dt = self.t_max / (self.knots - 1)
+        quadrature = torch.full_like(t, 2.0 * dt)
+        quadrature[[0, -1]] = dt
+        normal_cf = torch.exp(-0.5 * t.square())
+        weights = quadrature * normal_cf
+
+        projected = values @ directions
+        arguments = projected.unsqueeze(-1) * t
+        real_error = arguments.cos().mean(dim=-3) - normal_cf
+        imaginary = arguments.sin().mean(dim=-3)
+        statistic = ((real_error.square() + imaginary.square()) @ weights) * sample_count
+        return statistic.mean()
+
+
 def add_predictor_tokens(tokenizer, model=None) -> list[int]:
     tokenizer.add_special_tokens({"additional_special_tokens": PREDICTOR_TOKENS})
     if model is not None and model.get_input_embeddings().weight.shape[0] != len(tokenizer):
@@ -68,6 +119,8 @@ class CLMJEPAOutput:
     loss: torch.Tensor
     native_loss: torch.Tensor
     jepa_loss: torch.Tensor | None
+    sigreg_loss: torch.Tensor | None
+    jepa_objective_loss: torch.Tensor | None
     logits: torch.Tensor
     source_states: torch.Tensor | None
     target_states: torch.Tensor | None
@@ -78,10 +131,15 @@ class CLMJEPAOutput:
 
 
 class CLMJEPA:
-    def __init__(self, predictor_token_ids: Sequence[int], eos_token_id: int, pad_token_id: int):
+    def __init__(
+        self, predictor_token_ids: Sequence[int], eos_token_id: int,
+        pad_token_id: int, *, sigreg_seed: int = 0,
+    ):
         self.predictor_token_ids = list(predictor_token_ids)
         self.eos_token_id = eos_token_id
         self.pad_token_id = pad_token_id
+        self.sigreg = SIGReg(seed=sigreg_seed)
+        self.jepa_dropout_generator = torch.Generator().manual_seed(sigreg_seed)
 
     def __call__(
         self,
@@ -93,19 +151,27 @@ class CLMJEPA:
         native_weight: float = 1.0,
         monitor_only: bool = False,
         stop_gradient_target: bool = False,
+        sigreg_tradeoff: float = 0.0,
         jepa_ratio: float = -1.0,
         jepa_targets: Sequence[torch.Tensor] | None = None,
         shuffle_seed: int | None = None,
     ) -> CLMJEPAOutput:
         if not -1.0 <= jepa_ratio <= 1.0:
             raise ValueError("jepa_ratio must be -1 or in [0, 1]")
-        jepa_active = not (jepa_ratio > 0.0 and torch.rand(1).item() > jepa_ratio)
+        if not 0.0 <= sigreg_tradeoff < 1.0:
+            raise ValueError("sigreg_tradeoff must be in [0, 1)")
+        jepa_active = not (
+            jepa_ratio > 0.0
+            and torch.rand(1, generator=self.jepa_dropout_generator).item() > jepa_ratio
+        )
         if (jepa_weight == 0.0 and not monitor_only) or not jepa_active:
             native = model(**{key: batch[key] for key in ("input_ids", "attention_mask", "labels")})
             return CLMJEPAOutput(
                 loss=native_weight * native.loss,
                 native_loss=native.loss,
                 jepa_loss=None,
+                sigreg_loss=None,
+                jepa_objective_loss=None,
                 logits=native.logits,
                 source_states=None,
                 target_states=None,
@@ -167,12 +233,28 @@ class CLMJEPA:
         jepa_loss = 1.0 - F.cosine_similarity(
             source_states, jepa_target_states, dim=-1
         ).mean()
-        applied_jepa = outputs.loss.new_zeros(()) if monitor_only else jepa_weight * jepa_loss
+        sigreg_loss = None
+        jepa_objective_loss = jepa_loss
+        if sigreg_tradeoff > 0.0:
+            # LeJEPA regularizes every view distribution independently. Scaling the
+            # 0.95/0.05 mixture by 1/0.95 preserves this project's frozen cosine
+            # coefficient while retaining LeJEPA's standard relative trade-off.
+            sigreg_loss = self.sigreg(torch.stack((source_states, target_states)))
+            jepa_objective_loss = (
+                jepa_loss
+                + (sigreg_tradeoff / (1.0 - sigreg_tradeoff)) * sigreg_loss
+            )
+        applied_jepa = (
+            outputs.loss.new_zeros(())
+            if monitor_only else jepa_weight * jepa_objective_loss
+        )
         loss = native_weight * outputs.loss + applied_jepa
         return CLMJEPAOutput(
             loss=loss,
             native_loss=outputs.loss,
             jepa_loss=jepa_loss,
+            sigreg_loss=sigreg_loss,
+            jepa_objective_loss=jepa_objective_loss,
             logits=outputs.logits[:batch_size, :batch["input_ids"].shape[1]],
             source_states=source_states,
             target_states=target_states,

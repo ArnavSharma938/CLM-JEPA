@@ -57,6 +57,7 @@ def sample_metadata(records, targets):
 def cache_condition(
     label: str,
     checkpoint: Path | None,
+    k: int,
     records,
     cache_path: Path,
     batch_size: int,
@@ -74,8 +75,11 @@ def cache_condition(
     batch = collator(records)
     tensor_batch = {key: value for key, value in batch.items() if torch.is_tensor(value)}
     sources, targets = extract_source_and_target(tensor_batch)
+    predictor_suffix = list(reversed(predictor_ids[:k]))
     source_rows = [
-        torch.cat((source, source.new_tensor([predictor_ids[0]]))) for source in sources
+        torch.cat((source, source.new_tensor(predictor_suffix)))
+        if predictor_suffix else source
+        for source in sources
     ]
     started = time.perf_counter()
     torch.cuda.reset_peak_memory_stats()
@@ -93,7 +97,7 @@ def cache_condition(
             "identities": identities,
             "token_lengths": token_lengths,
             "heavy_atoms": heavy_atoms,
-            "k": 1,
+            "k": k,
         },
         cache_path,
     )
@@ -168,6 +172,12 @@ def analyze_cache(cache_path: Path) -> dict:
 
     raw = pair_metrics(sources, targets, matched_indices, candidate_indices)
     raw.update({
+        "source_variance": float(sources.var(0, unbiased=False).mean()),
+        "source_effective_rank": effective_rank(sources),
+        "source_mean_direction_energy": float(
+            sources.mean(0).square().sum()
+            / sources.square().sum(1).mean().clamp_min(1e-30)
+        ),
         "target_variance": float(targets.var(0, unbiased=False).mean()),
         "target_effective_rank": effective_rank(targets),
         "target_mean_direction_energy": float(
@@ -221,6 +231,8 @@ def main() -> None:
     parser.add_argument("--native-checkpoint", type=Path, required=True)
     parser.add_argument("--clm-checkpoint", type=Path, required=True)
     parser.add_argument("--target-sg-checkpoint", type=Path)
+    parser.add_argument("--sigreg-k0-checkpoint", type=Path)
+    parser.add_argument("--sigreg-k1-checkpoint", type=Path)
     parser.add_argument("--cache-dir", type=Path, default=ROOT / "runs" / "diagnostics" / "geometry_cache")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--batch-size", type=int, default=16)
@@ -263,12 +275,16 @@ def main() -> None:
         )
 
     conditions = [
-        ("base", None),
-        ("native_epoch3", args.native_checkpoint),
-        ("clm_jepa_epoch3", args.clm_checkpoint),
+        ("base", None, 1),
+        ("native_reference", args.native_checkpoint, 1),
+        ("clm_jepa_reference", args.clm_checkpoint, 1),
     ]
     if args.target_sg_checkpoint is not None:
-        conditions.append(("clm_jepa_target_sg_selected", args.target_sg_checkpoint))
+        conditions.append(("clm_jepa_target_sg_reference", args.target_sg_checkpoint, 1))
+    if args.sigreg_k0_checkpoint is not None:
+        conditions.append(("clm_jepa_sigreg_k0_epoch2", args.sigreg_k0_checkpoint, 0))
+    if args.sigreg_k1_checkpoint is not None:
+        conditions.append(("clm_jepa_sigreg_k1_epoch2", args.sigreg_k1_checkpoint, 1))
     output = {
         "manifest": str(args.manifest.resolve()),
         "examples": len(records),
@@ -281,10 +297,10 @@ def main() -> None:
         "conditions": {},
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    for label, checkpoint in conditions:
+    for label, checkpoint, k in conditions:
         cache_path = args.cache_dir / f"{label}.pt"
         output["conditions"][label] = cache_condition(
-            label, checkpoint, records, cache_path, args.batch_size
+            label, checkpoint, k, records, cache_path, args.batch_size
         )
         output["conditions"][label]["metrics"] = analyze_cache(cache_path)
         args.output.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")

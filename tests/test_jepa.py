@@ -9,7 +9,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from chemfm import TOKENIZER_DIR, ReactionCollator, load_reaction_tokenizer
-from jepa import CLMJEPA, add_predictor_tokens, extract_source_and_target, matched_derangement
+from jepa import (
+    CLMJEPA, SIGReg, add_predictor_tokens, extract_source_and_target,
+    matched_derangement,
+)
 
 
 def setup_case():
@@ -123,6 +126,59 @@ def test_k_minus_one_selects_second_to_last_source_token():
         assert int(index) == len(source) - 2
     for target, index in zip(targets, result.target_final_indices):
         assert int(index) == len(target) - 1
+
+
+def test_k_zero_uses_existing_source_eos_without_predictor_token():
+    model, tokenizer, method, batch = setup_case()
+    result = method(model, batch, k=0, jepa_weight=1.0)
+    sources, _ = extract_source_and_target(batch)
+    for source, index in zip(sources, result.source_final_indices):
+        assert int(index) == len(source) - 1
+        assert int(source[index]) == tokenizer.eos_token_id
+
+
+def test_sigreg_matches_lejepa_epps_pulley_formulation():
+    torch.manual_seed(29)
+    values = torch.randn(2, 7, 11, requires_grad=True)
+    sigreg = SIGReg(knots=17, t_max=3.0, num_slices=23, seed=533)
+    actual = sigreg(values)
+
+    generator = torch.Generator().manual_seed(533)
+    directions = torch.randn(11, 23, generator=generator)
+    directions = directions / directions.norm(dim=0, keepdim=True)
+    t = torch.linspace(0.0, 3.0, 17)
+    dt = 3.0 / 16
+    quadrature = torch.full((17,), 2.0 * dt)
+    quadrature[[0, -1]] = dt
+    phi = torch.exp(-0.5 * t.square())
+    arguments = (values @ directions).unsqueeze(-1) * t
+    error = (
+        (arguments.cos().mean(dim=-3) - phi).square()
+        + arguments.sin().mean(dim=-3).square()
+    )
+    expected = ((error @ (quadrature * phi)) * values.size(-2)).mean()
+    torch.testing.assert_close(actual, expected, rtol=1e-6, atol=1e-7)
+
+
+def test_sigreg_symmetric_objective_updates_both_jepa_views():
+    model, _, method, batch = setup_case()
+    model.eval()
+    result = method(
+        model, batch, k=1, jepa_weight=1.0, native_weight=0.0,
+        sigreg_tradeoff=0.05,
+    )
+    assert result.sigreg_loss is not None
+    torch.testing.assert_close(
+        result.jepa_objective_loss,
+        result.jepa_loss + (0.05 / 0.95) * result.sigreg_loss,
+    )
+    result.source_states.retain_grad()
+    result.target_states.retain_grad()
+    result.loss.backward()
+    assert result.source_states.grad is not None
+    assert result.target_states.grad is not None
+    assert result.source_states.grad.abs().sum() > 0
+    assert result.target_states.grad.abs().sum() > 0
 
 
 def test_jepa_gradients_reach_shared_backbone_but_monitor_only_adds_none():

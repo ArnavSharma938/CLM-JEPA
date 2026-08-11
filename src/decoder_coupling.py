@@ -160,20 +160,28 @@ def read_panel() -> list[dict[str, str]]:
     return rows
 
 
-def read_analysis_panel(reference: Path | None = None) -> list[dict[str, str]]:
+def read_analysis_panel(
+    reference: Path | None = None, limit: int | None = None,
+) -> list[dict[str, str]]:
     """Return the frozen parent panel or the exact identity subset in a JSONL artifact."""
     rows = read_panel()
     if reference is None:
-        return rows
-    records = sorted(read_jsonl(reference), key=lambda row: row["panel_index"])
-    identities = [record["reaction_identity"] for record in records]
-    if not identities or len(identities) != len(set(identities)):
-        raise ValueError("panel reference must contain unique reaction identities")
-    by_identity = {row["reaction_identity"]: row for row in rows}
-    missing = [identity for identity in identities if identity not in by_identity]
-    if missing:
-        raise ValueError(f"panel reference contains {len(missing)} unknown identities")
-    return [by_identity[identity] for identity in identities]
+        selected = rows
+    else:
+        records = sorted(read_jsonl(reference), key=lambda row: row["panel_index"])
+        identities = [record["reaction_identity"] for record in records]
+        if not identities or len(identities) != len(set(identities)):
+            raise ValueError("panel reference must contain unique reaction identities")
+        by_identity = {row["reaction_identity"]: row for row in rows}
+        missing = [identity for identity in identities if identity not in by_identity]
+        if missing:
+            raise ValueError(f"panel reference contains {len(missing)} unknown identities")
+        selected = [by_identity[identity] for identity in identities]
+    if limit is not None:
+        if limit < 1 or limit > len(selected):
+            raise ValueError(f"panel limit must be in [1, {len(selected)}]")
+        selected = selected[:limit]
+    return selected
 
 
 def load_model(checkpoint: Path):
@@ -234,7 +242,7 @@ def generate_equal_length_batch(model, tokenizer, prompts: list[str]) -> list[li
 
 
 def generate_panel(args) -> None:
-    rows = read_analysis_panel(args.panel_reference)
+    rows = read_analysis_panel(args.panel_reference, args.panel_limit)
     completed = {record["reaction_identity"] for record in read_jsonl(args.output)}
     missing = [row for row in rows if row["reaction_identity"] not in completed]
     if not missing:
@@ -408,7 +416,7 @@ def decoder_interventions(model, collator, views, batch_size: int):
 
 
 def representation_inference(args) -> None:
-    panel = read_analysis_panel(args.panel_reference)
+    panel = read_analysis_panel(args.panel_reference, args.panel_limit)
     if args.output.exists():
         existing = json.loads(args.output.read_text(encoding="utf-8"))
         if len(existing.get("reactions", [])) == len(panel):
@@ -436,7 +444,7 @@ def representation_inference(args) -> None:
         batch = collator(view)
         tensors = {key: value for key, value in batch.items() if torch.is_tensor(value)}
         sources, targets = extract_source_and_target(tensors)
-        suffix = [predictor_ids[0]]
+        suffix = list(reversed(predictor_ids[:args.k]))
         return [torch.cat((source, source.new_tensor(suffix))) for source in sources], targets
 
     original_sources, targets = source_token_rows(original)
@@ -549,7 +557,7 @@ def representation_inference(args) -> None:
             None if args.panel_reference is None else str(args.panel_reference.resolve())
         ),
         "identities": len(panel),
-        "k": 1,
+        "k": args.k,
         "matched_assignment_cost": matched_cost,
         "unrelated_source_assignment_cost": unrelated_cost,
         "aggregate_native_target_token_ce": aggregate_native_loss,
@@ -628,7 +636,7 @@ def quartile_contrast(signal, outcome, rng):
 
 
 def summarize(args) -> None:
-    rows = read_analysis_panel(args.panel_reference)
+    rows = read_analysis_panel(args.panel_reference, args.panel_limit)
     panel_size = len(rows)
     native_generation = sorted(read_jsonl(args.native_generation), key=lambda row: row["panel_index"])
     clm_generation = sorted(read_jsonl(args.clm_generation), key=lambda row: row["panel_index"])
@@ -698,7 +706,7 @@ def summarize(args) -> None:
     clm_only = int((clm_top1 & ~native_top1).sum())
     paired = {
         "both_top1": int((native_top1 & clm_top1).sum()),
-        "native_only_top1": native_only,
+        f"{args.baseline_label}_only_top1": native_only,
         f"{args.comparison_label}_only_top1": clm_only,
         "neither_top1": int((~native_top1 & ~clm_top1).sum()),
         "top1_difference": float(top1_delta.mean()),
@@ -721,7 +729,7 @@ def summarize(args) -> None:
         transition = (~native_hit & clm_hit).astype(float)
         cutoff_transitions[str(cutoff)] = {
             "both": int((native_hit & clm_hit).sum()),
-            "native_only": int((native_hit & ~clm_hit).sum()),
+            f"{args.baseline_label}_only": int((native_hit & ~clm_hit).sum()),
             f"{args.comparison_label}_only": int((~native_hit & clm_hit).sum()),
             "neither": int((~native_hit & ~clm_hit).sum()),
         }
@@ -740,7 +748,9 @@ def summarize(args) -> None:
         }
 
     intervention_summary = {}
-    for condition, diagnostic in (("native", native_diag), (args.comparison_label, clm_diag)):
+    for condition, diagnostic in (
+        (args.baseline_label, native_diag), (args.comparison_label, clm_diag)
+    ):
         intervention_summary[condition] = {}
         for name in ("removed", "replaced", "unrelated"):
             pred_raw = np.array([
@@ -776,7 +786,7 @@ def summarize(args) -> None:
     )
     ce_summary = {
         "target_tokens": target_tokens,
-        "native_aggregate_target_token_ce": native_aggregate_ce,
+        f"{args.baseline_label}_aggregate_target_token_ce": native_aggregate_ce,
         f"{args.comparison_label}_aggregate_target_token_ce": clm_aggregate_ce,
         "relative_aggregate_improvement": (
             native_aggregate_ce - clm_aggregate_ce
@@ -799,10 +809,11 @@ def summarize(args) -> None:
             "enumerations_per_identity": 1,
             "beam_size": 10,
             "primary_metric": "exact_top1",
+            "baseline_label": args.baseline_label,
             "analysis_only_residual": "joint mean centering followed by shared top-2-PC removal",
         },
         "generation": {
-            "native": native_metrics,
+            args.baseline_label: native_metrics,
             args.comparison_label: clm_metrics,
             "paired": paired,
             "cutoff_transitions": cutoff_transitions,
@@ -816,7 +827,7 @@ def summarize(args) -> None:
     args.output.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({
         "output": str(args.output),
-        "native_exact_top1": native_metrics["exact_top1"],
+        f"{args.baseline_label}_exact_top1": native_metrics["exact_top1"],
         f"{args.comparison_label}_exact_top1": clm_metrics["exact_top1"],
         "relative_ce_improvement": ce_summary["relative_aggregate_improvement"],
     }))
@@ -829,23 +840,32 @@ def parse_args():
 
     generation = subparsers.add_parser("generate")
     generation.add_argument(
-        "--condition", choices=("native", "clm_jepa", "clm_jepa_target_sg"), required=True
+        "--condition", choices=(
+            "native", "clm_jepa", "clm_jepa_target_sg",
+            "clm_jepa_sigreg_k0", "clm_jepa_sigreg_k1",
+        ), required=True
     )
     generation.add_argument("--checkpoint", type=Path, required=True)
     generation.add_argument("--output", type=Path, required=True)
     generation.add_argument("--max-new", type=int, default=0)
     generation.add_argument("--generation-batch-size", type=int, default=1)
     generation.add_argument("--panel-reference", type=Path)
+    generation.add_argument("--panel-limit", type=int)
 
     representation = subparsers.add_parser("represent")
     representation.add_argument(
-        "--condition", choices=("native", "clm_jepa", "clm_jepa_target_sg"), required=True
+        "--condition", choices=(
+            "native", "clm_jepa", "clm_jepa_target_sg",
+            "clm_jepa_sigreg_k0", "clm_jepa_sigreg_k1",
+        ), required=True
     )
     representation.add_argument("--checkpoint", type=Path, required=True)
     representation.add_argument("--output", type=Path, required=True)
     representation.add_argument("--batch-size", type=int, default=4)
     representation.add_argument("--state-batch-size", type=int, default=16)
     representation.add_argument("--panel-reference", type=Path)
+    representation.add_argument("--panel-limit", type=int)
+    representation.add_argument("--k", type=int, choices=(0, 1), default=1)
 
     summary = subparsers.add_parser("summarize")
     summary.add_argument("--native-generation", type=Path, required=True)
@@ -854,9 +874,17 @@ def parse_args():
     summary.add_argument("--clm-diagnostics", type=Path, required=True)
     summary.add_argument("--output", type=Path, required=True)
     summary.add_argument("--panel-reference", type=Path)
+    summary.add_argument("--panel-limit", type=int)
     summary.add_argument(
-        "--comparison-label", choices=("clm_jepa", "clm_jepa_target_sg"),
+        "--comparison-label", choices=(
+            "clm_jepa", "clm_jepa_target_sg",
+            "clm_jepa_sigreg_k0", "clm_jepa_sigreg_k1",
+        ),
         default="clm_jepa",
+    )
+    summary.add_argument(
+        "--baseline-label", choices=("native", "clm_jepa_sigreg_k0"),
+        default="native",
     )
     return parser.parse_args()
 

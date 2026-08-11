@@ -53,6 +53,7 @@ TASKS = {
     "uspto_480k_template_heldout": "retro",
     "non_uspto_retro": "retro",
 }
+SIGREG_TRADEOFF = 0.05
 
 DATASET_SPLITS = {
     "uspto_mit_synthesis": {
@@ -139,6 +140,8 @@ class WandbTracker:
 
     def log_training_step(
         self, *, step: int, native_loss: float, jepa_loss: float | None,
+        sigreg_loss: float | None = None,
+        jepa_objective_loss: float | None = None,
         total_loss: float, gradient_norm: float, learning_rate: float,
         jepa_active: bool, batch_tokens: int, model_calls: int,
         effective_tokens: int, peak_vram_bytes: int,
@@ -151,6 +154,8 @@ class WandbTracker:
         payload = {
             "train/native_loss": native_loss,
             "train/jepa_loss": jepa_loss,
+            "train/sigreg_loss": sigreg_loss,
+            "train/jepa_objective_loss": jepa_objective_loss,
             "train/total_loss": total_loss,
             "train/gradient_norm": gradient_norm,
             "train/max_gradient_parameter": max_gradient_parameter,
@@ -645,7 +650,10 @@ def train(args):
             gradient_checkpointing_kwargs={"use_reentrant": False}
         )
         model.enable_input_require_grads()
-    method = CLMJEPA(predictor_ids, tokenizer.eos_token_id, tokenizer.pad_token_id)
+    method = CLMJEPA(
+        predictor_ids, tokenizer.eos_token_id, tokenizer.pad_token_id,
+        sigreg_seed=args.seed,
+    )
     non_embedding_parameters = model.num_parameters(exclude_embeddings=True)
     generator = torch.Generator().manual_seed(args.seed)
     loader = DataLoader(
@@ -670,9 +678,11 @@ def train(args):
         scheduler_specific_kwargs={"min_lr": MIN_LEARNING_RATE},
     )
     has_jepa = args.condition in {
-        "monitor", "clm_jepa", "clm_jepa_target_sg", "shuffled", "jepa_only"
+        "monitor", "clm_jepa", "clm_jepa_target_sg", "clm_jepa_sigreg",
+        "shuffled", "jepa_only",
     }
     stop_gradient_target = args.condition == "clm_jepa_target_sg"
+    has_sigreg = args.condition == "clm_jepa_sigreg"
     ratio = 1.0 - args.dropout
     resolved_ratio = ratio if has_jepa else -1.0
     actual_lambda = args.lambda_eff / ratio if has_jepa else 0.0
@@ -688,6 +698,16 @@ def train(args):
         "jepa_loss_dropout": args.dropout if has_jepa else None,
         "jepa_ratio": resolved_ratio,
         "jepa_target_stop_gradient": stop_gradient_target,
+        "sigreg": has_sigreg,
+        "sigreg_formulation": (
+            "LeJEPA Epps-Pulley, 17 knots on [0,3], 1024 random unit slices, "
+            "independent source/target view statistics"
+            if has_sigreg else None
+        ),
+        "sigreg_tradeoff": SIGREG_TRADEOFF if has_sigreg else None,
+        "sigreg_relative_coefficient": (
+            SIGREG_TRADEOFF / (1.0 - SIGREG_TRADEOFF) if has_sigreg else None
+        ),
         "train_size": len(train_rows), "validation_size": len(val_rows),
         "train_manifest": str(train_path),
         "train_manifest_sha256": file_sha256(train_path),
@@ -705,6 +725,9 @@ def train(args):
         "scheduler": "cosine_with_min_lr", "warmup_ratio": WARMUP_RATIO,
         "min_learning_rate": MIN_LEARNING_RATE,
         "upstream_llm_jepa_commit": "ea0017c654ad917066ff32afc88276bea8ca5f7e",
+        "upstream_lejepa_commit": (
+            "c293d291ca87cd4fddee9d3fffe4e914c7272052" if has_sigreg else None
+        ),
     }
     tracker = WandbTracker(
         TrackingContext(task, args.dataset, args.condition, args.seed, args.data_fraction, config),
@@ -769,6 +792,7 @@ def train(args):
                     native_weight=native_weight,
                     monitor_only=args.condition == "monitor",
                     stop_gradient_target=stop_gradient_target,
+                    sigreg_tradeoff=SIGREG_TRADEOFF if has_sigreg else 0.0,
                     jepa_ratio=resolved_ratio,
                     jepa_targets=jepa_targets,
                 )
@@ -789,6 +813,14 @@ def train(args):
                     "jepa_loss": (
                         None if output.jepa_loss is None
                         else float(output.jepa_loss.detach())
+                    ),
+                    "sigreg_loss": (
+                        None if output.sigreg_loss is None
+                        else float(output.sigreg_loss.detach())
+                    ),
+                    "jepa_objective_loss": (
+                        None if output.jepa_objective_loss is None
+                        else float(output.jepa_objective_loss.detach())
                     ),
                     "total_loss": float(output.loss.detach()),
                     "jepa_active": output.jepa_active,
@@ -827,6 +859,14 @@ def train(args):
                     row["jepa_loss"] for row in window_records
                     if row["jepa_loss"] is not None
                 ]
+                sigreg_losses = [
+                    row["sigreg_loss"] for row in window_records
+                    if row["sigreg_loss"] is not None
+                ]
+                objective_losses = [
+                    row["jepa_objective_loss"] for row in window_records
+                    if row["jepa_objective_loss"] is not None
+                ]
                 record = {
                     "step": global_step,
                     "epoch": epoch_index + 1,
@@ -834,6 +874,14 @@ def train(args):
                     "jepa_loss": (
                         None if not active_losses
                         else sum(active_losses) / len(active_losses)
+                    ),
+                    "sigreg_loss": (
+                        None if not sigreg_losses
+                        else sum(sigreg_losses) / len(sigreg_losses)
+                    ),
+                    "jepa_objective_loss": (
+                        None if not objective_losses
+                        else sum(objective_losses) / len(objective_losses)
                     ),
                     "total_loss": sum(row["total_loss"] for row in window_records) / len(window_records),
                     "jepa_active": any(row["jepa_active"] for row in window_records),
@@ -859,6 +907,8 @@ def train(args):
                 tracker.log_training_step(
                     step=global_step, native_loss=record["native_loss"],
                     jepa_loss=record["jepa_loss"], total_loss=record["total_loss"],
+                    sigreg_loss=record["sigreg_loss"],
+                    jepa_objective_loss=record["jepa_objective_loss"],
                     gradient_norm=total_gradient_norm,
                     max_gradient_parameter=largest_gradient[0],
                     max_parameter_gradient_norm=largest_gradient[1],
@@ -970,6 +1020,7 @@ def main():
         "--condition",
         choices=(
             "native", "monitor", "clm_jepa", "clm_jepa_target_sg",
+            "clm_jepa_sigreg",
             "shuffled", "jepa_only",
         ),
         required=True,
