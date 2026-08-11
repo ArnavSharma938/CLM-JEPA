@@ -1,0 +1,418 @@
+{
+  "manifest": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\data\\gate5_decoder_coupling\\uspto_mit_validation_1024.csv",
+  "examples": 256,
+  "seed": 533,
+  "k": 1,
+  "pca_policy": "subtract one mean fitted to concatenated source and target states; fit shared PCs to the concatenated centered states and project both views through the same basis",
+  "conditions": {
+    "base": {
+      "cache": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\runs\\diagnostics\\sigreg_k_ablation_256\\geometry_matched_epoch2_cache_256\\base.pt",
+      "inference_seconds": 9.063933600205928,
+      "peak_cuda_bytes": 2421175808,
+      "metrics": {
+        "raw": {
+          "correct_cosine": 0.5320276021957397,
+          "matched_shuffle_cosine": 0.5019783973693848,
+          "correct_minus_matched": 0.030049191787838936,
+          "retrieval_top1": 0.37890625,
+          "retrieval_mrr": 0.5992838144302368,
+          "retrieval_chance_top1": 0.25,
+          "source_variance": 0.02750338241457939,
+          "source_effective_rank": 20.993118286132812,
+          "source_mean_direction_energy": 0.5698438882827759,
+          "target_variance": 0.022246485576033592,
+          "target_effective_rank": 21.705167770385742,
+          "target_mean_direction_energy": 0.6635069847106934,
+          "matched_assignment_cost": 248
+        },
+        "mean_centered": {
+          "correct_cosine": -0.06062519550323486,
+          "matched_shuffle_cosine": -0.13416489958763123,
+          "correct_minus_matched": 0.07353969663381577,
+          "retrieval_top1": 0.33203125,
+          "retrieval_mrr": 0.5755208730697632,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc1": {
+          "correct_cosine": -0.16241750121116638,
+          "matched_shuffle_cosine": -0.17448046803474426,
+          "correct_minus_matched": 0.012062963098287582,
+          "retrieval_top1": 0.3046875,
+          "retrieval_mrr": 0.5641275644302368,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc2": {
+          "correct_cosine": -0.007307539228349924,
+          "matched_shuffle_cosine": -0.029399991035461426,
+          "correct_minus_matched": 0.02209245227277279,
+          "retrieval_top1": 0.2890625,
+          "retrieval_mrr": 0.5406901240348816,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc4": {
+          "correct_cosine": 0.03968626260757446,
+          "matched_shuffle_cosine": 0.005959007423371077,
+          "correct_minus_matched": 0.0337272584438324,
+          "retrieval_top1": 0.296875,
+          "retrieval_mrr": 0.5651041865348816,
+          "retrieval_chance_top1": 0.25
+        },
+        "whitening": {
+          "status": "not_run",
+          "reason": "full joint whitening is not stable without regularization: the 2N by D centered matrix is rank-deficient by construction, and choosing a shrinkage constant would add a new unfrozen hyperparameter"
+        }
+      }
+    },
+    "native_reference": {
+      "cache": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\runs\\diagnostics\\sigreg_k_ablation_256\\geometry_matched_epoch2_cache_256\\native_reference.pt",
+      "inference_seconds": 8.848732399987057,
+      "peak_cuda_bytes": 2421044736,
+      "metrics": {
+        "raw": {
+          "correct_cosine": 0.2811802923679352,
+          "matched_shuffle_cosine": 0.2778400182723999,
+          "correct_minus_matched": 0.0033402577973902225,
+          "retrieval_top1": 0.28125,
+          "retrieval_mrr": 0.5426432490348816,
+          "retrieval_chance_top1": 0.25,
+          "source_variance": 0.0092969611287117,
+          "source_effective_rank": 21.76966667175293,
+          "source_mean_direction_energy": 0.8732876181602478,
+          "target_variance": 0.008796521462500095,
+          "target_effective_rank": 3.4398417472839355,
+          "target_mean_direction_energy": 0.831498920917511,
+          "matched_assignment_cost": 248
+        },
+        "mean_centered": {
+          "correct_cosine": -0.707608699798584,
+          "matched_shuffle_cosine": -0.7106378078460693,
+          "correct_minus_matched": 0.003029182553291321,
+          "retrieval_top1": 0.2734375,
+          "retrieval_mrr": 0.5403646230697632,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc1": {
+          "correct_cosine": 0.058562371879816055,
+          "matched_shuffle_cosine": 0.029045775532722473,
+          "correct_minus_matched": 0.02951660007238388,
+          "retrieval_top1": 0.3046875,
+          "retrieval_mrr": 0.5634765625,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc2": {
+          "correct_cosine": 0.02183849923312664,
+          "matched_shuffle_cosine": 0.0007134934421628714,
+          "correct_minus_matched": 0.021125005558133125,
+          "retrieval_top1": 0.359375,
+          "retrieval_mrr": 0.5934244394302368,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc4": {
+          "correct_cosine": 0.026748813688755035,
+          "matched_shuffle_cosine": -0.013419144786894321,
+          "correct_minus_matched": 0.04016795754432678,
+          "retrieval_top1": 0.3671875,
+          "retrieval_mrr": 0.6012369990348816,
+          "retrieval_chance_top1": 0.25
+        },
+        "whitening": {
+          "status": "not_run",
+          "reason": "full joint whitening is not stable without regularization: the 2N by D centered matrix is rank-deficient by construction, and choosing a shrinkage constant would add a new unfrozen hyperparameter"
+        }
+      }
+    },
+    "clm_jepa_reference": {
+      "cache": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\runs\\diagnostics\\sigreg_k_ablation_256\\geometry_matched_epoch2_cache_256\\clm_jepa_reference.pt",
+      "inference_seconds": 8.853448499925435,
+      "peak_cuda_bytes": 2421044736,
+      "metrics": {
+        "raw": {
+          "correct_cosine": 0.9993749856948853,
+          "matched_shuffle_cosine": 0.999229907989502,
+          "correct_minus_matched": 0.00014508352614939213,
+          "retrieval_top1": 0.64453125,
+          "retrieval_mrr": 0.7884114384651184,
+          "retrieval_chance_top1": 0.25,
+          "source_variance": 4.453982910490595e-05,
+          "source_effective_rank": 39.3663330078125,
+          "source_mean_direction_energy": 0.9994809031486511,
+          "target_variance": 4.940625512972474e-05,
+          "target_effective_rank": 37.102760314941406,
+          "target_mean_direction_energy": 0.9994253516197205,
+          "matched_assignment_cost": 248
+        },
+        "mean_centered": {
+          "correct_cosine": 0.06380383670330048,
+          "matched_shuffle_cosine": -0.15421469509601593,
+          "correct_minus_matched": 0.2180185317993164,
+          "retrieval_top1": 0.75390625,
+          "retrieval_mrr": 0.857421875,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc1": {
+          "correct_cosine": 0.3128896951675415,
+          "matched_shuffle_cosine": 0.039426326751708984,
+          "correct_minus_matched": 0.2734633684158325,
+          "retrieval_top1": 0.79296875,
+          "retrieval_mrr": 0.884765625,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc2": {
+          "correct_cosine": 0.31800293922424316,
+          "matched_shuffle_cosine": 0.027744801715016365,
+          "correct_minus_matched": 0.29025810956954956,
+          "retrieval_top1": 0.8125,
+          "retrieval_mrr": 0.8938801884651184,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc4": {
+          "correct_cosine": 0.26598286628723145,
+          "matched_shuffle_cosine": -0.0050559574738144875,
+          "correct_minus_matched": 0.27103886008262634,
+          "retrieval_top1": 0.8046875,
+          "retrieval_mrr": 0.8854166269302368,
+          "retrieval_chance_top1": 0.25
+        },
+        "whitening": {
+          "status": "not_run",
+          "reason": "full joint whitening is not stable without regularization: the 2N by D centered matrix is rank-deficient by construction, and choosing a shrinkage constant would add a new unfrozen hyperparameter"
+        }
+      }
+    },
+    "clm_jepa_target_sg_reference": {
+      "cache": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\runs\\diagnostics\\sigreg_k_ablation_256\\geometry_matched_epoch2_cache_256\\clm_jepa_target_sg_reference.pt",
+      "inference_seconds": 8.856197299901396,
+      "peak_cuda_bytes": 2421044736,
+      "metrics": {
+        "raw": {
+          "correct_cosine": 0.9942194223403931,
+          "matched_shuffle_cosine": 0.9934779405593872,
+          "correct_minus_matched": 0.000741500174626708,
+          "retrieval_top1": 0.4921875,
+          "retrieval_mrr": 0.6985677480697632,
+          "retrieval_chance_top1": 0.25,
+          "source_variance": 0.00017298264720011503,
+          "source_effective_rank": 41.600894927978516,
+          "source_mean_direction_energy": 0.9978076815605164,
+          "target_variance": 0.00034235898056067526,
+          "target_effective_rank": 32.28448486328125,
+          "target_mean_direction_energy": 0.9956634044647217,
+          "matched_assignment_cost": 248
+        },
+        "mean_centered": {
+          "correct_cosine": -0.17907032370567322,
+          "matched_shuffle_cosine": -0.3245696723461151,
+          "correct_minus_matched": 0.1454993486404419,
+          "retrieval_top1": 0.6171875,
+          "retrieval_mrr": 0.7770182490348816,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc1": {
+          "correct_cosine": 0.32689183950424194,
+          "matched_shuffle_cosine": 0.07861307263374329,
+          "correct_minus_matched": 0.24827876687049866,
+          "retrieval_top1": 0.73046875,
+          "retrieval_mrr": 0.8463541269302368,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc2": {
+          "correct_cosine": 0.2630231976509094,
+          "matched_shuffle_cosine": -0.0007158499211072922,
+          "correct_minus_matched": 0.26373904943466187,
+          "retrieval_top1": 0.78125,
+          "retrieval_mrr": 0.8740234375,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc4": {
+          "correct_cosine": 0.2838963270187378,
+          "matched_shuffle_cosine": -0.0059685176238417625,
+          "correct_minus_matched": 0.28986483812332153,
+          "retrieval_top1": 0.8515625,
+          "retrieval_mrr": 0.91796875,
+          "retrieval_chance_top1": 0.25
+        },
+        "whitening": {
+          "status": "not_run",
+          "reason": "full joint whitening is not stable without regularization: the 2N by D centered matrix is rank-deficient by construction, and choosing a shrinkage constant would add a new unfrozen hyperparameter"
+        }
+      }
+    },
+    "clm_jepa_sigreg_k0_epoch2": {
+      "cache": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\runs\\diagnostics\\sigreg_k_ablation_256\\geometry_matched_epoch2_cache_256\\clm_jepa_sigreg_k0_epoch2.pt",
+      "inference_seconds": 8.820574700133875,
+      "peak_cuda_bytes": 2416676864,
+      "metrics": {
+        "raw": {
+          "correct_cosine": 0.9983299970626831,
+          "matched_shuffle_cosine": 0.997753381729126,
+          "correct_minus_matched": 0.0005766451358795166,
+          "retrieval_top1": 0.7421875,
+          "retrieval_mrr": 0.8499349355697632,
+          "retrieval_chance_top1": 0.25,
+          "source_variance": 0.0001726351911202073,
+          "source_effective_rank": 46.397926330566406,
+          "source_mean_direction_energy": 0.9978143572807312,
+          "target_variance": 0.0001408612442901358,
+          "target_effective_rank": 29.019535064697266,
+          "target_mean_direction_energy": 0.9982181191444397,
+          "matched_assignment_cost": 248
+        },
+        "mean_centered": {
+          "correct_cosine": 0.24751617014408112,
+          "matched_shuffle_cosine": -0.02553272806107998,
+          "correct_minus_matched": 0.27304887771606445,
+          "retrieval_top1": 0.82421875,
+          "retrieval_mrr": 0.9020182490348816,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc1": {
+          "correct_cosine": 0.27745193243026733,
+          "matched_shuffle_cosine": -0.02926659770309925,
+          "correct_minus_matched": 0.30671852827072144,
+          "retrieval_top1": 0.828125,
+          "retrieval_mrr": 0.9016926884651184,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc2": {
+          "correct_cosine": 0.33124029636383057,
+          "matched_shuffle_cosine": -0.012058372609317303,
+          "correct_minus_matched": 0.34329867362976074,
+          "retrieval_top1": 0.8515625,
+          "retrieval_mrr": 0.9134114384651184,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc4": {
+          "correct_cosine": 0.32560163736343384,
+          "matched_shuffle_cosine": -0.00569611182436347,
+          "correct_minus_matched": 0.33129772543907166,
+          "retrieval_top1": 0.859375,
+          "retrieval_mrr": 0.9195963740348816,
+          "retrieval_chance_top1": 0.25
+        },
+        "whitening": {
+          "status": "not_run",
+          "reason": "full joint whitening is not stable without regularization: the 2N by D centered matrix is rank-deficient by construction, and choosing a shrinkage constant would add a new unfrozen hyperparameter"
+        }
+      }
+    },
+    "clm_jepa_sigreg_k1_epoch2": {
+      "cache": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\runs\\diagnostics\\sigreg_k_ablation_256\\geometry_matched_epoch2_cache_256\\clm_jepa_sigreg_k1_epoch2.pt",
+      "inference_seconds": 8.869210100034252,
+      "peak_cuda_bytes": 2421044736,
+      "metrics": {
+        "raw": {
+          "correct_cosine": 0.9971586465835571,
+          "matched_shuffle_cosine": 0.996745228767395,
+          "correct_minus_matched": 0.00041346694342792034,
+          "retrieval_top1": 0.56640625,
+          "retrieval_mrr": 0.73046875,
+          "retrieval_chance_top1": 0.25,
+          "source_variance": 0.00012743912520818412,
+          "source_effective_rank": 35.382728576660156,
+          "source_mean_direction_energy": 0.998454213142395,
+          "target_variance": 0.0003068273654207587,
+          "target_effective_rank": 10.9133882522583,
+          "target_mean_direction_energy": 0.9962801933288574,
+          "matched_assignment_cost": 248
+        },
+        "mean_centered": {
+          "correct_cosine": 0.06492690742015839,
+          "matched_shuffle_cosine": -0.11816979944705963,
+          "correct_minus_matched": 0.18309670686721802,
+          "retrieval_top1": 0.703125,
+          "retrieval_mrr": 0.8287760615348816,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc1": {
+          "correct_cosine": 0.03505904972553253,
+          "matched_shuffle_cosine": -0.15292641520500183,
+          "correct_minus_matched": 0.18798545002937317,
+          "retrieval_top1": 0.703125,
+          "retrieval_mrr": 0.8264974355697632,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc2": {
+          "correct_cosine": 0.2819434404373169,
+          "matched_shuffle_cosine": 0.04514160007238388,
+          "correct_minus_matched": 0.23680181801319122,
+          "retrieval_top1": 0.74609375,
+          "retrieval_mrr": 0.8466796875,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc4": {
+          "correct_cosine": 0.2606765031814575,
+          "matched_shuffle_cosine": -0.0040404219180345535,
+          "correct_minus_matched": 0.2647169232368469,
+          "retrieval_top1": 0.80078125,
+          "retrieval_mrr": 0.8857421875,
+          "retrieval_chance_top1": 0.25
+        },
+        "whitening": {
+          "status": "not_run",
+          "reason": "full joint whitening is not stable without regularization: the 2N by D centered matrix is rank-deficient by construction, and choosing a shrinkage constant would add a new unfrozen hyperparameter"
+        }
+      }
+    },
+    "clm_jepa_sigreg_k0_b128_epoch2": {
+      "cache": "runs\\diagnostics\\sigreg_k0_batch128_256\\geometry_cache\\clm_jepa_sigreg_k0_b128_epoch2.pt",
+      "inference_seconds": 10.314846100052819,
+      "peak_cuda_bytes": 2416807936,
+      "metrics": {
+        "raw": {
+          "correct_cosine": 0.8027662038803101,
+          "matched_shuffle_cosine": 0.7559986114501953,
+          "correct_minus_matched": 0.04676759988069534,
+          "retrieval_top1": 0.5,
+          "retrieval_mrr": 0.6871744990348816,
+          "retrieval_chance_top1": 0.25,
+          "source_variance": 0.01673007756471634,
+          "source_effective_rank": 25.153667449951172,
+          "source_mean_direction_energy": 0.7718960046768188,
+          "target_variance": 0.015701595693826675,
+          "target_effective_rank": 17.646892547607422,
+          "target_mean_direction_energy": 0.7978934645652771,
+          "matched_assignment_cost": 248
+        },
+        "mean_centered": {
+          "correct_cosine": 0.14154934883117676,
+          "matched_shuffle_cosine": -0.06710618734359741,
+          "correct_minus_matched": 0.20865553617477417,
+          "retrieval_top1": 0.484375,
+          "retrieval_mrr": 0.6858724355697632,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc1": {
+          "correct_cosine": 0.10640066862106323,
+          "matched_shuffle_cosine": -0.03961300104856491,
+          "correct_minus_matched": 0.14601367712020874,
+          "retrieval_top1": 0.4609375,
+          "retrieval_mrr": 0.671875,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc2": {
+          "correct_cosine": 0.12035608291625977,
+          "matched_shuffle_cosine": -0.01420508325099945,
+          "correct_minus_matched": 0.13456116616725922,
+          "retrieval_top1": 0.49609375,
+          "retrieval_mrr": 0.6878255605697632,
+          "retrieval_chance_top1": 0.25
+        },
+        "mean_centered_remove_pc4": {
+          "correct_cosine": 0.15504544973373413,
+          "matched_shuffle_cosine": 0.023024864494800568,
+          "correct_minus_matched": 0.13202059268951416,
+          "retrieval_top1": 0.47265625,
+          "retrieval_mrr": 0.6787109375,
+          "retrieval_chance_top1": 0.25
+        },
+        "whitening": {
+          "status": "not_run",
+          "reason": "full joint whitening is not stable without regularization: the 2N by D centered matrix is rank-deficient by construction, and choosing a shrinkage constant would add a new unfrozen hyperparameter"
+        }
+      }
+    }
+  },
+  "reused_geometry": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\runs\\diagnostics\\sigreg_k_ablation_256\\geometry_matched_epoch2_256.json",
+  "new_inference_seconds": 10.314846100052819,
+  "total_inference_seconds": 63.62694270024076
+}

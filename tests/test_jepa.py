@@ -181,6 +181,117 @@ def test_sigreg_symmetric_objective_updates_both_jepa_views():
     assert result.target_states.grad.abs().sum() > 0
 
 
+def test_streaming_sigreg_matches_materialized_value_and_gradients():
+    torch.manual_seed(41)
+    direct_values = torch.randn(2, 13, 19, requires_grad=True)
+    streaming_values = direct_values.detach().clone().requires_grad_(True)
+    direct = SIGReg(knots=17, t_max=3.0, num_slices=31, seed=533)
+    streamed = SIGReg(knots=17, t_max=3.0, num_slices=31, seed=533)
+
+    direct_loss = direct(direct_values)
+    direct_loss.backward()
+    accumulator = streamed.start_streaming(
+        views=2, dimensions=19, expected_samples=13,
+        device=streaming_values.device,
+    )
+    for chunk in streaming_values.detach().split((3, 4, 6), dim=1):
+        accumulator.update(chunk)
+    prepared = accumulator.finalize()
+    surrogate = sum(
+        prepared.surrogate(chunk)
+        for chunk in streaming_values.split((3, 4, 6), dim=1)
+    )
+    surrogate.backward()
+
+    torch.testing.assert_close(prepared.loss, direct_loss.detach(), rtol=1e-6, atol=1e-7)
+    torch.testing.assert_close(
+        streaming_values.grad, direct_values.grad, rtol=2e-5, atol=2e-6,
+    )
+
+
+def test_forced_jepa_activity_does_not_consume_dropout_rng():
+    model, tokenizer, forced_method, batch = setup_case()
+    reference_method = CLMJEPA(
+        forced_method.predictor_token_ids,
+        tokenizer.eos_token_id,
+        tokenizer.pad_token_id,
+    )
+    before = forced_method.jepa_dropout_generator.get_state().clone()
+    forced = forced_method(
+        model, batch, k=0, jepa_weight=1.0, jepa_ratio=0.5,
+        force_jepa_active=True,
+    )
+    after = forced_method.jepa_dropout_generator.get_state()
+    assert forced.jepa_active
+    assert torch.equal(before, after)
+    sampled_forced = forced_method(
+        model, batch, k=0, jepa_weight=1.0, jepa_ratio=0.5,
+    )
+    sampled_reference = reference_method(
+        model, batch, k=0, jepa_weight=1.0, jepa_ratio=0.5,
+    )
+    assert sampled_forced.jepa_active == sampled_reference.jepa_active
+
+
+def test_streaming_recomputation_matches_materialized_tiny_clm_jepa_gradients():
+    direct_model, _, direct_method, direct_batch = setup_case()
+    streamed_model, _, streamed_method, streamed_batch = setup_case()
+    direct_model.eval()
+    streamed_model.eval()
+
+    direct = direct_method(
+        direct_model, direct_batch, k=0, jepa_weight=2.0,
+        sigreg_tradeoff=0.05, force_jepa_active=True,
+    )
+    direct.loss.backward()
+
+    with torch.no_grad():
+        first = streamed_method(
+            streamed_model, streamed_batch, k=0, jepa_weight=0.0,
+            monitor_only=True, force_jepa_active=True,
+        )
+        states = torch.stack((first.source_states, first.target_states))
+        accumulator = streamed_method.sigreg.start_streaming(
+            views=2, dimensions=states.size(-1),
+            expected_samples=states.size(1), device=states.device,
+        )
+        accumulator.update(states)
+        prepared = accumulator.finalize()
+    streamed = streamed_method(
+        streamed_model, streamed_batch, k=0, jepa_weight=2.0,
+        sigreg_tradeoff=0.0, force_jepa_active=True,
+    )
+    streamed_loss = (
+        streamed.loss
+        + 2.0 * (0.05 / 0.95) * prepared.surrogate(
+            torch.stack((streamed.source_states, streamed.target_states))
+        )
+    )
+    streamed_loss.backward()
+
+    expected_value = (
+        streamed.loss.detach() + 2.0 * (0.05 / 0.95) * prepared.loss
+    )
+    torch.testing.assert_close(expected_value, direct.loss.detach(), rtol=2e-5, atol=2e-6)
+    direct_gradients = {
+        name: parameter.grad
+        for name, parameter in direct_model.named_parameters()
+        if parameter.grad is not None
+    }
+    streamed_gradients = {
+        name: parameter.grad
+        for name, parameter in streamed_model.named_parameters()
+        if parameter.grad is not None
+    }
+    assert direct_gradients.keys() == streamed_gradients.keys()
+    for name in direct_gradients:
+        torch.testing.assert_close(
+            streamed_gradients[name], direct_gradients[name],
+            rtol=3e-4, atol=3e-6,
+            msg=lambda message, name=name: f"{name}: {message}",
+        )
+
+
 def test_jepa_gradients_reach_shared_backbone_but_monitor_only_adds_none():
     model, _, method, batch = setup_case()
     model.train()

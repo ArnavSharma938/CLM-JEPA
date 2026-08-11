@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import itertools
 import json
 import math
 import os
@@ -557,7 +558,7 @@ def load_adapter_checkpoint(model, checkpoint: Path) -> None:
 
 
 def save_training_checkpoint(
-    checkpoint: Path, model, tokenizer, optimizer, scheduler, generator,
+    checkpoint: Path, model, tokenizer, optimizer, scheduler, generator, method,
     *, epoch: int, global_step: int, planned_epochs: int, curves, epoch_history,
     best_selector, best_checkpoint: str | None, elapsed_wall_time_seconds: float,
 ) -> None:
@@ -581,6 +582,8 @@ def save_training_checkpoint(
         "numpy_rng_state": np.random.get_state(),
         "torch_rng_state": torch.get_rng_state(),
         "cuda_rng_states": torch.cuda.get_rng_state_all(),
+        "jepa_dropout_generator_state": method.jepa_dropout_generator.get_state(),
+        "sigreg_global_step": method.sigreg.global_step,
         "curves": curves,
         "epoch_history": epoch_history,
         "best_selector": best_selector,
@@ -591,7 +594,8 @@ def save_training_checkpoint(
 
 
 def restore_training_checkpoint(
-    checkpoint: Path, model, optimizer, scheduler, generator, planned_epochs: int,
+    checkpoint: Path, model, optimizer, scheduler, generator,
+    planned_epochs: int, method=None,
 ):
     load_adapter_checkpoint(model, checkpoint)
     state = torch.load(
@@ -609,7 +613,227 @@ def restore_training_checkpoint(
     np.random.set_state(state["numpy_rng_state"])
     torch.set_rng_state(state["torch_rng_state"].cpu())
     torch.cuda.set_rng_state_all([value.cpu() for value in state["cuda_rng_states"]])
+    if method is not None and "jepa_dropout_generator_state" in state:
+        method.jepa_dropout_generator.set_state(
+            state["jepa_dropout_generator_state"].cpu()
+        )
+    if method is not None and "sigreg_global_step" in state:
+        method.sigreg.global_step = state["sigreg_global_step"]
     return state
+
+
+def gradient_diagnostics(model) -> tuple[float, tuple[str, float]]:
+    """Clip gradients and preserve the established per-parameter diagnostics."""
+    total = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+    total_value = float(total)
+    clip_coefficient = min(1.0, 1.0 / (total_value + 1e-6))
+    largest = ("", 0.0)
+    for name, parameter in model.named_parameters():
+        if parameter.grad is None:
+            continue
+        clipped_norm = float(parameter.grad.detach().float().norm())
+        original_norm = clipped_norm / max(clip_coefficient, 1e-30)
+        if original_norm > largest[1]:
+            largest = (name, original_norm)
+    return total_value, largest
+
+
+def synchronized_loss_means(records: list[dict[str, Any]]) -> dict[str, float | None]:
+    """Aggregate GPU-resident logging scalars with one device synchronization."""
+    keys = ("native_loss", "jepa_loss", "sigreg_loss", "jepa_objective_loss", "total_loss")
+    means: list[torch.Tensor] = []
+    present: list[bool] = []
+    device = next(
+        value.device
+        for row in records for value in row.values()
+        if torch.is_tensor(value)
+    )
+    for key in keys:
+        values = [row[key] for row in records if row[key] is not None]
+        present.append(bool(values))
+        means.append(
+            torch.stack(values).mean() if values else torch.zeros((), device=device)
+        )
+    synchronized = torch.stack(means).float().cpu().tolist()
+    return {
+        key: (value if exists else None)
+        for key, value, exists in zip(keys, synchronized, present)
+    }
+
+
+def _rng_snapshot() -> tuple[torch.Tensor, list[torch.Tensor]]:
+    return torch.get_rng_state(), torch.cuda.get_rng_state_all()
+
+
+def _restore_rng(snapshot: tuple[torch.Tensor, list[torch.Tensor]]) -> None:
+    cpu, cuda = snapshot
+    torch.set_rng_state(cpu)
+    torch.cuda.set_rng_state_all(cuda)
+
+
+def train_streaming_sigreg_epoch(
+    *, model, method, loader, optimizer, scheduler, epoch: int,
+    logical_batch_size: int, physical_batch_size: int,
+    actual_lambda: float, native_weight: float, sigreg_tradeoff: float,
+    jepa_ratio: float, non_embedding_parameters: int, pin_memory: bool,
+    tracker: WandbTracker, global_step: int,
+) -> tuple[list[dict[str, Any]], int]:
+    """Train one epoch with exact recomputed SIGReg statistics over logical batches.
+
+    The first pass accumulates global ECF sufficient statistics without graphs.
+    A second RNG-replayed pass computes native/cosine gradients and injects the
+    exact SIGReg representation VJP. Parameters remain fixed across all chunks
+    until the logical-batch gradient is complete.
+    """
+    if logical_batch_size % physical_batch_size:
+        raise ValueError("SIGReg logical batch must be divisible by physical batch size")
+    chunks_per_step = logical_batch_size // physical_batch_size
+    if len(loader) % chunks_per_step:
+        raise ValueError("training exposure must divide into complete SIGReg logical batches")
+    relative_coefficient = sigreg_tradeoff / (1.0 - sigreg_tradeoff)
+    iterator = iter(loader)
+    records: list[dict[str, Any]] = []
+    for logical_index in range(len(loader) // chunks_per_step):
+        data_started = time.perf_counter()
+        raw_chunks = list(itertools.islice(iterator, chunks_per_step))
+        data_seconds = time.perf_counter() - data_started
+        if len(raw_chunks) != chunks_per_step:
+            raise RuntimeError("incomplete SIGReg logical batch")
+        active = method.sample_jepa_activity(jepa_ratio)
+        prepared = None
+        replay_states: list[tuple[torch.Tensor, list[torch.Tensor]]] = []
+        first_pass_seconds = 0.0
+        if active:
+            accumulator = None
+            torch.cuda.synchronize()
+            first_started = time.perf_counter()
+            with torch.no_grad():
+                for raw in raw_chunks:
+                    replay_states.append(_rng_snapshot())
+                    batch = {
+                        name: value.to(model.device, non_blocking=pin_memory)
+                        for name, value in raw.items() if torch.is_tensor(value)
+                    }
+                    output = method(
+                        model, batch, k=0, jepa_weight=0.0,
+                        native_weight=native_weight, monitor_only=True,
+                        stop_gradient_target=False, sigreg_tradeoff=0.0,
+                        jepa_ratio=jepa_ratio, force_jepa_active=True,
+                    )
+                    states = torch.stack((output.source_states, output.target_states))
+                    if accumulator is None:
+                        accumulator = method.sigreg.start_streaming(
+                            views=2, dimensions=states.size(-1),
+                            expected_samples=logical_batch_size,
+                            device=states.device,
+                        )
+                    accumulator.update(states)
+            final_rng = _rng_snapshot()
+            if accumulator is None:
+                raise RuntimeError("SIGReg accumulator was not initialized")
+            prepared = accumulator.finalize()
+            torch.cuda.synchronize()
+            first_pass_seconds = time.perf_counter() - first_started
+
+        loss_records: list[dict[str, Any]] = []
+        batch_tokens = 0
+        effective_tokens = 0
+        torch.cuda.synchronize()
+        gradient_started = time.perf_counter()
+        for chunk_index, raw in enumerate(raw_chunks):
+            if active:
+                _restore_rng(replay_states[chunk_index])
+            raw_tokens = int(raw["attention_mask"].sum())
+            batch = {
+                name: value.to(model.device, non_blocking=pin_memory)
+                for name, value in raw.items() if torch.is_tensor(value)
+            }
+            output = method(
+                model, batch, k=0,
+                jepa_weight=actual_lambda if active else 0.0,
+                native_weight=native_weight,
+                stop_gradient_target=False, sigreg_tradeoff=0.0,
+                jepa_ratio=jepa_ratio, force_jepa_active=active,
+            )
+            loss = output.loss / chunks_per_step
+            if active:
+                states = torch.stack((output.source_states, output.target_states))
+                loss = loss + actual_lambda * relative_coefficient * prepared.surrogate(states)
+            if not torch.isfinite(loss):
+                raise FloatingPointError(
+                    f"non-finite loss in epoch {epoch}, SIGReg group {logical_index + 1}"
+                )
+            loss.backward()
+            batch_tokens += raw_tokens
+            effective_tokens += raw_tokens * (4 if active else 1)
+            loss_records.append({
+                "native_loss": output.native_loss.detach(),
+                "jepa_loss": None if output.jepa_loss is None else output.jepa_loss.detach(),
+                "sigreg_loss": None,
+                "jepa_objective_loss": None,
+                "total_loss": output.loss.detach(),
+            })
+        if active:
+            _restore_rng(final_rng)
+        torch.cuda.synchronize()
+        gradient_seconds = time.perf_counter() - gradient_started
+
+        optimizer_started = time.perf_counter()
+        learning_rate = optimizer.param_groups[0]["lr"]
+        gradient_norm, largest_gradient = gradient_diagnostics(model)
+        optimizer.step()
+        scheduler.step()
+        optimizer.zero_grad(set_to_none=True)
+        torch.cuda.synchronize()
+        optimizer_seconds = time.perf_counter() - optimizer_started
+        global_step += 1
+
+        means = synchronized_loss_means(loss_records)
+        if active:
+            sigreg_value = float(prepared.loss)
+            means["sigreg_loss"] = sigreg_value
+            means["jepa_objective_loss"] = (
+                means["jepa_loss"] + relative_coefficient * sigreg_value
+            )
+            means["total_loss"] = (
+                means["native_loss"]
+                + actual_lambda * means["jepa_objective_loss"]
+            )
+        record = {
+            "step": global_step,
+            "epoch": epoch,
+            **means,
+            "jepa_active": active,
+            "jepa_active_microbatches": chunks_per_step if active else 0,
+            "sigreg_distribution_samples_per_view": logical_batch_size if active else 0,
+            "learning_rate": learning_rate,
+            "gradient_norm": gradient_norm,
+            "max_gradient_parameter": largest_gradient[0],
+            "max_parameter_gradient_norm": largest_gradient[1],
+            "batch_tokens": batch_tokens,
+            "effective_tokens": effective_tokens,
+            "model_calls": chunks_per_step * (2 if active else 1),
+            "data_seconds": data_seconds,
+            "sigreg_statistics_forward_seconds": first_pass_seconds,
+            "gradient_forward_backward_seconds": gradient_seconds,
+            "optimizer_seconds": optimizer_seconds,
+        }
+        record["estimated_flops"] = 6.0 * effective_tokens * non_embedding_parameters
+        records.append(record)
+        tracker.log_training_step(
+            step=global_step, native_loss=record["native_loss"],
+            jepa_loss=record["jepa_loss"], sigreg_loss=record["sigreg_loss"],
+            jepa_objective_loss=record["jepa_objective_loss"],
+            total_loss=record["total_loss"], gradient_norm=gradient_norm,
+            max_gradient_parameter=largest_gradient[0],
+            max_parameter_gradient_norm=largest_gradient[1],
+            learning_rate=learning_rate, jepa_active=active,
+            batch_tokens=batch_tokens, model_calls=record["model_calls"],
+            effective_tokens=effective_tokens,
+            peak_vram_bytes=torch.cuda.max_memory_allocated(),
+            estimated_flops=record["estimated_flops"],
+        )
+    return records, global_step
 
 
 def train(args):
@@ -664,12 +888,20 @@ def train(args):
         val_rows, batch_size=args.batch_size, shuffle=False,
         collate_fn=collator, pin_memory=args.pin_memory,
     )
+    streaming_sigreg = (
+        args.condition == "clm_jepa_sigreg"
+        and args.sigreg_batch_size > args.batch_size
+    )
     optimizer = torch.optim.AdamW(
         (parameter for parameter in model.parameters() if parameter.requires_grad),
         lr=args.learning_rate, betas=ADAM_BETAS, eps=ADAM_EPSILON,
         weight_decay=WEIGHT_DECAY, fused=args.fused_adamw,
     )
-    updates_per_epoch = max(1, math.ceil(len(loader) / args.gradient_accumulation_steps))
+    updates_per_epoch = (
+        len(train_rows) // args.sigreg_batch_size
+        if streaming_sigreg
+        else max(1, math.ceil(len(loader) / args.gradient_accumulation_steps))
+    )
     steps = max(1, args.epochs * updates_per_epoch)
     scheduler = get_scheduler(
         "cosine_with_min_lr", optimizer,
@@ -692,7 +924,11 @@ def train(args):
         "resource_budget_epochs": args.stop_after_epoch,
         "physical_batch_size": args.batch_size,
         "gradient_accumulation_steps": args.gradient_accumulation_steps,
-        "effective_batch_size": args.batch_size * args.gradient_accumulation_steps,
+        "effective_batch_size": (
+            args.sigreg_batch_size
+            if streaming_sigreg
+            else args.batch_size * args.gradient_accumulation_steps
+        ),
         "k": args.k,
         "lambda_eff": args.lambda_eff, "actual_lambda": actual_lambda,
         "jepa_loss_dropout": args.dropout if has_jepa else None,
@@ -708,6 +944,11 @@ def train(args):
         "sigreg_relative_coefficient": (
             SIGREG_TRADEOFF / (1.0 - SIGREG_TRADEOFF) if has_sigreg else None
         ),
+        "sigreg_distribution_batch_size_per_view": (
+            args.sigreg_batch_size if has_sigreg else None
+        ),
+        "sigreg_exact_chunk_recomputation": streaming_sigreg,
+        "optimizer_steps_per_epoch": updates_per_epoch,
         "train_size": len(train_rows), "validation_size": len(val_rows),
         "train_manifest": str(train_path),
         "train_manifest_sha256": file_sha256(train_path),
@@ -744,7 +985,8 @@ def train(args):
     previous_elapsed_seconds = 0.0
     if args.resume_from is not None:
         state = restore_training_checkpoint(
-            args.resume_from.resolve(), model, optimizer, scheduler, generator, args.epochs
+            args.resume_from.resolve(), model, optimizer, scheduler, generator,
+            args.epochs, method,
         )
         start_epoch = state["epoch"]
         global_step = state["global_step"]
@@ -764,8 +1006,28 @@ def train(args):
     try:
         for epoch_index in range(start_epoch, args.stop_after_epoch):
             model.train()
+            if streaming_sigreg:
+                epoch_records, global_step = train_streaming_sigreg_epoch(
+                    model=model, method=method, loader=loader,
+                    optimizer=optimizer, scheduler=scheduler,
+                    epoch=epoch_index + 1,
+                    logical_batch_size=args.sigreg_batch_size,
+                    physical_batch_size=args.batch_size,
+                    actual_lambda=actual_lambda,
+                    native_weight=native_weight,
+                    sigreg_tradeoff=SIGREG_TRADEOFF,
+                    jepa_ratio=resolved_ratio,
+                    non_embedding_parameters=non_embedding_parameters,
+                    pin_memory=args.pin_memory, tracker=tracker,
+                    global_step=global_step,
+                )
+                curves.extend(epoch_records)
+                training_loader = ()
+            else:
+                training_loader = loader
             window_records = []
-            for batch_index, raw in enumerate(loader):
+            for batch_index, raw in enumerate(training_loader):
+                batch_tokens = int(raw["attention_mask"].sum())
                 batch = {
                     name: value.to(model.device, non_blocking=args.pin_memory)
                     for name, value in raw.items() if torch.is_tensor(value)
@@ -801,13 +1063,9 @@ def train(args):
                         f"non-finite loss at microbatch {microbatch_number}"
                     )
                 (output.loss / window_size).backward()
-                batch_tokens = int(batch["attention_mask"].sum())
                 effective_tokens = batch_tokens
                 if output.jepa_active:
-                    sources, targets = extract_source_and_target(batch)
-                    effective_tokens += sum(len(row) for row in sources + targets)
-                    if args.k > 0:
-                        effective_tokens += args.k * len(sources)
+                    effective_tokens += batch_tokens + args.k * len(batch["input_ids"])
                 window_records.append({
                     "native_loss": float(output.native_loss.detach()),
                     "jepa_loss": (
@@ -834,23 +1092,7 @@ def train(args):
                 if not boundary:
                     continue
                 learning_rate = optimizer.param_groups[0]["lr"]
-                grad = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-                total_gradient_norm = float(grad)
-                clip_coefficient = min(1.0, 1.0 / (total_gradient_norm + 1e-6))
-                largest_gradient = ("", 0.0)
-                for parameter_name, parameter in model.named_parameters():
-                    if parameter.grad is None:
-                        continue
-                    clipped_parameter_norm = float(
-                        parameter.grad.detach().float().norm()
-                    )
-                    original_parameter_norm = (
-                        clipped_parameter_norm / max(clip_coefficient, 1e-30)
-                    )
-                    if original_parameter_norm > largest_gradient[1]:
-                        largest_gradient = (
-                            parameter_name, original_parameter_norm
-                        )
+                total_gradient_norm, largest_gradient = gradient_diagnostics(model)
                 optimizer.step()
                 scheduler.step()
                 optimizer.zero_grad(set_to_none=True)
@@ -949,6 +1191,7 @@ def train(args):
             )
             save_training_checkpoint(
                 checkpoint, model, tokenizer, optimizer, scheduler, generator,
+                method,
                 epoch=epoch_index + 1, global_step=global_step,
                 planned_epochs=args.epochs, curves=curves,
                 epoch_history=epoch_history, best_selector=best_selector,
@@ -1045,6 +1288,13 @@ def main():
     parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--gradient-accumulation-steps", type=int, default=4)
     parser.add_argument(
+        "--sigreg-batch-size", type=int, default=2,
+        help=(
+            "representations per view in each SIGReg distribution estimate; values "
+            "above the physical batch use exact sufficient-statistic recomputation"
+        ),
+    )
+    parser.add_argument(
         "--gradient-checkpointing", action=argparse.BooleanOptionalAction,
         default=True,
     )
@@ -1079,6 +1329,10 @@ def main():
         raise ValueError("prior wall time cannot be negative")
     if args.batch_size < 1 or args.gradient_accumulation_steps < 1:
         raise ValueError("batch size and gradient accumulation must be positive")
+    if args.sigreg_batch_size < 2:
+        raise ValueError("SIGReg batch size must be at least two")
+    if args.condition != "clm_jepa_sigreg" and args.sigreg_batch_size != 2:
+        raise ValueError("--sigreg-batch-size only applies to clm_jepa_sigreg")
     if args.condition == "native" and (args.lambda_eff != 1.0 or args.dropout != 0.5):
         raise ValueError("native trials must leave irrelevant JEPA defaults unchanged")
     result = train(args)

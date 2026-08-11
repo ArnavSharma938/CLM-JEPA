@@ -30,6 +30,28 @@ class SIGReg:
         self.seed = seed
         self.global_step = 0
 
+    def _draw_parameters(
+        self, dimensions: int, device: torch.device, dtype: torch.dtype,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        generator = torch.Generator(device=device).manual_seed(
+            self.seed + self.global_step
+        )
+        directions = torch.randn(
+            dimensions, self.num_slices,
+            device=device, dtype=dtype, generator=generator,
+        )
+        directions = directions / directions.norm(dim=0, keepdim=True).clamp_min(1e-12)
+        self.global_step += 1
+        t = torch.linspace(
+            0.0, self.t_max, self.knots, device=device, dtype=dtype
+        )
+        dt = self.t_max / (self.knots - 1)
+        quadrature = torch.full_like(t, 2.0 * dt)
+        quadrature[[0, -1]] = dt
+        normal_cf = torch.exp(-0.5 * t.square())
+        weights = quadrature * normal_cf
+        return directions, t, normal_cf, weights
+
     def __call__(self, representations: torch.Tensor) -> torch.Tensor:
         if representations.ndim < 2:
             raise ValueError("SIGReg expects (..., samples, dimensions)")
@@ -37,24 +59,9 @@ class SIGReg:
         if sample_count < 2:
             raise ValueError("SIGReg requires at least two samples")
         values = representations.float()
-        generator = torch.Generator(device=values.device).manual_seed(
-            self.seed + self.global_step
+        directions, t, normal_cf, weights = self._draw_parameters(
+            values.size(-1), values.device, values.dtype
         )
-        directions = torch.randn(
-            values.size(-1), self.num_slices,
-            device=values.device, dtype=values.dtype, generator=generator,
-        )
-        directions = directions / directions.norm(dim=0, keepdim=True).clamp_min(1e-12)
-        self.global_step += 1
-
-        t = torch.linspace(
-            0.0, self.t_max, self.knots, device=values.device, dtype=values.dtype
-        )
-        dt = self.t_max / (self.knots - 1)
-        quadrature = torch.full_like(t, 2.0 * dt)
-        quadrature[[0, -1]] = dt
-        normal_cf = torch.exp(-0.5 * t.square())
-        weights = quadrature * normal_cf
 
         projected = values @ directions
         arguments = projected.unsqueeze(-1) * t
@@ -62,6 +69,116 @@ class SIGReg:
         imaginary = arguments.sin().mean(dim=-3)
         statistic = ((real_error.square() + imaginary.square()) @ weights) * sample_count
         return statistic.mean()
+
+    def start_streaming(
+        self, *, views: int, dimensions: int, expected_samples: int,
+        device: torch.device,
+    ) -> "StreamingSIGReg":
+        """Start an exact sufficient-statistic pass over a logical batch.
+
+        Representations may arrive in memory-sized chunks. ``finalize`` returns
+        the exact materialized-batch value and a VJP surrogate for recomputed
+        chunks, without a detached queue or stale representations.
+        """
+        if views < 1 or dimensions < 1 or expected_samples < 2:
+            raise ValueError("invalid streaming SIGReg shape")
+        directions, t, normal_cf, weights = self._draw_parameters(
+            dimensions, device, torch.float32
+        )
+        return StreamingSIGReg(
+            expected_views=views,
+            expected_samples=expected_samples,
+            directions=directions,
+            t=t,
+            normal_cf=normal_cf,
+            weights=weights,
+        )
+
+
+@dataclass
+class PreparedSIGReg:
+    """Finalized global ECF statistics for exact chunk-recomputed gradients."""
+
+    loss: torch.Tensor
+    directions: torch.Tensor
+    t: torch.Tensor
+    weights: torch.Tensor
+    real_error: torch.Tensor
+    imaginary: torch.Tensor
+
+    def representation_gradients(self, representations: torch.Tensor) -> torch.Tensor:
+        values = representations.detach().float()
+        if values.ndim != 3 or values.size(0) != self.real_error.size(0):
+            raise ValueError("streaming SIGReg chunks must have shape (views, samples, dimensions)")
+        projected = values @ self.directions
+        arguments = projected.unsqueeze(-1) * self.t
+        weighted_t = self.weights * self.t
+        projected_gradients = (
+            2.0
+            / (self.real_error.size(0) * self.directions.size(1))
+            * (
+                -arguments.sin() * self.real_error.unsqueeze(-3)
+                + arguments.cos() * self.imaginary.unsqueeze(-3)
+            )
+            @ weighted_t
+        )
+        return projected_gradients @ self.directions.transpose(0, 1)
+
+    def surrogate(self, representations: torch.Tensor) -> torch.Tensor:
+        """Return a scalar with the exact global SIGReg gradient for this chunk."""
+        gradients = self.representation_gradients(representations)
+        return (representations * gradients.to(representations.dtype)).sum()
+
+
+@dataclass
+class StreamingSIGReg:
+    expected_views: int
+    expected_samples: int
+    directions: torch.Tensor
+    t: torch.Tensor
+    normal_cf: torch.Tensor
+    weights: torch.Tensor
+    samples: int = 0
+    cosine_sum: torch.Tensor | None = None
+    sine_sum: torch.Tensor | None = None
+
+    def update(self, representations: torch.Tensor) -> None:
+        values = representations.detach().float()
+        if values.ndim != 3:
+            raise ValueError("streaming SIGReg chunks must have shape (views, samples, dimensions)")
+        if values.size(0) != self.expected_views or values.size(-1) != self.directions.size(0):
+            raise ValueError("streaming SIGReg chunk shape does not match its accumulator")
+        projected = values @ self.directions
+        arguments = projected.unsqueeze(-1) * self.t
+        cosine = arguments.cos().sum(dim=-3)
+        sine = arguments.sin().sum(dim=-3)
+        self.cosine_sum = cosine if self.cosine_sum is None else self.cosine_sum + cosine
+        self.sine_sum = sine if self.sine_sum is None else self.sine_sum + sine
+        self.samples += values.size(-2)
+        if self.samples > self.expected_samples:
+            raise ValueError("streaming SIGReg received more samples than expected")
+
+    def finalize(self) -> PreparedSIGReg:
+        if self.samples != self.expected_samples:
+            raise ValueError(
+                f"streaming SIGReg expected {self.expected_samples} samples, got {self.samples}"
+            )
+        if self.cosine_sum is None or self.sine_sum is None:
+            raise ValueError("streaming SIGReg received no chunks")
+        real_error = self.cosine_sum / self.samples - self.normal_cf
+        imaginary = self.sine_sum / self.samples
+        loss = (
+            (real_error.square() + imaginary.square()) @ self.weights
+            * self.samples
+        ).mean()
+        return PreparedSIGReg(
+            loss=loss,
+            directions=self.directions,
+            t=self.t,
+            weights=self.weights,
+            real_error=real_error,
+            imaginary=imaginary,
+        )
 
 
 def add_predictor_tokens(tokenizer, model=None) -> list[int]:
@@ -141,6 +258,13 @@ class CLMJEPA:
         self.sigreg = SIGReg(seed=sigreg_seed)
         self.jepa_dropout_generator = torch.Generator().manual_seed(sigreg_seed)
 
+    def sample_jepa_activity(self, ratio: float) -> bool:
+        if not 0.0 <= ratio <= 1.0:
+            raise ValueError("JEPA activity ratio must be in [0, 1]")
+        return bool(
+            torch.rand(1, generator=self.jepa_dropout_generator).item() <= ratio
+        )
+
     def __call__(
         self,
         model,
@@ -155,14 +279,16 @@ class CLMJEPA:
         jepa_ratio: float = -1.0,
         jepa_targets: Sequence[torch.Tensor] | None = None,
         shuffle_seed: int | None = None,
+        force_jepa_active: bool | None = None,
     ) -> CLMJEPAOutput:
         if not -1.0 <= jepa_ratio <= 1.0:
             raise ValueError("jepa_ratio must be -1 or in [0, 1]")
         if not 0.0 <= sigreg_tradeoff < 1.0:
             raise ValueError("sigreg_tradeoff must be in [0, 1)")
-        jepa_active = not (
-            jepa_ratio > 0.0
-            and torch.rand(1, generator=self.jepa_dropout_generator).item() > jepa_ratio
+        jepa_active = (
+            force_jepa_active
+            if force_jepa_active is not None
+            else not (jepa_ratio > 0.0 and not self.sample_jepa_activity(jepa_ratio))
         )
         if (jepa_weight == 0.0 and not monitor_only) or not jepa_active:
             native = model(**{key: batch[key] for key in ("input_ids", "attention_mask", "labels")})

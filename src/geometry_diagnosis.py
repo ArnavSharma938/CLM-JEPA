@@ -228,11 +228,16 @@ def main() -> None:
         "--manifest", type=Path,
         default=ROOT / "data" / "gate3" / "uspto_mit_synthesis.csv",
     )
-    parser.add_argument("--native-checkpoint", type=Path, required=True)
-    parser.add_argument("--clm-checkpoint", type=Path, required=True)
+    parser.add_argument("--native-checkpoint", type=Path)
+    parser.add_argument("--clm-checkpoint", type=Path)
     parser.add_argument("--target-sg-checkpoint", type=Path)
     parser.add_argument("--sigreg-k0-checkpoint", type=Path)
     parser.add_argument("--sigreg-k1-checkpoint", type=Path)
+    parser.add_argument("--sigreg-k0-b128-checkpoint", type=Path)
+    parser.add_argument(
+        "--reuse-geometry", type=Path,
+        help="reuse already-computed conditions from an identical identity panel",
+    )
     parser.add_argument("--cache-dir", type=Path, default=ROOT / "runs" / "diagnostics" / "geometry_cache")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--batch-size", type=int, default=16)
@@ -274,17 +279,34 @@ def main() -> None:
             f"expected {args.examples} unique reaction identities, got {len(records)}"
         )
 
-    conditions = [
-        ("base", None, 1),
-        ("native_reference", args.native_checkpoint, 1),
-        ("clm_jepa_reference", args.clm_checkpoint, 1),
-    ]
+    conditions = []
+    reused = None
+    if args.reuse_geometry is not None:
+        reused = json.loads(args.reuse_geometry.read_text(encoding="utf-8"))
+        if Path(reused["manifest"]).resolve() != args.manifest.resolve():
+            raise ValueError("reused geometry manifest does not match")
+        if reused["examples"] != len(records) or reused["seed"] != 533:
+            raise ValueError("reused geometry panel or seed does not match")
+    else:
+        if args.native_checkpoint is None or args.clm_checkpoint is None:
+            raise ValueError("native and cLM-JEPA checkpoints are required without --reuse-geometry")
+        conditions.extend([
+            ("base", None, 1),
+            ("native_reference", args.native_checkpoint, 1),
+            ("clm_jepa_reference", args.clm_checkpoint, 1),
+        ])
     if args.target_sg_checkpoint is not None:
         conditions.append(("clm_jepa_target_sg_reference", args.target_sg_checkpoint, 1))
     if args.sigreg_k0_checkpoint is not None:
         conditions.append(("clm_jepa_sigreg_k0_epoch2", args.sigreg_k0_checkpoint, 0))
     if args.sigreg_k1_checkpoint is not None:
         conditions.append(("clm_jepa_sigreg_k1_epoch2", args.sigreg_k1_checkpoint, 1))
+    if args.sigreg_k0_b128_checkpoint is not None:
+        conditions.append((
+            "clm_jepa_sigreg_k0_b128_epoch2",
+            args.sigreg_k0_b128_checkpoint,
+            0,
+        ))
     output = {
         "manifest": str(args.manifest.resolve()),
         "examples": len(records),
@@ -294,7 +316,10 @@ def main() -> None:
             "subtract one mean fitted to concatenated source and target states; fit shared "
             "PCs to the concatenated centered states and project both views through the same basis"
         ),
-        "conditions": {},
+        "conditions": {} if reused is None else reused["conditions"],
+        "reused_geometry": (
+            None if args.reuse_geometry is None else str(args.reuse_geometry.resolve())
+        ),
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     for label, checkpoint, k in conditions:
@@ -305,6 +330,10 @@ def main() -> None:
         output["conditions"][label]["metrics"] = analyze_cache(cache_path)
         args.output.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
         print(json.dumps({"completed": label, **output["conditions"][label]}), flush=True)
+    output["new_inference_seconds"] = sum(
+        output["conditions"][label]["inference_seconds"]
+        for label, _, _ in conditions
+    )
     output["total_inference_seconds"] = sum(
         condition["inference_seconds"] for condition in output["conditions"].values()
     )

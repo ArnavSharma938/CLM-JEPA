@@ -843,6 +843,7 @@ def parse_args():
         "--condition", choices=(
             "native", "clm_jepa", "clm_jepa_target_sg",
             "clm_jepa_sigreg_k0", "clm_jepa_sigreg_k1",
+            "clm_jepa_sigreg_k0_b128",
         ), required=True
     )
     generation.add_argument("--checkpoint", type=Path, required=True)
@@ -857,6 +858,7 @@ def parse_args():
         "--condition", choices=(
             "native", "clm_jepa", "clm_jepa_target_sg",
             "clm_jepa_sigreg_k0", "clm_jepa_sigreg_k1",
+            "clm_jepa_sigreg_k0_b128",
         ), required=True
     )
     representation.add_argument("--checkpoint", type=Path, required=True)
@@ -879,11 +881,15 @@ def parse_args():
         "--comparison-label", choices=(
             "clm_jepa", "clm_jepa_target_sg",
             "clm_jepa_sigreg_k0", "clm_jepa_sigreg_k1",
+            "clm_jepa_sigreg_k0_b128",
         ),
         default="clm_jepa",
     )
     summary.add_argument(
-        "--baseline-label", choices=("native", "clm_jepa_sigreg_k0"),
+        "--baseline-label", choices=(
+            "native", "clm_jepa", "clm_jepa_target_sg",
+            "clm_jepa_sigreg_k0",
+        ),
         default="native",
     )
     return parser.parse_args()
