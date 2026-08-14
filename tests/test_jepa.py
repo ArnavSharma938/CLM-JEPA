@@ -181,6 +181,35 @@ def test_sigreg_symmetric_objective_updates_both_jepa_views():
     assert result.target_states.grad.abs().sum() > 0
 
 
+def test_mse_matches_upstream_llm_jepa_definition_exactly():
+    model, _, method, batch = setup_case()
+    result = method(
+        model, batch, k=0, jepa_weight=1.0, native_weight=0.0,
+        jepa_loss_type="mse", force_jepa_active=True,
+    )
+    expected = torch.mean((result.source_states - result.target_states) ** 2)
+    torch.testing.assert_close(result.jepa_loss, expected, rtol=0.0, atol=0.0)
+    torch.testing.assert_close(result.loss, expected, rtol=0.0, atol=0.0)
+
+
+def test_two_view_lejepa_mapping_preserves_raw_pairwise_mse_coefficient():
+    model, _, method, batch = setup_case()
+    tradeoff = 0.01
+    result = method(
+        model, batch, k=0, jepa_weight=2.0, native_weight=0.0,
+        jepa_loss_type="mse", sigreg_tradeoff=tradeoff,
+        sigreg_relative_scale=4.0, force_jepa_active=True,
+    )
+    center = (result.source_states + result.target_states) / 2
+    center_loss = torch.stack((
+        (result.source_states - center).square(),
+        (result.target_states - center).square(),
+    )).mean()
+    torch.testing.assert_close(center_loss, result.jepa_loss / 4, rtol=1e-6, atol=1e-7)
+    expected = result.jepa_loss + (4 * tradeoff / (1 - tradeoff)) * result.sigreg_loss
+    torch.testing.assert_close(result.jepa_objective_loss, expected)
+
+
 def test_streaming_sigreg_matches_materialized_value_and_gradients():
     torch.manual_seed(41)
     direct_values = torch.randn(2, 13, 19, requires_grad=True)
@@ -281,6 +310,61 @@ def test_streaming_recomputation_matches_materialized_tiny_clm_jepa_gradients():
     streamed_gradients = {
         name: parameter.grad
         for name, parameter in streamed_model.named_parameters()
+        if parameter.grad is not None
+    }
+    assert direct_gradients.keys() == streamed_gradients.keys()
+    for name in direct_gradients:
+        torch.testing.assert_close(
+            streamed_gradients[name], direct_gradients[name],
+            rtol=3e-4, atol=3e-6,
+            msg=lambda message, name=name: f"{name}: {message}",
+        )
+
+
+def test_streaming_mse_sigreg_matches_materialized_value_and_gradients():
+    direct_model, _, direct_method, direct_batch = setup_case()
+    streamed_model, _, streamed_method, streamed_batch = setup_case()
+    direct_model.eval()
+    streamed_model.eval()
+    tradeoff = 0.01
+    relative = 4.0 * tradeoff / (1.0 - tradeoff)
+
+    direct = direct_method(
+        direct_model, direct_batch, k=0, jepa_weight=2.0,
+        jepa_loss_type="mse", sigreg_tradeoff=tradeoff,
+        sigreg_relative_scale=4.0, force_jepa_active=True,
+    )
+    direct.loss.backward()
+
+    with torch.no_grad():
+        first = streamed_method(
+            streamed_model, streamed_batch, k=0, jepa_weight=0.0,
+            monitor_only=True, jepa_loss_type="mse", force_jepa_active=True,
+        )
+        states = torch.stack((first.source_states, first.target_states))
+        accumulator = streamed_method.sigreg.start_streaming(
+            views=2, dimensions=states.size(-1),
+            expected_samples=states.size(1), device=states.device,
+        )
+        accumulator.update(states)
+        prepared = accumulator.finalize()
+    streamed = streamed_method(
+        streamed_model, streamed_batch, k=0, jepa_weight=2.0,
+        jepa_loss_type="mse", force_jepa_active=True,
+    )
+    streamed_loss = streamed.loss + 2.0 * relative * prepared.surrogate(
+        torch.stack((streamed.source_states, streamed.target_states))
+    )
+    streamed_loss.backward()
+
+    expected_value = streamed.loss.detach() + 2.0 * relative * prepared.loss
+    torch.testing.assert_close(expected_value, direct.loss.detach(), rtol=2e-5, atol=2e-6)
+    direct_gradients = {
+        name: parameter.grad for name, parameter in direct_model.named_parameters()
+        if parameter.grad is not None
+    }
+    streamed_gradients = {
+        name: parameter.grad for name, parameter in streamed_model.named_parameters()
         if parameter.grad is not None
     }
     assert direct_gradients.keys() == streamed_gradients.keys()

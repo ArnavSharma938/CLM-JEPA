@@ -627,15 +627,21 @@ def gradient_diagnostics(model) -> tuple[float, tuple[str, float]]:
     total = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
     total_value = float(total)
     clip_coefficient = min(1.0, 1.0 / (total_value + 1e-6))
-    largest = ("", 0.0)
+    names = []
+    clipped_norms = []
     for name, parameter in model.named_parameters():
         if parameter.grad is None:
             continue
-        clipped_norm = float(parameter.grad.detach().float().norm())
-        original_norm = clipped_norm / max(clip_coefficient, 1e-30)
-        if original_norm > largest[1]:
-            largest = (name, original_norm)
-    return total_value, largest
+        names.append(name)
+        clipped_norms.append(parameter.grad.detach().float().norm())
+    if not clipped_norms:
+        return total_value, ("", 0.0)
+    # Preserve the exact diagnostic while replacing one host synchronization
+    # per tensor with one batched reduction and one final transfer.
+    norms = torch.stack(clipped_norms)
+    largest_index = int(norms.argmax())
+    original_norm = float(norms[largest_index]) / max(clip_coefficient, 1e-30)
+    return total_value, (names[largest_index], original_norm)
 
 
 def synchronized_loss_means(records: list[dict[str, Any]]) -> dict[str, float | None]:
@@ -675,6 +681,7 @@ def train_streaming_sigreg_epoch(
     *, model, method, loader, optimizer, scheduler, epoch: int,
     logical_batch_size: int, physical_batch_size: int,
     actual_lambda: float, native_weight: float, sigreg_tradeoff: float,
+    jepa_loss_type: str, sigreg_relative_scale: float,
     jepa_ratio: float, non_embedding_parameters: int, pin_memory: bool,
     tracker: WandbTracker, global_step: int,
 ) -> tuple[list[dict[str, Any]], int]:
@@ -690,7 +697,9 @@ def train_streaming_sigreg_epoch(
     chunks_per_step = logical_batch_size // physical_batch_size
     if len(loader) % chunks_per_step:
         raise ValueError("training exposure must divide into complete SIGReg logical batches")
-    relative_coefficient = sigreg_tradeoff / (1.0 - sigreg_tradeoff)
+    relative_coefficient = (
+        sigreg_relative_scale * sigreg_tradeoff / (1.0 - sigreg_tradeoff)
+    )
     iterator = iter(loader)
     records: list[dict[str, Any]] = []
     for logical_index in range(len(loader) // chunks_per_step):
@@ -717,7 +726,8 @@ def train_streaming_sigreg_epoch(
                     output = method(
                         model, batch, k=0, jepa_weight=0.0,
                         native_weight=native_weight, monitor_only=True,
-                        stop_gradient_target=False, sigreg_tradeoff=0.0,
+                        stop_gradient_target=False, jepa_loss_type=jepa_loss_type,
+                        sigreg_tradeoff=0.0,
                         jepa_ratio=jepa_ratio, force_jepa_active=True,
                     )
                     states = torch.stack((output.source_states, output.target_states))
@@ -752,7 +762,8 @@ def train_streaming_sigreg_epoch(
                 model, batch, k=0,
                 jepa_weight=actual_lambda if active else 0.0,
                 native_weight=native_weight,
-                stop_gradient_target=False, sigreg_tradeoff=0.0,
+                stop_gradient_target=False, jepa_loss_type=jepa_loss_type,
+                sigreg_tradeoff=0.0,
                 jepa_ratio=jepa_ratio, force_jepa_active=active,
             )
             loss = output.loss / chunks_per_step
@@ -888,8 +899,12 @@ def train(args):
         val_rows, batch_size=args.batch_size, shuffle=False,
         collate_fn=collator, pin_memory=args.pin_memory,
     )
+    sigreg_tradeoff = (
+        SIGREG_TRADEOFF
+        if args.sigreg_tradeoff is None else args.sigreg_tradeoff
+    )
     streaming_sigreg = (
-        args.condition == "clm_jepa_sigreg"
+        args.condition in {"clm_jepa_sigreg", "clm_jepa_mse_sigreg"}
         and args.sigreg_batch_size > args.batch_size
     )
     optimizer = torch.optim.AdamW(
@@ -911,10 +926,17 @@ def train(args):
     )
     has_jepa = args.condition in {
         "monitor", "clm_jepa", "clm_jepa_target_sg", "clm_jepa_sigreg",
-        "shuffled", "jepa_only",
+        "clm_jepa_mse", "clm_jepa_mse_sigreg", "shuffled", "jepa_only",
     }
     stop_gradient_target = args.condition == "clm_jepa_target_sg"
-    has_sigreg = args.condition == "clm_jepa_sigreg"
+    has_sigreg = args.condition in {"clm_jepa_sigreg", "clm_jepa_mse_sigreg"}
+    jepa_loss_type = (
+        "mse" if args.condition in {"clm_jepa_mse", "clm_jepa_mse_sigreg"}
+        else "cosine"
+    )
+    # With two global views, LeJEPA's view-center prediction loss is exactly
+    # raw pairwise MSE / 4. This scale retains coefficient one on raw MSE.
+    sigreg_relative_scale = 4.0 if jepa_loss_type == "mse" else 1.0
     ratio = 1.0 - args.dropout
     resolved_ratio = ratio if has_jepa else -1.0
     actual_lambda = args.lambda_eff / ratio if has_jepa else 0.0
@@ -934,15 +956,20 @@ def train(args):
         "jepa_loss_dropout": args.dropout if has_jepa else None,
         "jepa_ratio": resolved_ratio,
         "jepa_target_stop_gradient": stop_gradient_target,
+        "jepa_loss_type": jepa_loss_type if has_jepa else None,
         "sigreg": has_sigreg,
         "sigreg_formulation": (
             "LeJEPA Epps-Pulley, 17 knots on [0,3], 1024 random unit slices, "
             "independent source/target view statistics"
             if has_sigreg else None
         ),
-        "sigreg_tradeoff": SIGREG_TRADEOFF if has_sigreg else None,
+        "sigreg_tradeoff": sigreg_tradeoff if has_sigreg else None,
         "sigreg_relative_coefficient": (
-            SIGREG_TRADEOFF / (1.0 - SIGREG_TRADEOFF) if has_sigreg else None
+            sigreg_relative_scale * sigreg_tradeoff / (1.0 - sigreg_tradeoff)
+            if has_sigreg else None
+        ),
+        "sigreg_relative_scale_from_view_center": (
+            sigreg_relative_scale if has_sigreg else None
         ),
         "sigreg_distribution_batch_size_per_view": (
             args.sigreg_batch_size if has_sigreg else None
@@ -959,6 +986,9 @@ def train(args):
         "fused_adamw": args.fused_adamw,
         "gradient_checkpointing": args.gradient_checkpointing,
         "pin_memory": args.pin_memory,
+        "attention_implementation": getattr(
+            model.config, "_attn_implementation", "unknown"
+        ),
         "evaluation_generation_batch_size": args.eval_generation_batch_size,
         "evaluation_beam_size": evaluation_beam_size,
         "adam_beta1": ADAM_BETAS[0], "adam_beta2": ADAM_BETAS[1],
@@ -969,6 +999,7 @@ def train(args):
         "upstream_lejepa_commit": (
             "c293d291ca87cd4fddee9d3fffe4e914c7272052" if has_sigreg else None
         ),
+        "evaluation_epochs": list(args.evaluation_epochs),
     }
     tracker = WandbTracker(
         TrackingContext(task, args.dataset, args.condition, args.seed, args.data_fraction, config),
@@ -1015,7 +1046,9 @@ def train(args):
                     physical_batch_size=args.batch_size,
                     actual_lambda=actual_lambda,
                     native_weight=native_weight,
-                    sigreg_tradeoff=SIGREG_TRADEOFF,
+                    sigreg_tradeoff=sigreg_tradeoff,
+                    jepa_loss_type=jepa_loss_type,
+                    sigreg_relative_scale=sigreg_relative_scale,
                     jepa_ratio=resolved_ratio,
                     non_embedding_parameters=non_embedding_parameters,
                     pin_memory=args.pin_memory, tracker=tracker,
@@ -1054,7 +1087,9 @@ def train(args):
                     native_weight=native_weight,
                     monitor_only=args.condition == "monitor",
                     stop_gradient_target=stop_gradient_target,
-                    sigreg_tradeoff=SIGREG_TRADEOFF if has_sigreg else 0.0,
+                    jepa_loss_type=jepa_loss_type,
+                    sigreg_tradeoff=sigreg_tradeoff if has_sigreg else 0.0,
+                    sigreg_relative_scale=sigreg_relative_scale,
                     jepa_ratio=resolved_ratio,
                     jepa_targets=jepa_targets,
                 )
@@ -1164,17 +1199,24 @@ def train(args):
                 )
                 window_records = []
 
-            val_loss = native_loss(model, validation)
-            metrics, predictions = beam_evaluate(
-                model, tokenizer, collator, val_rows, task,
-                windows=evaluation_beam_size,
-                generation_batch_size=args.eval_generation_batch_size,
-            )
-            selector = validation_selector(metrics, task)
             checkpoint = args.checkpoint_dir.resolve() / f"epoch_{epoch_index + 1}"
-            if best_selector is None or selector > tuple(best_selector):
-                best_selector = selector
-                best_checkpoint = str(checkpoint)
+            evaluate_epoch = epoch_index + 1 in args.evaluation_epochs
+            if evaluate_epoch:
+                val_loss = native_loss(model, validation)
+                metrics, predictions = beam_evaluate(
+                    model, tokenizer, collator, val_rows, task,
+                    windows=evaluation_beam_size,
+                    generation_batch_size=args.eval_generation_batch_size,
+                )
+                selector = validation_selector(metrics, task)
+                if best_selector is None or selector > tuple(best_selector):
+                    best_selector = selector
+                    best_checkpoint = str(checkpoint)
+            else:
+                val_loss = None
+                metrics = None
+                predictions = None
+                selector = None
             epoch_record = {
                 "epoch": epoch_index + 1,
                 "global_step": global_step,
@@ -1185,10 +1227,11 @@ def train(args):
                 "checkpoint": str(checkpoint),
             }
             epoch_history.append(epoch_record)
-            tracker.log_evaluation(
-                step=global_step, split="validation", task_metrics=metrics,
-                validity=metrics["valid_rate"], native_loss=val_loss,
-            )
+            if evaluate_epoch:
+                tracker.log_evaluation(
+                    step=global_step, split="validation", task_metrics=metrics,
+                    validity=metrics["valid_rate"], native_loss=val_loss,
+                )
             save_training_checkpoint(
                 checkpoint, model, tokenizer, optimizer, scheduler, generator,
                 method,
@@ -1263,7 +1306,7 @@ def main():
         "--condition",
         choices=(
             "native", "monitor", "clm_jepa", "clm_jepa_target_sg",
-            "clm_jepa_sigreg",
+            "clm_jepa_sigreg", "clm_jepa_mse", "clm_jepa_mse_sigreg",
             "shuffled", "jepa_only",
         ),
         required=True,
@@ -1295,6 +1338,20 @@ def main():
         ),
     )
     parser.add_argument(
+        "--sigreg-tradeoff", type=float,
+        help=(
+            "LeJEPA mixture trade-off; omitted retains the historical 0.05 default. "
+            "The qualified batch-16 pilot passes 0.01 explicitly."
+        ),
+    )
+    parser.add_argument(
+        "--evaluation-epochs", type=int, nargs="+",
+        help=(
+            "epochs at which to run validation CE and generation; every epoch is "
+            "still checkpointed. Omitted evaluates every resource-budget epoch."
+        ),
+    )
+    parser.add_argument(
         "--gradient-checkpointing", action=argparse.BooleanOptionalAction,
         default=True,
     )
@@ -1323,6 +1380,16 @@ def main():
     args = parser.parse_args()
     if args.stop_after_epoch is None:
         args.stop_after_epoch = args.epochs
+    if args.evaluation_epochs is None:
+        args.evaluation_epochs = list(range(1, args.stop_after_epoch + 1))
+    args.evaluation_epochs = sorted(set(args.evaluation_epochs))
+    if not args.evaluation_epochs or any(
+        epoch < 1 or epoch > args.stop_after_epoch
+        for epoch in args.evaluation_epochs
+    ):
+        raise ValueError(
+            "evaluation epochs must be within the requested resource budget"
+        )
     if args.stop_after_epoch > args.epochs:
         raise ValueError("stop-after epoch cannot exceed the planned epoch budget")
     if args.prior_wall_time_seconds < 0:
@@ -1331,8 +1398,13 @@ def main():
         raise ValueError("batch size and gradient accumulation must be positive")
     if args.sigreg_batch_size < 2:
         raise ValueError("SIGReg batch size must be at least two")
-    if args.condition != "clm_jepa_sigreg" and args.sigreg_batch_size != 2:
-        raise ValueError("--sigreg-batch-size only applies to clm_jepa_sigreg")
+    if args.sigreg_tradeoff is not None and not 0.0 <= args.sigreg_tradeoff < 1.0:
+        raise ValueError("SIGReg trade-off must be in [0, 1)")
+    sigreg_conditions = {"clm_jepa_sigreg", "clm_jepa_mse_sigreg"}
+    if args.condition not in sigreg_conditions and args.sigreg_tradeoff is not None:
+        raise ValueError("--sigreg-tradeoff only applies to a SIGReg condition")
+    if args.condition not in sigreg_conditions and args.sigreg_batch_size != 2:
+        raise ValueError("--sigreg-batch-size only applies to a SIGReg condition")
     if args.condition == "native" and (args.lambda_eff != 1.0 or args.dropout != 0.5):
         raise ValueError("native trials must leave irrelevant JEPA defaults unchanged")
     result = train(args)

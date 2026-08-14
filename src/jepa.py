@@ -275,7 +275,9 @@ class CLMJEPA:
         native_weight: float = 1.0,
         monitor_only: bool = False,
         stop_gradient_target: bool = False,
+        jepa_loss_type: str = "cosine",
         sigreg_tradeoff: float = 0.0,
+        sigreg_relative_scale: float = 1.0,
         jepa_ratio: float = -1.0,
         jepa_targets: Sequence[torch.Tensor] | None = None,
         shuffle_seed: int | None = None,
@@ -285,6 +287,10 @@ class CLMJEPA:
             raise ValueError("jepa_ratio must be -1 or in [0, 1]")
         if not 0.0 <= sigreg_tradeoff < 1.0:
             raise ValueError("sigreg_tradeoff must be in [0, 1)")
+        if jepa_loss_type not in {"cosine", "mse"}:
+            raise ValueError("jepa_loss_type must be cosine or mse")
+        if sigreg_relative_scale <= 0.0:
+            raise ValueError("sigreg_relative_scale must be positive")
         jepa_active = (
             force_jepa_active
             if force_jepa_active is not None
@@ -356,9 +362,14 @@ class CLMJEPA:
         source_states = hidden[row_indices + batch_size, source_indices]
         target_states = hidden[row_indices + 2 * batch_size, target_indices]
         jepa_target_states = target_states.detach() if stop_gradient_target else target_states
-        jepa_loss = 1.0 - F.cosine_similarity(
-            source_states, jepa_target_states, dim=-1
-        ).mean()
+        if jepa_loss_type == "mse":
+            # Exact upstream LLM-JEPA --jepa_mse branch: no endpoint
+            # normalization and a mean over examples and representation axes.
+            jepa_loss = torch.mean((source_states - jepa_target_states) ** 2)
+        else:
+            jepa_loss = 1.0 - F.cosine_similarity(
+                source_states, jepa_target_states, dim=-1
+            ).mean()
         sigreg_loss = None
         jepa_objective_loss = jepa_loss
         if sigreg_tradeoff > 0.0:
@@ -368,7 +379,10 @@ class CLMJEPA:
             sigreg_loss = self.sigreg(torch.stack((source_states, target_states)))
             jepa_objective_loss = (
                 jepa_loss
-                + (sigreg_tradeoff / (1.0 - sigreg_tradeoff)) * sigreg_loss
+                + (
+                    sigreg_relative_scale
+                    * sigreg_tradeoff / (1.0 - sigreg_tradeoff)
+                ) * sigreg_loss
             )
         applied_jepa = (
             outputs.loss.new_zeros(())

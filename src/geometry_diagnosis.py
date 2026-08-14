@@ -173,12 +173,16 @@ def analyze_cache(cache_path: Path) -> dict:
     raw = pair_metrics(sources, targets, matched_indices, candidate_indices)
     raw.update({
         "source_variance": float(sources.var(0, unbiased=False).mean()),
+        "source_embedding_norm_mean": float(sources.norm(dim=-1).mean()),
+        "source_mean_vector_norm": float(sources.mean(0).norm()),
         "source_effective_rank": effective_rank(sources),
         "source_mean_direction_energy": float(
             sources.mean(0).square().sum()
             / sources.square().sum(1).mean().clamp_min(1e-30)
         ),
         "target_variance": float(targets.var(0, unbiased=False).mean()),
+        "target_embedding_norm_mean": float(targets.norm(dim=-1).mean()),
+        "target_mean_vector_norm": float(targets.mean(0).norm()),
         "target_effective_rank": effective_rank(targets),
         "target_mean_direction_energy": float(
             targets.mean(0).square().sum()
@@ -235,6 +239,10 @@ def main() -> None:
     parser.add_argument("--sigreg-k1-checkpoint", type=Path)
     parser.add_argument("--sigreg-k0-b128-checkpoint", type=Path)
     parser.add_argument(
+        "--k0-checkpoint", action="append", default=[], metavar="LABEL=PATH",
+        help="additional frozen k=0 checkpoint; may be repeated",
+    )
+    parser.add_argument(
         "--reuse-geometry", type=Path,
         help="reuse already-computed conditions from an identical identity panel",
     )
@@ -288,13 +296,14 @@ def main() -> None:
         if reused["examples"] != len(records) or reused["seed"] != 533:
             raise ValueError("reused geometry panel or seed does not match")
     else:
-        if args.native_checkpoint is None or args.clm_checkpoint is None:
-            raise ValueError("native and cLM-JEPA checkpoints are required without --reuse-geometry")
-        conditions.extend([
-            ("base", None, 1),
-            ("native_reference", args.native_checkpoint, 1),
-            ("clm_jepa_reference", args.clm_checkpoint, 1),
-        ])
+        if args.native_checkpoint is not None or args.clm_checkpoint is not None:
+            if args.native_checkpoint is None or args.clm_checkpoint is None:
+                raise ValueError("native and cLM-JEPA checkpoints must be supplied together")
+            conditions.extend([
+                ("base", None, 1),
+                ("native_reference", args.native_checkpoint, 1),
+                ("clm_jepa_reference", args.clm_checkpoint, 1),
+            ])
     if args.target_sg_checkpoint is not None:
         conditions.append(("clm_jepa_target_sg_reference", args.target_sg_checkpoint, 1))
     if args.sigreg_k0_checkpoint is not None:
@@ -307,11 +316,20 @@ def main() -> None:
             args.sigreg_k0_b128_checkpoint,
             0,
         ))
+    for specification in args.k0_checkpoint:
+        if "=" not in specification:
+            raise ValueError("--k0-checkpoint must be LABEL=PATH")
+        label, raw_path = specification.split("=", 1)
+        if not label or not raw_path:
+            raise ValueError("--k0-checkpoint must have a nonempty label and path")
+        conditions.append((label, Path(raw_path), 0))
     output = {
         "manifest": str(args.manifest.resolve()),
         "examples": len(records),
         "seed": 533,
-        "k": 1,
+        "readout_k_by_condition": {
+            label: k for label, _, k in conditions
+        },
         "pca_policy": (
             "subtract one mean fitted to concatenated source and target states; fit shared "
             "PCs to the concatenated centered states and project both views through the same basis"
@@ -327,6 +345,7 @@ def main() -> None:
         output["conditions"][label] = cache_condition(
             label, checkpoint, k, records, cache_path, args.batch_size
         )
+        output["conditions"][label]["k"] = k
         output["conditions"][label]["metrics"] = analyze_cache(cache_path)
         args.output.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
         print(json.dumps({"completed": label, **output["conditions"][label]}), flush=True)

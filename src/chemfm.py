@@ -224,6 +224,10 @@ def generate_products_batch(
     encoded = {key: value.to(model.device) for key, value in encoded.items()}
     model.config.use_cache = True
     try:
+        generation_kwargs = {}
+        cache_implementation = os.environ.get("CHEMFM_CACHE_IMPLEMENTATION")
+        if cache_implementation:
+            generation_kwargs["cache_implementation"] = cache_implementation
         outputs = model.generate(
             **encoded,
             max_length=max_length,
@@ -234,6 +238,7 @@ def generate_products_batch(
             early_stopping="never",
             pad_token_id=tokenizer.pad_token_id,
             length_penalty=0.0,
+            **generation_kwargs,
         )
     finally:
         model.config.use_cache = False
