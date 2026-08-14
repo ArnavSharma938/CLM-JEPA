@@ -37,7 +37,7 @@ See `docs/CODE_LAYOUT.md` for the full map. Key entrypoints:
 
 ### Gates 0–3
 
-Passed. Gate 3 evaluated 7,168 frozen examples across seven datasets and retained k=0 and k=1. The protocol, corrections, and aggregate evidence are retained in `docs/reports/00_LLM_JEPA_METHOD_FIDELITY.md`. Gate-3 sample CSVs and the obsolete gate runner were removed; a rerun would require regenerating the samples from the ignored full datasets.
+Passed. Gate 3 evaluated 7,168 frozen examples across seven datasets and retained k=0 and k=1. The protocol, corrections, and aggregate evidence are retained in `docs/reports/00_METHOD_AND_PROTOCOL_FIDELITY.md`. Gate-3 sample CSVs and the obsolete gate runner were removed; a rerun would require regenerating the samples from the ignored full datasets.
 
 ### Gate 4
 
@@ -82,4 +82,4 @@ The reduced two-epoch DeepSeek-1.5B run was not a successful behavioral control:
 
 For the fixed USPTO-MIT pilot endpoints, repairing global JEPA geometry was not sufficient to improve official reaction generation. The selected cLM-JEPA endpoint did not meet the +1 pp exact-top-1 effect of interest. This conclusion does not cover MetaTrans or retrosynthesis training, additional seeds, larger training exposure, or an objective that couples the auxiliary relationship differently to autoregressive decoding.
 
-All reports and artifact paths are indexed in `docs/reports/README.md`.
+The consolidated report index and artifact paths are in `docs/reports/README.md`. Reports 01-07 from the former chronology were merged into `01_COSINE_TO_MSE_SIGREG_DIAGNOSIS.md`; the decisive MSE+SIGReg and official endpoint results are reports 02 and 03.

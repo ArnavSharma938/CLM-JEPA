@@ -1,21 +1,42 @@
-# Experiment reports
+# cLM-JEPA experiment results
 
-Reports are numbered by dependency order. Hardware appears in the filename only when it determines the execution path or scope. Every report begins with its result; detailed protocols, tables, uncertainty, and artifact paths follow.
+## Current answer
 
-| # | Report | Scope | Primary result |
-|---:|---|---|---|
-| 00 | [LLM-JEPA method fidelity](00_LLM_JEPA_METHOD_FIDELITY.md) | Static and executable parity | Default symmetric cosine JEPA is functionally equivalent after ChemFM serialization/EOS substitutions; optional upstream branches are outside the claim. |
-| 01 | [Original cosine failure](01_USPTO_MIT_ORIGINAL_COSINE_FAILURE.md) | Gate 5, geometry, 512-reaction coupling | Initial top-1 tied 2/32. On 512 reactions native/cLM-JEPA were 24/17; cLM-JEPA target variance was 495× below native with strong residual retrieval but no measured decoder coupling. |
-| 02 | [Target stop-gradient](02_USPTO_MIT_TARGET_STOP_GRADIENT.md) | 32- and 512-reaction panels | On 512 reactions native/stop-gradient were 24/26, McNemar p=0.8318. Variance increased 12.03× versus symmetric JEPA but remained 46.3× below native; CE was 7.69% worse than native. |
-| 03 | [SIGReg batch-2 k ablation](03_USPTO_MIT_SIGREG_BATCH2_K_ABLATION.md) | k=0 versus k=1, epoch 2 | Native/k0/k1 top-1 were 7/2/3 of 256. SIGReg did not decrease and neither readout restored native-scale geometry. |
-| 04 | [SIGReg batch 128](04_USPTO_MIT_SIGREG_BATCH128.md) | Exact streamed N=128 statistic | Geometry moved near native scale, but optimizer updates fell 16× and generation degraded to 0/256 top-1 with CE 1.080978. The training comparison is confounded by cadence. |
-| 05 | [SIGReg batch-16 preflight](05_USPTO_MIT_SIGREG_BATCH16_PREFLIGHT_RTX4050.md) | RTX 4050 equivalence/calibration | Streamed/direct loss and parameter gradients matched exactly. Proposed weighting was 1.20% of NTP gradient norm; exact N=16 halves update cadence and requires a matched native control. |
-| 06 | [Frozen SIGReg gradient response](06_USPTO_MIT_SIGREG_GRADIENT_RESPONSE_RTX4050.md) | RTX 4050, no optimizer steps | SIGReg endpoint norms stayed 0.0376–0.0427 across the contraction trajectory; gradients did not vanish under the measured common-direction contraction. |
-| 07 | [Controlled SIGReg batch 16](07_USPTO_MIT_SIGREG_BATCH16_A6000.md) | A6000, matched four-epoch cadence | Epoch-4 native/SIGReg top-1 were 6/3 of 256. SIGReg remained above its epoch-1 mean and variance stayed 16.9×/14.8× below native. |
-| 08 | [MSE and MSE+SIGReg](08_USPTO_MIT_MSE_SIGREG_A6000.md) | A6000, staged ablation | MSE+SIGReg restored source/target variance to 90.3%/55.2% of native at epoch 4; exact top-1 tied 6/256 while CE was 3.36% worse. |
-| 09 | [Official five-view endpoint](09_USPTO_MIT_OFFICIAL_ENDPOINT_A6000.md) | A6000, 1,280 unique reactions | Native/cLM-JEPA top-1 were 3.906%/3.125%; difference -0.781 pp, 95% CI [-1.719,+0.156], McNemar p=0.1433. Prespecified futility stopped extension to 3,300. |
-| 10 | [GSM8K LLM-JEPA reference](10_GSM8K_LLM_JEPA_REFERENCE_A6000.md) | A6000, DeepSeek-1.5B, two epochs | NTP/LLM-JEPA accuracy was 36/28 of 300, p=0.229. LLM-JEPA target variance was 1.45× below NTP rather than ChemFM's 495× contraction, but this reduced run was not a successful behavioral control. |
+MSE and MSE+SIGReg were tested. MSE alone reduced but did not eliminate ChemFM's JEPA variance contraction. MSE+exact-SIGReg-16 restored source/target variance to 90.3%/55.2% of native at epoch 4 and produced 85.9% raw four-way pair retrieval (25% chance), but it did not improve generation.
 
-## Current endpoint conclusion
+The final benchmark-faithful comparison used 1,280 unique USPTO-MIT reactions and all five official R-SMILES views:
 
-The selected epoch-4 MSE+SIGReg cLM-JEPA checkpoint did not improve official five-view USPTO-MIT generation over the cadence-matched native checkpoint. At the prespecified 1,280-reaction interim, the +1 percentage-point effect of interest was excluded by the frozen futility rule. This conclusion is limited to the compared checkpoints, seed, pilot-training exposure, and official test sample.
+| Primary endpoint | Native epoch 4 | MSE+SIGReg cLM-JEPA epoch 4 |
+|---|---:|---:|
+| Exact top-1 | 50/1,280 (3.906%) | 40/1,280 (3.125%) |
+
+The paired difference was `-0.781` percentage points, 95% CI `[-1.719,+0.156]`, exact McNemar `p=0.1433`. A frozen futility rule excluded the prespecified `+1` pp benefit and stopped evaluation at 1,280. This result applies to the fixed seed-533 pilot endpoints; it is not a universal conclusion about JEPA.
+
+## What was tested
+
+| Experiment | Main result | Why it mattered |
+|---|---|---|
+| Native NTP | Final reference endpoint | Preserved ChemFM autoregressive fine-tuning |
+| Symmetric cosine JEPA, k=1 | 17/512 vs native 24/512; target variance 495x below native | Identified extreme common-direction concentration with useful residual pair information |
+| Target stop-gradient, k=1 | 26/512 vs native 24/512, `p=0.8318`; CE 7.69% worse | Partially relaxed geometry without an established behavioral gain |
+| Cosine+SIGReg batch 2, k=0/k=1 | 2/256 and 3/256 vs native 7/256 | Neither k value restored geometry; batch-2 statistic was inadequate |
+| Cosine+SIGReg batch 128, k=0 | Geometry restored; 0/256 top-1 | Cadence-confounded because updates fell from 320 to 20 |
+| SIGReg batch-16 calibration | Exact streamed/direct gradients; SIGReg gradient did not vanish under contraction | Qualified a controlled batch-16 run |
+| Cadence-matched cosine+SIGReg-16, k=0 | 3/256 vs native 6/256; variance remained 16.9x/14.8x lower | Showed the fixed cosine+SIGReg configuration did not stop contraction |
+| Raw MSE, k=0 | Variance remained about 4x below native at epoch 2 | MSE alone was insufficient and stopped at the gate |
+| **MSE+SIGReg-16, k=0** | Geometry restored; epoch-4 top-1 tied 6/256; CE 3.36% worse | Selected endpoint; separated geometry repair from generation benefit |
+| Official five-view endpoint | Native 50/1,280 vs cLM-JEPA 40/1,280 | Final benchmark-faithful behavioral result |
+| Reduced GSM8K LLM-JEPA reference | NTP 36/300 vs JEPA 28/300 | Not a successful control; its contraction was much less extreme than ChemFM's |
+
+## Reports
+
+Read in this order:
+
+1. [Method and protocol fidelity](00_METHOD_AND_PROTOCOL_FIDELITY.md): what is faithful to LLM-JEPA and ChemFM, exact objectives, and evaluation semantics.
+2. [Why the project moved from cosine to MSE+SIGReg](01_COSINE_TO_MSE_SIGREG_DIAGNOSIS.md): consolidated cosine failure, stop-gradient, SIGReg batch/cadence studies, gradient assay, and GSM8K comparison.
+3. [MSE and MSE+SIGReg experiment](02_MSE_SIGREG_EXPERIMENT.md): the decisive objective ablation and representation result.
+4. [Official five-view endpoint evaluation](03_OFFICIAL_ENDPOINT_EVALUATION.md): powered endpoint design, exact inference parity, statistics, and stopping decision.
+
+## Research status
+
+The current bottleneck is not unresolved global representation contraction: MSE+SIGReg repaired that geometry without improving decoder-visible accuracy. Any next method experiment should test a concrete mechanism for coupling the auxiliary relationship to autoregressive generation. It should not be another anti-contraction-only regularizer test unless new evidence changes this diagnosis.

@@ -53,4 +53,4 @@ Full released datasets and these frozen manifests are intentionally visible to G
 
 ## Removed one-off utilities
 
-The cleanup removed the superseded batch-size benchmark, endpoint-forward probe, legacy parallel-beam wrapper, and two profiler scripts. Their selected optimization is implemented directly in the official A6000 evaluator, and their retained measurements are recorded in report 09.
+The cleanup removed the superseded batch-size benchmark, endpoint-forward probe, legacy parallel-beam wrapper, and two profiler scripts. Their selected optimization is implemented directly in the official A6000 evaluator, and the retained measurements are recorded in `docs/reports/03_OFFICIAL_ENDPOINT_EVALUATION.md`.
