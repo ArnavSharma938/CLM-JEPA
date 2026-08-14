@@ -28,7 +28,7 @@ run_endpoint() {
   local manifest="$2"
   local output_dir="$3"
   env "${COMMON_ENV[@]}" .venv-457/bin/python \
-    src/official_five_view_evaluation.py run \
+    src/eval_uspto_mit_five_view_a6000.py run \
     --checkpoint "$checkpoint" \
     --manifest "$manifest" \
     --workers 4 \
@@ -42,7 +42,7 @@ run_endpoint() {
 # sequential design were frozen. Wait for its atomic summary before starting
 # the matched endpoint. A dead launch without a summary is an explicit error.
 while [[ ! -f "$ROOT/stage1_native/summary.json" ]]; do
-  if ! pgrep -f "official_five_view_evaluation.py.*stage1_native" >/dev/null; then
+  if ! pgrep -f "eval_uspto_mit_five_view_a6000.py.*stage1_native" >/dev/null; then
     printf '%s native stage terminated without summary\n' "$(date -Iseconds)" \
       > "$ROOT/sequential_supervisor.error"
     exit 1
@@ -56,7 +56,7 @@ mkdir -p "$ROOT/stage1_clm"
 run_endpoint "$CLM_CHECKPOINT" "$STAGE_MANIFEST" "$ROOT/stage1_clm" \
   > "$ROOT/stage1_clm.launch.log" 2>&1
 
-env PYTHONPATH=src .venv-457/bin/python src/endpoint_sequential_design.py interim \
+env PYTHONPATH=src .venv-457/bin/python src/design_uspto_mit_endpoint.py interim \
   --manifest "$STAGE_MANIFEST" \
   --native-predictions "$ROOT/stage1_native/predictions.jsonl" \
   --clm-predictions "$ROOT/stage1_clm/predictions.jsonl" \
@@ -76,14 +76,14 @@ if [[ "$decision" == "CONTINUE_TO_3300" ]]; then
     > "$ROOT/full_native_resume.log" 2>&1
   run_endpoint "$CLM_CHECKPOINT" "$FULL_MANIFEST" "$ROOT/stage1_clm" \
     > "$ROOT/full_clm_resume.log" 2>&1
-  env PYTHONPATH=src .venv-457/bin/python src/official_five_view_evaluation.py summarize \
+  env PYTHONPATH=src .venv-457/bin/python src/eval_uspto_mit_five_view_a6000.py summarize \
     --manifest "$FULL_MANIFEST" \
     --native-predictions "$ROOT/stage1_native/predictions.jsonl" \
     --clm-predictions "$ROOT/stage1_clm/predictions.jsonl" \
     --output "$ROOT/final_paired_summary_3300.json" \
     > "$ROOT/final_paired_summary_3300.log" 2>&1
 else
-  env PYTHONPATH=src .venv-457/bin/python src/official_five_view_evaluation.py summarize \
+  env PYTHONPATH=src .venv-457/bin/python src/eval_uspto_mit_five_view_a6000.py summarize \
     --manifest "$STAGE_MANIFEST" \
     --native-predictions "$ROOT/stage1_native/predictions.jsonl" \
     --clm-predictions "$ROOT/stage1_clm/predictions.jsonl" \

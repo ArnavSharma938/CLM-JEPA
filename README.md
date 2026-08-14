@@ -1,61 +1,42 @@
 # cLM-JEPA
 
-cLM-JEPA asks whether joint-embedding predictive learning can improve a
-chemistry language model without changing its inference interface. The project
-adapts the training-only representation objective from LLM-JEPA to ChemFM-1B:
-ChemFM keeps its native autoregressive target loss, while an auxiliary cosine
-loss aligns source-reaction and target-molecule hidden states. At generation
-time, the auxiliary rows and predictor tokens disappear; the model remains a
-standard chemical language model.
+cLM-JEPA adds a training-only joint-embedding prediction objective to ChemFM-1B while retaining ordinary autoregressive target loss and unchanged generation. The study covers forward reaction prediction, metabolism, and retrosynthesis; completed training experiments are currently limited to the USPTO-MIT forward pilot plus a reduced GSM8K LLM-JEPA reference.
 
-The study covers forward reaction prediction, metabolism/product prediction,
-and retrosynthesis. Its hypotheses, controls, stopping rules, datasets,
-metrics, and staged compute permissions are defined in
-[CLM_JEPA_Plan.md](docs/CLM_JEPA_Plan.md). The plan is authoritative; this README is
-the repository map and current-status guide.
+The authoritative design is [docs/CLM_JEPA_Plan.md](docs/CLM_JEPA_Plan.md). Current results are indexed in [docs/reports/README.md](docs/reports/README.md), and executable entrypoints are mapped in [docs/CODE_LAYOUT.md](docs/CODE_LAYOUT.md).
 
-## Current status
+## Current result
 
-| Gate | Status | Evidence |
+| Stage | Status | Result |
 |---|---|---|
-| 0 | Passed historically | Official ChemFM and LLM-JEPA paths inspected |
-| 1 | Passed | 32- and 128-example overfit results in `gates/gate1/results/` |
-| 2 | Passed for the JEPA core | Exact native equivalence, real-model smoke evidence, and parity tests |
-| 3 | Passed after the documented correction | Seven retained datasets, 7,168 frozen examples; retained `k=0` and `k=1` |
-| 4 | Passed for the reduced USPTO-MIT pilot | Fixed reliable configuration; no broad HPO |
-| 5 | Failed on the frozen primary rule | Native and cLM-JEPA tied at exact top-1 on seed 533 |
+| Gates 0–3 | Passed | Backend checks, JEPA-core parity, and frozen representation-position assay completed |
+| Gate 4 | Passed for reduced USPTO-MIT pilot | Fixed reliable configurations trained; no broad HPO |
+| Original Gate 5 | Failed strict selector | Native and symmetric cosine cLM-JEPA tied at 2/32 exact top-1 |
+| Geometry/coupling diagnosis | Completed | Symmetric cosine JEPA produced 495× lower target variance than native while retaining residual pair retrieval; pair strength did not predict decoder improvement |
+| Rescue/regularizer studies | Completed | Stop-gradient and SIGReg studies did not establish a generation gain; MSE+SIGReg restored endpoint geometry but tied native at 6/256 top-1 and had 3.36% worse CE |
+| Official endpoint | Stopped for prespecified futility | On 1,280 unique five-view reactions, native/cLM-JEPA top-1 was 3.906%/3.125%; difference -0.781 pp, 95% CI [-1.719,+0.156], McNemar p=0.1433 |
 
-Gate 3 is a relationship diagnostic, not evidence that cLM-JEPA improves
-generation. See [the Gate 3 report](gates/gate3/README.md) and the
-[LLM-JEPA fidelity audit](docs/LLM_JEPA_FIDELITY.md) before interpreting or
-continuing the experiments.
+The official endpoint result excludes the prespecified +1 percentage-point benefit at the frozen futility boundary. It does not estimate multi-seed variability or establish a universal result for other JEPA objectives, tasks, or training scales.
 
 ## Repository map
 
 | Path | Purpose |
 |---|---|
-| `src/chemfm.py` | ChemFM tokenizer, task collation, LoRA loading, generation, and canonicalization |
-| `src/jepa.py` | Predictor tokens, auxiliary row construction, hidden-state selection, and JEPA loss |
-| `src/metrics.py` | Task evaluation and representation/relationship diagnostics |
-| `src/train.py` | Main fine-tuning path, validation, diagnostics, and W&B logging |
-| `src/experiments.py` | Gate 4/5 experiment orchestration |
-| `src/download_model.py` | Explicit ChemFM checkpoint bootstrap utility |
-| `gates/gate1/` | Compact Gate 1 evidence; obsolete one-off runner removed |
-| `gates/gate2/` | Compact Gate 2 evidence; behavior is protected by tests |
-| `gates/gate3/` | Reusable preparation/assay/summary code plus the consolidated result |
-| `data/gate3/` | Versioned deterministic 1,024-row Gate 3 samples |
-| `data/` | Ignored full datasets, one clearly named directory per dataset and one canonical CSV per real split |
-| `references/` | Pinned official LLM-JEPA and ChemFM source used for fidelity comparison |
-| `tests/` | Native-behavior, JEPA, metric, tracking, and exact upstream-parity tests |
-| `runs/` | Ignored generated checkpoints, logs, W&B state, and experiment outputs |
+| `src/train.py` | Canonical ChemFM native/cLM-JEPA trainer for both RTX 4050 and A6000 |
+| `src/chemfm.py` | Tokenization, task collation, LoRA loading, generation, canonicalization |
+| `src/jepa.py` | JEPA readouts, losses, and exact streamed SIGReg |
+| `src/metrics.py` | Generative and representation metrics |
+| `src/experiments.py` | Gate 4/5 condition orchestration |
+| `src/eval_uspto_mit_five_view_a6000.py` | Official five-view endpoint evaluation optimized for one A6000 |
+| `src/diagnose_*_rtx4050.py` | Diagnostics whose execution protocol is specific to the local 6 GB GPU |
+| `scripts/a6000/` | A6000 launch wrappers and upstream LLM-JEPA reference wrappers |
+| `docs/reports/` | Numbered experiment reports and report index |
+| `gates/` | Gate 1–3 preparation and retained compact evidence |
+| `references/` | Pinned upstream ChemFM and LLM-JEPA source |
+| `runs/` | Generated checkpoints, logs, diagnostics, and candidate outputs; mostly ignored |
 
-There is intentionally no `assets/` directory: its tokenizer files were
-byte-for-byte duplicates of the official tokenizer retained under
-`references/chemfm/`. There is also no general `artifacts/` hierarchy;
-decision-relevant gate evidence now lives with its gate, while reproducible
-logs, GPU traces, prediction dumps, and audits are generated on demand.
+There is one ChemFM trainer. A6000 experiments use the same `src/train.py` with verified physical-batch/checkpointing settings; they do not use a separate scientific training implementation. See [docs/CODE_LAYOUT.md](docs/CODE_LAYOUT.md) for distinctions between normal validation, one-view diagnostics, and official five-view evaluation.
 
-## Setup and verification
+## Setup and tests
 
 Create a Python environment compatible with `requirements.txt`, then run:
 
@@ -64,53 +45,18 @@ python -m pip install -r requirements.txt
 python -m pytest -q
 ```
 
-Environments, the public ChemFM base model, full datasets, and routine run
-outputs are ignored because they are large or machine-specific. The two
-selected seed-533 epoch-3 endpoints needed for the frozen Gate 5 diagnostic are
-tracked with Git LFS. The local ChemFM checkpoint is expected at
-`models/ChemFM-1B` unless `CHEMFM_MODEL_PATH` is set.
+The base ChemFM checkpoint is expected at `models/ChemFM-1B` unless `CHEMFM_MODEL_PATH` is set. Environments, full datasets, most checkpoints, and routine run outputs are ignored because they are large or machine-specific.
 
-Full data uses `source` and `target` columns rather than ambiguous parallel
-text filenames. The exact retained definitions and counts are in Section 3.4
-of the research plan; `data/dataset_manifest.json` records provenance and
-hashes. The small versioned Gate 3 samples remain under `data/gate3/` and use
-the historical `src`/`tgt` assay schema only for compatibility with the frozen
-result.
-
-## Reproducing Gate 3
-
-The checked-in samples are sufficient to rerun the frozen assay. Regenerating
-samples requires the corresponding author-released full datasets under
-`data/` in the locations consumed by `gates/gate3/prepare_data.py`.
+## Main entrypoints
 
 ```powershell
-python gates/gate3/run.py --manifest data/gate3/uspto_50k_retro.csv --dataset uspto_50k_retro --task retro --output C:/tmp/uspto_50k_retro.json --batch-size 16
-python gates/gate3/summarize.py C:/tmp/uspto_50k_retro.json --output C:/tmp/uspto_50k_summary.json
-```
-
-The canonical seven-dataset result is the single file
-`gates/gate3/results.json`. Do not overwrite it with a partial-dataset summary.
-
-## Fine-tuning and experiment tracking
-
-`src/train.py` is the actual fine-tuning entrypoint, and W&B logging is called
-from that loop—not from a standalone smoke script. Credentials belong only in
-environment variables:
-
-```powershell
-$env:WANDB_API_KEY = "..."
-$env:WANDB_PROJECT = "clm-jepa"
-$env:WANDB_ENTITY = "..."
 python src/train.py --help
 python src/experiments.py --help
+python src/representation_eval.py --help
+python src/decoder_coupling.py --help
+python src/eval_uspto_mit_five_view_a6000.py --help
 ```
 
-The tracker records native, JEPA, and total losses; gradient norm; learning
-rate; JEPA activation; tokens, throughput, wall time, and peak VRAM; task and
-validity metrics; seed, data fraction, condition, and resolved parameters.
-Gate 4's reduced USPTO-MIT runs were completed with offline W&B records. Gate 5
-failed its strict primary rule; the current frozen-checkpoint decoder-coupling
-diagnostic is a mechanism analysis and cannot change checkpoint selection.
+W&B credentials belong only in environment variables. The tracker is called from the canonical training loop and records losses, gradient norm, learning rate, auxiliary activity, throughput, VRAM, validation metrics, seed, condition, and resolved configuration.
 
-For a memoryless continuation, read [context.md](docs/context.md), the research
-plan, the Gate 3 report, and the fidelity audit in that order.
+For continuation, read [docs/context.md](docs/context.md), the research plan, [docs/reports/README.md](docs/reports/README.md), and the method-fidelity report in that order.

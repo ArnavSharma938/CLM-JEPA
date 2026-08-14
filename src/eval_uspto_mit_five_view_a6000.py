@@ -1,3 +1,9 @@
+"""Official ChemFM five-view endpoint evaluation optimized for one A6000.
+
+The default execution remains the upstream-equivalent path. Exact fast paths
+are opt-in and were retained only after ordered-candidate parity checks.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -300,17 +306,8 @@ def official_rank(view_candidates: list[list[str]], n_best: int = BEAM_SIZE) -> 
 def load_endpoint(checkpoint: Path):
     import torch
 
-    if os.environ.get("CHEMFM_DISABLE_PYTHON_NATIVE_TRITON") == "1":
-        # PyTorch 2.13 can route eager ops through experimental Python/Triton
-        # implementations. Keep the newer CUDA/SDPA stack while allowing this
-        # independently switchable (and parity-tested) dispatch layer off.
-        torch.backends.python_native.triton.enabled = False
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
-    if os.environ.get("CHEMFM_FORCE_FLASH_SDPA") == "1":
-        torch.backends.cuda.enable_flash_sdp(True)
-        torch.backends.cuda.enable_mem_efficient_sdp(False)
-        torch.backends.cuda.enable_math_sdp(False)
     torch.set_float32_matmul_precision("high")
     torch.manual_seed(533)
     tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
@@ -331,118 +328,6 @@ def load_endpoint(checkpoint: Path):
     result = set_peft_model_state_dict(model, weights, adapter_name=ADAPTER_NAME)
     if getattr(result, "unexpected_keys", None):
         raise RuntimeError(f"unexpected checkpoint keys: {result.unexpected_keys}")
-    if os.environ.get("CHEMFM_LORA_BF16") == "1":
-        # Remove PEFT's decode-time BF16->FP32 casts and FP32 rank-8 matmuls
-        # while retaining the unfused adapter execution order. This candidate
-        # is accepted only if the ordered beam lists remain exactly identical.
-        for name, parameter in model.named_parameters():
-            if ".lora_A." in name or ".lora_B." in name:
-                parameter.data = parameter.data.to(dtype=torch.bfloat16)
-    if os.environ.get("CHEMFM_COMPILE_LORA_KERNEL") == "1":
-        import torch.nn.functional as functional
-        from peft.tuners.lora.layer import Linear as LoraLinear
-
-        def lora_linear_eval(x, base_weight, base_bias, lora_a, lora_b, scaling):
-            # Keep PEFT's exact eager ordering and FP32 adapter arithmetic:
-            # base(x) first, then A/B, FP32 add, finally cast to base dtype.
-            base = functional.linear(x, base_weight, base_bias)
-            adapter_input = x.to(lora_a.dtype)
-            adapter = functional.linear(
-                functional.linear(adapter_input, lora_a, None), lora_b, None
-            ) * scaling
-            return (base + adapter).to(base.dtype)
-
-        compiled_lora_linear_eval = torch.compile(
-            lora_linear_eval, mode="default", fullgraph=True, dynamic=True
-        )
-
-        def compiled_forward(layer, x, *args, **kwargs):
-            if args or kwargs or layer.disable_adapters or layer.merged:
-                return LoraLinear.forward(layer, x, *args, **kwargs)
-            active = [name for name in layer.active_adapters if name in layer.lora_A]
-            if len(active) != 1 or active[0] in layer.lora_variant:
-                return LoraLinear.forward(layer, x, *args, **kwargs)
-            adapter_name = active[0]
-            dropout = layer.lora_dropout[adapter_name]
-            if layer.training or getattr(dropout, "training", False):
-                return LoraLinear.forward(layer, x, *args, **kwargs)
-            base_layer = layer.get_base_layer()
-            return compiled_lora_linear_eval(
-                x,
-                base_layer.weight,
-                base_layer.bias,
-                layer.lora_A[adapter_name].weight,
-                layer.lora_B[adapter_name].weight,
-                layer.scaling[adapter_name],
-            )
-
-        for module in model.modules():
-            if isinstance(module, LoraLinear):
-                module.forward = types.MethodType(compiled_forward, module)
-    if os.environ.get("CHEMFM_LORA_WORKSPACE") == "1":
-        from peft.tuners.lora.layer import Linear as LoraLinear
-
-        def workspace_forward(layer, x, *args, **kwargs):
-            if args or kwargs or layer.disable_adapters or layer.merged or layer.training:
-                return LoraLinear.forward(layer, x, *args, **kwargs)
-            active = [name for name in layer.active_adapters if name in layer.lora_A]
-            if len(active) != 1 or active[0] in layer.lora_variant:
-                return LoraLinear.forward(layer, x, *args, **kwargs)
-            adapter_name = active[0]
-            dropout = layer.lora_dropout[adapter_name]
-            if getattr(dropout, "training", False):
-                return LoraLinear.forward(layer, x, *args, **kwargs)
-            base_result = layer.base_layer(x)
-            # Prefill shapes occur once and gain nothing from workspace setup.
-            # Reuse fixed decode buffers only for [beams, 1, hidden] calls.
-            if x.ndim != 3 or x.shape[1] != 1:
-                torch_dtype = base_result.dtype
-                adapter_input = layer._cast_input_dtype(
-                    x, layer.lora_A[adapter_name].weight.dtype
-                )
-                return (
-                    base_result
-                    + layer.lora_B[adapter_name](
-                        layer.lora_A[adapter_name](dropout(adapter_input))
-                    ) * layer.scaling[adapter_name]
-                ).to(torch_dtype)
-            rows = x.shape[0]
-            input_width = x.shape[-1]
-            output_width = base_result.shape[-1]
-            rank = layer.lora_A[adapter_name].weight.shape[0]
-            key = (rows, input_width, rank, output_width, x.device)
-            workspaces = getattr(layer, "_inference_workspaces", None)
-            if workspaces is None:
-                workspaces = {}
-                layer._inference_workspaces = workspaces
-            workspace = workspaces.get(key)
-            if workspace is None:
-                workspace = (
-                    torch.empty((rows, input_width), dtype=torch.float32, device=x.device),
-                    torch.empty((rows, rank), dtype=torch.float32, device=x.device),
-                    torch.empty((rows, output_width), dtype=torch.float32, device=x.device),
-                )
-                workspaces[key] = workspace
-            cast_input, rank_output, adapter_output = workspace
-            cast_input.copy_(x.reshape(rows, input_width))
-            torch.mm(
-                cast_input,
-                layer.lora_A[adapter_name].weight.t(),
-                out=rank_output,
-            )
-            torch.mm(
-                rank_output,
-                layer.lora_B[adapter_name].weight.t(),
-                out=adapter_output,
-            )
-            adapter_output.mul_(layer.scaling[adapter_name])
-            adapter_output.add_(base_result.reshape(rows, output_width))
-            base_result.copy_(adapter_output.view_as(base_result))
-            return base_result
-
-        for module in model.modules():
-            if isinstance(module, LoraLinear):
-                module.forward = types.MethodType(workspace_forward, module)
     if os.environ.get("CHEMFM_EXACT_LORA_FASTPATH") == "1":
         from peft.tuners.lora.layer import Linear as LoraLinear
 
@@ -454,24 +339,6 @@ def load_endpoint(checkpoint: Path):
         # matmuls; FP32 scale; FP32 add of the BF16 base result; BF16 cast.
         # Prefill and any unexpected call shape use PEFT unchanged.
         use_cuda_graph = os.environ.get("CHEMFM_EXACT_LORA_CUDAGRAPH") == "1"
-        mlp_graph_lora_ids: set[int] = set()
-        if os.environ.get("CHEMFM_EXACT_MLP_CUDAGRAPH") == "1":
-            from transformers.models.llama.modeling_llama import LlamaMLP
-
-            mlp_graph_lora_ids = {
-                id(child)
-                for parent in model.modules() if isinstance(parent, LlamaMLP)
-                for child in parent.modules() if isinstance(child, LoraLinear)
-            }
-        qkv_graph_lora_ids: set[int] = set()
-        if os.environ.get("CHEMFM_EXACT_QKV_CUDAGRAPH") == "1":
-            from transformers.models.llama.modeling_llama import LlamaAttention
-
-            qkv_graph_lora_ids = {
-                id(projection)
-                for attention in model.modules() if isinstance(attention, LlamaAttention)
-                for projection in (attention.q_proj, attention.k_proj, attention.v_proj)
-            }
         for module in tuple(model.modules()):
             if not isinstance(module, LoraLinear):
                 continue
@@ -529,11 +396,7 @@ def load_endpoint(checkpoint: Path):
                 _workspace=workspace,
                 _impl=exact_decode_impl,
                 _graph_state=graph_state,
-                _use_cuda_graph=(
-                    use_cuda_graph
-                    and id(module) not in mlp_graph_lora_ids
-                    and id(module) not in qkv_graph_lora_ids
-                ),
+                _use_cuda_graph=use_cuda_graph,
                 **kwargs,
             ):
                 if (
@@ -563,112 +426,6 @@ def load_endpoint(checkpoint: Path):
                 return static_output
 
             module.forward = types.MethodType(exact_decode_forward, module)
-    if os.environ.get("CHEMFM_EXACT_QKV_CUDAGRAPH") == "1":
-        from transformers.models.llama.modeling_llama import LlamaAttention
-
-        for attention in tuple(model.modules()):
-            if not isinstance(attention, LlamaAttention):
-                continue
-            q_projection = attention.q_proj
-            k_projection = attention.k_proj
-            v_projection = attention.v_proj
-            original_q = q_projection.forward
-            original_k = k_projection.forward
-            original_v = v_projection.forward
-            graph_state = [None]
-            pending = [None]
-
-            def graphed_q_forward(
-                layer, x, *args,
-                _q=original_q,
-                _k=original_k,
-                _v=original_v,
-                _graph_state=graph_state,
-                _pending=pending,
-                **kwargs,
-            ):
-                if args or kwargs or x.ndim != 3 or x.shape[0] != BEAM_SIZE or x.shape[1] != 1:
-                    _pending[0] = None
-                    return _q(x, *args, **kwargs)
-                if _graph_state[0] is None:
-                    static_input = torch.empty_like(x)
-                    static_input.copy_(x)
-                    current_stream = torch.cuda.current_stream(x.device)
-                    warmup_stream = torch.cuda.Stream(device=x.device)
-                    warmup_stream.wait_stream(current_stream)
-                    with torch.cuda.stream(warmup_stream):
-                        for _ in range(3):
-                            _q(static_input), _k(static_input), _v(static_input)
-                    current_stream.wait_stream(warmup_stream)
-                    graph = torch.cuda.CUDAGraph()
-                    with torch.cuda.graph(graph, stream=warmup_stream):
-                        static_q = _q(static_input)
-                        static_k = _k(static_input)
-                        static_v = _v(static_input)
-                    _graph_state[0] = (static_input, static_q, static_k, static_v, graph)
-                static_input, static_q, static_k, static_v, graph = _graph_state[0]
-                static_input.copy_(x)
-                graph.replay()
-                _pending[0] = (static_k, static_v)
-                return static_q
-
-            def graphed_k_forward(layer, x, *args, _original=original_k, _pending=pending, **kwargs):
-                if not args and not kwargs and _pending[0] is not None and x.shape[0] == BEAM_SIZE and x.shape[1] == 1:
-                    return _pending[0][0]
-                return _original(x, *args, **kwargs)
-
-            def graphed_v_forward(layer, x, *args, _original=original_v, _pending=pending, **kwargs):
-                if not args and not kwargs and _pending[0] is not None and x.shape[0] == BEAM_SIZE and x.shape[1] == 1:
-                    value = _pending[0][1]
-                    _pending[0] = None
-                    return value
-                return _original(x, *args, **kwargs)
-
-            q_projection.forward = types.MethodType(graphed_q_forward, q_projection)
-            k_projection.forward = types.MethodType(graphed_k_forward, k_projection)
-            v_projection.forward = types.MethodType(graphed_v_forward, v_projection)
-    if os.environ.get("CHEMFM_EXACT_RMSNORM_FASTPATH") == "1":
-        from transformers.models.llama.modeling_llama import LlamaRMSNorm
-
-        for module in tuple(model.modules()):
-            if not isinstance(module, LlamaRMSNorm):
-                continue
-            original_forward = module.forward
-            workspace = [None]
-
-            def exact_rmsnorm_decode_forward(
-                layer, hidden_states,
-                _original=original_forward,
-                _workspace=workspace,
-            ):
-                if (
-                    layer.training or hidden_states.ndim != 3
-                    or hidden_states.shape[0] != BEAM_SIZE or hidden_states.shape[1] != 1
-                ):
-                    return _original(hidden_states)
-                if _workspace[0] is None:
-                    shape = hidden_states.shape
-                    reduced_shape = (*shape[:-1], 1)
-                    _workspace[0] = (
-                        torch.empty(shape, dtype=torch.float32, device=hidden_states.device),
-                        torch.empty(shape, dtype=torch.float32, device=hidden_states.device),
-                        torch.empty(reduced_shape, dtype=torch.float32, device=hidden_states.device),
-                        torch.empty(reduced_shape, dtype=torch.float32, device=hidden_states.device),
-                        torch.empty(shape, dtype=hidden_states.dtype, device=hidden_states.device),
-                        torch.empty(shape, dtype=hidden_states.dtype, device=hidden_states.device),
-                    )
-                fp32_values, square_or_normalized, variance, inverse, bf16_values, output = _workspace[0]
-                fp32_values.copy_(hidden_states)
-                torch.pow(fp32_values, 2, out=square_or_normalized)
-                torch.mean(square_or_normalized, dim=-1, keepdim=True, out=variance)
-                torch.add(variance, layer.variance_epsilon, out=inverse)
-                torch.rsqrt(inverse, out=inverse)
-                torch.mul(fp32_values, inverse, out=square_or_normalized)
-                bf16_values.copy_(square_or_normalized)
-                torch.mul(layer.weight, bf16_values, out=output)
-                return output
-
-            module.forward = types.MethodType(exact_rmsnorm_decode_forward, module)
     if os.environ.get("CHEMFM_EXACT_RMSNORM_CUDAGRAPH") == "1":
         from transformers.models.llama.modeling_llama import LlamaRMSNorm
 
@@ -804,77 +561,6 @@ def load_endpoint(checkpoint: Path):
             return static_q_embed, static_k_embed
 
         llama_modeling.apply_rotary_pos_emb = graphed_apply_rotary_pos_emb
-    if os.environ.get("CHEMFM_EXACT_MLP_FASTPATH") == "1":
-        import torch.nn.functional as functional
-        from transformers.models.llama.modeling_llama import LlamaMLP
-
-        for module in tuple(model.modules()):
-            if not isinstance(module, LlamaMLP):
-                continue
-            original_forward = module.forward
-
-            def exact_mlp_decode_forward(layer, x, _original=original_forward):
-                if layer.training or x.ndim != 3 or x.shape[0] != BEAM_SIZE or x.shape[1] != 1:
-                    return _original(x)
-                gate = layer.gate_proj(x)
-                functional.silu(gate, inplace=True)
-                gate.mul_(layer.up_proj(x))
-                return layer.down_proj(gate)
-
-            module.forward = types.MethodType(exact_mlp_decode_forward, module)
-    if os.environ.get("CHEMFM_EXACT_MLP_CUDAGRAPH") == "1":
-        from transformers.models.llama.modeling_llama import LlamaMLP
-
-        for module in tuple(model.modules()):
-            if not isinstance(module, LlamaMLP):
-                continue
-            original_forward = module.forward
-            graph_state = [None]
-
-            def graphed_mlp_decode_forward(
-                layer, x,
-                _original=original_forward,
-                _graph_state=graph_state,
-            ):
-                if layer.training or x.ndim != 3 or x.shape[0] != BEAM_SIZE or x.shape[1] != 1:
-                    return _original(x)
-                if _graph_state[0] is None:
-                    static_input = torch.empty_like(x)
-                    static_input.copy_(x)
-                    current_stream = torch.cuda.current_stream(x.device)
-                    warmup_stream = torch.cuda.Stream(device=x.device)
-                    warmup_stream.wait_stream(current_stream)
-                    with torch.cuda.stream(warmup_stream):
-                        for _ in range(3):
-                            _original(static_input)
-                    current_stream.wait_stream(warmup_stream)
-                    graph = torch.cuda.CUDAGraph()
-                    with torch.cuda.graph(graph, stream=warmup_stream):
-                        static_output = _original(static_input)
-                    _graph_state[0] = (static_input, static_output, graph)
-                static_input, static_output, graph = _graph_state[0]
-                static_input.copy_(x)
-                graph.replay()
-                return static_output
-
-            module.forward = types.MethodType(graphed_mlp_decode_forward, module)
-    if os.environ.get("CHEMFM_MERGE_LORA") == "1":
-        # PEFT's supported inference path: fold the frozen low-rank deltas and
-        # modules_to_save into the base model to remove adapter dispatch,
-        # per-layer dtype casts, and the extra LoRA matmuls during decoding.
-        model = model.merge_and_unload(safe_merge=True).eval()
-    compile_mode = os.environ.get("CHEMFM_TORCH_COMPILE")
-    if compile_mode:
-        # PeftModel.generate delegates to the underlying CausalLM's generate,
-        # so compiling PeftModel.forward does not touch decoding. Compile the
-        # actual CausalLM forward used by GenerationMixin.
-        compile_target = model.get_base_model()
-        compile_target.forward = torch.compile(
-            compile_target.forward,
-            mode=compile_mode,
-            fullgraph=False,
-            dynamic=True,
-        )
     return model, tokenizer
 
 
@@ -1053,15 +739,6 @@ def worker(args) -> None:
         "sdpa_flash_enabled": bool(torch.backends.cuda.flash_sdp_enabled()),
         "sdpa_mem_efficient_enabled": bool(torch.backends.cuda.mem_efficient_sdp_enabled()),
         "cache_implementation": os.environ.get("CHEMFM_CACHE_IMPLEMENTATION"),
-        "torch_compile_mode": os.environ.get("CHEMFM_TORCH_COMPILE"),
-        "lora_merged": os.environ.get("CHEMFM_MERGE_LORA") == "1",
-        "python_native_triton_disabled": (
-            os.environ.get("CHEMFM_DISABLE_PYTHON_NATIVE_TRITON") == "1"
-        ),
-        "lora_bf16": os.environ.get("CHEMFM_LORA_BF16") == "1",
-        "force_flash_sdpa": os.environ.get("CHEMFM_FORCE_FLASH_SDPA") == "1",
-        "compiled_lora_kernel": os.environ.get("CHEMFM_COMPILE_LORA_KERNEL") == "1",
-        "lora_workspace": os.environ.get("CHEMFM_LORA_WORKSPACE") == "1",
         "exact_lora_fastpath": os.environ.get("CHEMFM_EXACT_LORA_FASTPATH") == "1",
         "exact_lora_cudagraph": os.environ.get("CHEMFM_EXACT_LORA_CUDAGRAPH") == "1",
         "exact_rmsnorm_cudagraph": os.environ.get("CHEMFM_EXACT_RMSNORM_CUDAGRAPH") == "1",

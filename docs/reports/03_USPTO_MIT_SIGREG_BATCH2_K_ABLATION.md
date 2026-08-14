@@ -1,4 +1,4 @@
-# USPTO-MIT SIGReg + symmetric-JEPA k ablation
+# USPTO-MIT SIGReg batch-2 k ablation
 
 ## Question and controlled design
 

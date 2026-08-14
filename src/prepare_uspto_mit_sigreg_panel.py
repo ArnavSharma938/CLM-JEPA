@@ -1,3 +1,5 @@
+"""Create the fixed length-stratified USPTO-MIT SIGReg panel."""
+
 from __future__ import annotations
 
 import argparse

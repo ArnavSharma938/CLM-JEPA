@@ -1,4 +1,4 @@
-"""Execution-only batched wrapper around the pinned upstream LLM-JEPA evaluator.
+"""A6000 batched wrapper around the pinned upstream LLM-JEPA evaluator.
 
 Formatting, greedy decoding arguments, response cleanup, and GSM8K scoring are
 delegated to or copied verbatim from upstream ``evaluate.py``. The only change
@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import time
 from pathlib import Path
 
@@ -19,7 +20,10 @@ from datasets import load_dataset
 from transformers import GenerationConfig
 from transformers.utils import logging as transformers_logging
 
-from evaluate import (
+UPSTREAM_DIR = Path(__file__).resolve().parents[2] / "references" / "llm-jepa"
+sys.path.insert(0, str(UPSTREAM_DIR))
+
+from evaluate import (  # noqa: E402
     eval as upstream_score,
     format_conversation,
     generate_response,

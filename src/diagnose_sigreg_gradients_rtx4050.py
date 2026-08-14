@@ -1,3 +1,5 @@
+"""Frozen-checkpoint SIGReg gradient-response assay for the RTX 4050."""
+
 from __future__ import annotations
 
 import argparse
@@ -22,7 +24,7 @@ from chemfm import (
 )
 from geometry_diagnosis import effective_rank
 from jepa import CLMJEPA, SIGReg, add_predictor_tokens
-from sigreg_batch16_preflight import (
+from diagnose_sigreg_batch16_rtx4050 import (
     _capture_gradients,
     _combine_vectors,
     _cosine,

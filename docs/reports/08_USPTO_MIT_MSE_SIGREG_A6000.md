@@ -1,4 +1,4 @@
-# USPTO-MIT MSE cLM-JEPA ablation
+# USPTO-MIT MSE and MSE+SIGReg ablation (A6000)
 
 ## Result
 
@@ -82,7 +82,7 @@ Both native losses descended normally and all gradients remained finite. Plain M
 | MSE | 5.147e-4 / 8.114e-4 | 0.9935 / 0.9899 | 43.43 / 20.27 | 0.001650 / 64.5% | 0.2890 / 83.6% |
 | **MSE+SIGReg-16** | **1.607e-3 / 1.513e-3** | **0.9665 / 0.9679** | **37.61 / 33.07** | **0.011916 / 84.0%** | **0.3937 / 85.2%** |
 
-Plain MSE is 3.11x/2.48x higher-variance than the prior cosine+SIGReg trajectory, so changing the metric clearly weakens the cosine shortcut. Absolute geometry is still unhealthy relative to native: source and target variance remain 3.94x/3.95x lower and mean-direction energy remains near one. Raw MSE therefore does **not** solve the contraction by itself.
+Plain MSE is 3.11x/2.48x higher-variance than the prior cosine+SIGReg trajectory. Source and target variance remain 3.94x/3.95x lower than native and mean-direction energy remains near one; raw MSE therefore does **not** remove the contraction by itself.
 
 SIGReg adds a clear absolute benefit: relative to MSE alone it raises source variance 3.12x and target variance 1.86x, reduces common-direction concentration on both branches, balances target effective rank, and raises raw margin/retrieval. Embedding norms also move from about 12.78/12.80 under MSE to 9.92/9.82, while mean-vector norms fall to 9.75/9.66. This is not a large ratio manufactured from a tiny baseline; several absolute geometry measures move toward or beyond native scale. MSE+SIGReg passed the gate and was continued. Plain MSE was stopped as specified.
 
@@ -136,14 +136,14 @@ Unlike the earlier contracted cosine readout, the repaired k=0 state is not unus
 
 **No.** Exact top-1 ties native, all wider beam cutoffs are worse, CE is significantly worse, rank changes favor native, and reaction-level JEPA pair strength does not predict decoder improvement. Healthy global endpoint geometry and strong source-target pairing are therefore insufficient in this formulation.
 
-The most supported interpretation is that ChemFM's original extreme geometric shortcut was real and avoidable, but it was not the sole cause of failed reaction prediction. Further anti-contraction regularization is not justified by this result. Any later experiment should address how the auxiliary relationship is coupled to the autoregressive decoder, but none is launched here.
+The measurements show that the original geometric shortcut was avoidable but was not sufficient to explain reaction-prediction performance. This result does not support another anti-contraction-only intervention. Any later experiment would need to address coupling between the auxiliary relationship and the autoregressive decoder.
 
 ## Evidence and provenance
 
-- Stage-1 training and epoch checkpoints: [`runs/mse_ablation/stage1/`](../runs/mse_ablation/stage1/)
-- Selected resumed training result: [`runs/mse_ablation/stage2/mse_sigreg.json`](../runs/mse_ablation/stage2/mse_sigreg.json)
-- Epoch-2 and epoch-4 geometry/CE/intervention artifacts: [`runs/mse_ablation/evaluation/`](../runs/mse_ablation/evaluation/)
-- Exact 256-row beam output: [`runs/mse_ablation/evaluation/mse_sigreg_epoch4_generation.jsonl`](../runs/mse_ablation/evaluation/mse_sigreg_epoch4_generation.jsonl)
-- Paired summary with bootstrap/correlation analyses: [`runs/mse_ablation/evaluation/summary_epoch4.json`](../runs/mse_ablation/evaluation/summary_epoch4.json)
-- Checksum-verified Thunder archive: [`runs/thunder_sigreg_batch16_transfer/results/mse_ablation_artifacts.tar.gz`](../runs/thunder_sigreg_batch16_transfer/results/mse_ablation_artifacts.tar.gz), SHA-256 `4f04e4fb7979ef861a5dbc9cb37da7e3e1691271a936ee53537156c0298b9b0f`.
+- Stage-1 training and epoch checkpoints: [`runs/mse_ablation/stage1/`](../../runs/mse_ablation/stage1/)
+- Selected resumed training result: [`runs/mse_ablation/stage2/mse_sigreg.json`](../../runs/mse_ablation/stage2/mse_sigreg.json)
+- Epoch-2 and epoch-4 geometry/CE/intervention artifacts: [`runs/mse_ablation/evaluation/`](../../runs/mse_ablation/evaluation/)
+- Exact 256-row beam output: [`runs/mse_ablation/evaluation/mse_sigreg_epoch4_generation.jsonl`](../../runs/mse_ablation/evaluation/mse_sigreg_epoch4_generation.jsonl)
+- Paired summary with bootstrap/correlation analyses: [`runs/mse_ablation/evaluation/summary_epoch4.json`](../../runs/mse_ablation/evaluation/summary_epoch4.json)
+- Checksum-verified Thunder archive: [`runs/thunder_sigreg_batch16_transfer/results/mse_ablation_artifacts.tar.gz`](../../runs/thunder_sigreg_batch16_transfer/results/mse_ablation_artifacts.tar.gz), SHA-256 `4f04e4fb7979ef861a5dbc9cb37da7e3e1691271a936ee53537156c0298b9b0f`.
 - Thunder instance `drjr0grt` was deleted after local checksum, checkpoint-count, and generation-row-count verification.

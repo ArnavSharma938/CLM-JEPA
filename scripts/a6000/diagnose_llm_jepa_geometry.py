@@ -1,4 +1,4 @@
-"""Frozen LLM-JEPA geometry diagnostics using upstream GSM8K serialization."""
+"""A6000 frozen LLM-JEPA geometry diagnostics using upstream serialization."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import argparse
 import copy
 import json
 import math
+import sys
 from pathlib import Path
 
 import torch
@@ -14,7 +15,10 @@ from datasets import load_dataset
 from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from finetune import (
+UPSTREAM_DIR = Path(__file__).resolve().parents[2] / "references" / "llm-jepa"
+sys.path.insert(0, str(UPSTREAM_DIR))
+
+from finetune import (  # noqa: E402
     get_assistant_messages,
     get_messages,
     get_user_messages,

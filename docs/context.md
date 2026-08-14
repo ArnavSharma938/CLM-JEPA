@@ -1,200 +1,86 @@
-# cLM-JEPA memoryless agent context
+# cLM-JEPA continuation context
 
-This file hands the repository to an agent with no conversation memory. Work
-only inside `C:\Users\arnav.DHEERAJACER\CLM-JEPA`. Read `AGENTS.md` and then
-`CLM_JEPA_Plan.md` completely before changing experiments. The plan is the
-source of truth; this file records current state and user expectations.
+Work only inside `C:\Users\arnav.DHEERAJACER\CLM-JEPA`. Read `AGENTS.md` and `docs/CLM_JEPA_Plan.md` before changing experiments. The plan is authoritative; this file records current state and paths.
 
-## Non-negotiable operating rules
+## Operating constraints
 
-1. Execute gates in numerical order and stop at every permission or stop-work
-   condition. A smoke test is not a later-gate pass.
-2. Use official LLM-JEPA `references/llm-jepa/finetune.py` as the controlling
-   JEPA reference and compare tensor operations line by line. Preserve the
-   official ChemFM tokenizer, task serialization, LoRA, generation, and
-   evaluation behavior wherever applicable.
-3. Do not make arbitrary speed or memory changes. Diagnose first; if a fair
-   run does not fit locally after plan-authorized measures, request Thunder
-   Compute. The currently authorized continuation shape is one RTX A6000,
-   6 vCPUs, 200 GB primary disk, no template, using the current v2 CLI's
-   mode-less prototyping path.
-4. W&B belongs in the actual fine-tuning loop. Never store API keys, Hugging
-   Face tokens, passwords, or other credentials in files, commands, logs, or
-   commits. Treat credentials pasted in conversation as exposed and rotate
-   them.
-5. Preserve tests and reusable experiment code. Keep compact gate decisions
-   and evidence; remove reproducible logs, dumps, caches, and completed
-   one-off smoke runners.
-6. `CLM_JEPA_Plan.md` has user modifications. Do not overwrite or stage it
-   unless the user explicitly requests that exact change.
+1. Preserve official LLM-JEPA tensor semantics and ChemFM tokenization, serialization, LoRA, generation, and scoring unless a report explicitly documents a controlled deviation.
+2. Exact generated top-1 is the primary forward-reaction metric. CE and representation metrics are mechanism diagnostics.
+3. Do not call the observed geometry “collapse”: variance contraction and common-direction concentration are extreme, but effective rank and residual retrieval remain nontrivial.
+4. Do not tune or select checkpoints from diagnostic panels.
+5. Credentials belong only in environment variables. Do not commit tokens, keys, or passwords.
+6. Use the canonical trainer in `src/train.py` on both RTX 4050 and A6000. Hardware-specific files are execution wrappers or diagnostics, not alternative scientific trainers.
+7. Preserve reusable code and compact decision evidence; remove caches, transient logs, and completed one-off profiling/debug runners.
 
-## Provenance and environment
+## Provenance and hardware
 
-- Public remote: `https://github.com/ArnavSharma938/CLM-JEPA.git`, branch
-  `main`; last observed committed revision before this cleanup: `b373bb1`.
-- LLM-JEPA reference revision:
-  `ea0017c654ad917066ff32afc88276bea8ca5f7e`.
-- ChemFM reference revision:
-  `ee35b23d03de1a8e97b8e04dcdfb1d579de70f02`.
-- ChemFM-1B model revision:
-  `f99dc2e89726539bb9cf31b2e2b4360650bac6a8`.
-- Local `.venv` uses Python 3.10.20. The ignored model checkpoint is about
-  3.7 GB; `.venv` is about 5.5 GB. Neither belongs in Git.
-- Local GPU is an RTX 4050 Laptop GPU with 6,141 MiB. Frozen inference fitting
-  locally does not establish that LoRA fine-tuning fits.
-- Reference repositories are vendored as ordinary source files; their nested
-  `.git` metadata was removed so the audited code is visible to Git and users.
+- GitHub: `https://github.com/ArnavSharma938/CLM-JEPA.git`
+- LLM-JEPA reference commit: `ea0017c654ad917066ff32afc88276bea8ca5f7e`
+- ChemFM reference commit: `ee35b23d03de1a8e97b8e04dcdfb1d579de70f02`
+- ChemFM-1B revision: `f99dc2e89726539bb9cf31b2e2b4360650bac6a8`
+- Local GPU: RTX 4050 Laptop, 6,141 MiB
+- Cloud configuration used: one A6000, six vCPUs, 200 GB storage, Thunder base/prototyping image
 
-## Current repository layout
+## Code layout
 
-- `src/chemfm.py`: ChemFM tokenizer, three task directions, collation, LoRA
-  loading, generation, and canonicalization.
-- `src/jepa.py`: predictor-token setup, native and auxiliary rows, state
-  selection, shuffling, loss dropout, and cosine JEPA loss.
-- `src/metrics.py`: candidate scoring, stored-prediction scoring, effective
-  rank, retrieval, ridge, and relationship diagnostics. Former small
-  evaluation/scoring/assay modules were consolidated here.
-- `src/train.py`: real Gate 4/5 fine-tuning path and integrated W&B tracker.
-- `src/experiments.py`: Gate 4/5 launcher; `src/download_model.py`: explicit
-  checkpoint bootstrap.
-- `gates/gate1/results/`, `gates/gate2/results/`: compact historical evidence.
-- `gates/gate3/`: preparation, frozen assay, summary, report, and one
-  consolidated machine-readable result.
-- `data/gate3/`: seven versioned 1,024-row samples. Full datasets are stored
-  under ignored, clearly named dataset directories in `data/`.
-- `references/`: pinned official source. `tests/`: behavioral and exact parity
-  verification. Most `runs/` output is ignored; the selected native and
-  cLM-JEPA seed-533 epoch-3 checkpoints and the frozen decoder-coupling
-  continuation artifacts are intentionally tracked with Git LFS where needed.
+See `docs/CODE_LAYOUT.md` for the full map. Key entrypoints:
 
-The removed `assets/chemfm_reaction_tokenizer` was only 142 KB, not a hidden
-large dependency: all three files were byte-identical to the tokenizer under
-`references/chemfm/finetuning/reaction_prediction/tokenizer`. The old
-`artifacts/data`, `artifacts/gpu`, prediction dumps, console logs, JUnit XML,
-failed-FP16 output, and standalone W&B/Thunder helpers were reproducible or
-redundant and were removed. Gate 3's former summary, aggregate CSV, and eight
-dataset JSONs were consolidated into `gates/gate3/results.json`.
+- `src/train.py`: canonical ChemFM training, validation, checkpoint/resume, and W&B.
+- `src/chemfm.py`: tokenizer, collation, LoRA loading, and generation.
+- `src/jepa.py`: readouts, cosine/MSE objectives, stop-gradient option, and exact streamed SIGReg.
+- `src/representation_eval.py`, `src/geometry_diagnosis.py`, `src/decoder_coupling.py`: frozen diagnostics.
+- `src/diagnose_*_rtx4050.py`: protocols specific to the local 6 GB assay.
+- `src/eval_uspto_mit_five_view_a6000.py`: official five-view beam-10 endpoint evaluation.
+- `scripts/a6000/`: A6000 execution wrappers, including the GSM8K upstream reference.
+- `references/`: pinned upstream source only.
 
-## Dataset state and leakage
+## Gate and experiment status
 
-The Gate 3 samples cover three forward datasets (`uspto_mit_synthesis`,
-`orderly_forward`, `non_uspto_forward`), MetaTrans
-metabolism, and three retrosynthesis datasets (`uspto_50k_retro`,
-`uspto_480k_template_heldout`, `non_uspto_retro`). Each has 1,024 deterministic
-unique-target examples after exact source-target component-overlap
-removal.
+### Gates 0–3
 
-Full local data is normalized to one CSV per real split under clearly named
-dataset directories. Canonical columns are `example_id`, `split`, `source`,
-and `target`; old OpenNMT parallel text, Parquet, raw-release, and duplicate
-CSV copies were removed after count/hash verification. Exact paths and counts
-are in Plan Section 3.4 and `data/dataset_manifest.json`. The MetaTrans
-251-row released validation is reference data, not the required derived
-parent-grouped scaffold validation; that scaffold split remains a pre–Gate 4
-requirement.
+Passed. Gate 3 evaluated 7,168 frozen examples across seven datasets and retained k=0 and k=1. Canonical evidence is `gates/gate3/README.md` and `gates/gate3/results.json`. Gate-3 sample CSVs were removed in the pre-cleanup snapshot; reruns require regeneration from the ignored full datasets.
 
-Recorded released-split overlaps were: ORDerly forward 7 reaction pairs;
-MetaTrans train/validation 3 parents; USPTO-50K 16;
-USPTO-480K 0. These were reported, not silently removed. Gate 3 used the
-declared full-dataset source for each frozen diagnostic, including external
-test-only sets where no training split exists. NL-RX-SYNTH/Llama code, data,
-and results were removed at the user's
-explicit request and must not be restored without a new request.
+### Gate 4
 
-## Gate status
+Passed for the reduced USPTO-MIT pilot with fixed reliable settings: LR `1e-4`, seed 533 primary, seed 917 directional replication, four epochs, native NTP retained, effective auxiliary weight one, and 50% auxiliary-loss dropout. This was not broad HPO.
 
-### Gates 0 and 1 — passed historically
+### Original Gate 5 and geometry
 
-Gate 1 overfit results: 32 examples reached 32/32 valid and exact; 128 examples
-reached 128/128 valid and 121/128 exact. Evidence is under
-`gates/gate1/results/`. Obsolete Gate 1 runner code is intentionally gone.
+The selected epoch-3 native and symmetric cosine cLM-JEPA checkpoints tied at 2/32 exact top-1, so the strict gate failed. On 512 frozen identities native/cLM-JEPA top-1 was 24/17; exact McNemar p=0.143. Symmetric cLM-JEPA target variance was approximately 495× below native and mean-direction energy was 0.999617. Centering/top-PC removal recovered margin 0.285808 and retrieval 0.859375. Pair strength did not predict CE or generated-rank improvement.
 
-### Gate 2 — JEPA core passed
+### Target stop-gradient
 
-Compact real-model evidence is under `gates/gate2/results/`. Tests cover exact
-lambda-zero native equivalence, one model call, causal and row isolation,
-source sensitivity, target EOS selection, shared-backbone gradients,
-monitor-only gradients, and reproducible unequal-target shuffling. The golden
-reference test independently reconstructs the pinned `finetune.py` default
-path and compares states, losses, and every parameter gradient exactly.
+On 512 identities native/stop-gradient top-1 was 24/26; difference +0.39 pp, 95% CI [-1.37,+2.15], McNemar p=0.8318. Variance increased 12.03× versus symmetric cLM-JEPA but remained 46.3× below native. Target CE was 7.69% worse than native.
 
-### Gate 3 — passed after correction
+### SIGReg studies
 
-Pinned ChemFM-1B, no fine-tuning, seed 533, batch size 16, seven retained
-datasets and 7,168 examples. Tested `k in {-1,0,1,2,3}`; project `k=-1` means the source's
-second-to-last active token. Every position retained pair-specific signal on
-all datasets. The prespecified equal-weight cross-dataset rank selected `k=0`
-and `k=1`. Canonical evidence is `gates/gate3/README.md` and
-`gates/gate3/results.json`.
+- Batch-2 k ablation: native/k0/k1 top-1 was 7/2/3 of 256; neither readout restored native-scale geometry.
+- Exact batch 128: geometry moved near native scale, but updates fell 16× and generation degraded to 0/256 top-1 with CE 1.080978; this comparison is cadence-confounded.
+- RTX 4050 batch-16 preflight: streamed/direct values and parameter gradients matched exactly; exact N=16 halves update cadence.
+- Frozen gradient assay: SIGReg endpoint norm remained 0.0376–0.0427 across the observed contraction trajectory.
+- Cadence-matched A6000 batch-16 run: epoch-4 native/SIGReg top-1 was 6/3 of 256; source/target variance remained 16.9×/14.8× below native.
 
-The original retrospective assays incorrectly used forward markers. In
-addition, USPTO-50K had been sampled before direction correction, invalidating
-target-keyed deterministic selection. All three retrosynthesis assays were
-rerun correctly; USPTO-50K was regenerated from the complete verified
-160,012-row file and rerun. No other Gate 3 correction was required.
+### MSE+SIGReg and official endpoint
 
-### Gate 4 — passed for the reduced USPTO-MIT pilot
+MSE alone did not restore native-scale geometry. MSE+SIGReg restored epoch-4 source/target variance to 90.3%/55.2% of native, but exact top-1 tied 6/256 and target CE was 3.36% worse.
 
-The backend fidelity gaps were corrected and the user replaced broad HPO with
-a fixed reliable configuration: learning rate 1e-4, k=1, effective JEPA weight
-1.0, dropout 0.5, seeds 533 and 917. The selected seed-533 checkpoint is epoch
-3. Canonical evidence is `gates/gate4/results.json`.
+The official five-view endpoint then compared this selected epoch-4 MSE+SIGReg checkpoint with cadence-matched native on a frozen sequential sample. At 1,280 unique reactions:
 
-### Gate 5 — failed on the frozen primary rule
+- native top-1: 3.906% (50/1,280);
+- cLM-JEPA top-1: 3.125% (40/1,280);
+- paired difference: -0.781 pp;
+- 95% bootstrap CI: [-1.719,+0.156] pp;
+- native-only/cLM-only: 24/14;
+- exact McNemar p=0.1433.
 
-The selected seed-533 native and cLM-JEPA endpoints tied at exact top-1,
-2/32 = 0.0625. Because the plan required cLM-JEPA to strictly beat native, the
-full control matrix was stopped. Do not claim a generative improvement. The
-selected checkpoints are:
+The prespecified 99% futility upper bound was +0.458 pp, below the +1 pp effect of interest, so evaluation stopped without extending to 3,300. Top-5 also favored native after Holm correction: 26.797% versus 23.516%, adjusted p=0.00108.
 
-- `runs/gate5/checkpoints/native-s533/epoch_3`
-- `runs/gate4_v2/reliable/clm_jepa-s533-checkpoints/epoch_3`
+### GSM8K LLM-JEPA reference
 
-The follow-up 1,024-identity representation assay found extreme
-common-direction concentration induced by cLM-JEPA but strong pair-specific
-chemistry in the centered/top-PC-removed residual. This is not dimensional or
-constant-vector collapse. See `docs/USPTO_MIT_GEOMETRY_DIAGNOSIS.md`.
+The reduced two-epoch DeepSeek-1.5B run was not a successful behavioral control: NTP/LLM-JEPA accuracy was 36/28 of 300, difference -2.67 pp, 95% CI [-6.33,+1.00], p=0.229. LLM-JEPA target variance was only 1.45× below NTP, versus ChemFM's approximately 495× contraction. This does not support LoRA alone as a sufficient explanation for the ChemFM geometry.
 
-The active frozen-checkpoint decoder-coupling diagnostic uses 1,024 unique
-canonical validation identities. Both endpoint CE/representation/intervention
-artifacts are complete. Aggregate target-token CE is 0.2338166 for native and
-0.2355382 for cLM-JEPA, so the earlier small-sample CE advantage reverses to a
-0.74% disadvantage. Native beam-10 generation is resumable from 36/1,024 rows.
-See `runs/diagnostics/decoder_coupling/README.md`. Do not retrain, tune, change
-the objective, or proceed to MetaTrans/retrosynthesis before this analysis is
-complete.
-## LLM-JEPA fidelity claim
+## Current conclusion
 
-The default non-additive cosine JEPA core in `src/jepa.py` is functionally
-equivalent to the corresponding pinned `finetune.py` path after required
-ChemFM serialization and EOS adaptations. The files are not textually
-identical. Optional upstream additive-mask, L2, MSE, and InfoNCE branches are
-not ported. This claim rests on a whole-file responsibility audit, an
-operation-level mapping, exact executable tensor/gradient comparison, causal
-invariants, and real frozen ChemFM-1B execution—not unit tests alone. Read
-`docs/LLM_JEPA_FIDELITY.md` for exact scope and exclusions.
+For the fixed USPTO-MIT pilot endpoints, repairing global JEPA geometry was not sufficient to improve official reaction generation. The selected cLM-JEPA endpoint did not meet the +1 pp exact-top-1 effect of interest. This conclusion does not cover MetaTrans or retrosynthesis training, additional seeds, larger training exposure, or an objective that couples the auxiliary relationship differently to autoregressive decoding.
 
-## Current continuation
-
-Local generation was stopped because two protocol-faithful RTX 4050 beam-10
-passes projected to roughly 12 hours. Continue on the authorized Thunder RTX
-A6000 instance, install dependencies with `uv`, verify the pinned ChemFM model,
-resume native generation, run cLM-JEPA generation, and monitor `nvidia-smi`.
-Keep `--generation-batch-size 1`: a batch-size-2 smoke test changed lower-beam
-ordering and is excluded from evidence.
-
-After both passes, run the frozen summarizer, update
-`docs/USPTO_MIT_GEOMETRY_DIAGNOSIS.md` with paired/correlation uncertainty,
-and report only the selected native and fully correct cLM-JEPA endpoints. Per
-the user's latest instruction, omit the “both correct” and “neither correct”
-outcome categories; retain native-only and cLM-JEPA-only differences and all
-prespecified aggregate top-k metrics. Exact top-1 remains primary.
-Useful checks:
-
-```powershell
-Set-Location C:\Users\arnav.DHEERAJACER\CLM-JEPA
-.\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\python.exe gates\gate3\summarize.py
-git status --short
-git diff --check
-```
+All reports and artifact paths are indexed in `docs/reports/README.md`.

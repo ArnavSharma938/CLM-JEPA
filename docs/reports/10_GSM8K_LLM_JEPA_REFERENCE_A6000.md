@@ -1,4 +1,4 @@
-# DeepSeek GSM8K LLM-JEPA A6000 reference
+# DeepSeek GSM8K LLM-JEPA reference (A6000)
 
 ## Result in one paragraph
 

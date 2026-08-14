@@ -1,4 +1,4 @@
-# USPTO-MIT k=0 symmetric JEPA + batch-128 SIGReg
+# USPTO-MIT symmetric k=0 JEPA with SIGReg batch 128
 
 ## Question and fixed protocol
 
@@ -62,7 +62,7 @@ Both built-in epoch validations had zero exact top-1/3/5/10. The legacy selector
 
 ## Fixed 256-reaction generation and CE
 
-All rows are the same 256 unique reaction identities used in `USPTO_MIT_SIGREG_K_ABLATION.md`, with one official enumeration and beam 10.
+All rows are the same 256 unique reaction identities used in report 03, with one official enumeration and beam 10.
 
 | Epoch-2 checkpoint | Top-1 | Top-3 | Top-5 | Top-10 | Valid-candidate rate | Target-token CE |
 |---|---:|---:|---:|---:|---:|---:|
@@ -131,7 +131,7 @@ This restored sensitivity does not yield beneficial reaction-level coupling. Ver
 
 **No, SIGReg loss does not meaningfully decrease and the geometric repair does not benefit generation.** The new checkpoint has zero exact top-1/3/5, one shared top-10 hit, 50.7% validity, and target CE 4.57 times native. Pair strength remains unrelated to CE or rank changes. This is a stronger form of the prior mechanism conclusion: healthy-looking JEPA endpoint geometry and source sensitivity are not sufficient for useful autoregressive generation.
 
-The causal interpretation must remain narrow. Batch-128 exactness necessarily reduced AdamW updates 16-fold, changed dropout granularity, produced 15/20 active groups under seed 533, and exposed the sample-count-scaled SIGReg statistic at much larger absolute magnitude. The catastrophic NTP result can therefore arise from some combination of fewer optimizer updates, high realized auxiliary exposure, and a now-dominant fixed SIGReg term; it cannot be attributed uniquely to healthy geometry or estimator batch size. No follow-up is run automatically.
+The causal interpretation is limited by protocol changes. Batch-128 exactness reduced AdamW updates 16-fold, changed dropout granularity, produced 15/20 active groups under seed 533, and exposed the sample-count-scaled SIGReg statistic at a larger absolute magnitude. The NTP degradation can therefore arise from some combination of fewer optimizer updates, high realized auxiliary exposure, and the fixed SIGReg term; it cannot be attributed uniquely to geometry or estimator batch size.
 
 ## Evidence
 

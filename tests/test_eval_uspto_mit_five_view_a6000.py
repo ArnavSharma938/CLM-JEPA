@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from official_five_view_evaluation import (
+from eval_uspto_mit_five_view_a6000 import (
     clopper_pearson_interval,
     exact_mcnemar_power,
     holm_adjust,

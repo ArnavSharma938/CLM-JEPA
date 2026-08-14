@@ -1,4 +1,4 @@
-# USPTO-MIT official five-view endpoint evaluation
+# USPTO-MIT official five-view endpoint evaluation (A6000)
 
 ## Scope and conclusion
 
@@ -59,4 +59,3 @@ This establishes a behavioral result for these two fixed epoch-4 checkpoints, th
 - Prespecified futility decision: `runs/official_five_view_endpoint/interim_1280.json`
 - Complete native candidates: `runs/official_five_view_endpoint/stage1_native/predictions.jsonl`
 - Complete cLM-JEPA candidates: `runs/official_five_view_endpoint/stage1_clm/predictions.jsonl`
-

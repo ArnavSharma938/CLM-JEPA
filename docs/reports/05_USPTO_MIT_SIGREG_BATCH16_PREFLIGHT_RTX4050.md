@@ -1,4 +1,4 @@
-# USPTO-MIT batch-16 SIGReg preflight
+# USPTO-MIT SIGReg batch-16 preflight (RTX 4050)
 
 ## Decision
 
@@ -6,7 +6,7 @@
 
 No full training, checkpoint selection, beam generation, validation evaluation, k-ablation, or follow-up objective experiment was run. Calibration used no optimizer steps. The only optimization was the requested 16-update smoke test, and no smoke checkpoint was saved.
 
-Evidence: [`runs/diagnostics/sigreg_batch16_preflight.json`](../runs/diagnostics/sigreg_batch16_preflight.json) and [`src/sigreg_batch16_preflight.py`](../src/sigreg_batch16_preflight.py).
+Evidence: [`runs/diagnostics/sigreg_batch16_preflight.json`](../../runs/diagnostics/sigreg_batch16_preflight.json) and [`src/diagnose_sigreg_batch16_rtx4050.py`](../../src/diagnose_sigreg_batch16_rtx4050.py).
 
 ## Fixed configuration and coefficient mapping
 

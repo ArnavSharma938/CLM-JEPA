@@ -1,3 +1,5 @@
+"""Freeze and evaluate the sequential USPTO-MIT endpoint design."""
+
 from __future__ import annotations
 
 import argparse

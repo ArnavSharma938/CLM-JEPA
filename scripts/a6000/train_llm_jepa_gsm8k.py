@@ -1,5 +1,4 @@
-"""LLM-JEPA.
-"""
+"""A6000 execution wrapper for the pinned upstream LLM-JEPA trainer."""
 
 import copy
 import math

@@ -1,4 +1,4 @@
-# USPTO-MIT exact-batch-16 SIGReg A6000 pilot
+# USPTO-MIT exact SIGReg batch-16 experiment (A6000)
 
 ## Result
 
@@ -67,7 +67,7 @@ All conditions use the requested k=0 final-source-EOS readout. The analysis-only
 | 4 | Native | 1.431e-3 | 2.320e-3 | 0.9818 / 0.9695 | 41.00 / 22.61 | 0.005479 | 43.4% | 0.2588 / 76.6% |
 | 4 | SIGReg-16 | 8.492e-5 | 1.568e-4 | 0.9988 / 0.9978 | 45.28 / 15.88 | 0.000301 | 57.8% | 0.2490 / 73.0% |
 
-Large raw retrieval ratios are not treated as sufficient evidence of healthy geometry: their absolute margins are tiny and the four-way retrieval chance is 25%. The decisive fold changes are in scale. By epoch 4, SIGReg's raw pair margin was 18.2x smaller than native's. Yet after removing the common component, its margin/retrieval was close to native; after removing four PCs, SIGReg was `0.2844 / 78.5%` and native `0.2829 / 79.3%`. Pair-specific information survived in a multidimensional residual even as the raw space contracted.
+Large raw retrieval ratios are not sufficient evidence of restored scale: their absolute margins are small and four-way retrieval chance is 25%. The scale measurements provide the relevant comparison. By epoch 4, SIGReg's raw pair margin was 18.2x smaller than native's. Yet after removing the common component, its margin/retrieval was close to native; after removing four PCs, SIGReg was `0.2844 / 78.5%` and native `0.2829 / 79.3%`. Pair-specific information survived in a multidimensional residual even as the raw space contracted.
 
 ## Source sensitivity and decoder coupling
 
@@ -91,12 +91,12 @@ The evidence does not support post-hoc tuning of the SIGReg coefficient on this 
 
 ## Evidence and provenance
 
-- Fixed panel: [`data/sigreg_batch16_pilot/manifest.json`](../data/sigreg_batch16_pilot/manifest.json)
-- Training outputs and all epoch checkpoints: [`runs/sigreg_batch16_pilot/matched_b4/`](../runs/sigreg_batch16_pilot/matched_b4/)
-- Epoch-2 aggregate/paired/coupling results: [`runs/sigreg_batch16_pilot/evaluation/summary_epoch2.json`](../runs/sigreg_batch16_pilot/evaluation/summary_epoch2.json)
-- Epoch-4 aggregate/paired/coupling results: [`runs/sigreg_batch16_pilot/evaluation/summary_epoch4.json`](../runs/sigreg_batch16_pilot/evaluation/summary_epoch4.json)
-- Geometry and caches: [`runs/sigreg_batch16_pilot/evaluation/geometry.json`](../runs/sigreg_batch16_pilot/evaluation/geometry.json)
-- Exact generation rows and intervention diagnostics: [`runs/sigreg_batch16_pilot/evaluation/`](../runs/sigreg_batch16_pilot/evaluation/)
-- Evaluation equivalence benchmarks: [`runs/sigreg_batch16_pilot/evaluation/parallel_benchmark/summary.json`](../runs/sigreg_batch16_pilot/evaluation/parallel_benchmark/summary.json) and [`runs/sigreg_batch16_pilot/evaluation/beam_benchmark/summary.json`](../runs/sigreg_batch16_pilot/evaluation/beam_benchmark/summary.json)
-- Checksum-verified Thunder archive: [`runs/thunder_sigreg_batch16_transfer/results/sigreg_batch16_pilot_artifacts.tar.gz`](../runs/thunder_sigreg_batch16_transfer/results/sigreg_batch16_pilot_artifacts.tar.gz), SHA-256 `acc2aa39eb9a51acc01336b9b80e0dda196b57b920afa4559f8c6039370d6ce1`
+- Fixed panel: [`data/sigreg_batch16_pilot/manifest.json`](../../data/sigreg_batch16_pilot/manifest.json)
+- Training outputs and all epoch checkpoints: [`runs/sigreg_batch16_pilot/matched_b4/`](../../runs/sigreg_batch16_pilot/matched_b4/)
+- Epoch-2 aggregate/paired/coupling results: [`runs/sigreg_batch16_pilot/evaluation/summary_epoch2.json`](../../runs/sigreg_batch16_pilot/evaluation/summary_epoch2.json)
+- Epoch-4 aggregate/paired/coupling results: [`runs/sigreg_batch16_pilot/evaluation/summary_epoch4.json`](../../runs/sigreg_batch16_pilot/evaluation/summary_epoch4.json)
+- Geometry and caches: [`runs/sigreg_batch16_pilot/evaluation/geometry.json`](../../runs/sigreg_batch16_pilot/evaluation/geometry.json)
+- Exact generation rows and intervention diagnostics: [`runs/sigreg_batch16_pilot/evaluation/`](../../runs/sigreg_batch16_pilot/evaluation/)
+- Evaluation equivalence benchmarks: [`runs/sigreg_batch16_pilot/evaluation/parallel_benchmark/summary.json`](../../runs/sigreg_batch16_pilot/evaluation/parallel_benchmark/summary.json) and [`runs/sigreg_batch16_pilot/evaluation/beam_benchmark/summary.json`](../../runs/sigreg_batch16_pilot/evaluation/beam_benchmark/summary.json)
+- Checksum-verified Thunder archive: [`runs/thunder_sigreg_batch16_transfer/results/sigreg_batch16_pilot_artifacts.tar.gz`](../../runs/thunder_sigreg_batch16_transfer/results/sigreg_batch16_pilot_artifacts.tar.gz), SHA-256 `acc2aa39eb9a51acc01336b9b80e0dda196b57b920afa4559f8c6039370d6ce1`
 - A6000 instance `i1b7v30z` was terminated after local checksum and row-count verification.

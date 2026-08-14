@@ -1,3 +1,5 @@
+"""Exact SIGReg batch-16 calibration and smoke test for the RTX 4050."""
+
 from __future__ import annotations
 
 import argparse

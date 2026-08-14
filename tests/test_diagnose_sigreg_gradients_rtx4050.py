@@ -3,7 +3,7 @@ import math
 import torch
 
 from jepa import SIGReg
-from sigreg_gradient_response import (
+from diagnose_sigreg_gradients_rtx4050 import (
     EXPECTED_REGULARIZER_COEFFICIENT,
     LEJEPA_TRADEOFF,
     fixed_sigreg_loss,
