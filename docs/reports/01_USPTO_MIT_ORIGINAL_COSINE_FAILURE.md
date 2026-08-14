@@ -151,7 +151,7 @@ Alternative explanations are less consistent with the complete pattern:
 
 ## Expanded geometry and decoder-coupling analysis
 
-**Scope.** Existing checkpoints only; no optimizer steps or retraining. The assay uses the frozen 1,024-identity `data/gate3/uspto_mit_synthesis.csv` sample, seed 533, and the Gate 4/5-faithful k=1 predictor-token initialization. It compares base ChemFM, native epoch 3, and cLM-JEPA epoch 3. Model inference took 150.54 seconds total on the RTX 4050; peak allocated VRAM was 2.69 GB.
+**Scope.** Existing checkpoints only; no optimizer steps or retraining. The assay used the frozen 1,024-identity USPTO-MIT Gate 3 sample, seed 533, and the Gate 4/5-faithful k=1 predictor-token initialization. The obsolete sample copy was removed during repository cleanup. The assay compares base ChemFM, native epoch 3, and cLM-JEPA epoch 3. Model inference took 150.54 seconds total on the RTX 4050; peak allocated VRAM was 2.69 GB.
 
 ## Results
 
@@ -281,8 +281,8 @@ The target-side stop-gradient intervention and its 32-reaction evaluation are re
 
 - Results: `runs/diagnostics/uspto_mit_geometry_diagnosis.json`
 - Cached embeddings: `runs/diagnostics/geometry_cache/{base,native_epoch3,clm_jepa_epoch3}.pt`
-- Reproduction code: `src/geometry_diagnosis.py`
+- Reproduction code: `scripts/geometry_diagnosis.py`
 - Paired decoder-coupling summary: `runs/diagnostics/decoder_coupling/summary_512.json`
 - Paired beam outputs: `runs/diagnostics/decoder_coupling/{native,clm_jepa}_generation_512.jsonl`
 - Per-reaction CE, pair margins, and interventions: `runs/diagnostics/decoder_coupling/{native,clm_jepa}_diagnostics.json`
-- Frozen 1,024-identity parent panel: `data/gate5_decoder_coupling/uspto_mit_validation_1024.csv`
+- Frozen 1,024-identity parent panel: `data/clm_jepa_uspto_mit_validation_1024/uspto_mit_validation_1024.csv`

@@ -1,14 +1,5 @@
 .venv/
 models/
-data/*
-!data/gate3/
-!data/gate3/**
-!data/gate45/
-!data/gate45/**
-!data/gate45_v2/
-!data/gate45_v2/**
-!data/gate5_decoder_coupling/
-!data/gate5_decoder_coupling/**
 
 # Generated runs stay local except for the two frozen Gate 5 endpoints and
 # their decoder-coupling continuation evidence.

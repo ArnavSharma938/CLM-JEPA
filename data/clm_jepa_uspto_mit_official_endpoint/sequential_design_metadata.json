@@ -1,0 +1,32 @@
+{
+  "created_before_primary_endpoint_inference": true,
+  "source_manifest": "data/clm_jepa_uspto_mit_official_endpoint/prespecified_3300.jsonl",
+  "source_manifest_sha256": "c4963f3e9279f13219e5d9fccf1457afa21d6b3052b5df7a627b5fcfe704883b",
+  "ordered_manifest": "data/clm_jepa_uspto_mit_official_endpoint/prespecified_3300_sequential.jsonl",
+  "ordered_manifest_sha256": "3a2b75b4c68a8d234ef8f907f04de4955a41a9a5460ea25fa8d463d6f7723a17",
+  "stage1_manifest": "data/clm_jepa_uspto_mit_official_endpoint/prespecified_stage1_1280.jsonl",
+  "stage1_manifest_sha256": "e72ab5f8995f2a8c81f125cc8365961eee671576b36fac278ebba3ab32fcc72b",
+  "order": "deterministic random permutation of the already frozen 3,300-reaction sample",
+  "order_seed": 533,
+  "primary_endpoint": "paired exact top-1 under official five-view beam-10 ChemFM evaluation",
+  "minimum_effect_of_interest": 0.01,
+  "maximum_n": 3300,
+  "stage1_n": 1280,
+  "stage1_futility_rule": "stop if the two-sided 99% Wald upper confidence bound for paired JEPA-minus-native top-1 difference is strictly below +0.01",
+  "otherwise": "continue the unchanged ordered manifest to maximum_n",
+  "final_test": "two-sided exact McNemar alpha=0.05",
+  "power_calibration": {
+    "pilot_discordant_pairs": 4,
+    "pilot_n": 256,
+    "conservative_discordance": 0.039520756533374946,
+    "conservative_bound": "upper endpoint of the pre-existing two-sided 95% Clopper-Pearson interval",
+    "true_difference": 0.01,
+    "simulation_seed": 533,
+    "simulation_repetitions": 300000,
+    "unadjusted_maximum_n_power": 0.8055933333333334,
+    "sequential_power_with_futility": 0.80457,
+    "probability_of_stage1_stop_under_boundary_alternative": 0.006196666666666666,
+    "monte_carlo_standard_error_at_power_0_805": 0.000723
+  },
+  "scientific_invariance": "stopping design changes neither checkpoint, identities, five views, beam settings, generation, ranking, nor final paired test"
+}

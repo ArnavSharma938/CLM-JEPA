@@ -1,0 +1,541 @@
+{
+  "schema_version": 2,
+  "generated_on": "2026-08-09",
+  "complete_for_plan": false,
+  "remaining_before_gate4": [
+    "construct and audit the parent-grouped, scaffold-disjoint MetaTrans validation split from training data"
+  ],
+  "normalization": {
+    "canonical_columns": [
+      "example_id",
+      "split",
+      "source",
+      "target"
+    ],
+    "open_nmt_spaces_removed": true,
+    "source_release_hashes_retained_below": true,
+    "removed_duplicate_transport_files": true
+  },
+  "groups": {
+    "uspto_mit_synthesis": {
+      "source": "https://drive.google.com/drive/folders/15QYOkBoQSwEX1XJpFKuR4oL3fStNZGa3",
+      "upstream": "https://github.com/otori-bird/retrosynthesis",
+      "upstream_commit": "0468429c4c2d51e74a7f68ea57014d760d28028e",
+      "source_files": [
+        {
+          "path": "data/uspto_mit_synthesis/test/src-test.txt",
+          "bytes": 29118088,
+          "sha256": "caa7c8ce5aac9b0e9e177ceb75f2ca89164c4bd4707b1cf45909ba8720fc2983",
+          "lines": 200000
+        },
+        {
+          "path": "data/uspto_mit_synthesis/test/tgt-test.txt",
+          "bytes": 17024757,
+          "sha256": "541808e2ff5e996734d5e95f22d0e30d74430e8f5a5082f3fc9bf52f62095b2b",
+          "lines": 200000
+        },
+        {
+          "path": "data/uspto_mit_synthesis/train/src-train.txt",
+          "bytes": 318338291,
+          "sha256": "bf37049ca85d00eb1cd9af80cb29e8de081bae2b31492530050f861d4de3a00d",
+          "lines": 2195175
+        },
+        {
+          "path": "data/uspto_mit_synthesis/train/tgt-train.txt",
+          "bytes": 186939930,
+          "sha256": "b7737955afb6c08870036f8c22559d75c41a861c649f754dcab881fe15291396",
+          "lines": 2195175
+        },
+        {
+          "path": "data/uspto_mit_synthesis/val/src-val.txt",
+          "bytes": 21725735,
+          "sha256": "9c915f3413626fd33cf2343fe171bd0f3f55ea2c0cc681a576ff5053eaa96fdb",
+          "lines": 150000
+        },
+        {
+          "path": "data/uspto_mit_synthesis/val/tgt-val.txt",
+          "bytes": 12724473,
+          "sha256": "945666486ddb1ad211236494c064509f567d383d319e9bfbb786ffca0e9b5ef0",
+          "lines": 150000
+        }
+      ],
+      "canonical_files": [
+        {
+          "path": "data/uspto_mit_synthesis/train_r_smiles.csv",
+          "rows": 2195175,
+          "bytes": 334667902,
+          "sha256": "b5f9e1ecf4a6c7c780a25c460613af975a2fddba70611cf23b7496c8b5a596f8",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target",
+            "serialization"
+          ],
+          "definition": "official augmented R-SMILES train; forward source-to-product direction"
+        },
+        {
+          "path": "data/uspto_mit_synthesis/validation_r_smiles.csv",
+          "rows": 150000,
+          "bytes": 24331669,
+          "sha256": "6f17fdc91f671bc9e62a0ea2a2717bc818cbcf6d908f12939298de0062b21829",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target",
+            "serialization"
+          ],
+          "definition": "official augmented R-SMILES validation; forward source-to-product direction"
+        },
+        {
+          "path": "data/uspto_mit_synthesis/test_r_smiles.csv",
+          "rows": 200000,
+          "bytes": 30150910,
+          "sha256": "c2f4a3b731c4ed0a35b1c38fbff9563aee0e61064bcedeca555f335f69964945",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target",
+            "serialization"
+          ],
+          "definition": "official augmented R-SMILES test; forward source-to-product direction"
+        }
+      ]
+    },
+    "uspto_50k": {
+      "source": "https://drive.google.com/drive/folders/1pdurs8PH1yNhbGbua8SX4B-09j42Who0",
+      "upstream": "https://github.com/otori-bird/retrosynthesis",
+      "upstream_commit": "0468429c4c2d51e74a7f68ea57014d760d28028e",
+      "source_files": [
+        {
+          "path": "data/uspto_50k/test/src-test.txt",
+          "bytes": 9136952,
+          "sha256": "6b89bd0bea1da776d8d9ba962b2764cfb2251f42006d483ea8e26fadd9576c70",
+          "lines": 100140
+        },
+        {
+          "path": "data/uspto_50k/test/tgt-test.txt",
+          "bytes": 10209740,
+          "sha256": "6e85137f7746c6601d1b295c54201b1d1a7ec73bfb24f284019f31dccb79c8e8",
+          "lines": 100140
+        },
+        {
+          "path": "data/uspto_50k/train/src-train.txt",
+          "bytes": 73325270,
+          "sha256": "4e27e8bb27eaf568e59bc74d5f5a7a0ff71ee67053476531be7d246e0ddf2858",
+          "lines": 800060
+        },
+        {
+          "path": "data/uspto_50k/train/tgt-train.txt",
+          "bytes": 81795146,
+          "sha256": "623719737b8053d77ccd864aba850a08ae346bc14351cd3dea803b81ee7a3921",
+          "lines": 800060
+        },
+        {
+          "path": "data/uspto_50k/val/src-val.txt",
+          "bytes": 9155511,
+          "sha256": "d870082c284056ebcd4296d8a3c2765428ead70eb2160251731601a8b3bc88d1",
+          "lines": 100020
+        },
+        {
+          "path": "data/uspto_50k/val/tgt-val.txt",
+          "bytes": 10218837,
+          "sha256": "cdd35037f21bbee48a17bd511eba0e897f11179ce67b7293b344b74e843c6c49",
+          "lines": 100020
+        },
+        {
+          "path": "data/uspto_50k_train_single.csv",
+          "bytes": 16208464,
+          "sha256": "fbf510afb9d66dec5f005408173a4a9621f38e675b333eb53a679d322ff6b738",
+          "lines": 160013
+        }
+      ],
+      "canonical_files": [
+        {
+          "path": "data/uspto_50k/train_r_smiles.csv",
+          "rows": 800060,
+          "bytes": 106237791,
+          "sha256": "be275c1d51f534a9dcd05042b5963762684fa6f0e96b4341c8854082e05e2111",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target",
+            "serialization"
+          ],
+          "definition": "official augmented R-SMILES train, normalized to product-to-precursors"
+        },
+        {
+          "path": "data/uspto_50k/validation_r_smiles.csv",
+          "rows": 100020,
+          "bytes": 14280103,
+          "sha256": "fee5167ee6db0ee0b96fdecf2b02676bb61cc63c3d9e48067c39c7ce404eb995",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target",
+            "serialization"
+          ],
+          "definition": "official augmented R-SMILES validation, normalized to product-to-precursors"
+        },
+        {
+          "path": "data/uspto_50k/test_r_smiles.csv",
+          "rows": 100140,
+          "bytes": 13066131,
+          "sha256": "ea0d90b44018314392af149de540507cac2bb66c4f6805f7239910d57195b39b",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target",
+            "serialization"
+          ],
+          "definition": "official augmented R-SMILES test, normalized to product-to-precursors"
+        },
+        {
+          "path": "data/uspto_50k/train_single.csv",
+          "rows": 160012,
+          "bytes": 22768993,
+          "sha256": "f5157d1a50fd6d447798604fd5793bc14f8422c7b97dadc91f01245b320ef5d8",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target",
+            "serialization"
+          ],
+          "definition": "author-named ChemFM train_single release, normalized to product-to-precursors"
+        }
+      ]
+    },
+    "orderly_forward": {
+      "source": "https://figshare.com/articles/dataset/23298467",
+      "version": 4,
+      "source_files": [
+        {
+          "path": "data/orderly/orderly_forward_train.parquet",
+          "bytes": 495497112,
+          "sha256": "1ab22a39de1ec8d2ed5d937ac258cf5ca7d6835e60c7d50bdeeb43fe9f26a97b",
+          "rows": 832809
+        },
+        {
+          "path": "data/orderly/orderly_forward_test.parquet",
+          "bytes": 51551434,
+          "sha256": "2eca48ce08875dd2fa99a5df6af7bcf1745669c7d00ead6d3d4431587c4a3971",
+          "rows": 86268
+        }
+      ],
+      "canonical_files": [
+        {
+          "path": "data/orderly_forward/train.csv",
+          "rows": 809731,
+          "bytes": 121004538,
+          "sha256": "9f32ff3f76ba10ef0eaffb716f46772a64ebe72514d9227120843f4936706cb2",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target",
+            "original_index"
+          ],
+          "definition": "official train assignment filtered to exactly one product; source=reactants+agents+solvents"
+        },
+        {
+          "path": "data/orderly_forward/test.csv",
+          "rows": 83819,
+          "bytes": 12495399,
+          "sha256": "a701dca6f1c20825626288a6aa0d5d84b5b85bdfb8a6d212943ee4e089e0c1a5",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target",
+            "original_index"
+          ],
+          "definition": "official test assignment filtered to exactly one product; source=reactants+agents+solvents"
+        }
+      ]
+    },
+    "non_uspto_forward": {
+      "source": "https://figshare.com/articles/dataset/23502372",
+      "version": 3,
+      "source_files": [
+        {
+          "path": "data/orderly/non_uspto_data/non_uspto_orderly_forward.parquet",
+          "bytes": 1882583,
+          "sha256": "bc52a4daf7663ae0b7eb1f90128850eacff31474cc5b0065a084585467c63078",
+          "rows": 29417
+        },
+        {
+          "path": "data/orderly/non_uspto_data/non_uspto_orderly_forward_clean.log",
+          "bytes": 21224,
+          "sha256": "80b2a225f9ece8e6bb856fb6b011ece8266b1f3f799182320101c80582fad5df"
+        },
+        {
+          "path": "data/orderly/non_uspto_data/non_uspto_orderly_forward_clean_config.json",
+          "bytes": 873,
+          "sha256": "2348fa8e44e2e68371b228d171c5d7a843de1d66fed151586b7cb6a925119ed4"
+        }
+      ],
+      "canonical_files": [
+        {
+          "path": "data/non_uspto_forward/test.csv",
+          "rows": 28400,
+          "bytes": 4216867,
+          "sha256": "e73fa6c0a8ca52b0b27b7bb1c0c1ffd198f57254e90ed2867918367faf75ab19",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target",
+            "original_index"
+          ],
+          "definition": "external test filtered to exactly one product; source=reactants+agents+solvents"
+        }
+      ]
+    },
+    "non_uspto_retro": {
+      "source": "https://figshare.com/articles/dataset/23502372",
+      "version": 3,
+      "source_files": [
+        {
+          "path": "data/orderly/non_uspto_data/non_uspto_orderly_retro.parquet",
+          "bytes": 1798179,
+          "sha256": "a12b1722b743ff138f900e1a4ed3f1ae0c78f1e7687062e49c34c2cbb42f6754",
+          "rows": 23334
+        },
+        {
+          "path": "data/orderly/non_uspto_data/non_uspto_orderly_retro_clean.log",
+          "bytes": 21382,
+          "sha256": "c883b03cd266261bb100caa62ea2ed9acd4a703bc912b1d8f2ef6eb61c373a0e"
+        },
+        {
+          "path": "data/orderly/non_uspto_data/non_uspto_orderly_retro_clean_config.json",
+          "bytes": 873,
+          "sha256": "501baca0cb70f2b837648986ede068528081a0703a1bdb1553b85fb8736580ab"
+        }
+      ],
+      "canonical_files": [
+        {
+          "path": "data/non_uspto_retro/test.csv",
+          "rows": 23334,
+          "bytes": 2680096,
+          "sha256": "d681c10f2e098d80d51abd254b451fbfb5e2ceea120ef75191ce2e633782711a",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target",
+            "original_index"
+          ],
+          "definition": "complete released external test; product-to-precursors direction"
+        }
+      ]
+    },
+    "metatrans": {
+      "source": "https://github.com/KavrakiLab/MetaTrans",
+      "upstream_commit": "30d88639da9e0b9e8db9b7686ca19f2d24261c34",
+      "source_files": [
+        {
+          "path": "data/metatrans/repo/datasets/test/input.csv",
+          "bytes": 4798,
+          "sha256": "5f2dfc3cef6ea2bb166f37973be9e05e376eeb9cb6132d890bc20240035c2a25",
+          "lines": 84
+        },
+        {
+          "path": "data/metatrans/repo/datasets/test/input.txt",
+          "bytes": 3973,
+          "sha256": "e42b91ce8c636b4516579bf214e0e594223787bfd111f874e6acacf981a8ea75",
+          "lines": 84
+        },
+        {
+          "path": "data/metatrans/repo/datasets/test/input_drugnames.txt",
+          "bytes": 4797,
+          "sha256": "1553f0661effe3188e197f123a39e4a195c6f3afcfcc8d777c35383e0d9210fe",
+          "lines": 84
+        },
+        {
+          "path": "data/metatrans/repo/datasets/test/output.csv",
+          "bytes": 58569,
+          "sha256": "5f43ce05cfaffabb537dbce053a91ca72b0edb6c656a6525ea9ba1765ab8b9a8",
+          "lines": 85
+        },
+        {
+          "path": "data/metatrans/repo/datasets/test/source_test.txt",
+          "bytes": 13776,
+          "sha256": "12d4206e4a90f595bcdc294e76661141469fac6d2050b9b6d1de48bc4bdcf1bb",
+          "lines": 156
+        },
+        {
+          "path": "data/metatrans/repo/datasets/test/test_molecules_source.txt",
+          "bytes": 7339,
+          "sha256": "019f41c5fbc635ff7e569c2c7be2a11ebc487b87f8872fb6b971473d1d54e7ff",
+          "lines": 84
+        },
+        {
+          "path": "data/metatrans/repo/datasets/test/testMolecules_enzymesLabeled.csv",
+          "bytes": 35758,
+          "sha256": "8ad40bb8e5e09bc899b834dabd7014be384a170284fe4344aaded62c535f7845",
+          "lines": 312
+        },
+        {
+          "path": "data/metatrans/repo/datasets/test/testMolecules_info.csv",
+          "bytes": 17606,
+          "sha256": "4fafe6f6684e7f9263a7edf54da40c9fcfe030635754fae4922fb739f4bda97c",
+          "lines": 85
+        },
+        {
+          "path": "data/metatrans/repo/datasets/train/source_train.txt",
+          "bytes": 1260677,
+          "sha256": "75af92c247fee37d179cdd8a099559ae20d6cba485a8306c48bee7cff56ae47e",
+          "lines": 11414
+        },
+        {
+          "path": "data/metatrans/repo/datasets/train/target_train.txt",
+          "bytes": 1248466,
+          "sha256": "a9db8ecf3e60da1b6eb02cb0e336d74e134e1d7ef6e38fd1ca511e28a780e323",
+          "lines": 11414
+        },
+        {
+          "path": "data/metatrans/repo/datasets/valid/source_valid.txt",
+          "bytes": 25180,
+          "sha256": "71d956c1ddf10b20d5becf010c1851e4a46272b7850f3fdcf20ecd2e9ba1c991",
+          "lines": 251
+        },
+        {
+          "path": "data/metatrans/repo/datasets/valid/target_valid.txt",
+          "bytes": 24508,
+          "sha256": "7df3dae637a73743f4cd237ea66f6811a63419d2f7afefbd0b3b63925de39435",
+          "lines": 251
+        },
+        {
+          "path": "data/metatrans/repo/datasets/valid/validation.csv",
+          "bytes": 27517,
+          "sha256": "ce96a9161ca7e1d2e9b687a9079a4a9d8f3e8539a494195609e66585c2ddb281",
+          "lines": 252
+        }
+      ],
+      "canonical_files": [
+        {
+          "path": "data/metatrans/train.csv",
+          "rows": 11414,
+          "bytes": 1659785,
+          "sha256": "0ca80a0d27f838069c0e0e63565c23f7f32a2a6916313d092825f6c05eebeae5",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target"
+          ],
+          "definition": "complete released parent-metabolite training collection"
+        },
+        {
+          "path": "data/metatrans/released_validation.csv",
+          "rows": 251,
+          "bytes": 39318,
+          "sha256": "1b5765ee74ad15caeb2c0657762aaffe5cea3318e75747076f1187320bb35931",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target"
+          ],
+          "definition": "released validation reference; not the plan's derived scaffold validation"
+        },
+        {
+          "path": "data/metatrans/heldout_drug_test.csv",
+          "rows": 217,
+          "bytes": 36268,
+          "sha256": "eb755c999985c2f7020fa3ad01035db0a5d32e52d5f7827076543443229b0edc",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target",
+            "parent_id",
+            "parent_name",
+            "enzyme_class_metadata"
+          ],
+          "definition": "84 official held-out parents expanded to pair rows; parent IDs retained for grouped evaluation"
+        }
+      ]
+    },
+    "uspto_480k_template_heldout": {
+      "source": "https://doi.org/10.6084/m9.figshare.30843134",
+      "version": 7,
+      "source_files": [
+        {
+          "path": "data/retro_extrapolation/data_480k.txt",
+          "bytes": 232623657,
+          "sha256": "396623be5dbe479eac7a976b4cdfa6b0109948814da9e56809c3cb18a6c61484",
+          "lines": 479034
+        },
+        {
+          "path": "data/retro_extrapolation/test_480k_mt.txt",
+          "bytes": 6676515,
+          "sha256": "3946e0b3357b415a9380e2f2d53356db3933284b43727d024ad7d04942e57dd5",
+          "lines": 48730
+        },
+        {
+          "path": "data/retro_extrapolation/train_480k_mt.txt",
+          "bytes": 46508996,
+          "sha256": "3dbe7239b81695581162fbda674a9b62009528d1364c73be0940459a71a0a7fd",
+          "lines": 383784
+        },
+        {
+          "path": "data/retro_extrapolation/valid_480k_mt.txt",
+          "bytes": 5817130,
+          "sha256": "3171ed412d32bd9641dccfaee86b63726a4d389af53d87bbd6e28d38780274fa",
+          "lines": 46519
+        }
+      ],
+      "canonical_files": [
+        {
+          "path": "data/uspto_480k_template_heldout/train.csv",
+          "rows": 383784,
+          "bytes": 54952302,
+          "sha256": "10521270b7e1c73ec643f69525eb56313159b8a6a4ed4eb2742842329ae028dd",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target",
+            "heldout_template_metadata"
+          ],
+          "definition": "released template-held-out train in product-to-precursors direction"
+        },
+        {
+          "path": "data/uspto_480k_template_heldout/validation.csv",
+          "rows": 46519,
+          "bytes": 7305796,
+          "sha256": "f1a63527a31285924d9400632879d48b15776dc188e238b945b4da39fc9434da",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target",
+            "heldout_template_metadata"
+          ],
+          "definition": "released template-held-out validation in product-to-precursors direction"
+        },
+        {
+          "path": "data/uspto_480k_template_heldout/test.csv",
+          "rows": 48730,
+          "bytes": 7651173,
+          "sha256": "6fd42ec72a1730d4decc2ff7e0f5a21defe5bcd5593ecd61a8d826fd2fede515",
+          "columns": [
+            "example_id",
+            "split",
+            "source",
+            "target",
+            "heldout_template_metadata"
+          ],
+          "definition": "released template-held-out test in product-to-precursors direction"
+        }
+      ]
+    }
+  }
+}

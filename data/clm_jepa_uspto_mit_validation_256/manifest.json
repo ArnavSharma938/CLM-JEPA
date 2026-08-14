@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "created_before_checkpoint_evaluation": true,
+  "dataset": "uspto_mit_synthesis",
+  "split": "validation",
+  "seed": 533,
+  "selection": "seeded random sample of 32 identities from each of eight equal-frequency source-prompt token-length strata in the frozen 1,024-identity validation panel",
+  "source_panel": "data/clm_jepa_uspto_mit_validation_1024/uspto_mit_validation_1024.csv",
+  "source_panel_sha256": "abc9654a2d5a854266807ab1975557f80ea38c3a93ff226f76dd640071f89b41",
+  "source_identities": 1024,
+  "selected_identities": 256,
+  "source_length_strata": [
+    {
+      "stratum": 0,
+      "candidate_count": 128,
+      "selected_count": 32,
+      "source_token_min": 20,
+      "source_token_max": 45
+    },
+    {
+      "stratum": 1,
+      "candidate_count": 128,
+      "selected_count": 32,
+      "source_token_min": 45,
+      "source_token_max": 54
+    },
+    {
+      "stratum": 2,
+      "candidate_count": 128,
+      "selected_count": 32,
+      "source_token_min": 54,
+      "source_token_max": 62
+    },
+    {
+      "stratum": 3,
+      "candidate_count": 128,
+      "selected_count": 32,
+      "source_token_min": 62,
+      "source_token_max": 70
+    },
+    {
+      "stratum": 4,
+      "candidate_count": 128,
+      "selected_count": 32,
+      "source_token_min": 70,
+      "source_token_max": 78
+    },
+    {
+      "stratum": 5,
+      "candidate_count": 128,
+      "selected_count": 32,
+      "source_token_min": 78,
+      "source_token_max": 88
+    },
+    {
+      "stratum": 6,
+      "candidate_count": 128,
+      "selected_count": 32,
+      "source_token_min": 88,
+      "source_token_max": 104
+    },
+    {
+      "stratum": 7,
+      "candidate_count": 128,
+      "selected_count": 32,
+      "source_token_min": 104,
+      "source_token_max": 262
+    }
+  ],
+  "selected_source_token_summary": {
+    "min": 24,
+    "median": 70.5,
+    "max": 235
+  },
+  "selected_target_token_summary": {
+    "min": 12,
+    "median": 42.0,
+    "max": 114
+  },
+  "panel_csv": "data/clm_jepa_uspto_mit_validation_256/uspto_mit_validation_length_stratified_256.csv",
+  "panel_csv_sha256": "41db8068aa3c4b6faf7149ce8ee5645e5ce3794f64d52c0e56552456721e5013",
+  "panel_jsonl": "data/clm_jepa_uspto_mit_validation_256/uspto_mit_validation_length_stratified_256.jsonl",
+  "panel_jsonl_sha256": "54b09ac0cf2239dc9c6075792f1387b535fe9df4493a8df2e099b75f081665a1"
+}

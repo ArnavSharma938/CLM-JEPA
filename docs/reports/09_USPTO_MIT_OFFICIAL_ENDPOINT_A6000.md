@@ -53,8 +53,8 @@ This establishes a behavioral result for these two fixed epoch-4 checkpoints, th
 
 ## Evidence paths
 
-- Frozen design: `data/official_five_view_endpoint/sequential_design_metadata.json`
-- Frozen 1,280-reaction manifest: `data/official_five_view_endpoint/prespecified_stage1_1280.jsonl`
+- Frozen design: `data/clm_jepa_uspto_mit_official_endpoint/sequential_design_metadata.json`
+- Frozen 1,280-reaction manifest: `data/clm_jepa_uspto_mit_official_endpoint/prespecified_stage1_1280.jsonl`
 - Paired statistics: `runs/official_five_view_endpoint/stage1_paired_summary.json`
 - Prespecified futility decision: `runs/official_five_view_endpoint/interim_1280.json`
 - Complete native candidates: `runs/official_five_view_endpoint/stage1_native/predictions.jsonl`

@@ -91,7 +91,7 @@ The evidence does not support post-hoc tuning of the SIGReg coefficient on this 
 
 ## Evidence and provenance
 
-- Fixed panel: [`data/sigreg_batch16_pilot/manifest.json`](../../data/sigreg_batch16_pilot/manifest.json)
+- Fixed panel: [`data/clm_jepa_uspto_mit_validation_256/manifest.json`](../../data/clm_jepa_uspto_mit_validation_256/manifest.json)
 - Training outputs and all epoch checkpoints: [`runs/sigreg_batch16_pilot/matched_b4/`](../../runs/sigreg_batch16_pilot/matched_b4/)
 - Epoch-2 aggregate/paired/coupling results: [`runs/sigreg_batch16_pilot/evaluation/summary_epoch2.json`](../../runs/sigreg_batch16_pilot/evaluation/summary_epoch2.json)
 - Epoch-4 aggregate/paired/coupling results: [`runs/sigreg_batch16_pilot/evaluation/summary_epoch4.json`](../../runs/sigreg_batch16_pilot/evaluation/summary_epoch4.json)

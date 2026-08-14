@@ -87,7 +87,7 @@ It does not fully solve the problem. Extreme anisotropy remains, native CE worse
 - Full 32-reaction evaluator parity evidence: `runs/gate4_rescue/beam_full_parity_b4.json`
 - Four-condition 32-identity geometry: `runs/diagnostics/target_sg_geometry_32.json`
 - Current-code 32-identity representation/intervention diagnostics: `runs/diagnostics/target_sg_representation_32.json`
-- Implementation: `src/jepa.py`, `src/train.py`, `src/chemfm.py`, and `src/geometry_diagnosis.py`
+- Implementation: `src/jepa.py`, `src/train.py`, `src/chemfm.py`, and `scripts/geometry_diagnosis.py`
 - Focused tests: `tests/test_jepa.py` and `tests/test_chemfm.py`
 
 ## Frozen 512-reaction follow-up

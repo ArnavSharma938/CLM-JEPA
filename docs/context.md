@@ -28,17 +28,16 @@ See `docs/CODE_LAYOUT.md` for the full map. Key entrypoints:
 - `src/train.py`: canonical ChemFM training, validation, checkpoint/resume, and W&B.
 - `src/chemfm.py`: tokenizer, collation, LoRA loading, and generation.
 - `src/jepa.py`: readouts, cosine/MSE objectives, stop-gradient option, and exact streamed SIGReg.
-- `src/representation_eval.py`, `src/geometry_diagnosis.py`, `src/decoder_coupling.py`: frozen diagnostics.
-- `src/diagnose_*_rtx4050.py`: protocols specific to the local 6 GB assay.
+- `src/representation_eval.py`: standard frozen representation evaluation.
 - `src/eval_uspto_mit_five_view_a6000.py`: official five-view beam-10 endpoint evaluation.
-- `scripts/a6000/`: A6000 execution wrappers, including the GSM8K upstream reference.
+- `scripts/`: report-specific diagnostics, setup utilities, A6000 execution wrappers, and the GSM8K upstream reference.
 - `references/`: pinned upstream source only.
 
 ## Gate and experiment status
 
 ### Gates 0–3
 
-Passed. Gate 3 evaluated 7,168 frozen examples across seven datasets and retained k=0 and k=1. Canonical evidence is `gates/gate3/README.md` and `gates/gate3/results.json`. Gate-3 sample CSVs were removed in the pre-cleanup snapshot; reruns require regeneration from the ignored full datasets.
+Passed. Gate 3 evaluated 7,168 frozen examples across seven datasets and retained k=0 and k=1. The protocol, corrections, and aggregate evidence are retained in `docs/reports/00_LLM_JEPA_METHOD_FIDELITY.md`. Gate-3 sample CSVs and the obsolete gate runner were removed; a rerun would require regenerating the samples from the ignored full datasets.
 
 ### Gate 4
 

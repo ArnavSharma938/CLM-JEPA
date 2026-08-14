@@ -7,31 +7,29 @@ There is one ChemFM training implementation for both GPUs:
 | File | Role | Hardware scope |
 |---|---|---|
 | `src/train.py` | Native and cLM-JEPA fine-tuning, checkpoint/resume, validation, diagnostics, W&B | Hardware-agnostic; batch/checkpointing settings determine fit |
-| `src/experiments.py` | Gate 4/5 condition orchestration | Hardware-agnostic |
 | `src/chemfm.py` | ChemFM tokenizer, collation, LoRA loading, generation | Hardware-agnostic |
 | `src/jepa.py` | JEPA readouts/losses and exact streamed SIGReg | Hardware-agnostic |
 | `src/metrics.py` | Generative and representation metrics | Hardware-agnostic |
+| `src/representation_eval.py` | Standard frozen representation diagnostics | Any compatible GPU |
+| `src/eval_uspto_mit_five_view_a6000.py` | Official five-view, beam-10 endpoint generation and paired statistics | A6000 exact-parity path |
 
 The A6000 experiments do not use a second ChemFM trainer. They invoke `src/train.py` with larger physical batches and without low-memory checkpointing/offload when those settings are verified to fit.
 
-## Evaluation and diagnostics
+## Experiment and execution scripts
 
 | File | Purpose | Intended environment |
 |---|---|---|
-| `src/representation_eval.py` | Standard frozen representation diagnostics | Any compatible GPU |
-| `src/geometry_diagnosis.py` | Base/native/cLM-JEPA geometry and residual PCA analysis | Any compatible GPU; initially run on RTX 4050 |
-| `src/decoder_coupling.py` | One-view generation, per-reaction CE, coupling, and source interventions | Any compatible GPU |
-| `src/diagnose_sigreg_batch16_rtx4050.py` | Exact streamed/direct SIGReg calibration and 16-update smoke test | RTX 4050-specific preflight |
-| `src/diagnose_sigreg_gradients_rtx4050.py` | Frozen-checkpoint gradient-response assay | RTX 4050-specific assay |
-| `src/prepare_uspto_mit_sigreg_panel.py` | Freeze the length-stratified 256-reaction panel | CPU |
-| `src/design_uspto_mit_endpoint.py` | Freeze and evaluate the sequential endpoint stopping rule | CPU |
-| `src/eval_uspto_mit_five_view_a6000.py` | Official five-view, beam-10 endpoint generation and paired statistics | A6000 exact-parity path |
+| `scripts/geometry_diagnosis.py` | Base/native/cLM-JEPA geometry and residual PCA analysis | Any compatible GPU; initially run on RTX 4050 |
+| `scripts/decoder_coupling.py` | One-view generation, per-reaction CE, coupling, and source interventions | Any compatible GPU |
+| `scripts/diagnose_sigreg_batch16_rtx4050.py` | Exact streamed/direct SIGReg calibration and 16-update smoke test | RTX 4050-specific preflight |
+| `scripts/diagnose_sigreg_gradients_rtx4050.py` | Frozen-checkpoint gradient-response assay | RTX 4050-specific assay |
+| `scripts/prepare_uspto_mit_sigreg_panel.py` | Freeze the length-stratified 256-reaction panel | CPU |
+| `scripts/design_uspto_mit_endpoint.py` | Freeze and evaluate the sequential endpoint stopping rule | CPU |
+| `scripts/download_chemfm_model.py` | Download and hash-check the pinned ChemFM-1B snapshot | CPU/network |
 
-The normal training-time validation in `src/train.py` and the one-view mechanism diagnostics are intentionally separate from the official five-view endpoint evaluator. They answer different questions and are not interchangeable.
+The report-specific scripts preserve analysis reproducibility but are not imported by the maintained trainer. The normal training-time validation in `src/train.py`, one-view mechanism diagnostics, and official five-view endpoint evaluator answer different questions and are not interchangeable.
 
-## A6000 launch wrappers
-
-`scripts/a6000/` contains execution wrappers, not alternative scientific implementations:
+The A6000 wrappers are also in flat `scripts/`; they are not alternative scientific implementations:
 
 | File | Purpose |
 |---|---|
@@ -41,6 +39,17 @@ The normal training-time validation in `src/train.py` and the one-view mechanism
 | `diagnose_llm_jepa_geometry.py` | Frozen GSM8K representation diagnostics |
 
 Pinned upstream code remains under `references/chemfm/` and `references/llm-jepa/`. Project-authored wrappers do not belong in `references/`.
+
+## Data layout
+
+| Path | Purpose |
+|---|---|
+| `data/clm_jepa_uspto_mit_pilot_1280/` | Frozen 1,280-row training and 160-row validation pilot manifests |
+| `data/clm_jepa_uspto_mit_validation_1024/` | Frozen 1,024-identity representation and coupling panel |
+| `data/clm_jepa_uspto_mit_validation_256/` | Frozen length-stratified 256-identity SIGReg/MSE panel |
+| `data/clm_jepa_uspto_mit_official_endpoint/` | Official five-view parity, powered-sample, sequential-order, and stage-1 manifests |
+
+Full released datasets and these frozen manifests are intentionally visible to Git. Historical run artifacts retain the paths used at execution time.
 
 ## Removed one-off utilities
 

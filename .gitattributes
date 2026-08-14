@@ -3,6 +3,12 @@
 
 # Vendored upstream sources are retained byte-for-byte for fidelity audits.
 references/** -whitespace
-
 # The frozen panel hash includes its original CRLF byte serialization.
-data/gate5_decoder_coupling/*.csv -text -whitespace
+data/clm_jepa_uspto_mit_validation_1024/*.csv -text -whitespace
+data/metatrans/** filter=lfs diff=lfs merge=lfs -text
+data/non_uspto_forward/** filter=lfs diff=lfs merge=lfs -text
+data/non_uspto_retro/** filter=lfs diff=lfs merge=lfs -text
+data/orderly_forward/** filter=lfs diff=lfs merge=lfs -text
+data/uspto_480k_template_heldout/** filter=lfs diff=lfs merge=lfs -text
+data/uspto_50k/** filter=lfs diff=lfs merge=lfs -text
+data/uspto_mit_synthesis/** filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,39 @@
+{
+  "created_before_model_inference": true,
+  "public_repository_commit": "baafe4d15ee4a32f4dc774e58b659fefd937711d",
+  "official_test": "data/uspto_mit_synthesis/test_r_smiles.csv",
+  "official_test_sha256": "c2f4a3b731c4ed0a35b1c38fbff9563aee0e61064bcedeca555f335f69964945",
+  "official_augmented_rows": 200000,
+  "available_unique_reactions": 40000,
+  "views_per_reaction": 5,
+  "groups_with_consistent_rdkit_canonical_source": 39994,
+  "groups_with_unsanitizable_or_inconsistent_source_views": 6,
+  "selection": "seeded simple random sample without replacement over unique canonical reactions",
+  "seed": 533,
+  "selected_reactions": 3300,
+  "manifest": "data/clm_jepa_uspto_mit_official_endpoint/prespecified_3300.jsonl",
+  "manifest_sha256": "c4963f3e9279f13219e5d9fccf1457afa21d6b3052b5df7a627b5fcfe704883b",
+  "equivalence_manifest": "data/clm_jepa_uspto_mit_official_endpoint/equivalence_24.jsonl",
+  "equivalence_manifest_sha256": "15130e3dea38cbdbd550e757aaf969f13680804ab8d54b9b5aa78d97a7163f64",
+  "equivalence_reactions": 24,
+  "full_manifest_sha256": "42ef9ac42703e9df43e16ee18dd752f79e65ae10a21410928c8ba1bf6653c281",
+  "full_manifest_retention": "Regenerable 40,000-reaction enumeration removed after the frozen sample was verified.",
+  "power": {
+    "primary_endpoint": "paired exact top-1",
+    "test": "two-sided exact McNemar",
+    "alpha": 0.05,
+    "target_power": 0.8,
+    "minimum_effect_absolute": 0.01,
+    "pilot_reactions": 256,
+    "pilot_discordant_pairs": 4,
+    "pilot_discordance_point": 0.015625,
+    "pilot_discordance_exact_95_ci": [
+      0.004273272485754637,
+      0.039520756533374946
+    ],
+    "planning_discordance": 0.039520756533374946,
+    "exact_required_reactions": 3253,
+    "power_at_exact_requirement": 0.8000981380083637,
+    "power_at_selected_size": 0.8061670778169998
+  }
+}

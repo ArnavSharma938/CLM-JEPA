@@ -209,9 +209,7 @@ def read_rows(
             )
         path = ROOT / "data" / available[split]
     if not path.exists():
-        raise FileNotFoundError(
-            f"dataset manifest is missing: {path}; Gate 3 samples live under data/gate3"
-        )
+        raise FileNotFoundError(f"dataset manifest is missing: {path}")
     with path.open(newline="", encoding="utf-8") as handle:
         return [
             {**row, "src": row["source"], "tgt": row["target"]}

@@ -25,12 +25,10 @@ The official endpoint result excludes the prespecified +1 percentage-point benef
 | `src/chemfm.py` | Tokenization, task collation, LoRA loading, generation, canonicalization |
 | `src/jepa.py` | JEPA readouts, losses, and exact streamed SIGReg |
 | `src/metrics.py` | Generative and representation metrics |
-| `src/experiments.py` | Gate 4/5 condition orchestration |
+| `src/representation_eval.py` | Standard frozen representation evaluation |
 | `src/eval_uspto_mit_five_view_a6000.py` | Official five-view endpoint evaluation optimized for one A6000 |
-| `src/diagnose_*_rtx4050.py` | Diagnostics whose execution protocol is specific to the local 6 GB GPU |
-| `scripts/a6000/` | A6000 launch wrappers and upstream LLM-JEPA reference wrappers |
+| `scripts/` | Experiment diagnostics, setup utilities, and hardware-specific execution wrappers |
 | `docs/reports/` | Numbered experiment reports and report index |
-| `gates/` | Gate 1–3 preparation and retained compact evidence |
 | `references/` | Pinned upstream ChemFM and LLM-JEPA source |
 | `runs/` | Generated checkpoints, logs, diagnostics, and candidate outputs; mostly ignored |
 
@@ -51,9 +49,8 @@ The base ChemFM checkpoint is expected at `models/ChemFM-1B` unless `CHEMFM_MODE
 
 ```powershell
 python src/train.py --help
-python src/experiments.py --help
 python src/representation_eval.py --help
-python src/decoder_coupling.py --help
+python scripts/decoder_coupling.py --help
 python src/eval_uspto_mit_five_view_a6000.py --help
 ```
 

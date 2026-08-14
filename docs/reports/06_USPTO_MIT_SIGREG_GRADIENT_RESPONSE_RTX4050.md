@@ -8,7 +8,7 @@ The frozen assay does **not** reproduce the hypothesis that SIGReg gradients van
 
 The qualification is directional: at the symmetric checkpoint SIGReg is only weakly opposed to cosine in parameter space (`cos=-0.069`), whereas the explicit VISReg scale term is strongly opposed (`cos=-0.942`). After coefficient mapping, the components opposing cosine are approximately 2.97% and 4.41% of the cosine norm, respectively. Explicit scale regularization is therefore more directionally efficient at this single state, but SIGReg has not lost its gradient, does not materially conflict with NTP, and is stronger at the partially contracted target-stop-gradient checkpoint. The evidence does not satisfy decision B's premise that SIGReg materially weakens while scale remains strong, nor decision C's premise that neither regularizer addresses the conflict.
 
-No optimizer was constructed, no parameter was updated, and no training, generation, retrieval, interventions, PCA, decoder coupling, or checkpoint selection was run. Raw evidence is in [`runs/diagnostics/sigreg_gradient_response.json`](../../runs/diagnostics/sigreg_gradient_response.json); implementation is [`src/diagnose_sigreg_gradients_rtx4050.py`](../../src/diagnose_sigreg_gradients_rtx4050.py).
+No optimizer was constructed, no parameter was updated, and no training, generation, retrieval, interventions, PCA, decoder coupling, or checkpoint selection was run. Raw evidence is in [`runs/diagnostics/sigreg_gradient_response.json`](../../runs/diagnostics/sigreg_gradient_response.json); implementation is [`scripts/diagnose_sigreg_gradients_rtx4050.py`](../../scripts/diagnose_sigreg_gradients_rtx4050.py).
 
 ## Frozen protocol
 
