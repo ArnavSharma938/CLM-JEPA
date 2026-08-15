@@ -33,6 +33,11 @@ runs/diagnostics/decoder_coupling/*
 !runs/diagnostics/decoder_coupling/native_generation_512.jsonl
 !runs/diagnostics/decoder_coupling/clm_jepa_generation_512.jsonl
 !runs/diagnostics/decoder_coupling/summary_512.json
+!runs/diagnostics/mse_sigreg_mechanistic_audit/
+runs/diagnostics/mse_sigreg_mechanistic_audit/*
+!runs/diagnostics/mse_sigreg_mechanistic_audit/gradient_audit.json
+!runs/diagnostics/mse_sigreg_mechanistic_audit/block_swap_audit.json
+!runs/diagnostics/mse_sigreg_mechanistic_audit/swap_groups.json
 !runs/diagnostics/target_sg_geometry_32.json
 !runs/diagnostics/target_sg_representation_32.json
 !runs/diagnostics/target_sg_geometry_cache_32/

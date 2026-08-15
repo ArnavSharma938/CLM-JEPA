@@ -78,8 +78,14 @@ The prespecified 99% futility upper bound was +0.458 pp, below the +1 pp effect 
 
 The reduced two-epoch DeepSeek-1.5B run was not a successful behavioral control: NTP/LLM-JEPA accuracy was 36/28 of 300, difference -2.67 pp, 95% CI [-6.33,+1.00], p=0.229. LLM-JEPA target variance was only 1.45× below NTP, versus ChemFM's approximately 495× contraction. This does not support LoRA alone as a sufficient explanation for the ChemFM geometry.
 
+### Frozen mechanistic audit
+
+The selected MSE+SIGReg endpoint's active auxiliary gradient was `0.212x` the LoRA NTP-gradient norm, cosine `-0.042`, and 99.82% orthogonal. The conflict was localized and SIGReg-dominated: layers 17-21 had active-auxiliary/early-NTP cosine `-0.107`. Swapping those cLM layers into native worsened CE by `+0.015607`; restoring native layers 17-21 in cLM removed 55.1% of the full CE gap. cLM layers 12-16 instead improved the native background by `-0.003447`.
+
+True and shuffled active auxiliary gradients had cosine `0.902`; the pair-specific residual was only `0.096x` the NTP norm and nearly orthogonal to NTP. Source/target MSE decomposition did not support target-branch interference as the main mechanism. Full details and the one controlled next experiment are in `docs/reports/04_MECHANISTIC_GRADIENT_AND_BLOCK_SWAP_AUDIT.md`.
+
 ## Current conclusion
 
-For the fixed USPTO-MIT pilot endpoints, repairing global JEPA geometry was not sufficient to improve official reaction generation. The selected cLM-JEPA endpoint did not meet the +1 pp exact-top-1 effect of interest. This conclusion does not cover MetaTrans or retrosynthesis training, additional seeds, larger training exposure, or an objective that couples the auxiliary relationship differently to autoregressive decoding.
+For the fixed USPTO-MIT pilot endpoints, repairing global JEPA geometry was not sufficient to improve official reaction generation. The selected cLM-JEPA endpoint did not meet the +1 pp exact-top-1 effect of interest. The negative CE effect is most specifically associated with SIGReg pressure and realized parameter changes in layers 17-21, not uniform model-wide gradient opposition. This conclusion does not cover MetaTrans or retrosynthesis training, additional seeds, larger training exposure, or an objective that couples the auxiliary relationship differently to autoregressive decoding.
 
-The consolidated report index and artifact paths are in `docs/reports/README.md`. Reports 01-07 from the former chronology were merged into `01_COSINE_TO_MSE_SIGREG_DIAGNOSIS.md`; the decisive MSE+SIGReg and official endpoint results are reports 02 and 03.
+The consolidated report index and artifact paths are in `docs/reports/README.md`. Reports 01-07 from the former chronology were merged into `01_COSINE_TO_MSE_SIGREG_DIAGNOSIS.md`; the decisive MSE+SIGReg, official endpoint, and mechanistic audit results are reports 02-04.

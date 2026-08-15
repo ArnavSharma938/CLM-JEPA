@@ -59,9 +59,11 @@ SIGReg did not decrease. The geometry decision therefore came from the measured 
 | Top-5 | 40/256 (15.63%) | 34/256 (13.28%) | native higher |
 | Top-10 | 52/256 (20.31%) | 49/256 (19.14%) | native higher |
 | Valid candidates | 78.20% | 86.60% | MSE+SIGReg higher |
-| Aggregate target CE | 0.240683 | 0.248779 | MSE+SIGReg 3.36% worse |
+| Historical aggregate CE | 0.240683 | 0.248779 | MSE+SIGReg 3.36% worse |
 
 Top-1 paired outcomes were 4 both correct, 2 native-only, 2 MSE+SIGReg-only, and 248 neither. Correct-product rank improved/worsened/tied on 18/35/203 reactions. Mean rank improvement was `-0.137` with 95% CI `[-0.383,+0.105]`. Mean per-reaction `native CE - MSE+SIGReg CE` was `-0.00773`, 95% CI `[-0.01386,-0.00188]`; 44.5% improved, 55.5% worsened, Wilcoxon `p=0.0221`.
+
+The later mechanistic audit found that this historical aggregate denominator excludes the supervised `<prostart>` and `<eos>` labels: 10,642 raw-product tokens versus 11,154 model labels. Per-reaction CE and the native-vs-cLM direction were unaffected. The correctly label-normalized local reproduction was `0.229702` native and `0.237275` MSE+SIGReg (3.30% worse); see [report 04](04_MECHANISTIC_GRADIENT_AND_BLOCK_SWAP_AUDIT.md).
 
 ### Geometry and interventions
 

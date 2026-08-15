@@ -1,0 +1,10 @@
+{
+  "basis": "The epoch-4 cLM gradient audit localizes the strongest adverse active-auxiliary versus early-token NTP relationship to layers 17-21; the other groups provide contiguous controls and cover every transformer layer exactly once.",
+  "groups": [
+    {"name": "depth_00_05", "kind": "layers", "start": 0, "stop": 6},
+    {"name": "depth_06_11", "kind": "layers", "start": 6, "stop": 12},
+    {"name": "depth_12_16", "kind": "layers", "start": 12, "stop": 17},
+    {"name": "depth_17_21", "kind": "layers", "start": 17, "stop": 22},
+    {"name": "token_io", "kind": "token_io"}
+  ]
+}

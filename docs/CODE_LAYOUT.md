@@ -23,6 +23,7 @@ The A6000 experiments do not use a second ChemFM trainer. They invoke `src/train
 | `scripts/decoder_coupling.py` | One-view generation, per-reaction CE, coupling, and source interventions | Any compatible GPU |
 | `scripts/diagnose_sigreg_batch16_rtx4050.py` | Exact streamed/direct SIGReg calibration and 16-update smoke test | RTX 4050-specific preflight |
 | `scripts/diagnose_sigreg_gradients_rtx4050.py` | Frozen-checkpoint gradient-response assay | RTX 4050-specific assay |
+| `scripts/audit_chemfm_mechanism.py` | Frozen NTP/MSE/SIGReg gradient decomposition and exact LoRA block-swap CE audit | RTX 4050-optimized diagnostic |
 | `scripts/prepare_uspto_mit_sigreg_panel.py` | Freeze the length-stratified 256-reaction panel | CPU |
 | `scripts/design_uspto_mit_endpoint.py` | Freeze and evaluate the sequential endpoint stopping rule | CPU |
 | `scripts/download_chemfm_model.py` | Download and hash-check the pinned ChemFM-1B snapshot | CPU/network |

@@ -2,7 +2,7 @@
 
 ## Current answer
 
-MSE and MSE+SIGReg were tested. MSE alone reduced but did not eliminate ChemFM's JEPA variance contraction. MSE+exact-SIGReg-16 restored source/target variance to 90.3%/55.2% of native at epoch 4 and produced 85.9% raw four-way pair retrieval (25% chance), but it did not improve generation.
+MSE and MSE+SIGReg were tested. MSE alone reduced but did not eliminate ChemFM's JEPA variance contraction. MSE+exact-SIGReg-16 restored source/target variance to 90.3%/55.2% of native at epoch 4 and produced 85.9% raw four-way pair retrieval (25% chance), but it did not improve generation. The frozen mechanistic audit localizes the adverse update to mostly SIGReg-driven pressure in layers 17-21 rather than broad model-wide gradient opposition.
 
 The final benchmark-faithful comparison used 1,280 unique USPTO-MIT reactions and all five official R-SMILES views:
 
@@ -36,7 +36,8 @@ Read in this order:
 2. [Why the project moved from cosine to MSE+SIGReg](01_COSINE_TO_MSE_SIGREG_DIAGNOSIS.md): consolidated cosine failure, stop-gradient, SIGReg batch/cadence studies, gradient assay, and GSM8K comparison.
 3. [MSE and MSE+SIGReg experiment](02_MSE_SIGREG_EXPERIMENT.md): the decisive objective ablation and representation result.
 4. [Official five-view endpoint evaluation](03_OFFICIAL_ENDPOINT_EVALUATION.md): powered endpoint design, exact inference parity, statistics, and stopping decision.
+5. [Mechanistic gradient and block-swap audit](04_MECHANISTIC_GRADIENT_AND_BLOCK_SWAP_AUDIT.md): auxiliary/NTP gradient decomposition, pair specificity, token-position compatibility, and causal depth localization.
 
 ## Research status
 
-The current bottleneck is not unresolved global representation contraction: MSE+SIGReg repaired that geometry without improving decoder-visible accuracy. Any next method experiment should test a concrete mechanism for coupling the auxiliary relationship to autoregressive generation. It should not be another anti-contraction-only regularizer test unless new evidence changes this diagnosis.
+The current bottleneck is not unresolved global representation contraction. The strongest mechanistic evidence is localized: the trained auxiliary gradient is globally near-orthogonal to NTP, but SIGReg pressure in layers 17-21 conflicts most with early-token NTP, and bidirectional block swaps localize CE harm to the same region. Report 04 specifies the single controlled follow-up.

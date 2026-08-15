@@ -7,4 +7,4 @@
 | [CODE_LAYOUT.md](CODE_LAYOUT.md) | Training, evaluation, diagnostic, and hardware-specific entrypoints |
 | [reports/README.md](reports/README.md) | Executive result, tested-condition table, and consolidated report index |
 
-Experiment reports live only under `docs/reports/`. They are organized by decision dependency: fidelity, diagnosis, MSE+SIGReg, and final endpoint.
+Experiment reports live only under `docs/reports/`. They are organized by decision dependency: fidelity, diagnosis, MSE+SIGReg, final endpoint, and mechanistic audit.
