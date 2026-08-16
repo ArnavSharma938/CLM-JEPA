@@ -38,6 +38,9 @@ runs/diagnostics/mse_sigreg_mechanistic_audit/*
 !runs/diagnostics/mse_sigreg_mechanistic_audit/gradient_audit.json
 !runs/diagnostics/mse_sigreg_mechanistic_audit/block_swap_audit.json
 !runs/diagnostics/mse_sigreg_mechanistic_audit/swap_groups.json
+!runs/diagnostics/sigreg_pair_specificity_audit/
+runs/diagnostics/sigreg_pair_specificity_audit/*
+!runs/diagnostics/sigreg_pair_specificity_audit/audit.json
 !runs/diagnostics/target_sg_geometry_32.json
 !runs/diagnostics/target_sg_representation_32.json
 !runs/diagnostics/target_sg_geometry_cache_32/

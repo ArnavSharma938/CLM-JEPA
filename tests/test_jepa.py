@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 
 import torch
+from peft import LoraConfig, get_peft_model
 from transformers import LlamaConfig, LlamaForCausalLM
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -10,7 +11,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from chemfm import TOKENIZER_DIR, ReactionCollator, load_reaction_tokenizer
 from jepa import (
-    CLMJEPA, SIGReg, add_predictor_tokens, extract_source_and_target,
+    CLMJEPA, PairCenterSpreadFloor, SIGReg, add_predictor_tokens, extract_source_and_target,
     matched_derangement,
 )
 
@@ -72,6 +73,115 @@ def test_active_jepa_uses_one_concatenated_model_call():
     model.forward = counted
     method(model, batch, k=1, jepa_weight=1.0)
     assert calls == 1
+
+
+def test_optimized_active_forward_matches_standard_loss_states_and_gradients():
+    standard_model, tokenizer, standard_method, batch = setup_case()
+    optimized_model = copy.deepcopy(standard_model)
+    optimized_method = CLMJEPA(
+        standard_method.predictor_token_ids,
+        tokenizer.eos_token_id,
+        tokenizer.pad_token_id,
+        optimized_native_logits=True,
+    )
+    standard_model.eval()
+    optimized_model.eval()
+    standard = standard_method(
+        standard_model, batch, k=0, jepa_weight=2.0,
+        jepa_loss_type="mse", force_jepa_active=True,
+    )
+    optimized = optimized_method(
+        optimized_model, batch, k=0, jepa_weight=2.0,
+        jepa_loss_type="mse", force_jepa_active=True,
+    )
+    torch.testing.assert_close(optimized.logits, standard.logits, rtol=2e-5, atol=1e-7)
+    torch.testing.assert_close(optimized.source_states, standard.source_states, rtol=0.0, atol=0.0)
+    torch.testing.assert_close(optimized.target_states, standard.target_states, rtol=0.0, atol=0.0)
+    torch.testing.assert_close(optimized.native_loss, standard.native_loss, rtol=1e-7, atol=1e-8)
+    torch.testing.assert_close(optimized.loss, standard.loss, rtol=1e-7, atol=1e-8)
+    standard.loss.backward()
+    optimized.loss.backward()
+    for (standard_name, standard_parameter), (optimized_name, optimized_parameter) in zip(
+        standard_model.named_parameters(), optimized_model.named_parameters(),
+    ):
+        assert standard_name == optimized_name
+        if standard_parameter.grad is None:
+            assert optimized_parameter.grad is None
+        else:
+            torch.testing.assert_close(
+                optimized_parameter.grad, standard_parameter.grad,
+                rtol=2e-5, atol=2e-6, msg=standard_name,
+            )
+
+
+def test_optimized_active_forward_supports_peft_modules_to_save():
+    base_model, tokenizer, standard_method, batch = setup_case()
+    model = get_peft_model(
+        base_model,
+        LoraConfig(
+            task_type="CAUSAL_LM", r=4, lora_alpha=4,
+            target_modules=["q_proj", "v_proj"],
+            modules_to_save=["embed_tokens", "lm_head"],
+        ),
+        adapter_name="USPTO-MIT-Synthesis",
+    ).eval()
+    optimized_method = CLMJEPA(
+        standard_method.predictor_token_ids,
+        tokenizer.eos_token_id,
+        tokenizer.pad_token_id,
+        optimized_native_logits=True,
+    )
+    standard = standard_method(
+        model, batch, k=0, jepa_weight=2.0,
+        jepa_loss_type="mse", force_jepa_active=True,
+    )
+    optimized = optimized_method(
+        model, batch, k=0, jepa_weight=2.0,
+        jepa_loss_type="mse", force_jepa_active=True,
+    )
+    torch.testing.assert_close(optimized.loss, standard.loss, rtol=2e-6, atol=2e-7)
+    torch.testing.assert_close(
+        optimized.source_states, standard.source_states, rtol=0.0, atol=0.0,
+    )
+
+
+def test_endpoint_only_optimized_forward_preserves_endpoint_states():
+    model, tokenizer, standard_method, batch = setup_case()
+    optimized = CLMJEPA(
+        standard_method.predictor_token_ids,
+        tokenizer.eos_token_id,
+        tokenizer.pad_token_id,
+        optimized_native_logits=True,
+    )
+    model.eval()
+    full = optimized(
+        model, batch, k=0, jepa_weight=0.0, monitor_only=True,
+        jepa_loss_type="mse", force_jepa_active=True,
+    )
+    endpoints = optimized(
+        model, batch, k=0, jepa_weight=0.0, monitor_only=True,
+        jepa_loss_type="mse", force_jepa_active=True, endpoint_only=True,
+    )
+    assert endpoints.logits.numel() == 0
+    torch.testing.assert_close(endpoints.source_states, full.source_states, rtol=0.0, atol=0.0)
+    torch.testing.assert_close(endpoints.target_states, full.target_states, rtol=0.0, atol=0.0)
+
+
+def test_endpoint_only_is_independent_of_compact_native_logits():
+    model, _, method, batch = setup_case()
+    assert not method.optimized_native_logits
+    model.eval()
+    full = method(
+        model, batch, k=0, jepa_weight=0.0, monitor_only=True,
+        jepa_loss_type="mse", force_jepa_active=True,
+    )
+    endpoints = method(
+        model, batch, k=0, jepa_weight=0.0, monitor_only=True,
+        jepa_loss_type="mse", force_jepa_active=True, endpoint_only=True,
+    )
+    assert endpoints.logits.numel() == 0
+    torch.testing.assert_close(endpoints.source_states, full.source_states, rtol=0.0, atol=0.0)
+    torch.testing.assert_close(endpoints.target_states, full.target_states, rtol=0.0, atol=0.0)
 
 
 def test_predictors_do_not_change_native_logits_or_preceding_source_states():
@@ -373,6 +483,72 @@ def test_streaming_mse_sigreg_matches_materialized_value_and_gradients():
             streamed_gradients[name], direct_gradients[name],
             rtol=3e-4, atol=3e-6,
             msg=lambda message, name=name: f"{name}: {message}",
+        )
+
+
+def test_streaming_mse_pcsf_matches_materialized_value_and_parameter_gradients():
+    direct_model, _, direct_method, direct_batch = setup_case()
+    streamed_model, _, streamed_method, streamed_batch = setup_case()
+    direct_model.eval()
+    streamed_model.eval()
+    beta = 3.25
+    regularizer = PairCenterSpreadFloor(rho=0.8)
+
+    direct = direct_method(
+        direct_model, direct_batch, k=0, jepa_weight=2.0,
+        jepa_loss_type="mse", force_jepa_active=True,
+    )
+    reference = (
+        (direct.source_states.detach() + direct.target_states.detach()) * 0.5 / 0.2
+    )
+    direct_pcsf, _, _ = regularizer(
+        direct.source_states, direct.target_states, reference,
+    )
+    direct_loss = direct.loss + 2.0 * beta * direct_pcsf
+    direct_loss.backward()
+
+    with torch.no_grad():
+        first = streamed_method(
+            streamed_model, streamed_batch, k=0, jepa_weight=0.0,
+            monitor_only=True, jepa_loss_type="mse", force_jepa_active=True,
+        )
+        accumulator = regularizer.start_streaming(
+            expected_samples=3, dimensions=first.source_states.size(-1),
+        )
+        for indices in (slice(0, 1), slice(1, 3)):
+            accumulator.update(
+                first.source_states[indices], first.target_states[indices],
+                reference[indices],
+            )
+        prepared = accumulator.finalize()
+    streamed = streamed_method(
+        streamed_model, streamed_batch, k=0, jepa_weight=2.0,
+        jepa_loss_type="mse", force_jepa_active=True,
+    )
+    streamed_loss = streamed.loss + 2.0 * beta * sum(
+        prepared.surrogate(
+            streamed.source_states[indices], streamed.target_states[indices],
+        )
+        for indices in (slice(0, 1), slice(1, 3))
+    )
+    streamed_loss.backward()
+
+    torch.testing.assert_close(prepared.loss, direct_pcsf.detach(), rtol=2e-5, atol=2e-6)
+    expected_value = streamed.loss.detach() + 2.0 * beta * prepared.loss
+    torch.testing.assert_close(expected_value, direct_loss.detach(), rtol=2e-5, atol=2e-6)
+    direct_gradients = {
+        name: parameter.grad for name, parameter in direct_model.named_parameters()
+        if parameter.grad is not None
+    }
+    streamed_gradients = {
+        name: parameter.grad for name, parameter in streamed_model.named_parameters()
+        if parameter.grad is not None
+    }
+    assert direct_gradients.keys() == streamed_gradients.keys()
+    for name in direct_gradients:
+        torch.testing.assert_close(
+            streamed_gradients[name], direct_gradients[name],
+            rtol=4e-4, atol=4e-6, msg=name,
         )
 
 

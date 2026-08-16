@@ -13,6 +13,195 @@ from chemfm import IGNORE_INDEX
 PREDICTOR_TOKENS = [f"<|predictor_{index}|>" for index in range(1, 11)]
 
 
+def pair_centers(
+    source_states: torch.Tensor, target_states: torch.Tensor,
+) -> torch.Tensor:
+    """Return matched source/target barycenters in stable FP32."""
+    if source_states.ndim != 2 or target_states.shape != source_states.shape:
+        raise ValueError("PCSF expects matched (samples, dimensions) source/target states")
+    if source_states.size(0) < 1:
+        raise ValueError("PCSF requires at least one matched pair")
+    return (source_states.float() + target_states.float()) * 0.5
+
+
+def pair_center_variance(
+    centers: torch.Tensor, *, unbiased: bool = True,
+) -> torch.Tensor:
+    """Feature-averaged variance of reaction pair centers."""
+    if centers.ndim != 2 or centers.size(0) < 2:
+        raise ValueError("pair-center spread expects at least two 2D samples")
+    values = centers.float()
+    centered = values - values.mean(dim=0, keepdim=True)
+    denominator = (values.size(0) - int(unbiased)) * values.size(1)
+    return centered.square().sum() / denominator
+
+
+def pair_center_standard_deviation(
+    centers: torch.Tensor, *, epsilon: float = 1e-8, unbiased: bool = True,
+) -> torch.Tensor:
+    if epsilon <= 0.0:
+        raise ValueError("PCSF epsilon must be positive")
+    return torch.sqrt(pair_center_variance(centers, unbiased=unbiased) + epsilon)
+
+
+def pcsf_loss(
+    source_states: torch.Tensor,
+    target_states: torch.Tensor,
+    reference_centers: torch.Tensor,
+    *,
+    rho: float,
+    epsilon: float = 1e-8,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Reference-relative one-sided pair-center standard-deviation floor."""
+    if not 0.0 < rho <= 1.0:
+        raise ValueError("PCSF rho must be in (0, 1]")
+    centers = pair_centers(source_states, target_states)
+    if reference_centers.shape != centers.shape:
+        raise ValueError("reference centers must match the active logical batch")
+    current_sigma = pair_center_standard_deviation(centers, epsilon=epsilon)
+    reference_sigma = pair_center_standard_deviation(
+        reference_centers.detach(), epsilon=epsilon,
+    )
+    penalty = torch.relu(rho * reference_sigma - current_sigma).square()
+    return penalty, current_sigma, reference_sigma
+
+
+@dataclass
+class PreparedPCSF:
+    """Exact logical-batch PCSF value and endpoint VJP for recomputed chunks."""
+
+    loss: torch.Tensor
+    mean: torch.Tensor
+    sigma: torch.Tensor
+    reference_sigma: torch.Tensor
+    threshold: torch.Tensor
+    expected_samples: int
+    dimensions: int
+    epsilon: float
+
+    @property
+    def above_floor(self) -> bool:
+        return bool((self.threshold > self.sigma).item())
+
+    def representation_gradients(
+        self, source_states: torch.Tensor, target_states: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        centers = pair_centers(source_states, target_states).detach()
+        if centers.size(1) != self.dimensions:
+            raise ValueError("recomputed PCSF chunk has the wrong representation width")
+        if not self.above_floor:
+            zeros = torch.zeros_like(centers)
+            return zeros, zeros
+        gap = self.threshold - self.sigma
+        center_gradient = (
+            -2.0
+            * gap
+            * (centers - self.mean)
+            / ((self.expected_samples - 1) * self.dimensions * self.sigma)
+        )
+        endpoint_gradient = center_gradient * 0.5
+        return endpoint_gradient, endpoint_gradient
+
+    def surrogate(
+        self, source_states: torch.Tensor, target_states: torch.Tensor,
+    ) -> torch.Tensor:
+        source_gradient, target_gradient = self.representation_gradients(
+            source_states, target_states,
+        )
+        return (
+            source_states * source_gradient.to(source_states.dtype)
+        ).sum() + (
+            target_states * target_gradient.to(target_states.dtype)
+        ).sum()
+
+
+@dataclass
+class StreamingPCSF:
+    """Detached exact statistics for one logical PCSF batch."""
+
+    expected_samples: int
+    dimensions: int
+    rho: float
+    epsilon: float
+    current_chunks: list[torch.Tensor]
+    reference_chunks: list[torch.Tensor]
+    samples: int = 0
+
+    def update(
+        self,
+        source_states: torch.Tensor,
+        target_states: torch.Tensor,
+        reference_centers: torch.Tensor,
+    ) -> None:
+        centers = pair_centers(source_states, target_states).detach()
+        references = reference_centers.detach().float()
+        if centers.size(1) != self.dimensions or references.shape != centers.shape:
+            raise ValueError("PCSF current/reference chunk shape mismatch")
+        self.current_chunks.append(centers)
+        self.reference_chunks.append(references)
+        self.samples += centers.size(0)
+        if self.samples > self.expected_samples:
+            raise ValueError("streaming PCSF received too many samples")
+
+    def finalize(self) -> PreparedPCSF:
+        if self.samples != self.expected_samples:
+            raise ValueError(
+                f"streaming PCSF expected {self.expected_samples} samples, got {self.samples}"
+            )
+        current = torch.cat(self.current_chunks, dim=0)
+        reference = torch.cat(self.reference_chunks, dim=0)
+        loss, sigma, reference_sigma = pcsf_loss(
+            current, current, reference,
+            rho=self.rho, epsilon=self.epsilon,
+        )
+        # pcsf_loss(current, current, ...) returns current as its pair center.
+        return PreparedPCSF(
+            loss=loss,
+            mean=current.mean(dim=0, keepdim=True),
+            sigma=sigma,
+            reference_sigma=reference_sigma,
+            threshold=self.rho * reference_sigma,
+            expected_samples=self.expected_samples,
+            dimensions=self.dimensions,
+            epsilon=self.epsilon,
+        )
+
+
+class PairCenterSpreadFloor:
+    def __init__(self, *, rho: float, epsilon: float = 1e-8):
+        if not 0.0 < rho <= 1.0:
+            raise ValueError("PCSF rho must be in (0, 1]")
+        if epsilon <= 0.0:
+            raise ValueError("PCSF epsilon must be positive")
+        self.rho = rho
+        self.epsilon = epsilon
+
+    def __call__(
+        self,
+        source_states: torch.Tensor,
+        target_states: torch.Tensor,
+        reference_centers: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        return pcsf_loss(
+            source_states, target_states, reference_centers,
+            rho=self.rho, epsilon=self.epsilon,
+        )
+
+    def start_streaming(
+        self, *, expected_samples: int, dimensions: int,
+    ) -> StreamingPCSF:
+        if expected_samples < 2 or dimensions < 1:
+            raise ValueError("invalid streaming PCSF shape")
+        return StreamingPCSF(
+            expected_samples=expected_samples,
+            dimensions=dimensions,
+            rho=self.rho,
+            epsilon=self.epsilon,
+            current_chunks=[],
+            reference_chunks=[],
+        )
+
+
 class SIGReg:
     """LeJEPA Epps-Pulley SIGReg on random one-dimensional projections."""
 
@@ -251,12 +440,14 @@ class CLMJEPA:
     def __init__(
         self, predictor_token_ids: Sequence[int], eos_token_id: int,
         pad_token_id: int, *, sigreg_seed: int = 0,
+        optimized_native_logits: bool = False,
     ):
         self.predictor_token_ids = list(predictor_token_ids)
         self.eos_token_id = eos_token_id
         self.pad_token_id = pad_token_id
         self.sigreg = SIGReg(seed=sigreg_seed)
         self.jepa_dropout_generator = torch.Generator().manual_seed(sigreg_seed)
+        self.optimized_native_logits = optimized_native_logits
 
     def sample_jepa_activity(self, ratio: float) -> bool:
         if not 0.0 <= ratio <= 1.0:
@@ -282,6 +473,7 @@ class CLMJEPA:
         jepa_targets: Sequence[torch.Tensor] | None = None,
         shuffle_seed: int | None = None,
         force_jepa_active: bool | None = None,
+        endpoint_only: bool = False,
     ) -> CLMJEPAOutput:
         if not -1.0 <= jepa_ratio <= 1.0:
             raise ValueError("jepa_ratio must be -1 or in [0, 1]")
@@ -346,14 +538,41 @@ class CLMJEPA:
             batch_first=True,
             padding_value=IGNORE_INDEX,
         )
-        outputs = model(
-            input_ids=padded,
-            attention_mask=attention,
-            labels=labels,
-            output_hidden_states=True,
-        )
-        hidden = outputs.hidden_states[-1]
         batch_size = len(sources)
+        # Endpoint-only statistics never consume vocabulary logits, so they can
+        # always call the causal backbone directly.  This is exact even when the
+        # gradient-bearing pass deliberately retains the standard LM forward.
+        if self.optimized_native_logits or endpoint_only:
+            causal_model = model.get_base_model() if hasattr(model, "get_base_model") else model
+            backbone_outputs = causal_model.model(
+                input_ids=padded,
+                attention_mask=attention,
+                use_cache=False,
+                return_dict=True,
+            )
+            hidden = backbone_outputs.last_hidden_state
+            if endpoint_only:
+                native_loss = hidden.new_zeros(())
+                logits = hidden.new_empty((batch_size, 0, 0))
+            else:
+                native_width = batch["input_ids"].shape[1]
+                logits = causal_model.lm_head(hidden[:batch_size, :native_width]).float()
+                native_labels = labels[:batch_size, :native_width]
+                native_loss = F.cross_entropy(
+                    logits[:, :-1].contiguous().view(-1, logits.size(-1)),
+                    native_labels[:, 1:].contiguous().view(-1),
+                    ignore_index=IGNORE_INDEX,
+                )
+        else:
+            outputs = model(
+                input_ids=padded,
+                attention_mask=attention,
+                labels=labels,
+                output_hidden_states=True,
+            )
+            hidden = outputs.hidden_states[-1]
+            native_loss = outputs.loss
+            logits = outputs.logits[:batch_size, :batch["input_ids"].shape[1]]
         source_indices = attention[batch_size:2 * batch_size].sum(dim=1) - (2 if k == -1 else 1)
         if (source_indices < 0).any():
             raise ValueError("k=-1 requires every source to contain at least two active tokens")
@@ -385,17 +604,17 @@ class CLMJEPA:
                 ) * sigreg_loss
             )
         applied_jepa = (
-            outputs.loss.new_zeros(())
+            native_loss.new_zeros(())
             if monitor_only else jepa_weight * jepa_objective_loss
         )
-        loss = native_weight * outputs.loss + applied_jepa
+        loss = native_weight * native_loss + applied_jepa
         return CLMJEPAOutput(
             loss=loss,
-            native_loss=outputs.loss,
+            native_loss=native_loss,
             jepa_loss=jepa_loss,
             sigreg_loss=sigreg_loss,
             jepa_objective_loss=jepa_objective_loss,
-            logits=outputs.logits[:batch_size, :batch["input_ids"].shape[1]],
+            logits=logits,
             source_states=source_states,
             target_states=target_states,
             source_final_indices=source_indices,

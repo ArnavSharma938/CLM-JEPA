@@ -30,7 +30,10 @@ from chemfm import (  # noqa: E402
     IGNORE_INDEX, MODEL_DIR, TOKENIZER_DIR, ReactionCollator,
     generate_products_batch, canonicalize, load_lora_model, load_reaction_tokenizer,
 )
-from jepa import CLMJEPA, add_predictor_tokens, extract_source_and_target  # noqa: E402
+from jepa import (  # noqa: E402
+    CLMJEPA, PairCenterSpreadFloor, add_predictor_tokens,
+    extract_source_and_target,
+)
 from metrics import (  # noqa: E402
     canonical_set, effective_rank, rank_augmented_candidates,
     relationship_metrics, score_candidates,
@@ -142,6 +145,11 @@ class WandbTracker:
     def log_training_step(
         self, *, step: int, native_loss: float, jepa_loss: float | None,
         sigreg_loss: float | None = None,
+        pcsf_loss: float | None = None,
+        pcsf_above_floor: bool | None = None,
+        pair_center_sigma: float | None = None,
+        reference_pair_center_sigma: float | None = None,
+        pair_center_spread_ratio: float | None = None,
         jepa_objective_loss: float | None = None,
         total_loss: float, gradient_norm: float, learning_rate: float,
         jepa_active: bool, batch_tokens: int, model_calls: int,
@@ -156,6 +164,13 @@ class WandbTracker:
             "train/native_loss": native_loss,
             "train/jepa_loss": jepa_loss,
             "train/sigreg_loss": sigreg_loss,
+            "train/pcsf_loss": pcsf_loss,
+            "train/pcsf_above_floor": (
+                None if pcsf_above_floor is None else int(pcsf_above_floor)
+            ),
+            "train/pair_center_sigma": pair_center_sigma,
+            "train/reference_pair_center_sigma": reference_pair_center_sigma,
+            "train/pair_center_spread_ratio": pair_center_spread_ratio,
             "train/jepa_objective_loss": jepa_objective_loss,
             "train/total_loss": total_loss,
             "train/gradient_norm": gradient_norm,
@@ -223,6 +238,42 @@ def file_sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def reaction_row_fingerprint(row: Mapping[str, str]) -> str:
+    payload = {
+        key: row.get(key, "")
+        for key in ("source", "target", "src", "tgt", "group_id", "example_id")
+    }
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+
+
+def load_pcsf_reference_cache(
+    path: Path, train_rows: list[dict[str, str]], train_manifest: Path,
+) -> tuple[torch.Tensor, dict[str, Any]]:
+    cache = torch.load(path.resolve(), map_location="cpu", weights_only=False)
+    if not isinstance(cache, dict) or cache.get("schema_version") != 1:
+        raise ValueError("unsupported PCSF reference-cache schema")
+    centers = cache.get("pair_centers")
+    if not torch.is_tensor(centers) or centers.ndim != 2:
+        raise ValueError("PCSF reference cache must contain a 2D pair_centers tensor")
+    expected_fingerprints = [reaction_row_fingerprint(row) for row in train_rows]
+    if cache.get("row_fingerprints") != expected_fingerprints:
+        raise ValueError("PCSF reference cache does not match the exact training rows/order")
+    manifest_hash = file_sha256(train_manifest)
+    if cache.get("train_manifest_sha256") != manifest_hash:
+        raise ValueError("PCSF reference cache has the wrong training-manifest hash")
+    if centers.size(0) != len(train_rows) or not torch.isfinite(centers).all():
+        raise ValueError("PCSF reference centers have an invalid count or non-finite values")
+    for index, row in enumerate(train_rows):
+        row["pcsf_reference_index"] = str(index)
+    metadata = {
+        key: value for key, value in cache.items()
+        if key not in {"pair_centers", "source_states", "target_states"}
+    }
+    return centers.float().contiguous(), metadata
 
 
 def _model_inputs(batch: Mapping[str, torch.Tensor]) -> dict[str, torch.Tensor]:
@@ -727,6 +778,11 @@ def train_streaming_sigreg_epoch(
                         stop_gradient_target=False, jepa_loss_type=jepa_loss_type,
                         sigreg_tradeoff=0.0,
                         jepa_ratio=jepa_ratio, force_jepa_active=True,
+                        # The statistics pass consumes only endpoint states.  Skipping
+                        # the LM head is mathematically exact and avoids projecting
+                        # every token twice, independently of the optional compact
+                        # native-logit path used by the gradient-bearing pass.
+                        endpoint_only=True,
                     )
                     states = torch.stack((output.source_states, output.target_states))
                     if accumulator is None:
@@ -845,6 +901,220 @@ def train_streaming_sigreg_epoch(
     return records, global_step
 
 
+def train_streaming_pcsf_epoch(
+    *, model, method, loader, optimizer, scheduler, epoch: int,
+    logical_batch_size: int, physical_batch_size: int,
+    actual_lambda: float, native_weight: float, pcsf_beta: float,
+    pcsf: PairCenterSpreadFloor, reference_centers: torch.Tensor,
+    jepa_ratio: float, non_embedding_parameters: int, pin_memory: bool,
+    tracker: WandbTracker, global_step: int, profile_phases: bool,
+) -> tuple[list[dict[str, Any]], int]:
+    """Train exact MSE+PCSF over logical batches with optional recomputation.
+
+    If the logical batch fits physically, PCSF is differentiated directly in a
+    single pass. Otherwise detached pair centers are gathered across chunks and
+    an RNG-replayed second pass injects the exact logical-batch endpoint VJP.
+    """
+    if logical_batch_size % physical_batch_size:
+        raise ValueError("PCSF logical batch must be divisible by physical batch size")
+    if reference_centers.device != model.device:
+        raise ValueError("PCSF reference centers must be resident on the model device")
+    chunks_per_step = logical_batch_size // physical_batch_size
+    if len(loader) % chunks_per_step:
+        raise ValueError("training exposure must divide into complete PCSF logical batches")
+    iterator = iter(loader)
+    synchronize = torch.cuda.synchronize if profile_phases else (lambda: None)
+    records: list[dict[str, Any]] = []
+    for logical_index in range(len(loader) // chunks_per_step):
+        data_started = time.perf_counter()
+        raw_chunks = list(itertools.islice(iterator, chunks_per_step))
+        data_seconds = time.perf_counter() - data_started
+        if len(raw_chunks) != chunks_per_step:
+            raise RuntimeError("incomplete PCSF logical batch")
+        active = method.sample_jepa_activity(jepa_ratio)
+        prepared = None
+        replay_states: list[tuple[torch.Tensor, list[torch.Tensor]]] = []
+        first_pass_seconds = 0.0
+        if active and chunks_per_step > 1:
+            accumulator = None
+            synchronize()
+            first_started = time.perf_counter()
+            with torch.no_grad():
+                for raw in raw_chunks:
+                    replay_states.append(_rng_snapshot())
+                    batch = {
+                        name: value.to(model.device, non_blocking=pin_memory)
+                        for name, value in raw.items() if torch.is_tensor(value)
+                    }
+                    output = method(
+                        model, batch, k=0, jepa_weight=0.0,
+                        native_weight=native_weight, monitor_only=True,
+                        stop_gradient_target=False, jepa_loss_type="mse",
+                        sigreg_tradeoff=0.0,
+                        jepa_ratio=jepa_ratio, force_jepa_active=True,
+                        endpoint_only=True,
+                    )
+                    references = reference_centers.index_select(
+                        0, batch["pcsf_reference_indices"]
+                    )
+                    if accumulator is None:
+                        accumulator = pcsf.start_streaming(
+                            expected_samples=logical_batch_size,
+                            dimensions=output.source_states.size(-1),
+                        )
+                    accumulator.update(
+                        output.source_states, output.target_states, references,
+                    )
+            final_rng = _rng_snapshot()
+            if accumulator is None:
+                raise RuntimeError("PCSF accumulator was not initialized")
+            prepared = accumulator.finalize()
+            synchronize()
+            first_pass_seconds = time.perf_counter() - first_started
+        else:
+            final_rng = None
+
+        loss_records: list[dict[str, Any]] = []
+        batch_tokens = 0
+        effective_tokens = 0
+        direct_pcsf_values: list[tuple[torch.Tensor, torch.Tensor, torch.Tensor]] = []
+        synchronize()
+        gradient_started = time.perf_counter()
+        for chunk_index, raw in enumerate(raw_chunks):
+            if active and chunks_per_step > 1:
+                _restore_rng(replay_states[chunk_index])
+            raw_tokens = int(raw["attention_mask"].sum())
+            batch = {
+                name: value.to(model.device, non_blocking=pin_memory)
+                for name, value in raw.items() if torch.is_tensor(value)
+            }
+            output = method(
+                model, batch, k=0,
+                jepa_weight=actual_lambda if active else 0.0,
+                native_weight=native_weight,
+                stop_gradient_target=False, jepa_loss_type="mse",
+                sigreg_tradeoff=0.0,
+                jepa_ratio=jepa_ratio, force_jepa_active=active,
+            )
+            loss = output.loss / chunks_per_step
+            if active:
+                if chunks_per_step == 1:
+                    references = reference_centers.index_select(
+                        0, batch["pcsf_reference_indices"]
+                    )
+                    direct = pcsf(
+                        output.source_states, output.target_states, references,
+                    )
+                    direct_pcsf_values.append(direct)
+                    loss = loss + actual_lambda * pcsf_beta * direct[0]
+                else:
+                    loss = loss + actual_lambda * pcsf_beta * prepared.surrogate(
+                        output.source_states, output.target_states,
+                    )
+            if not torch.isfinite(loss):
+                raise FloatingPointError(
+                    f"non-finite loss in epoch {epoch}, PCSF group {logical_index + 1}"
+                )
+            loss.backward()
+            batch_tokens += raw_tokens
+            effective_tokens += raw_tokens * (
+                (4 if chunks_per_step > 1 else 2) if active else 1
+            )
+            loss_records.append({
+                "native_loss": output.native_loss.detach(),
+                "jepa_loss": None if output.jepa_loss is None else output.jepa_loss.detach(),
+                "sigreg_loss": None,
+                "jepa_objective_loss": None,
+                "total_loss": output.loss.detach(),
+            })
+        if final_rng is not None:
+            _restore_rng(final_rng)
+        synchronize()
+        gradient_seconds = time.perf_counter() - gradient_started
+
+        optimizer_started = time.perf_counter()
+        learning_rate = optimizer.param_groups[0]["lr"]
+        gradient_norm, largest_gradient = gradient_diagnostics(model)
+        optimizer.step()
+        scheduler.step()
+        optimizer.zero_grad(set_to_none=True)
+        synchronize()
+        optimizer_seconds = time.perf_counter() - optimizer_started
+        global_step += 1
+
+        means = synchronized_loss_means(loss_records)
+        pcsf_value = None
+        pair_center_sigma = None
+        reference_sigma = None
+        above_floor = None
+        spread_ratio = None
+        if active:
+            if chunks_per_step == 1:
+                pcsf_tensor, sigma_tensor, reference_tensor = direct_pcsf_values[0]
+                pcsf_value = float(pcsf_tensor.detach())
+                pair_center_sigma = float(sigma_tensor.detach())
+                reference_sigma = float(reference_tensor.detach())
+                above_floor = pcsf_value > 0.0
+            else:
+                pcsf_value = float(prepared.loss)
+                pair_center_sigma = float(prepared.sigma)
+                reference_sigma = float(prepared.reference_sigma)
+                above_floor = prepared.above_floor
+            spread_ratio = pair_center_sigma / max(reference_sigma, 1e-12)
+            means["jepa_objective_loss"] = (
+                means["jepa_loss"] + pcsf_beta * pcsf_value
+            )
+            means["total_loss"] = (
+                means["native_loss"] + actual_lambda * means["jepa_objective_loss"]
+            )
+        record = {
+            "step": global_step,
+            "epoch": epoch,
+            **means,
+            "pcsf_loss": pcsf_value,
+            "pcsf_above_floor": above_floor,
+            "pair_center_sigma": pair_center_sigma,
+            "reference_pair_center_sigma": reference_sigma,
+            "pair_center_spread_ratio": spread_ratio,
+            "jepa_active": active,
+            "jepa_active_microbatches": chunks_per_step if active else 0,
+            "pcsf_distribution_samples": logical_batch_size if active else 0,
+            "learning_rate": learning_rate,
+            "gradient_norm": gradient_norm,
+            "max_gradient_parameter": largest_gradient[0],
+            "max_parameter_gradient_norm": largest_gradient[1],
+            "batch_tokens": batch_tokens,
+            "effective_tokens": effective_tokens,
+            "model_calls": chunks_per_step * (
+                2 if active and chunks_per_step > 1 else 1
+            ),
+            "data_seconds": data_seconds,
+            "pcsf_statistics_forward_seconds": first_pass_seconds,
+            "gradient_forward_backward_seconds": gradient_seconds,
+            "optimizer_seconds": optimizer_seconds,
+        }
+        record["estimated_flops"] = 6.0 * effective_tokens * non_embedding_parameters
+        records.append(record)
+        tracker.log_training_step(
+            step=global_step, native_loss=record["native_loss"],
+            jepa_loss=record["jepa_loss"], sigreg_loss=None,
+            pcsf_loss=pcsf_value, pcsf_above_floor=above_floor,
+            pair_center_sigma=pair_center_sigma,
+            reference_pair_center_sigma=reference_sigma,
+            pair_center_spread_ratio=spread_ratio,
+            jepa_objective_loss=record["jepa_objective_loss"],
+            total_loss=record["total_loss"], gradient_norm=gradient_norm,
+            max_gradient_parameter=largest_gradient[0],
+            max_parameter_gradient_norm=largest_gradient[1],
+            learning_rate=learning_rate, jepa_active=active,
+            batch_tokens=batch_tokens, model_calls=record["model_calls"],
+            effective_tokens=effective_tokens,
+            peak_vram_bytes=torch.cuda.max_memory_allocated(),
+            estimated_flops=record["estimated_flops"],
+        )
+    return records, global_step
+
+
 def train(args):
     if not torch.cuda.is_available():
         raise EnvironmentError("Gate 4/5 ChemFM-1B fine-tuning requires CUDA")
@@ -864,6 +1134,13 @@ def train(args):
         val_rows = val_rows[:args.max_validation_rows]
     if not train_rows or not val_rows:
         raise ValueError("training and validation manifests must both be nonempty")
+    has_pcsf = args.condition == "clm_jepa_mse_pcsf"
+    pcsf_reference_centers = None
+    pcsf_reference_metadata = None
+    if has_pcsf:
+        pcsf_reference_centers, pcsf_reference_metadata = load_pcsf_reference_cache(
+            args.pcsf_reference_cache, train_rows, train_path,
+        )
     tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
     chemfm_vocab_size = len(tokenizer)
     predictor_ids = add_predictor_tokens(tokenizer)
@@ -876,7 +1153,8 @@ def train(args):
     validate_serialization_endings(collator, train_rows, tokenizer.eos_token_id)
     validate_serialization_endings(collator, val_rows, tokenizer.eos_token_id)
     model = load_lora_model(
-        MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size
+        MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size,
+        attn_implementation=args.attention_implementation,
     ).cuda()
     if args.gradient_checkpointing:
         model.gradient_checkpointing_enable(
@@ -886,16 +1164,31 @@ def train(args):
     method = CLMJEPA(
         predictor_ids, tokenizer.eos_token_id, tokenizer.pad_token_id,
         sigreg_seed=args.seed,
+        optimized_native_logits=args.optimized_jepa_forward,
     )
+    pcsf = (
+        PairCenterSpreadFloor(rho=args.pcsf_rho, epsilon=args.pcsf_epsilon)
+        if has_pcsf else None
+    )
+    if pcsf_reference_centers is not None:
+        pcsf_reference_centers = pcsf_reference_centers.to(model.device)
     non_embedding_parameters = model.num_parameters(exclude_embeddings=True)
     generator = torch.Generator().manual_seed(args.seed)
+    worker_kwargs = {
+        "num_workers": args.dataloader_workers,
+        "persistent_workers": args.dataloader_workers > 0,
+    }
+    if args.dataloader_workers > 0:
+        worker_kwargs["prefetch_factor"] = args.dataloader_prefetch_factor
     loader = DataLoader(
         train_rows, batch_size=args.batch_size, shuffle=True,
         generator=generator, collate_fn=collator, pin_memory=args.pin_memory,
+        **worker_kwargs,
     )
     validation = DataLoader(
         val_rows, batch_size=args.batch_size, shuffle=False,
         collate_fn=collator, pin_memory=args.pin_memory,
+        **worker_kwargs,
     )
     sigreg_tradeoff = (
         SIGREG_TRADEOFF
@@ -911,8 +1204,10 @@ def train(args):
         weight_decay=WEIGHT_DECAY, fused=args.fused_adamw,
     )
     updates_per_epoch = (
-        len(train_rows) // args.sigreg_batch_size
-        if streaming_sigreg
+        len(train_rows) // (
+            args.pcsf_batch_size if has_pcsf else args.sigreg_batch_size
+        )
+        if streaming_sigreg or has_pcsf
         else max(1, math.ceil(len(loader) / args.gradient_accumulation_steps))
     )
     steps = max(1, args.epochs * updates_per_epoch)
@@ -924,12 +1219,15 @@ def train(args):
     )
     has_jepa = args.condition in {
         "monitor", "clm_jepa", "clm_jepa_target_sg", "clm_jepa_sigreg",
-        "clm_jepa_mse", "clm_jepa_mse_sigreg", "shuffled", "jepa_only",
+        "clm_jepa_mse", "clm_jepa_mse_sigreg", "clm_jepa_mse_pcsf",
+        "shuffled", "jepa_only",
     }
     stop_gradient_target = args.condition == "clm_jepa_target_sg"
     has_sigreg = args.condition in {"clm_jepa_sigreg", "clm_jepa_mse_sigreg"}
     jepa_loss_type = (
-        "mse" if args.condition in {"clm_jepa_mse", "clm_jepa_mse_sigreg"}
+        "mse" if args.condition in {
+            "clm_jepa_mse", "clm_jepa_mse_sigreg", "clm_jepa_mse_pcsf",
+        }
         else "cosine"
     )
     # With two global views, LeJEPA's view-center prediction loss is exactly
@@ -945,8 +1243,8 @@ def train(args):
         "physical_batch_size": args.batch_size,
         "gradient_accumulation_steps": args.gradient_accumulation_steps,
         "effective_batch_size": (
-            args.sigreg_batch_size
-            if streaming_sigreg
+            args.pcsf_batch_size if has_pcsf else args.sigreg_batch_size
+            if streaming_sigreg or has_pcsf
             else args.batch_size * args.gradient_accumulation_steps
         ),
         "k": args.k,
@@ -973,6 +1271,22 @@ def train(args):
             args.sigreg_batch_size if has_sigreg else None
         ),
         "sigreg_exact_chunk_recomputation": streaming_sigreg,
+        "pcsf": has_pcsf,
+        "pcsf_formulation": (
+            "one-sided reference-relative floor on unbiased pair-center standard deviation"
+            if has_pcsf else None
+        ),
+        "pcsf_rho": args.pcsf_rho if has_pcsf else None,
+        "pcsf_beta": args.pcsf_beta if has_pcsf else None,
+        "pcsf_epsilon": args.pcsf_epsilon if has_pcsf else None,
+        "pcsf_logical_batch_size": args.pcsf_batch_size if has_pcsf else None,
+        "pcsf_exact_chunk_recomputation": (
+            has_pcsf and args.pcsf_batch_size > args.batch_size
+        ),
+        "pcsf_reference_cache": (
+            str(args.pcsf_reference_cache.resolve()) if has_pcsf else None
+        ),
+        "pcsf_reference_metadata": pcsf_reference_metadata,
         "optimizer_steps_per_epoch": updates_per_epoch,
         "train_size": len(train_rows), "validation_size": len(val_rows),
         "train_manifest": str(train_path),
@@ -984,9 +1298,15 @@ def train(args):
         "fused_adamw": args.fused_adamw,
         "gradient_checkpointing": args.gradient_checkpointing,
         "pin_memory": args.pin_memory,
+        "dataloader_workers": args.dataloader_workers,
+        "dataloader_prefetch_factor": (
+            args.dataloader_prefetch_factor if args.dataloader_workers else None
+        ),
         "attention_implementation": getattr(
             model.config, "_attn_implementation", "unknown"
         ),
+        "optimized_jepa_forward": args.optimized_jepa_forward,
+        "profile_training_phases": args.profile_training_phases,
         "evaluation_generation_batch_size": args.eval_generation_batch_size,
         "evaluation_beam_size": evaluation_beam_size,
         "adam_beta1": ADAM_BETAS[0], "adam_beta2": ADAM_BETAS[1],
@@ -1035,7 +1355,25 @@ def train(args):
     try:
         for epoch_index in range(start_epoch, args.stop_after_epoch):
             model.train()
-            if streaming_sigreg:
+            if has_pcsf:
+                epoch_records, global_step = train_streaming_pcsf_epoch(
+                    model=model, method=method, loader=loader,
+                    optimizer=optimizer, scheduler=scheduler,
+                    epoch=epoch_index + 1,
+                    logical_batch_size=args.pcsf_batch_size,
+                    physical_batch_size=args.batch_size,
+                    actual_lambda=actual_lambda, native_weight=native_weight,
+                    pcsf_beta=args.pcsf_beta, pcsf=pcsf,
+                    reference_centers=pcsf_reference_centers,
+                    jepa_ratio=resolved_ratio,
+                    non_embedding_parameters=non_embedding_parameters,
+                    pin_memory=args.pin_memory, tracker=tracker,
+                    global_step=global_step,
+                    profile_phases=args.profile_training_phases,
+                )
+                curves.extend(epoch_records)
+                training_loader = ()
+            elif streaming_sigreg:
                 epoch_records, global_step = train_streaming_sigreg_epoch(
                     model=model, method=method, loader=loader,
                     optimizer=optimizer, scheduler=scheduler,
@@ -1305,6 +1643,7 @@ def main():
         choices=(
             "native", "monitor", "clm_jepa", "clm_jepa_target_sg",
             "clm_jepa_sigreg", "clm_jepa_mse", "clm_jepa_mse_sigreg",
+            "clm_jepa_mse_pcsf",
             "shuffled", "jepa_only",
         ),
         required=True,
@@ -1342,6 +1681,14 @@ def main():
             "The qualified batch-16 pilot passes 0.01 explicitly."
         ),
     )
+    parser.add_argument("--pcsf-reference-cache", type=Path)
+    parser.add_argument("--pcsf-rho", type=float)
+    parser.add_argument("--pcsf-beta", type=float)
+    parser.add_argument("--pcsf-epsilon", type=float, default=1e-8)
+    parser.add_argument(
+        "--pcsf-batch-size", type=int, default=16,
+        help="matched pairs in each exact PCSF spread statistic",
+    )
     parser.add_argument(
         "--evaluation-epochs", type=int, nargs="+",
         help=(
@@ -1357,8 +1704,25 @@ def main():
         "--fused-adamw", action=argparse.BooleanOptionalAction, default=False,
     )
     parser.add_argument(
+        "--optimized-jepa-forward", action=argparse.BooleanOptionalAction,
+        default=False,
+        help="project logits only for native rows during active JEPA updates",
+    )
+    parser.add_argument(
+        "--attention-implementation",
+        choices=("eager", "sdpa", "flash_attention_2"),
+        help="Transformers attention backend; omitted retains library auto-selection",
+    )
+    parser.add_argument(
+        "--profile-training-phases", action=argparse.BooleanOptionalAction,
+        default=False,
+        help="synchronize benchmark phase timers; disable for maximum throughput",
+    )
+    parser.add_argument(
         "--pin-memory", action=argparse.BooleanOptionalAction, default=False,
     )
+    parser.add_argument("--dataloader-workers", type=int, default=0)
+    parser.add_argument("--dataloader-prefetch-factor", type=int, default=2)
     parser.add_argument(
         "--eval-generation-batch-size", type=int, choices=(1, 2, 4), default=1,
         help=(
@@ -1394,6 +1758,8 @@ def main():
         raise ValueError("prior wall time cannot be negative")
     if args.batch_size < 1 or args.gradient_accumulation_steps < 1:
         raise ValueError("batch size and gradient accumulation must be positive")
+    if args.dataloader_workers < 0 or args.dataloader_prefetch_factor < 1:
+        raise ValueError("DataLoader workers must be nonnegative and prefetch positive")
     if args.sigreg_batch_size < 2:
         raise ValueError("SIGReg batch size must be at least two")
     if args.sigreg_tradeoff is not None and not 0.0 <= args.sigreg_tradeoff < 1.0:
@@ -1403,6 +1769,27 @@ def main():
         raise ValueError("--sigreg-tradeoff only applies to a SIGReg condition")
     if args.condition not in sigreg_conditions and args.sigreg_batch_size != 2:
         raise ValueError("--sigreg-batch-size only applies to a SIGReg condition")
+    pcsf_condition = args.condition == "clm_jepa_mse_pcsf"
+    pcsf_required = (
+        args.pcsf_reference_cache, args.pcsf_rho, args.pcsf_beta,
+    )
+    if pcsf_condition:
+        if any(value is None for value in pcsf_required):
+            raise ValueError("PCSF requires --pcsf-reference-cache, --pcsf-rho, and --pcsf-beta")
+        if not args.pcsf_reference_cache.exists():
+            raise FileNotFoundError(args.pcsf_reference_cache)
+        if not 0.0 < args.pcsf_rho <= 1.0:
+            raise ValueError("--pcsf-rho must be in (0, 1]")
+        if args.pcsf_beta <= 0.0 or args.pcsf_epsilon <= 0.0:
+            raise ValueError("PCSF beta and epsilon must be positive")
+        if args.pcsf_batch_size < 2:
+            raise ValueError("PCSF batch size must be at least two")
+        if args.pcsf_batch_size != args.batch_size * args.gradient_accumulation_steps:
+            raise ValueError(
+                "PCSF logical batch must equal physical batch times accumulation to preserve cadence"
+            )
+    elif any(value is not None for value in pcsf_required):
+        raise ValueError("PCSF reference/rho/beta arguments only apply to the PCSF condition")
     if args.condition == "native" and (args.lambda_eff != 1.0 or args.dropout != 0.5):
         raise ValueError("native trials must leave irrelevant JEPA defaults unchanged")
     result = train(args)

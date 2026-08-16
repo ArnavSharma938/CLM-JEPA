@@ -81,6 +81,13 @@ class ReactionCollator:
             "tgt_smiles": [x["tgt"] for x in instances],
             "generation_prompts": prompts,
         }
+        if any("pcsf_reference_index" in instance for instance in instances):
+            if not all("pcsf_reference_index" in instance for instance in instances):
+                raise ValueError("every row in a PCSF batch must provide a reference index")
+            result["pcsf_reference_indices"] = torch.tensor(
+                [int(x["pcsf_reference_index"]) for x in instances],
+                dtype=torch.long,
+            )
         if any("jepa_tgt" in instance for instance in instances):
             if not all("jepa_tgt" in instance for instance in instances):
                 raise ValueError("every row in a shuffled batch must provide jepa_tgt")
@@ -134,18 +141,21 @@ def resize_chemfm_then_predictors(
 def load_lora_model(
     model_path: Path, tokenizer, attention_dropout: float = 0.1,
     *, chemfm_vocab_size: int | None = None,
+    attn_implementation: str | None = None,
 ):
     config = AutoConfig.from_pretrained(model_path, trust_remote_code=False)
     config.attention_dropout = attention_dropout
-    model = LlamaForCausalLM.from_pretrained(
-        model_path,
-        config=config,
+    load_kwargs = {
+        "config": config,
         # BF16 preserves the exponent range needed by this direct, single-GPU
         # loop while retaining the 2-byte footprint required by the pilot GPU.
-        torch_dtype=torch.bfloat16,
-        low_cpu_mem_usage=True,
-        trust_remote_code=False,
-    )
+        "torch_dtype": torch.bfloat16,
+        "low_cpu_mem_usage": True,
+        "trust_remote_code": False,
+    }
+    if attn_implementation is not None:
+        load_kwargs["attn_implementation"] = attn_implementation
+    model = LlamaForCausalLM.from_pretrained(model_path, **load_kwargs)
     resize_chemfm_then_predictors(
         model,
         tokenizer_size=len(tokenizer),

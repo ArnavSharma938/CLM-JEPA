@@ -173,6 +173,7 @@ def analyze_cache(cache_path: Path) -> dict:
     candidate_indices = torch.tensor(candidates, device=sources.device)
 
     raw = pair_metrics(sources, targets, matched_indices, candidate_indices)
+    pair_centers = 0.5 * (sources + targets)
     raw.update({
         "source_variance": float(sources.var(0, unbiased=False).mean()),
         "source_embedding_norm_mean": float(sources.norm(dim=-1).mean()),
@@ -190,6 +191,14 @@ def analyze_cache(cache_path: Path) -> dict:
             targets.mean(0).square().sum()
             / targets.square().sum(1).mean().clamp_min(1e-30)
         ),
+        "pair_center_variance": float(pair_centers.var(0, unbiased=False).mean()),
+        "pair_center_variance_unbiased": float(
+            pair_centers.var(0, unbiased=True).mean()
+        ),
+        "pair_center_sigma_unbiased": float(
+            pair_centers.var(0, unbiased=True).mean().clamp_min(0).sqrt()
+        ),
+        "pair_center_effective_rank": effective_rank(pair_centers),
         "matched_assignment_cost": matched_cost,
     })
 

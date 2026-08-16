@@ -2,7 +2,9 @@
 
 ## Current answer
 
-MSE and MSE+SIGReg were tested. MSE alone reduced but did not eliminate ChemFM's JEPA variance contraction. MSE+exact-SIGReg-16 restored source/target variance to 90.3%/55.2% of native at epoch 4 and produced 85.9% raw four-way pair retrieval (25% chance), but it did not improve generation. The frozen mechanistic audit localizes the adverse update to mostly SIGReg-driven pressure in layers 17-21 rather than broad model-wide gradient opposition.
+MSE and MSE+SIGReg were tested. MSE alone reduced but did not eliminate ChemFM's JEPA variance contraction. MSE+exact-SIGReg-16 restored source/target variance to 90.3%/55.2% of native at epoch 4 and produced 85.9% raw four-way pair retrieval (25% chance), but it did not improve generation. The frozen mechanistic audit localizes the adverse update to mostly SIGReg-driven pressure in layers 17-21 rather than broad model-wide gradient opposition. A temporal fresh-slice audit then rejected direct SIGReg pair destruction: SIGReg improves pair discrimination, but becomes 4.06x larger than applied MSE by epoch 4 and remains mildly anti-NTP.
+
+A subsequent Pair-Center Spread Floor (PCSF) test attempted the smallest anti-contraction constraint: a reference-relative one-sided standard-deviation floor on positive-pair centers. Its prespecified `rho=0.80`, `beta=4.2` configuration did not hold the floor (`0.535x` native-reference pair-center sigma at epoch 4), scored 4/256 top-1 versus native 6/256, and had 2.49% worse target CE. This tested calibration therefore failed both its mechanism and downstream criteria; it does not establish that a successfully enforced minimal floor would fail.
 
 The final benchmark-faithful comparison used 1,280 unique USPTO-MIT reactions and all five official R-SMILES views:
 
@@ -25,6 +27,7 @@ The paired difference was `-0.781` percentage points, 95% CI `[-1.719,+0.156]`, 
 | Cadence-matched cosine+SIGReg-16, k=0 | 3/256 vs native 6/256; variance remained 16.9x/14.8x lower | Showed the fixed cosine+SIGReg configuration did not stop contraction |
 | Raw MSE, k=0 | Variance remained about 4x below native at epoch 2 | MSE alone was insufficient and stopped at the gate |
 | **MSE+SIGReg-16, k=0** | Geometry restored; epoch-4 top-1 tied 6/256; CE 3.36% worse | Selected endpoint; separated geometry repair from generation benefit |
+| MSE+PCSF-16, k=0 | Floor not held; epoch-4 top-1 4/256 vs native 6/256; CE 2.49% worse | Falsified the tested PCSF calibration without resolving the broader minimal-floor hypothesis |
 | Official five-view endpoint | Native 50/1,280 vs cLM-JEPA 40/1,280 | Final benchmark-faithful behavioral result |
 | Reduced GSM8K LLM-JEPA reference | NTP 36/300 vs JEPA 28/300 | Not a successful control; its contraction was much less extreme than ChemFM's |
 
@@ -37,7 +40,9 @@ Read in this order:
 3. [MSE and MSE+SIGReg experiment](02_MSE_SIGREG_EXPERIMENT.md): the decisive objective ablation and representation result.
 4. [Official five-view endpoint evaluation](03_OFFICIAL_ENDPOINT_EVALUATION.md): powered endpoint design, exact inference parity, statistics, and stopping decision.
 5. [Mechanistic gradient and block-swap audit](04_MECHANISTIC_GRADIENT_AND_BLOCK_SWAP_AUDIT.md): auxiliary/NTP gradient decomposition, pair specificity, token-position compatibility, and causal depth localization.
+6. [SIGReg pair-specificity audit](05_SIGREG_PAIR_SPECIFICITY_AUDIT.md): temporal true/shuffled and fresh-slice gradient responses at MSE+SIGReg epochs 1, 2, and 4.
+7. [Pair-Center Spread Floor experiment](06_PCSF_EXPERIMENT.md): derivation, implementation, frozen calibration, A6000 optimization, four-epoch run, geometry, and downstream verdict.
 
 ## Research status
 
-The current bottleneck is not unresolved global representation contraction. The strongest mechanistic evidence is localized: the trained auxiliary gradient is globally near-orthogonal to NTP, but SIGReg pressure in layers 17-21 conflicts most with early-token NTP, and bidirectional block swaps localize CE harm to the same region. Report 04 specifies the single controlled follow-up.
+Global contraction remains a reproducible property of unregularized MSE, but fixing or diagnosing geometry alone has not produced decoder gains. Report 06 shows that the first minimal PCSF calibration did not actually enforce its floor and also worsened generation. Reports 04-05 still provide the more specific positive diagnosis: endpoint auxiliary structure is weakly coupled to autoregressive improvement, with adverse pressure localized to task-bearing parameters rather than erased reaction correspondence.

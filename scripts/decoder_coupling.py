@@ -245,6 +245,14 @@ def generate_equal_length_batch(model, tokenizer, prompts: list[str]) -> list[li
 
 def generate_panel(args) -> None:
     rows = read_analysis_panel(args.panel_reference, args.panel_limit)
+    if args.shard_count < 1:
+        raise ValueError("shard count must be positive")
+    if not 0 <= args.shard_index < args.shard_count:
+        raise ValueError("shard index must be in [0, shard_count)")
+    rows = [
+        row for position, row in enumerate(rows)
+        if position % args.shard_count == args.shard_index
+    ]
     completed = {record["reaction_identity"] for record in read_jsonl(args.output)}
     missing = [row for row in rows if row["reaction_identity"] not in completed]
     if not missing:
@@ -841,28 +849,18 @@ def parse_args():
     subparsers.add_parser("prepare")
 
     generation = subparsers.add_parser("generate")
-    generation.add_argument(
-        "--condition", choices=(
-            "native", "clm_jepa", "clm_jepa_target_sg",
-            "clm_jepa_sigreg_k0", "clm_jepa_sigreg_k1",
-            "clm_jepa_sigreg_k0_b128",
-        ), required=True
-    )
+    generation.add_argument("--condition", required=True)
     generation.add_argument("--checkpoint", type=Path, required=True)
     generation.add_argument("--output", type=Path, required=True)
     generation.add_argument("--max-new", type=int, default=0)
     generation.add_argument("--generation-batch-size", type=int, default=1)
     generation.add_argument("--panel-reference", type=Path)
     generation.add_argument("--panel-limit", type=int)
+    generation.add_argument("--shard-count", type=int, default=1)
+    generation.add_argument("--shard-index", type=int, default=0)
 
     representation = subparsers.add_parser("represent")
-    representation.add_argument(
-        "--condition", choices=(
-            "native", "clm_jepa", "clm_jepa_target_sg",
-            "clm_jepa_sigreg_k0", "clm_jepa_sigreg_k1",
-            "clm_jepa_sigreg_k0_b128",
-        ), required=True
-    )
+    representation.add_argument("--condition", required=True)
     representation.add_argument("--checkpoint", type=Path, required=True)
     representation.add_argument("--output", type=Path, required=True)
     representation.add_argument("--batch-size", type=int, default=4)
@@ -879,21 +877,8 @@ def parse_args():
     summary.add_argument("--output", type=Path, required=True)
     summary.add_argument("--panel-reference", type=Path)
     summary.add_argument("--panel-limit", type=int)
-    summary.add_argument(
-        "--comparison-label", choices=(
-            "clm_jepa", "clm_jepa_target_sg",
-            "clm_jepa_sigreg_k0", "clm_jepa_sigreg_k1",
-            "clm_jepa_sigreg_k0_b128",
-        ),
-        default="clm_jepa",
-    )
-    summary.add_argument(
-        "--baseline-label", choices=(
-            "native", "clm_jepa", "clm_jepa_target_sg",
-            "clm_jepa_sigreg_k0",
-        ),
-        default="native",
-    )
+    summary.add_argument("--comparison-label", default="clm_jepa")
+    summary.add_argument("--baseline-label", default="native")
     return parser.parse_args()
 
 
