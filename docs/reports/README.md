@@ -6,6 +6,8 @@ MSE and MSE+SIGReg were tested. MSE alone reduced but did not eliminate ChemFM's
 
 A subsequent Pair-Center Spread Floor (PCSF) test attempted the smallest anti-contraction constraint: a reference-relative one-sided standard-deviation floor on positive-pair centers. Its prespecified `rho=0.80`, `beta=4.2` configuration did not hold the floor (`0.535x` native-reference pair-center sigma at epoch 4), scored 4/256 top-1 versus native 6/256, and had 2.49% worse target CE. This tested calibration therefore failed both its mechanism and downstream criteria; it does not establish that a successfully enforced minimal floor would fail.
 
+The final frozen directional audit separated contraction from task utility. MSE contracted pair-center spread in all 33 checkpoint-batch measurements, while the correct-pair-specific residual expanded it in all 33 and modestly improved held-out NTP at the important trained states. The contraction therefore comes from MSE's pair-blind alignment component. SIGReg genuinely reverses that direction but becomes adverse to held-out NTP; PCSF is directionally restorative and NTP-compatible where active, but too weak to overcome total MSE. Anti-contraction tuning alone is not the next bottleneck.
+
 The final benchmark-faithful comparison used 1,280 unique USPTO-MIT reactions and all five official R-SMILES views:
 
 | Primary endpoint | Native epoch 4 | MSE+SIGReg cLM-JEPA epoch 4 |
@@ -42,7 +44,8 @@ Read in this order:
 5. [Mechanistic gradient and block-swap audit](04_MECHANISTIC_GRADIENT_AND_BLOCK_SWAP_AUDIT.md): auxiliary/NTP gradient decomposition, pair specificity, token-position compatibility, and causal depth localization.
 6. [SIGReg pair-specificity audit](05_SIGREG_PAIR_SPECIFICITY_AUDIT.md): temporal true/shuffled and fresh-slice gradient responses at MSE+SIGReg epochs 1, 2, and 4.
 7. [Pair-Center Spread Floor experiment](06_PCSF_EXPERIMENT.md): derivation, implementation, frozen calibration, A6000 optimization, four-epoch run, geometry, and downstream verdict.
+8. [Contraction and held-out NTP directional audit](07_CONTRACTION_AND_NTP_DIRECTIONAL_AUDIT.md): time-matched spread trajectories, objective-induced spread velocity, and disjoint-batch NTP effects.
 
 ## Research status
 
-Global contraction remains a reproducible property of unregularized MSE, but fixing or diagnosing geometry alone has not produced decoder gains. Report 06 shows that the first minimal PCSF calibration did not actually enforce its floor and also worsened generation. Reports 04-05 still provide the more specific positive diagnosis: endpoint auxiliary structure is weakly coupled to autoregressive improvement, with adverse pressure localized to task-bearing parameters rather than erased reaction correspondence.
+Global contraction remains a reproducible property of raw MSE, but fixing geometry alone has not produced decoder gains. Report 07 identifies the specific split: the reaction-pair-specific MSE residual is spread-preserving and modestly NTP-compatible, while the larger pair-blind alignment component contracts the representation and dilutes that benefit. SIGReg repairs scale at an NTP cost; the tested PCSF is safer but insufficient. Further work should target this objective/coupling decomposition rather than another undirected anti-collapse increase.
