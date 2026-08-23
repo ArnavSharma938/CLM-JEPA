@@ -51,6 +51,8 @@ Read in this order:
 9. [Projection-space MSE+SIGReg experiment](08_PROJECTION_SPACE_MSE_SIGREG_EXPERIMENT.md): primary-source design, PCSF production cleanup, logical-batch projector training, two-space geometry, gradient alignment, CE, and generation verdict.
 10. [JEPA–NTP gradient-interaction experiment](09_GRADIENT_INTERACTION_EXPERIMENT.md): clean direct MSE+SIGReg baseline, weight controls, PCGrad, CAGrad, published auxiliary-gradient similarity, optimized diagnostics, and autoregressive verdict.
 
+11. [Gradient-interaction execution checkpoint](10_EXECUTION_CHECKPOINT.md): recovery handoff listing completed artifacts, active execution, and remaining work.
+
 ## Research status
 
 Global contraction remains a reproducible property of raw MSE, but fixing geometry alone has not produced decoder gains. Report 07 identifies the specific split: the reaction-pair-specific MSE residual is spread-preserving and modestly NTP-compatible, while the larger pair-blind alignment component contracts the representation and dilutes that benefit. Report 08 shows that a conventional train-only projector does not automatically isolate that pressure: gradients through the shared backbone can distort raw h even when both losses are computed only on z. Further work should target this objective/coupling decomposition rather than another anti-collapse increase or projector sweep.
