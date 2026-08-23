@@ -81,13 +81,6 @@ class ReactionCollator:
             "tgt_smiles": [x["tgt"] for x in instances],
             "generation_prompts": prompts,
         }
-        if any("pcsf_reference_index" in instance for instance in instances):
-            if not all("pcsf_reference_index" in instance for instance in instances):
-                raise ValueError("every row in a PCSF batch must provide a reference index")
-            result["pcsf_reference_indices"] = torch.tensor(
-                [int(x["pcsf_reference_index"]) for x in instances],
-                dtype=torch.long,
-            )
         if any("jepa_tgt" in instance for instance in instances):
             if not all("jepa_tgt" in instance for instance in instances):
                 raise ValueError("every row in a shuffled batch must provide jepa_tgt")

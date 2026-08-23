@@ -186,11 +186,11 @@ def read_analysis_panel(
     return selected
 
 
-def load_model(checkpoint: Path):
+def load_model(checkpoint: Path, *, predictor_tokens: bool = True):
     torch.manual_seed(SEED)
     tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
     chemfm_vocab_size = len(tokenizer)
-    predictor_ids = add_predictor_tokens(tokenizer)
+    predictor_ids = add_predictor_tokens(tokenizer) if predictor_tokens else []
     model = load_lora_model(
         MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size
     ).cuda().eval()
@@ -258,7 +258,9 @@ def generate_panel(args) -> None:
     if not missing:
         print(json.dumps({"status": "complete", "rows": len(rows)}))
         return
-    tokenizer, _, model = load_model(args.checkpoint)
+    tokenizer, _, model = load_model(
+        args.checkpoint, predictor_tokens=args.predictor_tokens,
+    )
     collator = ReactionCollator(tokenizer, task="forward")
     prompts = {
         row["reaction_identity"]: collator(
@@ -437,7 +439,9 @@ def representation_inference(args) -> None:
         {"src": row["source"], "tgt": row["target"], **row}
         for row in panel
     ]
-    tokenizer, predictor_ids, model = load_model(args.checkpoint)
+    tokenizer, predictor_ids, model = load_model(
+        args.checkpoint, predictor_tokens=args.predictor_tokens,
+    )
     collator = ReactionCollator(tokenizer, task="forward")
     contributors, removed, replaced, unrelated, unrelated_cost = intervention_rows(rows, tokenizer)
     original = [{"src": row["src"], "tgt": row["tgt"]} for row in rows]
@@ -858,6 +862,9 @@ def parse_args():
     generation.add_argument("--panel-limit", type=int)
     generation.add_argument("--shard-count", type=int, default=1)
     generation.add_argument("--shard-index", type=int, default=0)
+    generation.add_argument(
+        "--predictor-tokens", action=argparse.BooleanOptionalAction, default=True,
+    )
 
     representation = subparsers.add_parser("represent")
     representation.add_argument("--condition", required=True)
@@ -868,6 +875,9 @@ def parse_args():
     representation.add_argument("--panel-reference", type=Path)
     representation.add_argument("--panel-limit", type=int)
     representation.add_argument("--k", type=int, choices=(0, 1), default=1)
+    representation.add_argument(
+        "--predictor-tokens", action=argparse.BooleanOptionalAction, default=True,
+    )
 
     summary = subparsers.add_parser("summarize")
     summary.add_argument("--native-generation", type=Path, required=True)

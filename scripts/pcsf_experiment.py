@@ -19,13 +19,15 @@ from transformers import set_seed
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "scripts"))
 
 from chemfm import (  # noqa: E402
     IGNORE_INDEX, MODEL_DIR, TOKENIZER_DIR, ReactionCollator,
     load_lora_model, load_reaction_tokenizer,
 )
-from jepa import (  # noqa: E402
-    CLMJEPA, PairCenterSpreadFloor, add_predictor_tokens,
+from jepa import CLMJEPA, add_predictor_tokens  # noqa: E402
+from historical_pcsf import (  # noqa: E402
+    PairCenterSpreadFloor,
     pair_center_standard_deviation, pair_center_variance, pair_centers,
 )
 from metrics import effective_rank  # noqa: E402

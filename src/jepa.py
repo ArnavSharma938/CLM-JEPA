@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Sequence
 
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 
@@ -13,193 +14,52 @@ from chemfm import IGNORE_INDEX
 PREDICTOR_TOKENS = [f"<|predictor_{index}|>" for index in range(1, 11)]
 
 
-def pair_centers(
-    source_states: torch.Tensor, target_states: torch.Tensor,
-) -> torch.Tensor:
-    """Return matched source/target barycenters in stable FP32."""
-    if source_states.ndim != 2 or target_states.shape != source_states.shape:
-        raise ValueError("PCSF expects matched (samples, dimensions) source/target states")
-    if source_states.size(0) < 1:
-        raise ValueError("PCSF requires at least one matched pair")
-    return (source_states.float() + target_states.float()) * 0.5
+class ProjectionHead(nn.Module):
+    """Shared LeJEPA-style train-only projection head.
 
+    BatchNorm is deliberately confined to the two hidden layers.  The caller
+    must concatenate every source and target endpoint in one logical JEPA batch
+    before invoking this module so its batch statistics never describe a
+    physical gradient-accumulation microbatch.
+    """
 
-def pair_center_variance(
-    centers: torch.Tensor, *, unbiased: bool = True,
-) -> torch.Tensor:
-    """Feature-averaged variance of reaction pair centers."""
-    if centers.ndim != 2 or centers.size(0) < 2:
-        raise ValueError("pair-center spread expects at least two 2D samples")
-    values = centers.float()
-    centered = values - values.mean(dim=0, keepdim=True)
-    denominator = (values.size(0) - int(unbiased)) * values.size(1)
-    return centered.square().sum() / denominator
-
-
-def pair_center_standard_deviation(
-    centers: torch.Tensor, *, epsilon: float = 1e-8, unbiased: bool = True,
-) -> torch.Tensor:
-    if epsilon <= 0.0:
-        raise ValueError("PCSF epsilon must be positive")
-    return torch.sqrt(pair_center_variance(centers, unbiased=unbiased) + epsilon)
-
-
-def pcsf_loss(
-    source_states: torch.Tensor,
-    target_states: torch.Tensor,
-    reference_centers: torch.Tensor,
-    *,
-    rho: float,
-    epsilon: float = 1e-8,
-) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    """Reference-relative one-sided pair-center standard-deviation floor."""
-    if not 0.0 < rho <= 1.0:
-        raise ValueError("PCSF rho must be in (0, 1]")
-    centers = pair_centers(source_states, target_states)
-    if reference_centers.shape != centers.shape:
-        raise ValueError("reference centers must match the active logical batch")
-    current_sigma = pair_center_standard_deviation(centers, epsilon=epsilon)
-    reference_sigma = pair_center_standard_deviation(
-        reference_centers.detach(), epsilon=epsilon,
-    )
-    penalty = torch.relu(rho * reference_sigma - current_sigma).square()
-    return penalty, current_sigma, reference_sigma
-
-
-@dataclass
-class PreparedPCSF:
-    """Exact logical-batch PCSF value and endpoint VJP for recomputed chunks."""
-
-    loss: torch.Tensor
-    mean: torch.Tensor
-    sigma: torch.Tensor
-    reference_sigma: torch.Tensor
-    threshold: torch.Tensor
-    expected_samples: int
-    dimensions: int
-    epsilon: float
-
-    @property
-    def above_floor(self) -> bool:
-        return bool((self.threshold > self.sigma).item())
-
-    def representation_gradients(
-        self, source_states: torch.Tensor, target_states: torch.Tensor,
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        centers = pair_centers(source_states, target_states).detach()
-        if centers.size(1) != self.dimensions:
-            raise ValueError("recomputed PCSF chunk has the wrong representation width")
-        if not self.above_floor:
-            zeros = torch.zeros_like(centers)
-            return zeros, zeros
-        gap = self.threshold - self.sigma
-        center_gradient = (
-            -2.0
-            * gap
-            * (centers - self.mean)
-            / ((self.expected_samples - 1) * self.dimensions * self.sigma)
-        )
-        endpoint_gradient = center_gradient * 0.5
-        return endpoint_gradient, endpoint_gradient
-
-    def surrogate(
-        self, source_states: torch.Tensor, target_states: torch.Tensor,
-    ) -> torch.Tensor:
-        source_gradient, target_gradient = self.representation_gradients(
-            source_states, target_states,
-        )
-        return (
-            source_states * source_gradient.to(source_states.dtype)
-        ).sum() + (
-            target_states * target_gradient.to(target_states.dtype)
-        ).sum()
-
-
-@dataclass
-class StreamingPCSF:
-    """Detached exact statistics for one logical PCSF batch."""
-
-    expected_samples: int
-    dimensions: int
-    rho: float
-    epsilon: float
-    current_chunks: list[torch.Tensor]
-    reference_chunks: list[torch.Tensor]
-    samples: int = 0
-
-    def update(
-        self,
-        source_states: torch.Tensor,
-        target_states: torch.Tensor,
-        reference_centers: torch.Tensor,
+    def __init__(
+        self, input_dim: int, hidden_dim: int = 2048, output_dim: int = 64,
     ) -> None:
-        centers = pair_centers(source_states, target_states).detach()
-        references = reference_centers.detach().float()
-        if centers.size(1) != self.dimensions or references.shape != centers.shape:
-            raise ValueError("PCSF current/reference chunk shape mismatch")
-        self.current_chunks.append(centers)
-        self.reference_chunks.append(references)
-        self.samples += centers.size(0)
-        if self.samples > self.expected_samples:
-            raise ValueError("streaming PCSF received too many samples")
+        super().__init__()
+        if min(input_dim, hidden_dim, output_dim) < 1:
+            raise ValueError("projection dimensions must be positive")
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.output_dim = output_dim
+        self.layers = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.BatchNorm1d(hidden_dim),
+            nn.ReLU(inplace=True),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.BatchNorm1d(hidden_dim),
+            nn.ReLU(inplace=True),
+            nn.Linear(hidden_dim, output_dim),
+        )
 
-    def finalize(self) -> PreparedPCSF:
-        if self.samples != self.expected_samples:
+    def forward(self, states: torch.Tensor) -> torch.Tensor:
+        if states.ndim != 2 or states.size(-1) != self.input_dim:
             raise ValueError(
-                f"streaming PCSF expected {self.expected_samples} samples, got {self.samples}"
+                f"projector expects (samples, {self.input_dim}) endpoint states"
             )
-        current = torch.cat(self.current_chunks, dim=0)
-        reference = torch.cat(self.reference_chunks, dim=0)
-        loss, sigma, reference_sigma = pcsf_loss(
-            current, current, reference,
-            rho=self.rho, epsilon=self.epsilon,
-        )
-        # pcsf_loss(current, current, ...) returns current as its pair center.
-        return PreparedPCSF(
-            loss=loss,
-            mean=current.mean(dim=0, keepdim=True),
-            sigma=sigma,
-            reference_sigma=reference_sigma,
-            threshold=self.rho * reference_sigma,
-            expected_samples=self.expected_samples,
-            dimensions=self.dimensions,
-            epsilon=self.epsilon,
-        )
+        return self.layers(states.float())
 
-
-class PairCenterSpreadFloor:
-    def __init__(self, *, rho: float, epsilon: float = 1e-8):
-        if not 0.0 < rho <= 1.0:
-            raise ValueError("PCSF rho must be in (0, 1]")
-        if epsilon <= 0.0:
-            raise ValueError("PCSF epsilon must be positive")
-        self.rho = rho
-        self.epsilon = epsilon
-
-    def __call__(
-        self,
-        source_states: torch.Tensor,
-        target_states: torch.Tensor,
-        reference_centers: torch.Tensor,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        return pcsf_loss(
-            source_states, target_states, reference_centers,
-            rho=self.rho, epsilon=self.epsilon,
-        )
-
-    def start_streaming(
-        self, *, expected_samples: int, dimensions: int,
-    ) -> StreamingPCSF:
-        if expected_samples < 2 or dimensions < 1:
-            raise ValueError("invalid streaming PCSF shape")
-        return StreamingPCSF(
-            expected_samples=expected_samples,
-            dimensions=dimensions,
-            rho=self.rho,
-            epsilon=self.epsilon,
-            current_chunks=[],
-            reference_chunks=[],
-        )
+    def configuration(self) -> dict[str, int | str | bool]:
+        return {
+            "input_dim": self.input_dim,
+            "hidden_dim": self.hidden_dim,
+            "output_dim": self.output_dim,
+            "architecture": f"{self.input_dim}->{self.hidden_dim}->{self.hidden_dim}->{self.output_dim}",
+            "hidden_normalization": "BatchNorm1d",
+            "hidden_activation": "ReLU",
+            "final_activation": False,
+            "l2_normalization": False,
+        }
 
 
 class SIGReg:
@@ -474,6 +334,7 @@ class CLMJEPA:
         shuffle_seed: int | None = None,
         force_jepa_active: bool | None = None,
         endpoint_only: bool = False,
+        representation_only: bool = False,
     ) -> CLMJEPAOutput:
         if not -1.0 <= jepa_ratio <= 1.0:
             raise ValueError("jepa_ratio must be -1 or in [0, 1]")
@@ -481,6 +342,10 @@ class CLMJEPA:
             raise ValueError("sigreg_tradeoff must be in [0, 1)")
         if jepa_loss_type not in {"cosine", "mse"}:
             raise ValueError("jepa_loss_type must be cosine or mse")
+        if jepa_loss_type == "mse" and sigreg_tradeoff > 0.0:
+            raise ValueError(
+                "raw endpoint MSE+SIGReg is disabled; use the shared projection-space objective"
+            )
         if sigreg_relative_scale <= 0.0:
             raise ValueError("sigreg_relative_scale must be positive")
         jepa_active = (
@@ -581,7 +446,9 @@ class CLMJEPA:
         source_states = hidden[row_indices + batch_size, source_indices]
         target_states = hidden[row_indices + 2 * batch_size, target_indices]
         jepa_target_states = target_states.detach() if stop_gradient_target else target_states
-        if jepa_loss_type == "mse":
+        if representation_only:
+            jepa_loss = None
+        elif jepa_loss_type == "mse":
             # Exact upstream LLM-JEPA --jepa_mse branch: no endpoint
             # normalization and a mean over examples and representation axes.
             jepa_loss = torch.mean((source_states - jepa_target_states) ** 2)
@@ -591,7 +458,7 @@ class CLMJEPA:
             ).mean()
         sigreg_loss = None
         jepa_objective_loss = jepa_loss
-        if sigreg_tradeoff > 0.0:
+        if sigreg_tradeoff > 0.0 and not representation_only:
             # LeJEPA regularizes every view distribution independently. Scaling the
             # 0.95/0.05 mixture by 1/0.95 preserves this project's frozen cosine
             # coefficient while retaining LeJEPA's standard relative trade-off.
@@ -603,10 +470,9 @@ class CLMJEPA:
                     * sigreg_tradeoff / (1.0 - sigreg_tradeoff)
                 ) * sigreg_loss
             )
-        applied_jepa = (
-            native_loss.new_zeros(())
-            if monitor_only else jepa_weight * jepa_objective_loss
-        )
+        applied_jepa = native_loss.new_zeros(())
+        if not monitor_only and not representation_only:
+            applied_jepa = jepa_weight * jepa_objective_loss
         loss = native_weight * native_loss + applied_jepa
         return CLMJEPAOutput(
             loss=loss,

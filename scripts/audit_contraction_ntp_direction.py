@@ -46,6 +46,8 @@ from jepa import (  # noqa: E402
     CLMJEPA,
     add_predictor_tokens,
     matched_derangement,
+)
+from historical_pcsf import (  # noqa: E402
     pair_center_standard_deviation,
     pair_centers,
     pcsf_loss,

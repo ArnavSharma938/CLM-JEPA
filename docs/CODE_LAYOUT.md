@@ -8,7 +8,7 @@ There is one ChemFM training implementation for both GPUs:
 |---|---|---|
 | `src/train.py` | Native and cLM-JEPA fine-tuning, checkpoint/resume, validation, diagnostics, W&B | Hardware-agnostic; batch/checkpointing settings determine fit |
 | `src/chemfm.py` | ChemFM tokenizer, collation, LoRA loading, generation | Hardware-agnostic |
-| `src/jepa.py` | JEPA readouts/losses, exact streamed SIGReg, and exact logical-batch PCSF | Hardware-agnostic |
+| `src/jepa.py` | JEPA readouts/losses, SIGReg, and the shared LeJEPA-style projection head | Hardware-agnostic |
 | `src/metrics.py` | Generative and representation metrics | Hardware-agnostic |
 | `src/representation_eval.py` | Standard frozen representation diagnostics | Any compatible GPU |
 | `src/eval_uspto_mit_five_view_a6000.py` | Official five-view, beam-10 endpoint generation and paired statistics | A6000 exact-parity path |
@@ -25,13 +25,16 @@ The A6000 experiments do not use a second ChemFM trainer. They invoke `src/train
 | `scripts/diagnose_sigreg_gradients_rtx4050.py` | Frozen-checkpoint gradient-response assay | RTX 4050-specific assay |
 | `scripts/audit_chemfm_mechanism.py` | Frozen NTP/MSE/SIGReg gradient decomposition and exact LoRA block-swap CE audit | RTX 4050-optimized diagnostic |
 | `scripts/audit_sigreg_pair_specificity.py` | Frozen epoch-1/2/4 SIGReg true-vs-shuffled gradient-response audit with fresh projection draws | RTX 4050-optimized diagnostic |
+| `scripts/audit_projected_mse_sigreg.py` | Raw/projected geometry plus projected MSE, SIGReg, and full-auxiliary alignment with disjoint held-out NTP | Any compatible GPU; physical chunking controls memory |
+| `scripts/subset_endpoint_panel.py` | Deterministically order resumable worker shards against a frozen manifest prefix | CPU |
 | `scripts/pcsf_experiment.py` | PCSF reference extraction, frozen spread trajectory, and gradient calibration | Any compatible GPU; A6000 used for the reported run |
 | `scripts/benchmark_pcsf_training.py` | Exact objective/parity and A6000 throughput frontier for PCSF training | A6000 |
+| `scripts/historical_pcsf.py` | Archived PCSF mathematics used only by prior read-only diagnostics | Historical; never imported by `src/` |
 | `scripts/prepare_uspto_mit_sigreg_panel.py` | Freeze the length-stratified 256-reaction panel | CPU |
 | `scripts/design_uspto_mit_endpoint.py` | Freeze and evaluate the sequential endpoint stopping rule | CPU |
 | `scripts/download_chemfm_model.py` | Download and hash-check the pinned ChemFM-1B snapshot | CPU/network |
 
-The report-specific scripts preserve analysis reproducibility but are not imported by the maintained trainer. The normal training-time validation in `src/train.py`, one-view mechanism diagnostics, and official five-view endpoint evaluator answer different questions and are not interchangeable.
+The report-specific PCSF scripts and artifacts preserve historical evidence but are not imported by the maintained trainer. The active trainer has no PCSF reference cache, collation, statistic, VJP, configuration, or metric path. The normal training-time validation in `src/train.py`, one-view mechanism diagnostics, and official five-view endpoint evaluator answer different questions and are not interchangeable.
 
 The A6000 wrappers are also in flat `scripts/`; they are not alternative scientific implementations:
 

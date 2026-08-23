@@ -2,6 +2,7 @@ import copy
 import sys
 from pathlib import Path
 
+import pytest
 import torch
 from peft import LoraConfig, get_peft_model
 from transformers import LlamaConfig, LlamaForCausalLM
@@ -11,7 +12,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from chemfm import TOKENIZER_DIR, ReactionCollator, load_reaction_tokenizer
 from jepa import (
-    CLMJEPA, PairCenterSpreadFloor, SIGReg, add_predictor_tokens, extract_source_and_target,
+    CLMJEPA, ProjectionHead, SIGReg, add_predictor_tokens, extract_source_and_target,
     matched_derangement,
 )
 
@@ -302,22 +303,25 @@ def test_mse_matches_upstream_llm_jepa_definition_exactly():
     torch.testing.assert_close(result.loss, expected, rtol=0.0, atol=0.0)
 
 
-def test_two_view_lejepa_mapping_preserves_raw_pairwise_mse_coefficient():
+def test_direct_raw_endpoint_mse_sigreg_is_disabled():
     model, _, method, batch = setup_case()
-    tradeoff = 0.01
-    result = method(
-        model, batch, k=0, jepa_weight=2.0, native_weight=0.0,
-        jepa_loss_type="mse", sigreg_tradeoff=tradeoff,
-        sigreg_relative_scale=4.0, force_jepa_active=True,
-    )
-    center = (result.source_states + result.target_states) / 2
-    center_loss = torch.stack((
-        (result.source_states - center).square(),
-        (result.target_states - center).square(),
-    )).mean()
-    torch.testing.assert_close(center_loss, result.jepa_loss / 4, rtol=1e-6, atol=1e-7)
-    expected = result.jepa_loss + (4 * tradeoff / (1 - tradeoff)) * result.sigreg_loss
-    torch.testing.assert_close(result.jepa_objective_loss, expected)
+    with pytest.raises(ValueError, match="projection-space"):
+        method(
+            model, batch, k=0, jepa_weight=2.0, native_weight=0.0,
+            jepa_loss_type="mse", sigreg_tradeoff=0.01,
+            sigreg_relative_scale=4.0, force_jepa_active=True,
+        )
+
+
+def test_projection_head_is_three_linear_layers_with_hidden_bn_and_relu():
+    projector = ProjectionHead(32)
+    assert [type(layer).__name__ for layer in projector.layers] == [
+        "Linear", "BatchNorm1d", "ReLU",
+        "Linear", "BatchNorm1d", "ReLU", "Linear",
+    ]
+    assert projector.layers[-1].out_features == 64
+    assert projector.configuration()["architecture"] == "32->2048->2048->64"
+    assert projector.configuration()["final_activation"] is False
 
 
 def test_streaming_sigreg_matches_materialized_value_and_gradients():
@@ -428,127 +432,6 @@ def test_streaming_recomputation_matches_materialized_tiny_clm_jepa_gradients():
             streamed_gradients[name], direct_gradients[name],
             rtol=3e-4, atol=3e-6,
             msg=lambda message, name=name: f"{name}: {message}",
-        )
-
-
-def test_streaming_mse_sigreg_matches_materialized_value_and_gradients():
-    direct_model, _, direct_method, direct_batch = setup_case()
-    streamed_model, _, streamed_method, streamed_batch = setup_case()
-    direct_model.eval()
-    streamed_model.eval()
-    tradeoff = 0.01
-    relative = 4.0 * tradeoff / (1.0 - tradeoff)
-
-    direct = direct_method(
-        direct_model, direct_batch, k=0, jepa_weight=2.0,
-        jepa_loss_type="mse", sigreg_tradeoff=tradeoff,
-        sigreg_relative_scale=4.0, force_jepa_active=True,
-    )
-    direct.loss.backward()
-
-    with torch.no_grad():
-        first = streamed_method(
-            streamed_model, streamed_batch, k=0, jepa_weight=0.0,
-            monitor_only=True, jepa_loss_type="mse", force_jepa_active=True,
-        )
-        states = torch.stack((first.source_states, first.target_states))
-        accumulator = streamed_method.sigreg.start_streaming(
-            views=2, dimensions=states.size(-1),
-            expected_samples=states.size(1), device=states.device,
-        )
-        accumulator.update(states)
-        prepared = accumulator.finalize()
-    streamed = streamed_method(
-        streamed_model, streamed_batch, k=0, jepa_weight=2.0,
-        jepa_loss_type="mse", force_jepa_active=True,
-    )
-    streamed_loss = streamed.loss + 2.0 * relative * prepared.surrogate(
-        torch.stack((streamed.source_states, streamed.target_states))
-    )
-    streamed_loss.backward()
-
-    expected_value = streamed.loss.detach() + 2.0 * relative * prepared.loss
-    torch.testing.assert_close(expected_value, direct.loss.detach(), rtol=2e-5, atol=2e-6)
-    direct_gradients = {
-        name: parameter.grad for name, parameter in direct_model.named_parameters()
-        if parameter.grad is not None
-    }
-    streamed_gradients = {
-        name: parameter.grad for name, parameter in streamed_model.named_parameters()
-        if parameter.grad is not None
-    }
-    assert direct_gradients.keys() == streamed_gradients.keys()
-    for name in direct_gradients:
-        torch.testing.assert_close(
-            streamed_gradients[name], direct_gradients[name],
-            rtol=3e-4, atol=3e-6,
-            msg=lambda message, name=name: f"{name}: {message}",
-        )
-
-
-def test_streaming_mse_pcsf_matches_materialized_value_and_parameter_gradients():
-    direct_model, _, direct_method, direct_batch = setup_case()
-    streamed_model, _, streamed_method, streamed_batch = setup_case()
-    direct_model.eval()
-    streamed_model.eval()
-    beta = 3.25
-    regularizer = PairCenterSpreadFloor(rho=0.8)
-
-    direct = direct_method(
-        direct_model, direct_batch, k=0, jepa_weight=2.0,
-        jepa_loss_type="mse", force_jepa_active=True,
-    )
-    reference = (
-        (direct.source_states.detach() + direct.target_states.detach()) * 0.5 / 0.2
-    )
-    direct_pcsf, _, _ = regularizer(
-        direct.source_states, direct.target_states, reference,
-    )
-    direct_loss = direct.loss + 2.0 * beta * direct_pcsf
-    direct_loss.backward()
-
-    with torch.no_grad():
-        first = streamed_method(
-            streamed_model, streamed_batch, k=0, jepa_weight=0.0,
-            monitor_only=True, jepa_loss_type="mse", force_jepa_active=True,
-        )
-        accumulator = regularizer.start_streaming(
-            expected_samples=3, dimensions=first.source_states.size(-1),
-        )
-        for indices in (slice(0, 1), slice(1, 3)):
-            accumulator.update(
-                first.source_states[indices], first.target_states[indices],
-                reference[indices],
-            )
-        prepared = accumulator.finalize()
-    streamed = streamed_method(
-        streamed_model, streamed_batch, k=0, jepa_weight=2.0,
-        jepa_loss_type="mse", force_jepa_active=True,
-    )
-    streamed_loss = streamed.loss + 2.0 * beta * sum(
-        prepared.surrogate(
-            streamed.source_states[indices], streamed.target_states[indices],
-        )
-        for indices in (slice(0, 1), slice(1, 3))
-    )
-    streamed_loss.backward()
-
-    torch.testing.assert_close(prepared.loss, direct_pcsf.detach(), rtol=2e-5, atol=2e-6)
-    expected_value = streamed.loss.detach() + 2.0 * beta * prepared.loss
-    torch.testing.assert_close(expected_value, direct_loss.detach(), rtol=2e-5, atol=2e-6)
-    direct_gradients = {
-        name: parameter.grad for name, parameter in direct_model.named_parameters()
-        if parameter.grad is not None
-    }
-    streamed_gradients = {
-        name: parameter.grad for name, parameter in streamed_model.named_parameters()
-        if parameter.grad is not None
-    }
-    assert direct_gradients.keys() == streamed_gradients.keys()
-    for name in direct_gradients:
-        torch.testing.assert_close(
-            streamed_gradients[name], direct_gradients[name],
-            rtol=4e-4, atol=4e-6, msg=name,
         )
 
 

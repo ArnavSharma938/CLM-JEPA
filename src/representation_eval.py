@@ -8,8 +8,11 @@ import torch
 from transformers import set_seed
 
 from chemfm import MODEL_DIR, TOKENIZER_DIR, ReactionCollator, load_lora_model, load_reaction_tokenizer
-from jepa import CLMJEPA, add_predictor_tokens
-from train import TASKS, load_adapter_checkpoint, read_rows, representation_diagnostics
+from jepa import CLMJEPA, ProjectionHead, add_predictor_tokens
+from train import (
+    TASKS, load_adapter_checkpoint, load_projection_head_checkpoint,
+    read_rows, representation_diagnostics,
+)
 
 
 def main() -> None:
@@ -20,6 +23,8 @@ def main() -> None:
     parser.add_argument("--include-pretrained", action="store_true")
     parser.add_argument("--seed", type=int, default=533)
     parser.add_argument("--k", type=int, default=1)
+    parser.add_argument("--diagnostic-limit", type=int, default=32)
+    parser.add_argument("--diagnostic-batch-size", type=int, default=4)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
@@ -32,8 +37,9 @@ def main() -> None:
         result = json.loads(path.read_text(encoding="utf-8"))
         if result["dataset"] != args.dataset:
             raise ValueError(f"{path} belongs to {result['dataset']}, not {args.dataset}")
-        conditions.append((result["condition"], Path(result["selected_checkpoint"]), path))
-
+        conditions.append((
+            result["condition"], Path(result["selected_checkpoint"]), path,
+        ))
     output = {
         "dataset": args.dataset,
         "task": task,
@@ -46,17 +52,34 @@ def main() -> None:
         set_seed(args.seed)
         tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
         chemfm_vocab_size = len(tokenizer)
-        predictor_ids = add_predictor_tokens(tokenizer)
+        run = (
+            None if source_result is None
+            else json.loads(source_result.read_text(encoding="utf-8"))
+        )
+        projected_condition = bool(
+            run and run["condition"] == "clm_jepa_projected_mse_sigreg"
+        )
+        predictor_ids = [] if projected_condition else add_predictor_tokens(tokenizer)
         collator = ReactionCollator(tokenizer, task=task)
         model = load_lora_model(
             MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size
         ).cuda().eval()
         if checkpoint is not None:
             load_adapter_checkpoint(model, checkpoint.resolve())
+        projector = None
+        if projected_condition:
+            config = run["config"]["projection_head"]
+            projector = ProjectionHead(
+                config["input_dim"], config["hidden_dim"], config["output_dim"],
+            ).cuda()
+            load_projection_head_checkpoint(projector, checkpoint.resolve())
         method = CLMJEPA(predictor_ids, tokenizer.eos_token_id, tokenizer.pad_token_id)
         torch.cuda.reset_peak_memory_stats()
         metrics = representation_diagnostics(
-            model, method, collator, rows, args.k, args.seed, task
+            model, method, collator, rows,
+            0 if projected_condition else args.k, args.seed, task,
+            projector=projector, limit=args.diagnostic_limit,
+            physical_batch_size=args.diagnostic_batch_size,
         )
         output["conditions"][label] = {
             "source_result": None if source_result is None else str(source_result),
@@ -66,7 +89,7 @@ def main() -> None:
         }
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
-        del method, model
+        del method, model, projector
         torch.cuda.empty_cache()
 
     print(json.dumps({"output": str(args.output), "conditions": list(output["conditions"])}, sort_keys=True))

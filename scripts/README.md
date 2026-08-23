@@ -8,6 +8,8 @@ These are executable diagnostics, setup utilities, and hardware-specific wrapper
 - `geometry_diagnosis.py`: base/native/cLM-JEPA geometry and residual-PCA analysis.
 - `diagnose_sigreg_batch16_rtx4050.py`: exact SIGReg batch-16 calibration and smoke test.
 - `diagnose_sigreg_gradients_rtx4050.py`: frozen-checkpoint regularizer-gradient assay.
+- `audit_projected_mse_sigreg.py`: two-space geometry and projected-objective alignment with held-out NTP.
+- `subset_endpoint_panel.py`: order resumable worker shards against a frozen manifest prefix for matched, budget-bounded panels.
 - `prepare_uspto_mit_sigreg_panel.py`: freeze the length-stratified evaluation panel.
 - `design_uspto_mit_endpoint.py`: prepare and evaluate the sequential endpoint design.
 - `download_chemfm_model.py`: download and hash-check the pinned ChemFM-1B snapshot.
@@ -20,3 +22,7 @@ These are executable diagnostics, setup utilities, and hardware-specific wrapper
 - `diagnose_llm_jepa_geometry.py`: frozen GSM8K representation diagnostics.
 
 The wrappers do not replace `src/train.py` or the pinned upstream repositories in `references/`. See `docs/CODE_LAYOUT.md` for the full mapping.
+
+PCSF scripts remain solely to reproduce reports 06-07. Their mathematics lives
+in `historical_pcsf.py`; PCSF is not part of the maintained model, collator, or
+training implementation.

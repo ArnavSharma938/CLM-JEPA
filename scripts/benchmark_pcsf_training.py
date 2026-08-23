@@ -1,4 +1,8 @@
-"""A6000 benchmark and parity harness for the exact logical-batch PCSF trainer."""
+"""Archived A6000 benchmark source for the removed PCSF training path.
+
+The measurements remain reproducible from the retained environment/archive,
+but this script intentionally does not reconnect PCSF to the active trainer.
+"""
 
 from __future__ import annotations
 
@@ -20,11 +24,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from chemfm import MODEL_DIR, TOKENIZER_DIR, ReactionCollator, load_lora_model, load_reaction_tokenizer  # noqa: E402
-from jepa import CLMJEPA, PairCenterSpreadFloor, add_predictor_tokens  # noqa: E402
+from jepa import CLMJEPA, add_predictor_tokens  # noqa: E402
+from historical_pcsf import PairCenterSpreadFloor  # noqa: E402
 from train import (  # noqa: E402
     ADAM_BETAS, ADAM_EPSILON, MIN_LEARNING_RATE, WARMUP_RATIO, WEIGHT_DECAY,
-    TrackingContext, WandbTracker, load_pcsf_reference_cache, read_rows,
-    train_streaming_pcsf_epoch,
+    read_rows,
 )
 
 
@@ -248,20 +252,11 @@ def main() -> None:
     parser.add_argument("--parity", action="store_true")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    result = {"parity": parity(args) if args.parity else None, "benchmark": benchmark(args)}
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({
-        "output": str(args.output.resolve()),
-        "parity": result["parity"],
-        "benchmark": {
-            key: result["benchmark"][key]
-            for key in (
-                "step_seconds", "examples_per_second", "peak_allocated_bytes",
-                "projected_four_epoch_minutes",
-            )
-        },
-    }), flush=True)
+    raise RuntimeError(
+        "PCSF was removed from src/train.py; this file is retained only as the "
+        "historical benchmark source. Use runs/pcsf/benchmark and report 06 "
+        "for the frozen measurements."
+    )
 
 
 if __name__ == "__main__":

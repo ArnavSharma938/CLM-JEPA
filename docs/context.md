@@ -27,7 +27,7 @@ See `docs/CODE_LAYOUT.md` for the full map. Key entrypoints:
 
 - `src/train.py`: canonical ChemFM training, validation, checkpoint/resume, and W&B.
 - `src/chemfm.py`: tokenizer, collation, LoRA loading, and generation.
-- `src/jepa.py`: readouts, cosine/MSE objectives, stop-gradient option, and exact streamed SIGReg.
+- `src/jepa.py`: readouts, exact SIGReg, and the shared train-only projection head; direct raw MSE+SIGReg is disabled.
 - `src/representation_eval.py`: standard frozen representation evaluation.
 - `src/eval_uspto_mit_five_view_a6000.py`: official five-view beam-10 endpoint evaluation.
 - `scripts/`: report-specific diagnostics, setup utilities, A6000 execution wrappers, and the GSM8K upstream reference.
@@ -92,8 +92,14 @@ Four disjoint batches of 16 reactions were evaluated at MSE+SIGReg epochs 1, 2, 
 
 PCSF tested a reference-relative, one-sided standard-deviation floor on positive-pair centers with no covariance, rank, Gaussian, or whitening constraint. Frozen calibration fixed `rho=0.80` and `beta=4.2`; no coefficient sweep was run. The four-epoch condition did not hold the floor: pair-center sigma fell to `0.535x` the matched-native reference, while rank remained healthy. On the fixed 256 panel it scored 4/256 top-1 versus native 6/256 and had 2.49% worse target CE. Strong residual pair retrieval still did not predict CE or beam-rank gains. The tested calibration is rejected, but because it failed to preserve spread it does not cleanly answer whether a successfully enforced minimal floor is sufficient. Full details are in `docs/reports/06_PCSF_EXPERIMENT.md`.
 
+### Projection-space MSE+SIGReg
+
+Both MSE and exact SIGReg were moved from raw ChemFM EOS states into one shared `2048->2048->2048->64` hidden-BN/ReLU projection head. BatchNorm saw the full 32-row source-plus-target logical JEPA batch. PCSF and direct raw MSE+SIGReg were removed from the active production path; historical PCSF evidence remains read-only.
+
+The four-epoch seed-533 run completed 320 updates in 32.33 minutes. Projected z became centered and high-variance but only about three-dimensional by effective rank. Raw h did not remain native-like: it overshot native variance and lost rank. The matched 256-reaction target-token CE was `0.256497`, versus direct MSE+SIGReg `0.248779` and native `0.240683`. On the first 512 reactions of the frozen official manifest, native/direct/projected exact top-1 was `18/15/4`; projected versus direct was `-2.148` pp, 95% CI `[-3.516,-0.781]`, McNemar `p=0.00342`. The 512 panel was budget-bounded during execution and is descriptive, not the original confirmatory 1,280 endpoint. Full details are in `docs/reports/08_PROJECTION_SPACE_MSE_SIGREG_EXPERIMENT.md`.
+
 ## Current conclusion
 
-For the fixed USPTO-MIT pilot endpoints, neither strong global geometry repair (MSE+SIGReg) nor the tested minimal-floor attempt (PCSF) improved reaction generation. PCSF did not enforce its floor, so it is not evidence against every minimal spread constraint; it is evidence against its frozen-evidence calibration. Across objectives, residual pair structure remains weakly coupled to autoregressive gains. The negative CE effect is associated with auxiliary pressure and realized task-bearing parameter changes rather than lost reaction correspondence. This conclusion does not cover MetaTrans or retrosynthesis training, additional seeds, larger training exposure, or an objective that couples the auxiliary relationship differently to autoregressive decoding.
+For the fixed USPTO-MIT pilot endpoints, neither strong global geometry repair (MSE+SIGReg), the tested minimal-floor attempt (PCSF), nor projection-space placement improved reaction generation. PCSF did not enforce its floor, so it is not evidence against every minimal spread constraint; the projection run more directly shows that a disposable head does not make its training gradients disposable to the shared backbone. Across objectives, residual pair structure remains weakly coupled to autoregressive gains. This conclusion does not cover MetaTrans or retrosynthesis training, additional seeds, larger training exposure, or an objective that changes how the pair-specific signal couples to autoregressive decoding.
 
-The consolidated report index and artifact paths are in `docs/reports/README.md`. Reports 01-07 from the former chronology were merged into `01_COSINE_TO_MSE_SIGREG_DIAGNOSIS.md`; the decisive MSE+SIGReg, official endpoint, mechanistic, SIGReg-specific, and PCSF results are reports 02-06.
+The consolidated report index and artifact paths are in `docs/reports/README.md`. The projection-space implementation and verdict are report 08.

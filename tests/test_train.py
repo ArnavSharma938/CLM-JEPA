@@ -13,8 +13,10 @@ sys.path.insert(0, str(ROOT / "src"))
 from train import (
     ADAM_BETAS, ADAM_EPSILON, MIN_LEARNING_RATE, WARMUP_RATIO,
     WEIGHT_DECAY, attach_matched_targets, restore_training_checkpoint,
+    load_projection_head_checkpoint, projected_auxiliary_vjp,
     _largest_target_overlap_component, _representation_sample, validation_selector,
 )
+from jepa import ProjectionHead, SIGReg
 
 
 class LengthTokenizer:
@@ -51,6 +53,53 @@ def test_chemfm_optimizer_and_scheduler_settings_are_fully_resolved():
     assert WEIGHT_DECAY == 0.01
     assert WARMUP_RATIO == 0.05
     assert MIN_LEARNING_RATE == 1e-5
+
+
+def test_projected_auxiliary_uses_one_logical_bn_batch_and_reaches_both_spaces():
+    torch.manual_seed(31)
+    projector = ProjectionHead(12, hidden_dim=24, output_dim=6).train()
+    sources = torch.randn(8, 12)
+    targets = torch.randn(8, 12)
+    sigreg = SIGReg(num_slices=13, seed=533)
+    before = [
+        int(module.num_batches_tracked)
+        for module in projector.modules()
+        if isinstance(module, torch.nn.BatchNorm1d)
+    ]
+    relative = 4.0 * 0.01 / 0.99
+    result = projected_auxiliary_vjp(
+        projector, sigreg, sources, targets,
+        outer_coefficient=2.0, sigreg_coefficient=relative,
+    )
+    after = [
+        int(module.num_batches_tracked)
+        for module in projector.modules()
+        if isinstance(module, torch.nn.BatchNorm1d)
+    ]
+    assert before == [0, 0]
+    assert after == [1, 1]
+    assert result["source_projections"].shape == (8, 6)
+    assert result["target_projections"].shape == (8, 6)
+    torch.testing.assert_close(
+        result["objective"], result["mse"] + relative * result["sigreg"],
+    )
+    assert result["source_gradients"].abs().sum() > 0
+    assert result["target_gradients"].abs().sum() > 0
+    assert all(parameter.grad is not None for parameter in projector.parameters())
+
+
+def test_projection_head_checkpoint_roundtrip_preserves_bn_buffers(tmp_path):
+    expected = ProjectionHead(12, hidden_dim=24, output_dim=6).train()
+    expected(torch.randn(8, 12))
+    torch.save({
+        "schema_version": 1,
+        "configuration": expected.configuration(),
+        "state_dict": expected.state_dict(),
+    }, tmp_path / "projection_head.pt")
+    restored = ProjectionHead(12, hidden_dim=24, output_dim=6)
+    load_projection_head_checkpoint(restored, tmp_path)
+    for name, value in expected.state_dict().items():
+        torch.testing.assert_close(restored.state_dict()[name], value)
 
 
 def test_checkpoint_selector_uses_only_frozen_task_metric():

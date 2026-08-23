@@ -303,7 +303,7 @@ def official_rank(view_candidates: list[list[str]], n_best: int = BEAM_SIZE) -> 
     }
 
 
-def load_endpoint(checkpoint: Path):
+def load_endpoint(checkpoint: Path, *, predictor_tokens: bool = True):
     import torch
 
     torch.backends.cuda.matmul.allow_tf32 = True
@@ -312,7 +312,8 @@ def load_endpoint(checkpoint: Path):
     torch.manual_seed(533)
     tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
     chemfm_vocab_size = len(tokenizer)
-    add_predictor_tokens(tokenizer)
+    if predictor_tokens:
+        add_predictor_tokens(tokenizer)
     model = load_lora_model(
         MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size
     ).cuda().eval()
@@ -343,7 +344,11 @@ def load_endpoint(checkpoint: Path):
             if not isinstance(module, LoraLinear):
                 continue
             active = [name for name in module.active_adapters if name in module.lora_A]
-            if len(active) != 1 or active[0] in module.lora_variant:
+            # ``lora_variant`` was added after the repository-pinned PEFT
+            # 0.13.2.  Missing means the standard LoRA path, exactly the case
+            # this specialization supports.
+            variants = getattr(module, "lora_variant", {})
+            if len(active) != 1 or active[0] in variants:
                 continue
             adapter_name = active[0]
             original_forward = module.forward
@@ -657,7 +662,9 @@ def worker(args) -> None:
     assigned = [group for group in assigned if group["reaction_identity"] not in completed]
     torch.cuda.reset_peak_memory_stats()
     load_started = time.perf_counter()
-    model, tokenizer = load_endpoint(args.checkpoint)
+    model, tokenizer = load_endpoint(
+        args.checkpoint, predictor_tokens=args.predictor_tokens,
+    )
     load_seconds = time.perf_counter() - load_started
     torch.cuda.synchronize()
     evaluation_started = time.perf_counter()
@@ -784,7 +791,7 @@ def _gpu_sampler(stop: threading.Event, samples: list[GPUSample]) -> None:
 def launch_configuration(
     *, checkpoint: Path, manifest: Path, output_dir: Path,
     workers: int, prompt_batch_size: int, batch_mode: str,
-    threads_per_worker: int = 1,
+    threads_per_worker: int = 1, predictor_tokens: bool = True,
 ) -> dict:
     groups = read_jsonl(manifest)
     workers = min(workers, len(groups))
@@ -805,6 +812,8 @@ def launch_configuration(
             "--threads-per-worker", str(threads_per_worker),
             "--output", str(output),
         ])
+        if not predictor_tokens:
+            commands[-1].append("--no-predictor-tokens")
     samples: list[GPUSample] = []
     stop = threading.Event()
     monitor = threading.Thread(target=_gpu_sampler, args=(stop, samples), daemon=True)
@@ -854,6 +863,7 @@ def launch_configuration(
         "prompt_batch_size": prompt_batch_size,
         "batch_mode": batch_mode,
         "threads_per_worker": threads_per_worker,
+        "predictor_tokens": predictor_tokens,
         "wall_seconds_including_model_load": wall_seconds,
         "end_to_end_reactions_per_second": len(groups) / max(wall_seconds, 1e-12),
         "active_evaluation_seconds": active_seconds,
@@ -885,6 +895,7 @@ def run_configuration(args) -> None:
         prompt_batch_size=args.prompt_batch_size,
         batch_mode=args.batch_mode,
         threads_per_worker=args.threads_per_worker,
+        predictor_tokens=args.predictor_tokens,
     )
     print(json.dumps(summary, sort_keys=True))
 
@@ -930,6 +941,7 @@ def benchmark(args) -> None:
                 prompt_batch_size=batch_size,
                 batch_mode=mode,
                 threads_per_worker=threads,
+                predictor_tokens=args.predictor_tokens,
             )
         except Exception as error:
             results.append({
@@ -1111,6 +1123,9 @@ def parse_args():
     worker_parser.add_argument("--batch-mode", choices=("left-pad", "equal-length"), default="left-pad")
     worker_parser.add_argument("--threads-per-worker", type=int, default=1)
     worker_parser.add_argument("--output", type=Path, required=True)
+    worker_parser.add_argument(
+        "--predictor-tokens", action=argparse.BooleanOptionalAction, default=True,
+    )
     worker_parser.set_defaults(function=worker)
 
     run = subparsers.add_parser("run")
@@ -1121,6 +1136,9 @@ def parse_args():
     run.add_argument("--batch-mode", choices=("left-pad", "equal-length"), default="left-pad")
     run.add_argument("--threads-per-worker", type=int, default=1)
     run.add_argument("--output-dir", type=Path, required=True)
+    run.add_argument(
+        "--predictor-tokens", action=argparse.BooleanOptionalAction, default=True,
+    )
     run.set_defaults(function=run_configuration)
 
     benchmark_parser = subparsers.add_parser("benchmark")
@@ -1128,6 +1146,9 @@ def parse_args():
     benchmark_parser.add_argument("--manifest", type=Path, required=True)
     benchmark_parser.add_argument("--configurations", default="1x1xleft-pad,2x1xleft-pad,4x1xleft-pad,8x1xleft-pad,12x1xleft-pad,4x2xleft-pad,4x2xequal-length")
     benchmark_parser.add_argument("--output-dir", type=Path, required=True)
+    benchmark_parser.add_argument(
+        "--predictor-tokens", action=argparse.BooleanOptionalAction, default=True,
+    )
     benchmark_parser.set_defaults(function=benchmark)
 
     summary = subparsers.add_parser("summarize")
