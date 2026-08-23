@@ -10,6 +10,7 @@ import os
 import random
 import time
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import nullcontext
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Mapping
@@ -31,12 +32,14 @@ from chemfm import (  # noqa: E402
     generate_products_batch, canonicalize, load_lora_model, load_reaction_tokenizer,
 )
 from jepa import (  # noqa: E402
-    CLMJEPA, ProjectionHead, add_predictor_tokens,
-    extract_source_and_target,
+    CLMJEPA, add_predictor_tokens, extract_source_and_target,
+)
+from gradient_interaction import (  # noqa: E402
+    CAGRAD_C, apply_combination, combine_gradients,
 )
 from metrics import (  # noqa: E402
     canonical_set, effective_rank, rank_augmented_candidates,
-    relationship_metrics, score_candidates,
+    pca_structure, relationship_metrics, score_candidates,
 )
 
 
@@ -151,6 +154,7 @@ class WandbTracker:
         effective_tokens: int, peak_vram_bytes: int,
         max_gradient_parameter: str, max_parameter_gradient_norm: float,
         estimated_flops: float | None = None,
+        gradient_interaction: Mapping[str, Any] | None = None,
     ) -> None:
         self.total_tokens += int(batch_tokens)
         self.jepa_active_batches += int(jepa_active)
@@ -177,6 +181,21 @@ class WandbTracker:
         }
         if estimated_flops is not None:
             payload["compute/estimated_flops"] = estimated_flops
+        if gradient_interaction is not None:
+            for name in (
+                "cosine", "raw_auxiliary_to_main_norm_ratio",
+                "auxiliary_to_main_norm_ratio", "modification_norm",
+                "modification_relative_to_raw_sum", "main_coefficient",
+                "auxiliary_coefficient", "auxiliary_gate",
+                "cagrad_weight_main", "cagrad_weight_auxiliary",
+                "cagrad_lambda",
+            ):
+                value = gradient_interaction.get(name)
+                if value is not None:
+                    payload[f"gradient/{name}"] = value
+            payload["gradient/conflict"] = int(
+                gradient_interaction.get("conflict", False)
+            )
         if self.run is not None:
             self.run.log(payload, step=step)
 
@@ -483,7 +502,6 @@ def _space_geometry_metrics(
 
 def representation_diagnostics(
     model, method, collator, rows, k, seed, task,
-    projector: ProjectionHead | None = None,
     limit: int = 32,
     physical_batch_size: int = 4,
 ):
@@ -501,7 +519,9 @@ def representation_diagnostics(
                 for name, value in raw.items() if torch.is_tensor(value)
             }
             output = method(
-                model, tensors, k=k, jepa_weight=1.0, monitor_only=True,
+                model, tensors, k=k, jepa_weight=0.0, monitor_only=True,
+                jepa_loss_type="mse", force_jepa_active=True,
+                endpoint_only=True, representation_only=True,
             )
             source_chunks.append(output.source_states.float())
             if include_targets:
@@ -527,6 +547,28 @@ def representation_diagnostics(
     }
     metrics = relationship_metrics(sources, targets, identities, token_lengths, heavy_atoms, seed)
     metrics.update(_space_geometry_metrics(sources, targets))
+    centers = (sources + targets) * 0.5
+    metrics["pca_structure"] = {
+        "source": pca_structure(sources),
+        "target": pca_structure(targets),
+        "pair_center": pca_structure(centers),
+    }
+    joint = torch.cat((sources, targets), dim=0).float()
+    joint_mean = joint.mean(dim=0, keepdim=True)
+    centered_joint = joint - joint_mean
+    q = min(8, centered_joint.size(0) - 1, centered_joint.size(1))
+    _, _, components = torch.pca_lowrank(
+        centered_joint, q=q, center=False, niter=6,
+    )
+    basis = components[:, : min(2, q)]
+    residual_sources = sources.float() - joint_mean
+    residual_targets = targets.float() - joint_mean
+    residual_sources -= (residual_sources @ basis) @ basis.T
+    residual_targets -= (residual_targets @ basis) @ basis.T
+    metrics["residual_pc2"] = relationship_metrics(
+        residual_sources, residual_targets, identities,
+        token_lengths, heavy_atoms, seed,
+    )
     differences = sources - targets
     singular = torch.linalg.svdvals(differences - differences.mean(0, keepdim=True))
     energy = singular.square()
@@ -591,33 +633,7 @@ def representation_diagnostics(
     metrics["necessary_component_replacement_sensitivity"] = (
         1.0 - metrics["necessary_component_replacement_cosine"]
     )
-    if projector is None:
-        return metrics
-    projector.eval()
-    with torch.inference_mode():
-        projected = projector(torch.cat((sources, targets), dim=0))
-        projected_sources, projected_targets = projected.split(sources.size(0))
-        projected_metrics = relationship_metrics(
-            projected_sources, projected_targets, identities,
-            token_lengths, heavy_atoms, seed,
-        )
-        projected_metrics.update(
-            _space_geometry_metrics(projected_sources, projected_targets)
-        )
-        projected_metrics["mse_alignment"] = float(
-            F.mse_loss(projected_sources, projected_targets)
-        )
-        sigreg_step = method.sigreg.global_step
-        projected_metrics["sigreg_geometry"] = float(method.sigreg(
-            torch.stack((projected_sources, projected_targets))
-        ))
-        method.sigreg.global_step = sigreg_step
-    projected_metrics["dimensions"] = projector.output_dim
-    projected_metrics["batchnorm_evaluation"] = "running_statistics"
-    return {
-        "raw_lm_space": metrics,
-        "projected_jepa_space": projected_metrics,
-    }
+    return metrics
 
 
 def validation_selector(metrics: Mapping[str, float], task: str) -> tuple[float, ...]:
@@ -638,26 +654,10 @@ def load_adapter_checkpoint(model, checkpoint: Path) -> None:
         raise RuntimeError(f"unexpected adapter checkpoint keys: {result.unexpected_keys}")
 
 
-def load_projection_head_checkpoint(
-    projector: ProjectionHead, checkpoint: Path,
-) -> None:
-    payload = torch.load(
-        checkpoint / "projection_head.pt",
-        map_location=next(projector.parameters()).device,
-        weights_only=False,
-    )
-    if payload.get("schema_version") != 1:
-        raise ValueError("unsupported projection-head checkpoint schema")
-    if payload.get("configuration") != projector.configuration():
-        raise ValueError("projection-head checkpoint configuration mismatch")
-    projector.load_state_dict(payload["state_dict"])
-
-
 def save_training_checkpoint(
     checkpoint: Path, model, tokenizer, optimizer, scheduler, generator, method,
     *, epoch: int, global_step: int, planned_epochs: int, curves, epoch_history,
     best_selector, best_checkpoint: str | None, elapsed_wall_time_seconds: float,
-    projector: ProjectionHead | None = None,
 ) -> None:
     checkpoint.mkdir(parents=True, exist_ok=True)
     model.save_pretrained(
@@ -668,15 +668,6 @@ def save_training_checkpoint(
         save_embedding_layers=False,
     )
     tokenizer.save_pretrained(checkpoint)
-    if projector is not None:
-        torch.save(
-            {
-                "schema_version": 1,
-                "configuration": projector.configuration(),
-                "state_dict": projector.state_dict(),
-            },
-            checkpoint / "projection_head.pt",
-        )
     state = {
         "epoch": epoch,
         "global_step": global_step,
@@ -701,11 +692,9 @@ def save_training_checkpoint(
 
 def restore_training_checkpoint(
     checkpoint: Path, model, optimizer, scheduler, generator,
-    planned_epochs: int, method=None, projector: ProjectionHead | None = None,
+    planned_epochs: int, method=None,
 ):
     load_adapter_checkpoint(model, checkpoint)
-    if projector is not None:
-        load_projection_head_checkpoint(projector, checkpoint)
     state = torch.load(
         checkpoint / "training_state.pt", map_location=model.device, weights_only=False
     )
@@ -730,16 +719,9 @@ def restore_training_checkpoint(
     return state
 
 
-def gradient_diagnostics(
-    model, projector: ProjectionHead | None = None,
-) -> tuple[float, tuple[str, float]]:
+def gradient_diagnostics(model) -> tuple[float, tuple[str, float]]:
     """Clip gradients and preserve the established per-parameter diagnostics."""
     named_parameters = [(f"model.{name}", parameter) for name, parameter in model.named_parameters()]
-    if projector is not None:
-        named_parameters.extend(
-            (f"projector.{name}", parameter)
-            for name, parameter in projector.named_parameters()
-        )
     total = torch.nn.utils.clip_grad_norm_(
         [parameter for _, parameter in named_parameters], 1.0,
     )
@@ -795,59 +777,60 @@ def _restore_rng(snapshot: tuple[torch.Tensor, list[torch.Tensor]]) -> None:
     torch.cuda.set_rng_state_all(cuda)
 
 
-def projected_auxiliary_vjp(
-    projector: ProjectionHead,
+def raw_auxiliary_vjp(
     sigreg,
     source_states: torch.Tensor,
     target_states: torch.Tensor,
     *,
-    outer_coefficient: float,
     sigreg_coefficient: float,
 ) -> dict[str, torch.Tensor]:
-    """Differentiate the exact projected objective through logical endpoints.
-
-    The single concatenated projector call is the normalization boundary: both
-    hidden BatchNorm layers see all source and target rows in the logical batch.
-    Returned endpoint gradients are later injected into RNG-replayed ChemFM
-    graphs, while projector gradients remain accumulated for the optimizer.
-    """
+    """Differentiate exact MSE+SIGReg on the raw logical endpoint batch."""
     if source_states.ndim != 2 or target_states.shape != source_states.shape:
-        raise ValueError("projected JEPA expects matched 2D logical endpoint batches")
+        raise ValueError("JEPA expects matched 2D logical endpoint batches")
     if source_states.size(0) < 2:
-        raise ValueError("projected SIGReg requires at least two pairs")
+        raise ValueError("SIGReg requires at least two pairs")
     sources = source_states.float().detach().requires_grad_(True)
     targets = target_states.float().detach().requires_grad_(True)
-    projected = projector(torch.cat((sources, targets), dim=0))
-    projected_sources, projected_targets = projected.split(sources.size(0))
-    mse = F.mse_loss(projected_sources, projected_targets)
-    sigreg_loss = sigreg(torch.stack((projected_sources, projected_targets)))
+    mse = F.mse_loss(sources, targets)
+    sigreg_loss = sigreg(torch.stack((sources, targets)))
     objective = mse + sigreg_coefficient * sigreg_loss
-    (outer_coefficient * objective).backward()
+    source_gradients, target_gradients = torch.autograd.grad(
+        objective, (sources, targets)
+    )
     return {
-        "source_projections": projected_sources.detach(),
-        "target_projections": projected_targets.detach(),
         "mse": mse.detach(),
         "sigreg": sigreg_loss.detach(),
         "objective": objective.detach(),
-        "source_gradients": sources.grad.detach(),
-        "target_gradients": targets.grad.detach(),
+        "source_gradients": source_gradients.detach(),
+        "target_gradients": target_gradients.detach(),
     }
 
 
-def train_projected_mse_sigreg_epoch(
-    *, model, projector, method, loader, optimizer, scheduler, epoch: int,
+def _accumulate_gradients(
+    buffers: list[torch.Tensor | None],
+    gradients: tuple[torch.Tensor | None, ...],
+) -> None:
+    for index, gradient in enumerate(gradients):
+        if gradient is None:
+            continue
+        detached = gradient.detach()
+        if buffers[index] is None:
+            buffers[index] = detached
+        else:
+            buffers[index].add_(detached)
+
+
+def train_mse_sigreg_gradient_epoch(
+    *, model, method, loader, optimizer, scheduler, epoch: int,
     logical_batch_size: int, physical_batch_size: int,
     actual_lambda: float, native_weight: float, sigreg_tradeoff: float,
     sigreg_relative_scale: float,
+    gradient_interaction: str,
+    profile_training_phases: bool,
     jepa_ratio: float, non_embedding_parameters: int, pin_memory: bool,
     tracker: WandbTracker, global_step: int,
 ) -> tuple[list[dict[str, Any]], int]:
-    """Train projected MSE+SIGReg with exact logical-batch BatchNorm.
-
-    A no-grad endpoint pass materializes the complete logical source/target
-    batch. The shared projector is called once on all 2N states; an RNG-replayed
-    ChemFM pass then injects its exact endpoint VJP alongside unchanged NTP.
-    """
+    """Train exact raw-endpoint MSE+SIGReg and combine LoRA gradients."""
     if logical_batch_size % physical_batch_size:
         raise ValueError("SIGReg logical batch must be divisible by physical batch size")
     chunks_per_step = logical_batch_size // physical_batch_size
@@ -856,6 +839,19 @@ def train_projected_mse_sigreg_epoch(
     relative_coefficient = (
         sigreg_relative_scale * sigreg_tradeoff / (1.0 - sigreg_tradeoff)
     )
+    named_trainable = [
+        (name, parameter) for name, parameter in model.named_parameters()
+        if parameter.requires_grad
+    ]
+    trainable = [parameter for _, parameter in named_trainable]
+    lora_indices = [
+        index for index, (name, _) in enumerate(named_trainable)
+        if "lora_A" in name or "lora_B" in name
+    ]
+    if not lora_indices:
+        raise RuntimeError("gradient interaction requires trainable LoRA A/B parameters")
+    lora_parameters = [trainable[index] for index in lora_indices]
+    lora_index_set = set(lora_indices)
     iterator = iter(loader)
     records: list[dict[str, Any]] = []
     for logical_index in range(len(loader) // chunks_per_step):
@@ -869,13 +865,14 @@ def train_projected_mse_sigreg_epoch(
         target_chunks: list[torch.Tensor] = []
         replay_states: list[tuple[torch.Tensor, list[torch.Tensor]]] = []
         first_pass_seconds = 0.0
-        projected_mse = None
-        projected_sigreg = None
-        projected_objective = None
+        jepa_mse = None
+        jepa_sigreg = None
+        jepa_objective = None
         source_gradients = None
         target_gradients = None
         if active:
-            torch.cuda.synchronize()
+            if profile_training_phases:
+                torch.cuda.synchronize()
             first_started = time.perf_counter()
             with torch.no_grad():
                 for raw in raw_chunks:
@@ -899,31 +896,33 @@ def train_projected_mse_sigreg_epoch(
                     source_chunks.append(output.source_states.float())
                     target_chunks.append(output.target_states.float())
             final_rng = _rng_snapshot()
-            raw_sources = torch.cat(source_chunks)
-            raw_targets = torch.cat(target_chunks)
+            raw_sources, raw_targets = torch.cat(source_chunks), torch.cat(target_chunks)
             if raw_sources.size(0) != logical_batch_size:
-                raise RuntimeError("projector did not receive the complete logical JEPA batch")
-            projected_result = projected_auxiliary_vjp(
-                projector, method.sigreg, raw_sources, raw_targets,
-                outer_coefficient=actual_lambda,
+                raise RuntimeError("auxiliary did not receive the complete logical JEPA batch")
+            auxiliary_result = raw_auxiliary_vjp(
+                method.sigreg, raw_sources, raw_targets,
                 sigreg_coefficient=relative_coefficient,
             )
-            projected_mse = projected_result["mse"]
-            projected_sigreg = projected_result["sigreg"]
-            projected_objective = projected_result["objective"]
-            source_gradients = projected_result["source_gradients"].split(
+            jepa_mse = auxiliary_result["mse"]
+            jepa_sigreg = auxiliary_result["sigreg"]
+            jepa_objective = auxiliary_result["objective"]
+            source_gradients = auxiliary_result["source_gradients"].split(
                 physical_batch_size
             )
-            target_gradients = projected_result["target_gradients"].split(
+            target_gradients = auxiliary_result["target_gradients"].split(
                 physical_batch_size
             )
-            torch.cuda.synchronize()
+            if profile_training_phases:
+                torch.cuda.synchronize()
             first_pass_seconds = time.perf_counter() - first_started
 
         loss_records: list[dict[str, Any]] = []
+        main_gradients: list[torch.Tensor | None] = [None] * len(trainable)
+        auxiliary_gradients: list[torch.Tensor | None] = [None] * len(trainable)
         batch_tokens = 0
         effective_tokens = 0
-        torch.cuda.synchronize()
+        if profile_training_phases:
+            torch.cuda.synchronize()
         gradient_started = time.perf_counter()
         for chunk_index, raw in enumerate(raw_chunks):
             if active:
@@ -943,20 +942,30 @@ def train_projected_mse_sigreg_epoch(
                 jepa_ratio=jepa_ratio, force_jepa_active=active,
                 representation_only=active,
             )
-            loss = output.loss / chunks_per_step
+            native_component = output.native_loss * native_weight / chunks_per_step
             if active:
-                loss = loss + (
+                auxiliary_surrogate = (
                     output.source_states
                     * source_gradients[chunk_index].to(output.source_states.dtype)
                 ).sum() + (
                     output.target_states
                     * target_gradients[chunk_index].to(output.target_states.dtype)
                 ).sum()
-            if not torch.isfinite(loss):
+                gradients_main = torch.autograd.grad(
+                    native_component, trainable, retain_graph=True,
+                    allow_unused=True,
+                )
+                gradients_auxiliary = torch.autograd.grad(
+                    auxiliary_surrogate, trainable, allow_unused=True,
+                )
+                _accumulate_gradients(main_gradients, gradients_main)
+                _accumulate_gradients(auxiliary_gradients, gradients_auxiliary)
+            else:
+                native_component.backward()
+            if not torch.isfinite(output.native_loss):
                 raise FloatingPointError(
                     f"non-finite loss in epoch {epoch}, SIGReg group {logical_index + 1}"
                 )
-            loss.backward()
             batch_tokens += raw_tokens
             effective_tokens += raw_tokens * (4 if active else 1)
             loss_records.append({
@@ -966,28 +975,75 @@ def train_projected_mse_sigreg_epoch(
                 "jepa_objective_loss": None,
                 "total_loss": output.loss.detach(),
             })
+        interaction_metrics = None
         if active:
             _restore_rng(final_rng)
-        torch.cuda.synchronize()
+            zero = lambda parameter: torch.zeros_like(parameter)
+            complete_main = [
+                gradient if gradient is not None else zero(parameter)
+                for parameter, gradient in zip(trainable, main_gradients)
+            ]
+            complete_auxiliary = [
+                gradient if gradient is not None else zero(parameter)
+                for parameter, gradient in zip(trainable, auxiliary_gradients)
+            ]
+            for index, (parameter, main_gradient, auxiliary_gradient) in enumerate(zip(
+                trainable, complete_main, complete_auxiliary
+            )):
+                if index in lora_index_set:
+                    continue
+                parameter.grad = (
+                    main_gradient + actual_lambda * auxiliary_gradient
+                ).to(dtype=parameter.dtype)
+            lora_main = [complete_main[index] for index in lora_indices]
+            lora_auxiliary_raw = [
+                complete_auxiliary[index] for index in lora_indices
+            ]
+            lora_auxiliary_applied = [
+                actual_lambda * gradient for gradient in lora_auxiliary_raw
+            ]
+            raw_statistics = combine_gradients(
+                "weighted_sum", lora_main, lora_auxiliary_raw,
+            )
+            combination = combine_gradients(
+                gradient_interaction, lora_main, lora_auxiliary_applied,
+                cagrad_c=CAGRAD_C,
+            )
+            apply_combination(
+                lora_parameters, lora_main, lora_auxiliary_applied, combination,
+            )
+            interaction_metrics = combination.as_dict()
+            interaction_metrics.update({
+                "scope": "LoRA A/B parameters only",
+                "parameter_tensors": len(lora_parameters),
+                "parameters": sum(parameter.numel() for parameter in lora_parameters),
+                "raw_auxiliary_to_main_norm_ratio": (
+                    raw_statistics.auxiliary_to_main_norm_ratio
+                ),
+                "active_auxiliary_coefficient": actual_lambda,
+            })
+        if profile_training_phases:
+            torch.cuda.synchronize()
         gradient_seconds = time.perf_counter() - gradient_started
 
         optimizer_started = time.perf_counter()
         learning_rate = optimizer.param_groups[0]["lr"]
-        gradient_norm, largest_gradient = gradient_diagnostics(model, projector)
+        gradient_norm, largest_gradient = gradient_diagnostics(model)
         optimizer.step()
         scheduler.step()
         optimizer.zero_grad(set_to_none=True)
-        torch.cuda.synchronize()
+        if profile_training_phases:
+            torch.cuda.synchronize()
         optimizer_seconds = time.perf_counter() - optimizer_started
         global_step += 1
 
         means = synchronized_loss_means(loss_records)
         if active:
-            mse_value = float(projected_mse.detach())
-            sigreg_value = float(projected_sigreg.detach())
+            mse_value = float(jepa_mse)
+            sigreg_value = float(jepa_sigreg)
             means["jepa_loss"] = mse_value
             means["sigreg_loss"] = sigreg_value
-            means["jepa_objective_loss"] = float(projected_objective.detach())
+            means["jepa_objective_loss"] = float(jepa_objective)
             means["total_loss"] = (
                 means["native_loss"]
                 + actual_lambda * means["jepa_objective_loss"]
@@ -998,8 +1054,8 @@ def train_projected_mse_sigreg_epoch(
             **means,
             "jepa_active": active,
             "jepa_active_microbatches": chunks_per_step if active else 0,
-            "projection_batch_rows": 2 * logical_batch_size if active else 0,
             "sigreg_distribution_samples_per_view": logical_batch_size if active else 0,
+            "gradient_interaction": interaction_metrics,
             "learning_rate": learning_rate,
             "gradient_norm": gradient_norm,
             "max_gradient_parameter": largest_gradient[0],
@@ -1008,7 +1064,7 @@ def train_projected_mse_sigreg_epoch(
             "effective_tokens": effective_tokens,
             "model_calls": chunks_per_step * (2 if active else 1),
             "data_seconds": data_seconds,
-            "projected_auxiliary_forward_backward_seconds": first_pass_seconds,
+            "auxiliary_statistics_vjp_seconds": first_pass_seconds,
             "gradient_forward_backward_seconds": gradient_seconds,
             "optimizer_seconds": optimizer_seconds,
         }
@@ -1026,6 +1082,7 @@ def train_projected_mse_sigreg_epoch(
             effective_tokens=effective_tokens,
             peak_vram_bytes=torch.cuda.max_memory_allocated(),
             estimated_flops=record["estimated_flops"],
+            gradient_interaction=interaction_metrics,
         )
     return records, global_step
 
@@ -1049,10 +1106,10 @@ def train(args):
         val_rows = val_rows[:args.max_validation_rows]
     if not train_rows or not val_rows:
         raise ValueError("training and validation manifests must both be nonempty")
-    has_projected_auxiliary = args.condition == "clm_jepa_projected_mse_sigreg"
+    has_mse_sigreg = args.condition == "clm_jepa_mse_sigreg"
     tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
     chemfm_vocab_size = len(tokenizer)
-    predictor_ids = [] if has_projected_auxiliary else add_predictor_tokens(tokenizer)
+    predictor_ids = add_predictor_tokens(tokenizer)
     collator = ReactionCollator(tokenizer, task=task)
     shuffle_manifest_sha256 = None
     if args.condition == "shuffled":
@@ -1074,10 +1131,6 @@ def train(args):
         predictor_ids, tokenizer.eos_token_id, tokenizer.pad_token_id,
         sigreg_seed=args.seed,
         optimized_native_logits=args.optimized_jepa_forward,
-    )
-    projector = (
-        ProjectionHead(model.config.hidden_size, hidden_dim=2048, output_dim=64).cuda()
-        if has_projected_auxiliary else None
     )
     non_embedding_parameters = model.num_parameters(exclude_embeddings=True)
     generator = torch.Generator().manual_seed(args.seed)
@@ -1101,12 +1154,10 @@ def train(args):
         SIGREG_TRADEOFF
         if args.sigreg_tradeoff is None else args.sigreg_tradeoff
     )
-    streaming_sigreg = has_projected_auxiliary
+    streaming_sigreg = has_mse_sigreg
     optimizer_parameters = [
         parameter for parameter in model.parameters() if parameter.requires_grad
     ]
-    if projector is not None:
-        optimizer_parameters.extend(projector.parameters())
     optimizer = torch.optim.AdamW(
         optimizer_parameters,
         lr=args.learning_rate, betas=ADAM_BETAS, eps=ADAM_EPSILON,
@@ -1126,14 +1177,14 @@ def train(args):
     )
     has_jepa = args.condition in {
         "monitor", "clm_jepa", "clm_jepa_target_sg",
-        "clm_jepa_mse", "clm_jepa_projected_mse_sigreg",
+        "clm_jepa_mse", "clm_jepa_mse_sigreg",
         "shuffled", "jepa_only",
     }
     stop_gradient_target = args.condition == "clm_jepa_target_sg"
-    has_sigreg = has_projected_auxiliary
+    has_sigreg = has_mse_sigreg
     jepa_loss_type = (
         "mse" if args.condition in {
-            "clm_jepa_mse", "clm_jepa_projected_mse_sigreg",
+            "clm_jepa_mse", "clm_jepa_mse_sigreg",
         }
         else "cosine"
     )
@@ -1178,22 +1229,17 @@ def train(args):
             args.sigreg_batch_size if has_sigreg else None
         ),
         "sigreg_exact_chunk_recomputation": streaming_sigreg,
-        "projection_space_auxiliary": has_projected_auxiliary,
-        "projection_head": (
-            projector.configuration() if projector is not None else None
+        "raw_endpoint_auxiliary": has_mse_sigreg,
+        "gradient_interaction": (
+            args.gradient_interaction if has_mse_sigreg else None
         ),
-        "projection_head_parameters": (
-            sum(parameter.numel() for parameter in projector.parameters())
-            if projector is not None else None
+        "gradient_interaction_scope": (
+            "LoRA A/B parameters only" if has_mse_sigreg else None
         ),
-        "projection_batch_rows": (
-            2 * args.sigreg_batch_size if has_projected_auxiliary else None
+        "cagrad_c": (
+            CAGRAD_C if has_mse_sigreg and args.gradient_interaction == "cagrad"
+            else None
         ),
-        "projection_batchnorm_scope": (
-            "combined logical source+target JEPA batch"
-            if has_projected_auxiliary else None
-        ),
-        "raw_endpoint_auxiliary": False if has_projected_auxiliary else None,
         "optimizer_steps_per_epoch": updates_per_epoch,
         "train_size": len(train_rows), "validation_size": len(val_rows),
         "train_manifest": str(train_path),
@@ -1214,6 +1260,9 @@ def train(args):
         ),
         "optimized_jepa_forward": args.optimized_jepa_forward,
         "profile_training_phases": args.profile_training_phases,
+        "torch_profile_output": (
+            str(args.torch_profile_output) if args.torch_profile_output else None
+        ),
         "evaluation_generation_batch_size": args.eval_generation_batch_size,
         "evaluation_beam_size": evaluation_beam_size,
         "adam_beta1": ADAM_BETAS[0], "adam_beta2": ADAM_BETAS[1],
@@ -1228,7 +1277,10 @@ def train(args):
     }
     tracker = WandbTracker(
         TrackingContext(task, args.dataset, args.condition, args.seed, args.data_fraction, config),
-        run_name=f"gate{args.gate}-{args.dataset}-{args.condition}-s{args.seed}",
+        run_name=(
+            f"gate{args.gate}-{args.dataset}-{args.condition}-"
+            f"{args.gradient_interaction}-lambda{args.lambda_eff}-s{args.seed}"
+        ),
         enabled=not args.no_wandb,
     )
     curves = []
@@ -1242,7 +1294,7 @@ def train(args):
     if args.resume_from is not None:
         state = restore_training_checkpoint(
             args.resume_from.resolve(), model, optimizer, scheduler, generator,
-            args.epochs, method, projector,
+            args.epochs, method,
         )
         start_epoch = state["epoch"]
         global_step = state["global_step"]
@@ -1262,23 +1314,51 @@ def train(args):
     try:
         for epoch_index in range(start_epoch, args.stop_after_epoch):
             model.train()
-            if has_projected_auxiliary:
-                projector.train()
-                epoch_records, global_step = train_projected_mse_sigreg_epoch(
-                    model=model, projector=projector, method=method, loader=loader,
-                    optimizer=optimizer, scheduler=scheduler,
-                    epoch=epoch_index + 1,
-                    logical_batch_size=args.sigreg_batch_size,
-                    physical_batch_size=args.batch_size,
-                    actual_lambda=actual_lambda,
-                    native_weight=native_weight,
-                    sigreg_tradeoff=sigreg_tradeoff,
-                    sigreg_relative_scale=sigreg_relative_scale,
-                    jepa_ratio=resolved_ratio,
-                    non_embedding_parameters=non_embedding_parameters,
-                    pin_memory=args.pin_memory, tracker=tracker,
-                    global_step=global_step,
+            torch.cuda.synchronize()
+            epoch_training_started = time.perf_counter()
+            if has_mse_sigreg:
+                profile_this_epoch = (
+                    args.torch_profile_output is not None
+                    and epoch_index == start_epoch
                 )
+                profile_context = (
+                    torch.profiler.profile(
+                        activities=(
+                            torch.profiler.ProfilerActivity.CPU,
+                            torch.profiler.ProfilerActivity.CUDA,
+                        ),
+                        record_shapes=False,
+                    )
+                    if profile_this_epoch else nullcontext()
+                )
+                with profile_context as epoch_profiler:
+                    epoch_records, global_step = train_mse_sigreg_gradient_epoch(
+                        model=model, method=method, loader=loader,
+                        optimizer=optimizer, scheduler=scheduler,
+                        epoch=epoch_index + 1,
+                        logical_batch_size=args.sigreg_batch_size,
+                        physical_batch_size=args.batch_size,
+                        actual_lambda=actual_lambda,
+                        native_weight=native_weight,
+                        sigreg_tradeoff=sigreg_tradeoff,
+                        sigreg_relative_scale=sigreg_relative_scale,
+                        gradient_interaction=args.gradient_interaction,
+                        profile_training_phases=args.profile_training_phases,
+                        jepa_ratio=resolved_ratio,
+                        non_embedding_parameters=non_embedding_parameters,
+                        pin_memory=args.pin_memory, tracker=tracker,
+                        global_step=global_step,
+                    )
+                if profile_this_epoch:
+                    profile_path = args.torch_profile_output.resolve()
+                    profile_path.parent.mkdir(parents=True, exist_ok=True)
+                    epoch_profiler.export_chrome_trace(str(profile_path))
+                    profile_path.with_suffix(".txt").write_text(
+                        epoch_profiler.key_averages().table(
+                            sort_by="self_cuda_time_total", row_limit=100,
+                        ),
+                        encoding="utf-8",
+                    )
                 curves.extend(epoch_records)
                 training_loader = ()
             else:
@@ -1424,6 +1504,8 @@ def train(args):
                 )
                 window_records = []
 
+            torch.cuda.synchronize()
+            epoch_training_seconds = time.perf_counter() - epoch_training_started
             checkpoint = args.checkpoint_dir.resolve() / f"epoch_{epoch_index + 1}"
             evaluate_epoch = epoch_index + 1 in args.evaluation_epochs
             if evaluate_epoch:
@@ -1450,6 +1532,7 @@ def train(args):
                 "predictions": predictions,
                 "selector": selector,
                 "checkpoint": str(checkpoint),
+                "training_seconds": epoch_training_seconds,
             }
             epoch_history.append(epoch_record)
             if evaluate_epoch:
@@ -1467,7 +1550,6 @@ def train(args):
                 elapsed_wall_time_seconds=(
                     previous_elapsed_seconds + time.perf_counter() - start
                 ),
-                projector=projector,
             )
     except Exception:
         tracker.finish({"status": "failed"})
@@ -1476,8 +1558,6 @@ def train(args):
     if best_checkpoint is None:
         raise RuntimeError("no validation checkpoint was produced")
     load_adapter_checkpoint(model, Path(best_checkpoint))
-    if projector is not None:
-        load_projection_head_checkpoint(projector, Path(best_checkpoint))
     selected = next(
         row for row in epoch_history if row["checkpoint"] == best_checkpoint
     )
@@ -1486,7 +1566,6 @@ def train(args):
     predictions = selected["predictions"]
     diagnostics = representation_diagnostics(
         model, method, collator, val_rows, args.k, args.seed, task,
-        projector=projector,
     )
     result = {
         "gate": args.gate, "dataset": args.dataset, "task": task,
@@ -1535,7 +1614,7 @@ def main():
         "--condition",
         choices=(
             "native", "monitor", "clm_jepa", "clm_jepa_target_sg",
-            "clm_jepa_mse", "clm_jepa_projected_mse_sigreg",
+            "clm_jepa_mse", "clm_jepa_mse_sigreg",
             "shuffled", "jepa_only",
         ),
         required=True,
@@ -1543,7 +1622,16 @@ def main():
     parser.add_argument("--seed", type=int, default=533)
     parser.add_argument("--learning-rate", type=float, default=1e-4)
     parser.add_argument("--k", type=int, choices=(0, 1, 2, 3), default=0)
-    parser.add_argument("--lambda-eff", type=float, choices=(0.5, 1.0, 2.0, 4.0), default=1.0)
+    parser.add_argument(
+        "--lambda-eff", type=float, choices=(0.25, 0.5, 1.0, 2.0),
+        default=1.0,
+    )
+    parser.add_argument(
+        "--gradient-interaction",
+        choices=("weighted_sum", "pcgrad", "cagrad", "aux_similarity"),
+        default="weighted_sum",
+        help="published LoRA-gradient combination used by direct MSE+SIGReg",
+    )
     parser.add_argument("--dropout", type=float, choices=(0.0, 0.5, 0.75), default=0.5)
     parser.add_argument("--epochs", type=int, choices=(1, 2, 4), default=1)
     parser.add_argument(
@@ -1603,6 +1691,10 @@ def main():
         help="synchronize benchmark phase timers; disable for maximum throughput",
     )
     parser.add_argument(
+        "--torch-profile-output", type=Path,
+        help="optional Chrome trace for the first JEPA training epoch",
+    )
+    parser.add_argument(
         "--pin-memory", action=argparse.BooleanOptionalAction, default=False,
     )
     parser.add_argument("--dataloader-workers", type=int, default=0)
@@ -1648,32 +1740,43 @@ def main():
         raise ValueError("SIGReg batch size must be at least two")
     if args.sigreg_tradeoff is not None and not 0.0 <= args.sigreg_tradeoff < 1.0:
         raise ValueError("SIGReg trade-off must be in [0, 1)")
-    sigreg_conditions = {"clm_jepa_projected_mse_sigreg"}
+    sigreg_conditions = {"clm_jepa_mse_sigreg"}
     if args.condition not in sigreg_conditions and args.sigreg_tradeoff is not None:
         raise ValueError("--sigreg-tradeoff only applies to a SIGReg condition")
     if args.condition not in sigreg_conditions and args.sigreg_batch_size != 2:
         raise ValueError("--sigreg-batch-size only applies to a SIGReg condition")
     if (
-        args.condition == "clm_jepa_projected_mse_sigreg"
+        args.condition == "clm_jepa_mse_sigreg"
         and args.sigreg_tradeoff is not None
         and args.sigreg_tradeoff != SIGREG_TRADEOFF
     ):
-        raise ValueError("projected MSE+SIGReg is frozen to sigreg-tradeoff=0.01")
+        raise ValueError("MSE+SIGReg is frozen to sigreg-tradeoff=0.01")
     if (
-        args.condition == "clm_jepa_projected_mse_sigreg"
+        args.condition == "clm_jepa_mse_sigreg"
         and args.sigreg_batch_size
         != args.batch_size * args.gradient_accumulation_steps
     ):
         raise ValueError(
-            "projected MSE+SIGReg logical batch must equal physical batch times "
+            "MSE+SIGReg logical batch must equal physical batch times "
             "accumulation to preserve the controlled cadence"
         )
-    if args.condition == "clm_jepa_projected_mse_sigreg" and (
-        args.k != 0 or args.lambda_eff != 1.0 or args.dropout != 0.5
+    if args.condition == "clm_jepa_mse_sigreg" and (
+        args.k != 0 or args.dropout != 0.5
     ):
         raise ValueError(
-            "projected MSE+SIGReg is frozen to k=0, lambda-eff=1.0, and dropout=0.5"
+            "MSE+SIGReg is frozen to k=0 and dropout=0.5"
         )
+    if (
+        args.condition == "clm_jepa_mse_sigreg"
+        and args.gradient_interaction != "weighted_sum"
+        and args.lambda_eff != 1.0
+    ):
+        raise ValueError("gradient-interaction baselines are frozen to lambda-eff=1.0")
+    if (
+        args.condition != "clm_jepa_mse_sigreg"
+        and args.gradient_interaction != "weighted_sum"
+    ):
+        raise ValueError("--gradient-interaction only applies to MSE+SIGReg")
     if args.condition == "native" and (args.lambda_eff != 1.0 or args.dropout != 0.5):
         raise ValueError("native trials must leave irrelevant JEPA defaults unchanged")
     result = train(args)

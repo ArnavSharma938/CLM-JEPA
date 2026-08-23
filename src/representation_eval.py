@@ -8,10 +8,9 @@ import torch
 from transformers import set_seed
 
 from chemfm import MODEL_DIR, TOKENIZER_DIR, ReactionCollator, load_lora_model, load_reaction_tokenizer
-from jepa import CLMJEPA, ProjectionHead, add_predictor_tokens
+from jepa import CLMJEPA, add_predictor_tokens
 from train import (
-    TASKS, load_adapter_checkpoint, load_projection_head_checkpoint,
-    read_rows, representation_diagnostics,
+    TASKS, load_adapter_checkpoint, read_rows, representation_diagnostics,
 )
 
 
@@ -52,33 +51,18 @@ def main() -> None:
         set_seed(args.seed)
         tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
         chemfm_vocab_size = len(tokenizer)
-        run = (
-            None if source_result is None
-            else json.loads(source_result.read_text(encoding="utf-8"))
-        )
-        projected_condition = bool(
-            run and run["condition"] == "clm_jepa_projected_mse_sigreg"
-        )
-        predictor_ids = [] if projected_condition else add_predictor_tokens(tokenizer)
+        predictor_ids = add_predictor_tokens(tokenizer)
         collator = ReactionCollator(tokenizer, task=task)
         model = load_lora_model(
             MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size
         ).cuda().eval()
         if checkpoint is not None:
             load_adapter_checkpoint(model, checkpoint.resolve())
-        projector = None
-        if projected_condition:
-            config = run["config"]["projection_head"]
-            projector = ProjectionHead(
-                config["input_dim"], config["hidden_dim"], config["output_dim"],
-            ).cuda()
-            load_projection_head_checkpoint(projector, checkpoint.resolve())
         method = CLMJEPA(predictor_ids, tokenizer.eos_token_id, tokenizer.pad_token_id)
         torch.cuda.reset_peak_memory_stats()
         metrics = representation_diagnostics(
             model, method, collator, rows,
-            0 if projected_condition else args.k, args.seed, task,
-            projector=projector, limit=args.diagnostic_limit,
+            args.k, args.seed, task, limit=args.diagnostic_limit,
             physical_batch_size=args.diagnostic_batch_size,
         )
         output["conditions"][label] = {
@@ -89,7 +73,7 @@ def main() -> None:
         }
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
-        del method, model, projector
+        del method, model
         torch.cuda.empty_cache()
 
     print(json.dumps({"output": str(args.output), "conditions": list(output["conditions"])}, sort_keys=True))

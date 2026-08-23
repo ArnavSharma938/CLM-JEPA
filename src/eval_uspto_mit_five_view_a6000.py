@@ -306,6 +306,9 @@ def official_rank(view_candidates: list[list[str]], n_best: int = BEAM_SIZE) -> 
 def load_endpoint(checkpoint: Path, *, predictor_tokens: bool = True):
     import torch
 
+    decode_batch_size = int(
+        os.environ.get("CHEMFM_DECODE_BATCH_SIZE", str(BEAM_SIZE))
+    )
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
     torch.set_float32_matmul_precision("high")
@@ -329,6 +332,121 @@ def load_endpoint(checkpoint: Path, *, predictor_tokens: bool = True):
     result = set_peft_model_state_dict(model, weights, adapter_name=ADAPTER_NAME)
     if getattr(result, "unexpected_keys", None):
         raise RuntimeError(f"unexpected checkpoint keys: {result.unexpected_keys}")
+    if os.environ.get("CHEMFM_EXACT_BEAM_SCORER") == "1":
+        from collections import UserDict
+        from transformers.generation.beam_search import BeamSearchScorer
+
+        original_beam_process = getattr(
+            BeamSearchScorer,
+            "_chemfm_original_process",
+            BeamSearchScorer.process,
+        )
+        BeamSearchScorer._chemfm_original_process = original_beam_process
+
+        def exact_batch1_beam_process(
+            scorer,
+            input_ids,
+            next_scores,
+            next_tokens,
+            next_indices,
+            pad_token_id=None,
+            eos_token_id=None,
+            beam_indices=None,
+            group_index=0,
+            decoder_prompt_len=0,
+        ):
+            if (
+                input_ids.shape[0] != BEAM_SIZE
+                or next_scores.shape[0] != 1
+                or scorer.num_beam_groups != 1
+                or scorer.group_size != BEAM_SIZE
+                or beam_indices is not None
+                or group_index != 0
+            ):
+                return original_beam_process(
+                    scorer,
+                    input_ids,
+                    next_scores,
+                    next_tokens,
+                    next_indices,
+                    pad_token_id=pad_token_id,
+                    eos_token_id=eos_token_id,
+                    beam_indices=beam_indices,
+                    group_index=group_index,
+                    decoder_prompt_len=decoder_prompt_len,
+                )
+
+            cur_len = input_ids.shape[-1] + 1
+            beam_hyp = scorer._beam_hyps[0]
+            if scorer._done[0]:
+                if scorer.num_beams < len(beam_hyp):
+                    raise ValueError(
+                        "Batch can only be done if at least num_beams beams exist"
+                    )
+                if eos_token_id is None or pad_token_id is None:
+                    raise ValueError("finished beams require eos and pad token ids")
+                return UserDict({
+                    "next_beam_scores": next_scores.new_zeros(BEAM_SIZE),
+                    "next_beam_tokens": next_tokens.new_full(
+                        (BEAM_SIZE,), pad_token_id
+                    ),
+                    "next_beam_indices": next_indices.new_zeros(BEAM_SIZE),
+                })
+
+            if eos_token_id is None:
+                eos_values = set()
+            elif isinstance(eos_token_id, torch.Tensor):
+                eos_values = set(eos_token_id.reshape(-1).tolist())
+            elif isinstance(eos_token_id, int):
+                eos_values = {eos_token_id}
+            else:
+                eos_values = set(eos_token_id)
+
+            # One device synchronization for the three already-computed
+            # candidate vectors replaces one synchronization per scalar.
+            token_values = next_tokens[0].tolist()
+            score_values = next_scores[0].tolist()
+            index_values = next_indices[0].tolist()
+            kept_scores = []
+            kept_tokens = []
+            kept_indices = []
+            for rank, (token, score, index) in enumerate(
+                zip(token_values, score_values, index_values)
+            ):
+                batch_beam_idx = int(index)
+                if token in eos_values:
+                    if rank < BEAM_SIZE:
+                        beam_hyp.add(
+                            input_ids[batch_beam_idx].clone(),
+                            score,
+                            beam_indices=None,
+                            generated_len=cur_len - decoder_prompt_len,
+                        )
+                else:
+                    kept_scores.append(score)
+                    kept_tokens.append(token)
+                    kept_indices.append(batch_beam_idx)
+                    if len(kept_scores) == BEAM_SIZE:
+                        break
+            if len(kept_scores) < BEAM_SIZE:
+                raise ValueError("too many EOS candidates to fill the next beam")
+            scorer._done[0] = scorer._done[0] or beam_hyp.is_done(
+                max(score_values), cur_len, decoder_prompt_len
+            )
+            return UserDict({
+                "next_beam_scores": next_scores.new_tensor(kept_scores),
+                "next_beam_tokens": next_tokens.new_tensor(kept_tokens),
+                "next_beam_indices": next_indices.new_tensor(kept_indices),
+            })
+
+        BeamSearchScorer.process = exact_batch1_beam_process
+    if os.environ.get("CHEMFM_MERGE_LORA") == "1":
+        # Inference-only candidate: fold each trained LoRA delta into its
+        # frozen base weight once, removing two rank projections and the
+        # adapter add from every autoregressive layer invocation.  This is
+        # opt-in because the changed floating-point association must pass the
+        # evaluator's exact candidate-list parity gate before production use.
+        model.merge_adapter(adapter_names=[ADAPTER_NAME])
     if os.environ.get("CHEMFM_EXACT_LORA_FASTPATH") == "1":
         from peft.tuners.lora.layer import Linear as LoraLinear
 
@@ -340,7 +458,18 @@ def load_endpoint(checkpoint: Path, *, predictor_tokens: bool = True):
         # matmuls; FP32 scale; FP32 add of the BF16 base result; BF16 cast.
         # Prefill and any unexpected call shape use PEFT unchanged.
         use_cuda_graph = os.environ.get("CHEMFM_EXACT_LORA_CUDAGRAPH") == "1"
-        for module in tuple(model.modules()):
+        use_layer_graph = os.environ.get("CHEMFM_EXACT_LAYER_CUDAGRAPH") == "1"
+        use_block_graph = (
+            os.environ.get("CHEMFM_EXACT_BLOCK_CUDAGRAPH") == "1"
+            or use_layer_graph
+        )
+        use_mlp_graph = (
+            os.environ.get("CHEMFM_EXACT_MLP_CUDAGRAPH") == "1" or use_block_graph
+        )
+        use_qkv_graph = (
+            os.environ.get("CHEMFM_EXACT_QKV_CUDAGRAPH") == "1" or use_block_graph
+        )
+        for module_name, module in tuple(model.named_modules()):
             if not isinstance(module, LoraLinear):
                 continue
             active = [name for name in module.active_adapters if name in module.lora_A]
@@ -352,6 +481,16 @@ def load_endpoint(checkpoint: Path, *, predictor_tokens: bool = True):
                 continue
             adapter_name = active[0]
             original_forward = module.forward
+            module_use_cuda_graph = use_cuda_graph and not (
+                use_mlp_graph and ".mlp." in module_name
+            ) and not (
+                use_qkv_graph and any(
+                    f".self_attn.{projection}" in module_name
+                    for projection in ("q_proj", "k_proj", "v_proj")
+                )
+            ) and not (
+                use_layer_graph and ".self_attn.o_proj" in module_name
+            )
             base_layer = module.get_base_layer()
             a_weight = module.lora_A[adapter_name].weight
             b_weight = module.lora_B[adapter_name].weight
@@ -401,12 +540,12 @@ def load_endpoint(checkpoint: Path, *, predictor_tokens: bool = True):
                 _workspace=workspace,
                 _impl=exact_decode_impl,
                 _graph_state=graph_state,
-                _use_cuda_graph=use_cuda_graph,
+                _use_cuda_graph=module_use_cuda_graph,
                 **kwargs,
             ):
                 if (
                     args or kwargs or layer.training or layer.disable_adapters or layer.merged
-                    or x.ndim != 3 or x.shape[0] != BEAM_SIZE or x.shape[1] != 1
+                    or x.ndim != 3 or x.shape[0] != decode_batch_size or x.shape[1] != 1
                 ):
                     return _original(x, *args, **kwargs)
                 if not _use_cuda_graph:
@@ -431,11 +570,481 @@ def load_endpoint(checkpoint: Path, *, predictor_tokens: bool = True):
                 return static_output
 
             module.forward = types.MethodType(exact_decode_forward, module)
+    if (
+        os.environ.get("CHEMFM_EXACT_QKV_CUDAGRAPH") == "1"
+        and os.environ.get("CHEMFM_EXACT_BLOCK_CUDAGRAPH") != "1"
+    ):
+        from transformers.models.llama.modeling_llama import LlamaSdpaAttention
+
+        for attention in tuple(model.modules()):
+            if not isinstance(attention, LlamaSdpaAttention):
+                continue
+            q_original = attention.q_proj.forward
+            k_original = attention.k_proj.forward
+            v_original = attention.v_proj.forward
+            graph_state = [None]
+
+            def graphed_q_forward(
+                layer, hidden_states,
+                _q=q_original,
+                _k=k_original,
+                _v=v_original,
+                _graph_state=graph_state,
+            ):
+                if (
+                    layer.training or hidden_states.ndim != 3
+                    or hidden_states.shape[0] != decode_batch_size
+                    or hidden_states.shape[1] != 1
+                ):
+                    return _q(hidden_states)
+                if _graph_state[0] is None:
+                    static_input = torch.empty_like(hidden_states)
+                    static_input.copy_(hidden_states)
+                    current_stream = torch.cuda.current_stream(hidden_states.device)
+                    warmup_stream = torch.cuda.Stream(device=hidden_states.device)
+                    warmup_stream.wait_stream(current_stream)
+                    with torch.cuda.stream(warmup_stream):
+                        for _ in range(3):
+                            _q(static_input), _k(static_input), _v(static_input)
+                    current_stream.wait_stream(warmup_stream)
+                    graph = torch.cuda.CUDAGraph()
+                    with torch.cuda.graph(graph, stream=warmup_stream):
+                        static_outputs = (
+                            _q(static_input), _k(static_input), _v(static_input)
+                        )
+                    _graph_state[0] = (static_input, static_outputs, graph)
+                static_input, static_outputs, graph = _graph_state[0]
+                static_input.copy_(hidden_states)
+                graph.replay()
+                return static_outputs[0]
+
+            def cached_k_forward(layer, hidden_states, _original=k_original, _state=graph_state):
+                if (
+                    layer.training or hidden_states.ndim != 3
+                    or hidden_states.shape[0] != decode_batch_size
+                    or hidden_states.shape[1] != 1 or _state[0] is None
+                ):
+                    return _original(hidden_states)
+                return _state[0][1][1]
+
+            def cached_v_forward(layer, hidden_states, _original=v_original, _state=graph_state):
+                if (
+                    layer.training or hidden_states.ndim != 3
+                    or hidden_states.shape[0] != decode_batch_size
+                    or hidden_states.shape[1] != 1 or _state[0] is None
+                ):
+                    return _original(hidden_states)
+                return _state[0][1][2]
+
+            attention.q_proj.forward = types.MethodType(
+                graphed_q_forward, attention.q_proj
+            )
+            attention.k_proj.forward = types.MethodType(
+                cached_k_forward, attention.k_proj
+            )
+            attention.v_proj.forward = types.MethodType(
+                cached_v_forward, attention.v_proj
+            )
+    if (
+        os.environ.get("CHEMFM_EXACT_MLP_CUDAGRAPH") == "1"
+        and os.environ.get("CHEMFM_EXACT_BLOCK_CUDAGRAPH") != "1"
+    ):
+        from transformers.models.llama.modeling_llama import LlamaMLP
+
+        for module in tuple(model.modules()):
+            if not isinstance(module, LlamaMLP):
+                continue
+            original_forward = module.forward
+            graph_state = [None]
+
+            def graphed_mlp_decode_forward(
+                layer, hidden_states,
+                _original=original_forward,
+                _graph_state=graph_state,
+            ):
+                if (
+                    layer.training or hidden_states.ndim != 3
+                    or hidden_states.shape[0] != decode_batch_size
+                    or hidden_states.shape[1] != 1
+                ):
+                    return _original(hidden_states)
+                if _graph_state[0] is None:
+                    static_input = torch.empty_like(hidden_states)
+                    static_input.copy_(hidden_states)
+                    current_stream = torch.cuda.current_stream(hidden_states.device)
+                    warmup_stream = torch.cuda.Stream(device=hidden_states.device)
+                    warmup_stream.wait_stream(current_stream)
+                    with torch.cuda.stream(warmup_stream):
+                        for _ in range(3):
+                            _original(static_input)
+                    current_stream.wait_stream(warmup_stream)
+                    graph = torch.cuda.CUDAGraph()
+                    with torch.cuda.graph(graph, stream=warmup_stream):
+                        static_output = _original(static_input)
+                    _graph_state[0] = (static_input, static_output, graph)
+                static_input, static_output, graph = _graph_state[0]
+                static_input.copy_(hidden_states)
+                graph.replay()
+                return static_output
+
+            module.forward = types.MethodType(graphed_mlp_decode_forward, module)
+    if os.environ.get("CHEMFM_EXACT_LAYER_CUDAGRAPH") == "1":
+        import transformers.models.llama.modeling_llama as llama_modeling
+
+        for decoder_layer in tuple(model.modules()):
+            if not isinstance(decoder_layer, llama_modeling.LlamaDecoderLayer):
+                continue
+            original_forward = decoder_layer.forward
+            input_norm = decoder_layer.input_layernorm.forward
+            post_norm = decoder_layer.post_attention_layernorm.forward
+            attention = decoder_layer.self_attn
+            q_projection = attention.q_proj.forward
+            k_projection = attention.k_proj.forward
+            v_projection = attention.v_proj.forward
+            o_projection = attention.o_proj.forward
+            mlp = decoder_layer.mlp.forward
+            apply_rope = llama_modeling.apply_rotary_pos_emb
+            repeat_kv = llama_modeling.repeat_kv
+            pre_state = [None]
+            post_state = [None]
+
+            def segmented_decoder_forward(
+                layer,
+                hidden_states,
+                attention_mask=None,
+                position_ids=None,
+                past_key_value=None,
+                output_attentions=False,
+                use_cache=False,
+                cache_position=None,
+                position_embeddings=None,
+                _original=original_forward,
+                _input_norm=input_norm,
+                _post_norm=post_norm,
+                _attention=attention,
+                _q=q_projection,
+                _k=k_projection,
+                _v=v_projection,
+                _o=o_projection,
+                _mlp=mlp,
+                _apply_rope=apply_rope,
+                _repeat_kv=repeat_kv,
+                _pre_state=pre_state,
+                _post_state=post_state,
+                **kwargs,
+            ):
+                if (
+                    layer.training
+                    or hidden_states.ndim != 3
+                    or hidden_states.shape[0] != decode_batch_size
+                    or hidden_states.shape[1] != 1
+                    or output_attentions
+                    or position_embeddings is None
+                    or past_key_value is None
+                ):
+                    return _original(
+                        hidden_states,
+                        attention_mask=attention_mask,
+                        position_ids=position_ids,
+                        past_key_value=past_key_value,
+                        output_attentions=output_attentions,
+                        use_cache=use_cache,
+                        cache_position=cache_position,
+                        position_embeddings=position_embeddings,
+                        **kwargs,
+                    )
+
+                cos, sin = position_embeddings
+                if _pre_state[0] is None:
+                    static_hidden = torch.empty_like(hidden_states)
+                    static_cos = torch.empty_like(cos)
+                    static_sin = torch.empty_like(sin)
+                    static_hidden.copy_(hidden_states)
+                    static_cos.copy_(cos)
+                    static_sin.copy_(sin)
+                    current_stream = torch.cuda.current_stream(hidden_states.device)
+                    warmup_stream = torch.cuda.Stream(device=hidden_states.device)
+                    warmup_stream.wait_stream(current_stream)
+
+                    def pre_body():
+                        normalized = _input_norm(static_hidden)
+                        batch, query_length, _ = normalized.shape
+                        query = _q(normalized).view(
+                            batch, query_length, _attention.num_heads,
+                            _attention.head_dim,
+                        ).transpose(1, 2)
+                        key = _k(normalized).view(
+                            batch, query_length, _attention.num_key_value_heads,
+                            _attention.head_dim,
+                        ).transpose(1, 2)
+                        value = _v(normalized).view(
+                            batch, query_length, _attention.num_key_value_heads,
+                            _attention.head_dim,
+                        ).transpose(1, 2)
+                        query, key = _apply_rope(
+                            query, key, static_cos, static_sin
+                        )
+                        return query, key, value
+
+                    with torch.cuda.stream(warmup_stream):
+                        for _ in range(3):
+                            pre_body()
+                    current_stream.wait_stream(warmup_stream)
+                    graph = torch.cuda.CUDAGraph()
+                    with torch.cuda.graph(graph, stream=warmup_stream):
+                        static_outputs = pre_body()
+                    _pre_state[0] = (
+                        static_hidden, static_cos, static_sin,
+                        static_outputs, graph,
+                    )
+                (
+                    static_hidden, static_cos, static_sin,
+                    static_outputs, pre_graph,
+                ) = _pre_state[0]
+                static_hidden.copy_(hidden_states)
+                static_cos.copy_(cos)
+                static_sin.copy_(sin)
+                pre_graph.replay()
+                query_states, key_states, value_states = static_outputs
+
+                cache_kwargs = {
+                    "sin": sin,
+                    "cos": cos,
+                    "cache_position": cache_position,
+                }
+                key_states, value_states = past_key_value.update(
+                    key_states,
+                    value_states,
+                    _attention.layer_idx,
+                    cache_kwargs,
+                )
+                key_states = _repeat_kv(
+                    key_states, _attention.num_key_value_groups
+                )
+                value_states = _repeat_kv(
+                    value_states, _attention.num_key_value_groups
+                )
+                causal_mask = attention_mask
+                if attention_mask is not None:
+                    causal_mask = attention_mask[:, :, :, :key_states.shape[-2]]
+                if query_states.device.type == "cuda" and causal_mask is not None:
+                    query_states = query_states.contiguous()
+                    key_states = key_states.contiguous()
+                    value_states = value_states.contiguous()
+                attention_output = torch.nn.functional.scaled_dot_product_attention(
+                    query_states,
+                    key_states,
+                    value_states,
+                    attn_mask=causal_mask,
+                    dropout_p=_attention.attention_dropout if layer.training else 0.0,
+                    is_causal=False,
+                )
+
+                if _post_state[0] is None:
+                    static_attention = torch.empty_like(attention_output)
+                    static_residual = torch.empty_like(hidden_states)
+                    static_attention.copy_(attention_output)
+                    static_residual.copy_(hidden_states)
+                    current_stream = torch.cuda.current_stream(hidden_states.device)
+                    warmup_stream = torch.cuda.Stream(device=hidden_states.device)
+                    warmup_stream.wait_stream(current_stream)
+
+                    def post_body():
+                        batch, _, query_length, _ = static_attention.shape
+                        projected = static_attention.transpose(1, 2).contiguous()
+                        projected = projected.view(batch, query_length, -1)
+                        projected = _o(projected)
+                        after_attention = static_residual + projected
+                        normalized = _post_norm(after_attention)
+                        return after_attention + _mlp(normalized)
+
+                    with torch.cuda.stream(warmup_stream):
+                        for _ in range(3):
+                            post_body()
+                    current_stream.wait_stream(warmup_stream)
+                    graph = torch.cuda.CUDAGraph()
+                    with torch.cuda.graph(graph, stream=warmup_stream):
+                        static_output = post_body()
+                    _post_state[0] = (
+                        static_attention, static_residual, static_output, graph,
+                    )
+                (
+                    static_attention, static_residual,
+                    static_output, post_graph,
+                ) = _post_state[0]
+                static_attention.copy_(attention_output)
+                static_residual.copy_(hidden_states)
+                post_graph.replay()
+                outputs = (static_output,)
+                if use_cache:
+                    outputs += (past_key_value,)
+                return outputs
+
+            decoder_layer.forward = types.MethodType(
+                segmented_decoder_forward, decoder_layer
+            )
+    if (
+        os.environ.get("CHEMFM_EXACT_BLOCK_CUDAGRAPH") == "1"
+        and os.environ.get("CHEMFM_EXACT_LAYER_CUDAGRAPH") != "1"
+    ):
+        from transformers.models.llama.modeling_llama import LlamaDecoderLayer
+
+        for decoder_layer in tuple(model.modules()):
+            if not isinstance(decoder_layer, LlamaDecoderLayer):
+                continue
+            input_norm_original = decoder_layer.input_layernorm.forward
+            post_norm_original = decoder_layer.post_attention_layernorm.forward
+            q_original = decoder_layer.self_attn.q_proj.forward
+            k_original = decoder_layer.self_attn.k_proj.forward
+            v_original = decoder_layer.self_attn.v_proj.forward
+            mlp_original = decoder_layer.mlp.forward
+            qkv_state = [None]
+            mlp_state = [None]
+
+            def norm_qkv_forward(
+                layer, hidden_states,
+                _norm=input_norm_original,
+                _q=q_original,
+                _k=k_original,
+                _v=v_original,
+                _state=qkv_state,
+            ):
+                if (
+                    layer.training or hidden_states.ndim != 3
+                    or hidden_states.shape[0] != decode_batch_size
+                    or hidden_states.shape[1] != 1
+                ):
+                    return _norm(hidden_states)
+                if _state[0] is None:
+                    static_input = torch.empty_like(hidden_states)
+                    static_input.copy_(hidden_states)
+                    current_stream = torch.cuda.current_stream(hidden_states.device)
+                    warmup_stream = torch.cuda.Stream(device=hidden_states.device)
+                    warmup_stream.wait_stream(current_stream)
+
+                    def body():
+                        normalized = _norm(static_input)
+                        return normalized, _q(normalized), _k(normalized), _v(normalized)
+
+                    with torch.cuda.stream(warmup_stream):
+                        for _ in range(3):
+                            body()
+                    current_stream.wait_stream(warmup_stream)
+                    graph = torch.cuda.CUDAGraph()
+                    with torch.cuda.graph(graph, stream=warmup_stream):
+                        static_outputs = body()
+                    _state[0] = (static_input, static_outputs, graph)
+                static_input, static_outputs, graph = _state[0]
+                static_input.copy_(hidden_states)
+                graph.replay()
+                return static_outputs[0]
+
+            def cached_q_forward(layer, hidden_states, _original=q_original, _state=qkv_state):
+                if (
+                    layer.training or hidden_states.ndim != 3
+                    or hidden_states.shape[0] != decode_batch_size
+                    or hidden_states.shape[1] != 1 or _state[0] is None
+                ):
+                    return _original(hidden_states)
+                return _state[0][1][1]
+
+            def cached_k_forward(layer, hidden_states, _original=k_original, _state=qkv_state):
+                if (
+                    layer.training or hidden_states.ndim != 3
+                    or hidden_states.shape[0] != decode_batch_size
+                    or hidden_states.shape[1] != 1 or _state[0] is None
+                ):
+                    return _original(hidden_states)
+                return _state[0][1][2]
+
+            def cached_v_forward(layer, hidden_states, _original=v_original, _state=qkv_state):
+                if (
+                    layer.training or hidden_states.ndim != 3
+                    or hidden_states.shape[0] != decode_batch_size
+                    or hidden_states.shape[1] != 1 or _state[0] is None
+                ):
+                    return _original(hidden_states)
+                return _state[0][1][3]
+
+            def norm_mlp_forward(
+                layer, hidden_states,
+                _norm=post_norm_original,
+                _mlp=mlp_original,
+                _state=mlp_state,
+            ):
+                if (
+                    layer.training or hidden_states.ndim != 3
+                    or hidden_states.shape[0] != decode_batch_size
+                    or hidden_states.shape[1] != 1
+                ):
+                    return _norm(hidden_states)
+                if _state[0] is None:
+                    static_input = torch.empty_like(hidden_states)
+                    static_input.copy_(hidden_states)
+                    current_stream = torch.cuda.current_stream(hidden_states.device)
+                    warmup_stream = torch.cuda.Stream(device=hidden_states.device)
+                    warmup_stream.wait_stream(current_stream)
+
+                    def body():
+                        normalized = _norm(static_input)
+                        return normalized, _mlp(normalized)
+
+                    with torch.cuda.stream(warmup_stream):
+                        for _ in range(3):
+                            body()
+                    current_stream.wait_stream(warmup_stream)
+                    graph = torch.cuda.CUDAGraph()
+                    with torch.cuda.graph(graph, stream=warmup_stream):
+                        static_outputs = body()
+                    _state[0] = (static_input, static_outputs, graph)
+                static_input, static_outputs, graph = _state[0]
+                static_input.copy_(hidden_states)
+                graph.replay()
+                return static_outputs[0]
+
+            def cached_mlp_forward(layer, hidden_states, _original=mlp_original, _state=mlp_state):
+                if (
+                    layer.training or hidden_states.ndim != 3
+                    or hidden_states.shape[0] != decode_batch_size
+                    or hidden_states.shape[1] != 1 or _state[0] is None
+                ):
+                    return _original(hidden_states)
+                return _state[0][1][1]
+
+            decoder_layer.input_layernorm.forward = types.MethodType(
+                norm_qkv_forward, decoder_layer.input_layernorm
+            )
+            decoder_layer.self_attn.q_proj.forward = types.MethodType(
+                cached_q_forward, decoder_layer.self_attn.q_proj
+            )
+            decoder_layer.self_attn.k_proj.forward = types.MethodType(
+                cached_k_forward, decoder_layer.self_attn.k_proj
+            )
+            decoder_layer.self_attn.v_proj.forward = types.MethodType(
+                cached_v_forward, decoder_layer.self_attn.v_proj
+            )
+            decoder_layer.post_attention_layernorm.forward = types.MethodType(
+                norm_mlp_forward, decoder_layer.post_attention_layernorm
+            )
+            decoder_layer.mlp.forward = types.MethodType(
+                cached_mlp_forward, decoder_layer.mlp
+            )
     if os.environ.get("CHEMFM_EXACT_RMSNORM_CUDAGRAPH") == "1":
         from transformers.models.llama.modeling_llama import LlamaRMSNorm
 
-        for module in tuple(model.modules()):
+        for module_name, module in tuple(model.named_modules()):
             if not isinstance(module, LlamaRMSNorm):
+                continue
+            if (
+                (
+                    os.environ.get("CHEMFM_EXACT_BLOCK_CUDAGRAPH") == "1"
+                    or os.environ.get("CHEMFM_EXACT_LAYER_CUDAGRAPH") == "1"
+                )
+                and (
+                    module_name.endswith(".input_layernorm")
+                    or module_name.endswith(".post_attention_layernorm")
+                )
+            ):
                 continue
             original_forward = module.forward
             graph_state = [None]
@@ -447,7 +1056,7 @@ def load_endpoint(checkpoint: Path, *, predictor_tokens: bool = True):
             ):
                 if (
                     layer.training or hidden_states.ndim != 3
-                    or hidden_states.shape[0] != BEAM_SIZE or hidden_states.shape[1] != 1
+                    or hidden_states.shape[0] != decode_batch_size or hidden_states.shape[1] != 1
                 ):
                     return _original(hidden_states)
                 if _graph_state[0] is None:
@@ -485,7 +1094,7 @@ def load_endpoint(checkpoint: Path, *, predictor_tokens: bool = True):
                 _graph_state=graph_state,
             ):
                 if (
-                    layer.training or x.ndim != 3 or x.shape[0] != BEAM_SIZE or x.shape[1] != 1
+                    layer.training or x.ndim != 3 or x.shape[0] != decode_batch_size or x.shape[1] != 1
                     or position_ids.shape[-1] != 1
                 ):
                     return _original(x, position_ids)
@@ -525,8 +1134,8 @@ def load_endpoint(checkpoint: Path, *, predictor_tokens: bool = True):
         def graphed_apply_rotary_pos_emb(q, k, cos, sin, position_ids=None, unsqueeze_dim=1):
             if (
                 position_ids is not None or unsqueeze_dim != 1
-                or q.shape[0] != BEAM_SIZE or q.shape[-2] != 1
-                or k.shape[0] != BEAM_SIZE or k.shape[-2] != 1
+                or q.shape[0] != decode_batch_size or q.shape[-2] != 1
+                or k.shape[0] != decode_batch_size or k.shape[-2] != 1
             ):
                 return original_apply_rope(q, k, cos, sin, position_ids, unsqueeze_dim)
             if graph_state[0] is None:
@@ -746,8 +1355,20 @@ def worker(args) -> None:
         "sdpa_flash_enabled": bool(torch.backends.cuda.flash_sdp_enabled()),
         "sdpa_mem_efficient_enabled": bool(torch.backends.cuda.mem_efficient_sdp_enabled()),
         "cache_implementation": os.environ.get("CHEMFM_CACHE_IMPLEMENTATION"),
+        "exact_preallocated_cache": (
+            os.environ.get("CHEMFM_EXACT_PREALLOCATED_CACHE") == "1"
+        ),
+        "merged_lora": os.environ.get("CHEMFM_MERGE_LORA") == "1",
+        "exact_beam_scorer": os.environ.get("CHEMFM_EXACT_BEAM_SCORER") == "1",
+        "decode_batch_size": int(
+            os.environ.get("CHEMFM_DECODE_BATCH_SIZE", str(BEAM_SIZE))
+        ),
         "exact_lora_fastpath": os.environ.get("CHEMFM_EXACT_LORA_FASTPATH") == "1",
         "exact_lora_cudagraph": os.environ.get("CHEMFM_EXACT_LORA_CUDAGRAPH") == "1",
+        "exact_mlp_cudagraph": os.environ.get("CHEMFM_EXACT_MLP_CUDAGRAPH") == "1",
+        "exact_qkv_cudagraph": os.environ.get("CHEMFM_EXACT_QKV_CUDAGRAPH") == "1",
+        "exact_block_cudagraph": os.environ.get("CHEMFM_EXACT_BLOCK_CUDAGRAPH") == "1",
+        "exact_layer_cudagraph": os.environ.get("CHEMFM_EXACT_LAYER_CUDAGRAPH") == "1",
         "exact_rmsnorm_cudagraph": os.environ.get("CHEMFM_EXACT_RMSNORM_CUDAGRAPH") == "1",
         "exact_rope_cudagraph": os.environ.get("CHEMFM_EXACT_ROPE_CUDAGRAPH") == "1",
         "exact_apply_rope_cudagraph": (

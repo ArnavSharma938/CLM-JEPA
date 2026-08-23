@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from chemfm import TOKENIZER_DIR, ReactionCollator, load_reaction_tokenizer
 from jepa import (
-    CLMJEPA, ProjectionHead, SIGReg, add_predictor_tokens, extract_source_and_target,
+    CLMJEPA, SIGReg, add_predictor_tokens, extract_source_and_target,
     matched_derangement,
 )
 
@@ -303,25 +303,16 @@ def test_mse_matches_upstream_llm_jepa_definition_exactly():
     torch.testing.assert_close(result.loss, expected, rtol=0.0, atol=0.0)
 
 
-def test_direct_raw_endpoint_mse_sigreg_is_disabled():
+def test_direct_raw_endpoint_mse_sigreg_uses_validated_relative_coefficient():
     model, _, method, batch = setup_case()
-    with pytest.raises(ValueError, match="projection-space"):
-        method(
-            model, batch, k=0, jepa_weight=2.0, native_weight=0.0,
-            jepa_loss_type="mse", sigreg_tradeoff=0.01,
-            sigreg_relative_scale=4.0, force_jepa_active=True,
-        )
-
-
-def test_projection_head_is_three_linear_layers_with_hidden_bn_and_relu():
-    projector = ProjectionHead(32)
-    assert [type(layer).__name__ for layer in projector.layers] == [
-        "Linear", "BatchNorm1d", "ReLU",
-        "Linear", "BatchNorm1d", "ReLU", "Linear",
-    ]
-    assert projector.layers[-1].out_features == 64
-    assert projector.configuration()["architecture"] == "32->2048->2048->64"
-    assert projector.configuration()["final_activation"] is False
+    result = method(
+        model, batch, k=0, jepa_weight=2.0, native_weight=0.0,
+        jepa_loss_type="mse", sigreg_tradeoff=0.01,
+        sigreg_relative_scale=4.0, force_jepa_active=True,
+    )
+    expected = result.jepa_loss + (4.0 * 0.01 / 0.99) * result.sigreg_loss
+    torch.testing.assert_close(result.jepa_objective_loss, expected)
+    torch.testing.assert_close(result.loss, 2.0 * expected)
 
 
 def test_streaming_sigreg_matches_materialized_value_and_gradients():

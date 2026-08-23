@@ -36,7 +36,10 @@ from audit_sigreg_pair_specificity import (  # noqa: E402
     vector_norm,
 )
 from chemfm import MODEL_DIR, TOKENIZER_DIR, ReactionCollator, load_lora_model, load_reaction_tokenizer  # noqa: E402
-from jepa import CLMJEPA, ProjectionHead, SIGReg  # noqa: E402
+from historical_projection import (  # noqa: E402
+    ProjectionHead, load_projection_head_checkpoint,
+)
+from jepa import CLMJEPA, SIGReg  # noqa: E402
 from train import load_adapter_checkpoint, read_rows, validate_serialization_endings  # noqa: E402
 
 
@@ -158,7 +161,7 @@ def load_projector(checkpoint: Path, device: torch.device) -> ProjectionHead:
     ).to(device)
     if projector.configuration() != config:
         raise ValueError("projection-head artifact does not match its declared architecture")
-    projector.load_state_dict(payload["state_dict"])
+    load_projection_head_checkpoint(projector, checkpoint)
     return projector
 
 

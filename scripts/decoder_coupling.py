@@ -5,6 +5,7 @@ import csv
 import hashlib
 import json
 import math
+import os
 import sys
 import time
 from pathlib import Path
@@ -25,6 +26,7 @@ from chemfm import (
     ReactionCollator,
     canonicalize,
     generate_products,
+    generate_products_batch,
     load_lora_model,
     load_reaction_tokenizer,
 )
@@ -214,33 +216,14 @@ def append_jsonl(path: Path, record: dict) -> None:
 
 @torch.inference_mode()
 def generate_equal_length_batch(model, tokenizer, prompts: list[str]) -> list[list[str]]:
-    encoded = tokenizer(
-        prompts, return_tensors="pt", padding=True, truncation=True,
-        add_special_tokens=False,
+    return generate_products_batch(
+        model,
+        tokenizer,
+        prompts,
+        max_length=1024,
+        num_beams=10,
+        num_return_sequences=10,
     )
-    encoded.pop("token_type_ids", None)
-    if not encoded["attention_mask"].all():
-        raise ValueError("batched diagnostic generation requires equal-length prompts")
-    encoded = {key: value.to(model.device) for key, value in encoded.items()}
-    model.config.use_cache = True
-    try:
-        outputs = model.generate(
-            **encoded,
-            max_length=1024,
-            num_return_sequences=10,
-            do_sample=False,
-            num_beams=10,
-            eos_token_id=tokenizer.eos_token_id,
-            early_stopping="never",
-            pad_token_id=tokenizer.pad_token_id,
-            length_penalty=0.0,
-        )
-    finally:
-        model.config.use_cache = False
-    prompt_width = encoded["input_ids"].shape[1]
-    decoded = tokenizer.batch_decode(outputs[:, prompt_width:], skip_special_tokens=True)
-    decoded = [text.replace(" ", "") for text in decoded]
-    return [decoded[start:start + 10] for start in range(0, len(decoded), 10)]
 
 
 def generate_panel(args) -> None:
@@ -258,9 +241,16 @@ def generate_panel(args) -> None:
     if not missing:
         print(json.dumps({"status": "complete", "rows": len(rows)}))
         return
-    tokenizer, _, model = load_model(
-        args.checkpoint, predictor_tokens=args.predictor_tokens,
-    )
+    if os.environ.get("CHEMFM_EXACT_LAYER_CUDAGRAPH") == "1":
+        from eval_uspto_mit_five_view_a6000 import load_endpoint
+
+        model, tokenizer = load_endpoint(
+            args.checkpoint, predictor_tokens=args.predictor_tokens,
+        )
+    else:
+        tokenizer, _, model = load_model(
+            args.checkpoint, predictor_tokens=args.predictor_tokens,
+        )
     collator = ReactionCollator(tokenizer, task="forward")
     prompts = {
         row["reaction_identity"]: collator(

@@ -230,11 +230,26 @@ def identity_mappings(
 
 def effective_rank(values: torch.Tensor) -> float:
     centered = values - values.mean(dim=0, keepdim=True)
-    singular_values = torch.linalg.svdvals(centered)
-    energy = singular_values.square()
+    # The nonzero squared singular values are the eigenvalues of the smaller
+    # sample Gram matrix. Endpoint panels have D=2048 and N<=1280, so this is
+    # exact up to floating-point roundoff and avoids the much larger SVD.
+    energy = torch.linalg.eigvalsh(centered @ centered.T).clamp_min(0.0)
     probabilities = energy / energy.sum().clamp_min(torch.finfo(energy.dtype).eps)
     entropy = -(probabilities * probabilities.clamp_min(1e-30).log()).sum()
     return float(entropy.exp())
+
+
+def pca_structure(values: torch.Tensor) -> dict[str, float | list[float]]:
+    centered = values.float() - values.float().mean(dim=0, keepdim=True)
+    energy = torch.linalg.eigvalsh(centered @ centered.T).clamp_min(0.0).flip(0)
+    fractions = energy / energy.sum().clamp_min(torch.finfo(energy.dtype).eps)
+    top = fractions[: min(8, len(fractions))]
+    return {
+        "top8_explained_variance_fraction": [float(value) for value in top],
+        "top1_explained_variance_fraction": float(fractions[0]),
+        "top2_cumulative_explained_variance_fraction": float(fractions[:2].sum()),
+        "top8_cumulative_explained_variance_fraction": float(fractions[:8].sum()),
+    }
 
 
 def ridge_explained_variance(
@@ -285,30 +300,35 @@ def relationship_metrics(
         raw_targets = raw_targets - raw_targets[train_mask].mean(dim=0, keepdim=True)
     normalized_sources = F.normalize(raw_sources, dim=-1)
     normalized_targets = F.normalize(raw_targets, dim=-1)
-    groups: dict[str, list[int]] = defaultdict(list)
-    for index, identity in enumerate(identities):
-        groups[identity].append(index)
-    prototypes = {
-        identity: F.normalize(normalized_targets[indices].mean(dim=0), dim=0)
-        for identity, indices in groups.items()
-    }
-    correct = torch.stack([
-        torch.dot(normalized_sources[index], prototypes[identity])
-        for index, identity in enumerate(identities)
-    ])
+    identity_to_index = {identity: index for index, identity in enumerate(unique)}
+    group_indices = torch.tensor(
+        [identity_to_index[identity] for identity in identities],
+        device=sources.device,
+    )
+    prototype_sums = torch.zeros(
+        len(unique), normalized_targets.size(1),
+        device=normalized_targets.device, dtype=normalized_targets.dtype,
+    )
+    prototype_sums.index_add_(0, group_indices, normalized_targets)
+    prototypes = F.normalize(prototype_sums, dim=-1)
+    scores = normalized_sources @ prototypes.T
+    row_indices = torch.arange(len(identities), device=sources.device)
+    correct = scores[row_indices, group_indices]
     random_map, matched_map, matched_cost = identity_mappings(
         identities, token_lengths, heavy_atoms, seed
     )
-    random_scores = torch.stack([
-        torch.dot(normalized_sources[index], prototypes[random_map[identity]])
-        for index, identity in enumerate(identities)
-    ])
-    matched_scores = torch.stack([
-        torch.dot(normalized_sources[index], prototypes[matched_map[identity]])
-        for index, identity in enumerate(identities)
-    ])
-    reciprocal_ranks, hits, candidate_counts = [], [], []
-    for index, identity in enumerate(identities):
+    random_indices = torch.tensor(
+        [identity_to_index[random_map[identity]] for identity in identities],
+        device=sources.device,
+    )
+    matched_indices = torch.tensor(
+        [identity_to_index[matched_map[identity]] for identity in identities],
+        device=sources.device,
+    )
+    random_scores = scores[row_indices, random_indices]
+    matched_scores = scores[row_indices, matched_indices]
+    candidate_indices = []
+    for identity in identities:
         negatives = sorted(
             (other for other in unique if other != identity),
             key=lambda other: (
@@ -317,19 +337,21 @@ def relationship_metrics(
                 other,
             ),
         )[:3]
-        candidates = [identity] + negatives
-        scores = torch.stack([
-            torch.dot(normalized_sources[index], prototypes[candidate])
-            for candidate in candidates
+        candidate_indices.append([
+            identity_to_index[candidate] for candidate in [identity] + negatives
         ])
-        rank = int((scores > scores[0]).sum()) + 1
-        reciprocal_ranks.append(1.0 / rank)
-        hits.append(rank == 1)
-        candidate_counts.append(len(candidates))
+    candidate_tensor = torch.tensor(candidate_indices, device=sources.device)
+    candidate_scores = scores.gather(1, candidate_tensor)
+    ranks = (candidate_scores > candidate_scores[:, :1]).sum(dim=1) + 1
+    reciprocal_ranks = 1.0 / ranks.float()
+    hits = ranks.eq(1)
+    candidate_counts = torch.tensor(
+        [len(values) for values in candidate_indices], device=sources.device,
+    )
     random_margin = float((correct - random_scores).mean())
     matched_margin = float((correct - matched_scores).mean())
-    top1 = sum(hits) / len(hits)
-    chance = sum(1.0 / count for count in candidate_counts) / len(candidate_counts)
+    top1 = float(hits.float().mean())
+    chance = float((1.0 / candidate_counts.float()).mean())
     result = {
         "centered_normalized_rescue": centered,
         "correct_cosine": float(correct.mean()),
@@ -348,7 +370,7 @@ def relationship_metrics(
             raw_sources, raw_targets, identities, heldout
         ),
         "retrieval_top1": top1,
-        "retrieval_mrr": sum(reciprocal_ranks) / len(reciprocal_ranks),
+        "retrieval_mrr": float(reciprocal_ranks.mean()),
         "retrieval_chance_top1": chance,
         "heldout_identity_count": len(heldout),
     }

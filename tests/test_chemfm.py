@@ -10,10 +10,43 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from chemfm import (
-    IGNORE_INDEX, TOKENIZER_DIR, ReactionCollator, canonicalize,
+    IGNORE_INDEX, TOKENIZER_DIR, ExactPreallocatedDynamicCache,
+    ReactionCollator, canonicalize,
     generate_products, generate_products_batch, load_reaction_tokenizer,
     resize_chemfm_then_predictors,
 )
+from transformers.cache_utils import DynamicCache
+
+
+def test_preallocated_cache_matches_dynamic_update_reorder_and_reset():
+    torch.manual_seed(71)
+    reference = DynamicCache()
+    candidate = ExactPreallocatedDynamicCache(max_cache_len=8)
+    for layer in range(2):
+        key = torch.randn(3, 2, 2, 4)
+        value = torch.randn(3, 2, 2, 4)
+        expected = reference.update(key, value, layer)
+        actual = candidate.update(key, value, layer)
+        torch.testing.assert_close(actual[0], expected[0])
+        torch.testing.assert_close(actual[1], expected[1])
+    beam_indices = torch.tensor([2, 0, 0])
+    reference.reorder_cache(beam_indices)
+    candidate.reorder_cache(beam_indices)
+    for layer in range(2):
+        key = torch.randn(3, 2, 1, 4)
+        value = torch.randn(3, 2, 1, 4)
+        expected = reference.update(key, value, layer)
+        actual = candidate.update(key, value, layer)
+        torch.testing.assert_close(actual[0], expected[0])
+        torch.testing.assert_close(actual[1], expected[1])
+    candidate.reset()
+    fresh = DynamicCache()
+    key = torch.randn(3, 2, 3, 4)
+    value = torch.randn(3, 2, 3, 4)
+    expected = fresh.update(key, value, 0)
+    actual = candidate.update(key, value, 0)
+    torch.testing.assert_close(actual[0], expected[0])
+    torch.testing.assert_close(actual[1], expected[1])
 
 
 def test_chemfm_and_predictor_tokens_use_respective_upstream_initializers():

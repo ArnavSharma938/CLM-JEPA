@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from typing import Sequence
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 
@@ -12,54 +11,6 @@ from chemfm import IGNORE_INDEX
 
 
 PREDICTOR_TOKENS = [f"<|predictor_{index}|>" for index in range(1, 11)]
-
-
-class ProjectionHead(nn.Module):
-    """Shared LeJEPA-style train-only projection head.
-
-    BatchNorm is deliberately confined to the two hidden layers.  The caller
-    must concatenate every source and target endpoint in one logical JEPA batch
-    before invoking this module so its batch statistics never describe a
-    physical gradient-accumulation microbatch.
-    """
-
-    def __init__(
-        self, input_dim: int, hidden_dim: int = 2048, output_dim: int = 64,
-    ) -> None:
-        super().__init__()
-        if min(input_dim, hidden_dim, output_dim) < 1:
-            raise ValueError("projection dimensions must be positive")
-        self.input_dim = input_dim
-        self.hidden_dim = hidden_dim
-        self.output_dim = output_dim
-        self.layers = nn.Sequential(
-            nn.Linear(input_dim, hidden_dim),
-            nn.BatchNorm1d(hidden_dim),
-            nn.ReLU(inplace=True),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.BatchNorm1d(hidden_dim),
-            nn.ReLU(inplace=True),
-            nn.Linear(hidden_dim, output_dim),
-        )
-
-    def forward(self, states: torch.Tensor) -> torch.Tensor:
-        if states.ndim != 2 or states.size(-1) != self.input_dim:
-            raise ValueError(
-                f"projector expects (samples, {self.input_dim}) endpoint states"
-            )
-        return self.layers(states.float())
-
-    def configuration(self) -> dict[str, int | str | bool]:
-        return {
-            "input_dim": self.input_dim,
-            "hidden_dim": self.hidden_dim,
-            "output_dim": self.output_dim,
-            "architecture": f"{self.input_dim}->{self.hidden_dim}->{self.hidden_dim}->{self.output_dim}",
-            "hidden_normalization": "BatchNorm1d",
-            "hidden_activation": "ReLU",
-            "final_activation": False,
-            "l2_normalization": False,
-        }
 
 
 class SIGReg:
@@ -342,10 +293,6 @@ class CLMJEPA:
             raise ValueError("sigreg_tradeoff must be in [0, 1)")
         if jepa_loss_type not in {"cosine", "mse"}:
             raise ValueError("jepa_loss_type must be cosine or mse")
-        if jepa_loss_type == "mse" and sigreg_tradeoff > 0.0:
-            raise ValueError(
-                "raw endpoint MSE+SIGReg is disabled; use the shared projection-space objective"
-            )
         if sigreg_relative_scale <= 0.0:
             raise ValueError("sigreg_relative_scale must be positive")
         jepa_active = (

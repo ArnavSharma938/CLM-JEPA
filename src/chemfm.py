@@ -11,6 +11,7 @@ from peft import LoraConfig, get_peft_model
 from rdkit import Chem, RDLogger
 from torch.nn.utils.rnn import pad_sequence
 from transformers import AutoConfig, AutoTokenizer, LlamaForCausalLM
+from transformers.cache_utils import DynamicCache
 
 ROOT = Path(__file__).resolve().parents[1]
 TOKENIZER_DIR = ROOT / "references" / "chemfm" / "finetuning" / "reaction_prediction" / "tokenizer"
@@ -24,6 +25,117 @@ PAD_TOKEN = "[PAD]"
 REACTANT_START = "<rstart>"
 PRODUCT_START = "<prostart>"
 END = "<eos>"
+
+
+class ExactPreallocatedDynamicCache(DynamicCache):
+    """Dynamic-shape KV cache without repeated prefix concatenation.
+
+    Attention still receives a view ending at the current sequence length, so
+    its tensor shapes and arithmetic match ``DynamicCache``.  Two fixed backing
+    buffers let beam reordering ping-pong between allocations; appending a new
+    token then copies only that token instead of the entire cached prefix.
+    """
+
+    def __init__(self, max_cache_len: int) -> None:
+        super().__init__()
+        self.max_cache_len = int(max_cache_len)
+        self._key_buffers: list[list[torch.Tensor | int] | None] = []
+        self._value_buffers: list[list[torch.Tensor | int] | None] = []
+
+    def _ensure_layer(self, layer_idx: int, key_states, value_states) -> None:
+        while len(self.key_cache) <= layer_idx:
+            self.key_cache.append([])
+            self.value_cache.append([])
+            self._key_buffers.append(None)
+            self._value_buffers.append(None)
+        if self._key_buffers[layer_idx] is not None:
+            key_buffer = self._key_buffers[layer_idx][0]
+            value_buffer = self._value_buffers[layer_idx][0]
+            if (
+                key_buffer.shape[0] == key_states.shape[0]
+                and key_buffer.shape[1] == key_states.shape[1]
+                and key_buffer.shape[-1] == key_states.shape[-1]
+                and value_buffer.shape[0] == value_states.shape[0]
+                and value_buffer.shape[1] == value_states.shape[1]
+                and value_buffer.shape[-1] == value_states.shape[-1]
+            ):
+                return
+        key_shape = list(key_states.shape)
+        value_shape = list(value_states.shape)
+        key_shape[-2] = self.max_cache_len
+        value_shape[-2] = self.max_cache_len
+        self._key_buffers[layer_idx] = [
+            torch.empty(key_shape, dtype=key_states.dtype, device=key_states.device),
+            torch.empty(key_shape, dtype=key_states.dtype, device=key_states.device),
+            0,
+        ]
+        self._value_buffers[layer_idx] = [
+            torch.empty(value_shape, dtype=value_states.dtype, device=value_states.device),
+            torch.empty(value_shape, dtype=value_states.dtype, device=value_states.device),
+            0,
+        ]
+
+    def reset(self) -> None:
+        """Clear logical lengths while retaining allocated backing buffers."""
+        self._seen_tokens = 0
+        for layer_idx in range(len(self.key_cache)):
+            self.key_cache[layer_idx] = []
+            self.value_cache[layer_idx] = []
+            if self._key_buffers[layer_idx] is not None:
+                self._key_buffers[layer_idx][2] = 0
+                self._value_buffers[layer_idx][2] = 0
+
+    def update(self, key_states, value_states, layer_idx, cache_kwargs=None):
+        self._ensure_layer(layer_idx, key_states, value_states)
+        old_length = (
+            self.key_cache[layer_idx].shape[-2]
+            if isinstance(self.key_cache[layer_idx], torch.Tensor)
+            else 0
+        )
+        added = key_states.shape[-2]
+        new_length = old_length + added
+        if new_length > self.max_cache_len:
+            raise ValueError(
+                f"KV cache length {new_length} exceeds capacity {self.max_cache_len}"
+            )
+        if layer_idx == 0:
+            self._seen_tokens += added
+        key_buffers = self._key_buffers[layer_idx]
+        value_buffers = self._value_buffers[layer_idx]
+        key_buffer = key_buffers[int(key_buffers[2])]
+        value_buffer = value_buffers[int(value_buffers[2])]
+        key_buffer[..., old_length:new_length, :].copy_(key_states)
+        value_buffer[..., old_length:new_length, :].copy_(value_states)
+        self.key_cache[layer_idx] = key_buffer[..., :new_length, :]
+        self.value_cache[layer_idx] = value_buffer[..., :new_length, :]
+        return self.key_cache[layer_idx], self.value_cache[layer_idx]
+
+    def reorder_cache(self, beam_idx: torch.LongTensor) -> None:
+        for layer_idx in range(len(self.key_cache)):
+            if not isinstance(self.key_cache[layer_idx], torch.Tensor):
+                continue
+            length = self.key_cache[layer_idx].shape[-2]
+            key_buffers = self._key_buffers[layer_idx]
+            value_buffers = self._value_buffers[layer_idx]
+            current = int(key_buffers[2])
+            alternate = 1 - current
+            device_indices = beam_idx.to(self.key_cache[layer_idx].device)
+            torch.index_select(
+                key_buffers[current][..., :length, :],
+                0,
+                device_indices,
+                out=key_buffers[alternate][..., :length, :],
+            )
+            torch.index_select(
+                value_buffers[current][..., :length, :],
+                0,
+                device_indices,
+                out=value_buffers[alternate][..., :length, :],
+            )
+            key_buffers[2] = alternate
+            value_buffers[2] = alternate
+            self.key_cache[layer_idx] = key_buffers[alternate][..., :length, :]
+            self.value_cache[layer_idx] = value_buffers[alternate][..., :length, :]
 
 
 @dataclass
@@ -231,6 +343,18 @@ def generate_products_batch(
         cache_implementation = os.environ.get("CHEMFM_CACHE_IMPLEMENTATION")
         if cache_implementation:
             generation_kwargs["cache_implementation"] = cache_implementation
+        if os.environ.get("CHEMFM_EXACT_PREALLOCATED_CACHE") == "1":
+            if cache_implementation:
+                raise ValueError(
+                    "preallocated dynamic cache and cache_implementation are exclusive"
+                )
+            exact_cache = getattr(model, "_chemfm_exact_preallocated_cache", None)
+            if exact_cache is None or exact_cache.max_cache_len != max_length:
+                exact_cache = ExactPreallocatedDynamicCache(max_length)
+                model._chemfm_exact_preallocated_cache = exact_cache
+            else:
+                exact_cache.reset()
+            generation_kwargs["past_key_values"] = exact_cache
         outputs = model.generate(
             **encoded,
             max_length=max_length,

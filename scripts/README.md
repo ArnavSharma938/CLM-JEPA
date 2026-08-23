@@ -5,6 +5,13 @@ These are executable diagnostics, setup utilities, and hardware-specific wrapper
 ## ChemFM diagnostics and setup
 
 - `decoder_coupling.py`: one-view generation, per-reaction CE, coupling, and source interventions.
+- `run_gradient_interaction_matrix.sh`: restartable, cadence-matched A6000 runner for the JEPA weight, PCGrad, CAGrad, and published auxiliary-gradient-similarity conditions plus their frozen evaluation pipelines.
+- `run_generation_shards.sh`: neutral three-worker exact-parity wrapper for the frozen 256-reaction one-view generation panel.
+- `audit_gradient_interaction_checkpoints.py`: evaluation-only held-out LoRA-gradient alignment for raw MSE, raw SIGReg, their full active-weighted auxiliary, and the selected published combiner at epochs 1, 2, and 4.
+- `summarize_gradient_interaction.py`: deterministic merger of training, held-out-gradient, representation, one-view CE/generation, and official five-view artifacts into the report table source.
+- `profile_a6000_generation.py`: CUDA-event and host-side profiler for one exact beam-10 ChemFM view; used to validate the segmented decoder graph, beam scorer, and preallocated dynamic-cache path.
+- `benchmark_gpu_utilization.py`: interval sampler for A6000 utilization, memory, power, and SM clocks during a frozen workload.
+- `summarize_training_timing.py`: aggregates the synchronized per-phase timings stored in a training checkpoint.
 - `geometry_diagnosis.py`: base/native/cLM-JEPA geometry and residual-PCA analysis.
 - `diagnose_sigreg_batch16_rtx4050.py`: exact SIGReg batch-16 calibration and smoke test.
 - `diagnose_sigreg_gradients_rtx4050.py`: frozen-checkpoint regularizer-gradient assay.

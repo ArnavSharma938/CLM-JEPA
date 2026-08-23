@@ -49,6 +49,7 @@ Read in this order:
 7. [Pair-Center Spread Floor experiment](06_PCSF_EXPERIMENT.md): derivation, implementation, frozen calibration, A6000 optimization, four-epoch run, geometry, and downstream verdict.
 8. [Contraction and held-out NTP directional audit](07_CONTRACTION_AND_NTP_DIRECTIONAL_AUDIT.md): time-matched spread trajectories, objective-induced spread velocity, and disjoint-batch NTP effects.
 9. [Projection-space MSE+SIGReg experiment](08_PROJECTION_SPACE_MSE_SIGREG_EXPERIMENT.md): primary-source design, PCSF production cleanup, logical-batch projector training, two-space geometry, gradient alignment, CE, and generation verdict.
+10. [JEPA–NTP gradient-interaction experiment](09_GRADIENT_INTERACTION_EXPERIMENT.md): clean direct MSE+SIGReg baseline, weight controls, PCGrad, CAGrad, published auxiliary-gradient similarity, optimized diagnostics, and autoregressive verdict.
 
 ## Research status
 
