@@ -6,6 +6,8 @@ These are executable diagnostics, setup utilities, and hardware-specific wrapper
 
 - `decoder_coupling.py`: one-view generation, per-reaction CE, coupling, and source interventions.
 - `run_gradient_interaction_matrix.sh`: restartable, cadence-matched A6000 runner for the JEPA weight, PCGrad, CAGrad, and published auxiliary-gradient-similarity conditions plus their frozen evaluation pipelines.
+- `run_gradient_endpoint_256.sh`: revised endpoint runner for the user-requested 256-reaction scope; evaluates PCGrad, CAGrad, and auxiliary similarity and rescores native, direct MSE+SIGReg, and lambda-0.25 references on the identical panel.
+- `slice_official_panel.py`: identity-checked deterministic prefix-manifest and prediction slicer used to make all endpoint comparisons share the same 256 reactions.
 - `run_generation_shards.sh`: neutral three-worker exact-parity wrapper for the frozen 256-reaction one-view generation panel.
 - `audit_gradient_interaction_checkpoints.py`: evaluation-only held-out LoRA-gradient alignment for raw MSE, raw SIGReg, their full active-weighted auxiliary, and the selected published combiner at epochs 1, 2, and 4.
 - `summarize_gradient_interaction.py`: deterministic merger of training, held-out-gradient, representation, one-view CE/generation, and official five-view artifacts into the report table source.

@@ -50,6 +50,8 @@ The A6000 wrappers are also in flat `scripts/`; they are not alternative scienti
 | `run_pcsf_a6000_benchmarks.sh` | Fixed A6000 execution frontier for the PCSF trainer |
 | `run_pcsf_generation_shards.sh` | Four exact batch-1 generation shards with deterministic identity merge |
 | `run_gradient_interaction_matrix.sh` | Restartable seven-condition training, diagnostics, and frozen generation matrix |
+| `run_gradient_endpoint_256.sh` | Revised 256-reaction endpoint for the three gradient-interaction methods and aligned reference rescoring |
+| `slice_official_panel.py` | Deterministic identity-checked official-manifest/prediction slicing |
 | `run_generation_shards.sh` | Three-worker exact-parity one-view generation wrapper used by the active matrix |
 | `train_llm_jepa_gsm8k.py` | A6000 execution wrapper around pinned upstream LLM-JEPA training |
 | `eval_llm_jepa_gsm8k.py` | Batched wrapper with exact upstream-output verification |

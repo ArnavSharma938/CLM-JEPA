@@ -104,7 +104,7 @@ logged so this convention cannot be mistaken for an unreported scale change.
 | Model | ChemFM-1B |
 | Dataset | USPTO-MIT synthesis |
 | Train / internal training-time validation | 1,280 / 2 frozen rows, matching the historical controlled jobs |
-| External diagnostic / official generation panels | 256 / 1,280 frozen reactions |
+| External diagnostic / official generation panels | 256 / 256 frozen reactions |
 | Seed | 533 |
 | LoRA / trainable model state | unchanged controlled configuration |
 | Epochs / optimizer updates | 4 / 320 |
@@ -117,16 +117,30 @@ logged so this convention cannot be mistaken for an unreported scale change.
 | Attention | SDPA |
 | Hardware | one retained RTX A6000 48 GB / six-vCPU instance, pinned PyTorch 2.3.0+cu121 |
 
-The seven conditions are four raw weighted sums (`lambda_eff` 0.25, 0.5, 1,
-2), then PCGrad, CAGrad, and Du auxiliary similarity at `lambda_eff=1`.
-Following the explicit cost constraint, the retained instance executes the
-matrix and frozen evaluations sequentially.  A completed `lambda_eff=1`
+The seven training conditions are four raw weighted sums (`lambda_eff` 0.25,
+0.5, 1, 2), then PCGrad, CAGrad, and Du auxiliary similarity at
+`lambda_eff=1`. Following the explicit cost constraint, the retained instance
+executes the matrix sequentially. A completed `lambda_eff=1`
 artifact from a briefly provisioned snapshot-identical A6000 was copied onto
 the retained instance before that clone and the reusable snapshot were
 deleted; all unfinished conditions were discarded and restarted sequentially.
-Every condition still runs 320 serial optimizer updates and its own complete
-frozen evaluations.  The full test suite passed on the retained instance
-before its first optimizer step.
+Every condition runs 320 serial optimizer updates. The full test suite passed
+on the retained instance before its first optimizer step.
+
+After all training and representation/gradient diagnostics completed, the user
+explicitly narrowed the costly behavioral endpoint: do not run further weight
+conditions and limit every retained official comparison to 256 reactions. The
+behavioral set is therefore native, historical direct MSE+SIGReg,
+`lambda_eff=0.25` as a low-weight control, PCGrad, CAGrad, and auxiliary
+similarity. The 256 reactions are rows 0-255 of the already frozen
+`prespecified_stage1_1280` manifest, selected without reference to any model
+outcome. Existing native, direct, and lambda-0.25 predictions are identity-
+checked and sliced to that exact order; the three gradient-interaction methods
+are generated directly on the same manifest. The lambda-0.25 1,280-reaction
+run completed just before this scope change and is retained as an out-of-scope
+artifact, not mixed into the 256-reaction primary table. A lambda-0.5 official
+run was stopped after 52 reactions and is likewise excluded. This user-directed
+mid-execution scope revision reduces endpoint power and is reported explicitly.
 
 ## Verification and evaluation
 
@@ -215,17 +229,18 @@ conditional on explicit profiling, avoids a redundant preliminary write of all
 308 LoRA gradients, and applies final coefficients with exact multi-tensor CUDA
 operations.  No rejected VJP/reuse switch remains in the active trainer.
 
-Each epoch-4 condition receives:
+Each epoch-4 training condition receives:
 
 - source/target variance, effective rank, pair-center spread,
   mean-direction energy, cosine margins, retrieval/MRR, PCA spectrum, and
   top-two-PC residual retrieval;
-- one-view 256-reaction beam-10 generation and per-reaction normalized target
-  token CE/rank diagnostics against the frozen native panel;
-- the unchanged 1,280-reaction, five-official-R-SMILES-view, beam-10 endpoint
-  against the frozen native predictions;
 - held-out LoRA-gradient audits at epochs 1, 2, and 4 for raw MSE, raw SIGReg,
   full active-weighted auxiliary, and the selected combiner.
+
+The retained behavioral conditions additionally receive one-view 256-reaction
+beam-10 generation with per-reaction normalized target-token CE/rank and a
+256-reaction, five-official-R-SMILES-view, beam-10 endpoint. Paired native and
+direct-MSE+SIGReg comparisons use the identical ordered reaction identities.
 
 ## Results
 

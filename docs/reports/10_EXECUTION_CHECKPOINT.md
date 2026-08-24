@@ -1,6 +1,6 @@
 # Gradient-interaction execution checkpoint
 
-Status captured 2026-08-23 22:00 UTC. This is a recovery handoff, not the
+Status updated 2026-08-24 01:05 UTC. This is a recovery handoff, not the
 scientific conclusion; the controlled matrix is still running sequentially on
 the sole retained RTX A6000.
 
@@ -26,17 +26,25 @@ the sole retained RTX A6000.
 
 ## Running and incomplete
 
-- PCGrad epoch 1 is saved; later PCGrad epochs are running through the
-  restartable matrix runner.
-- CAGrad and Du auxiliary-gradient similarity have not yet run.
-- Cross-checkpoint held-out gradient audits, seven-condition representation
-  diagnostics, one-view generation/CE, and official five-view generation are
-  pending.
+- All seven training conditions, cross-checkpoint gradient audits, and
+  seven-condition representation diagnostics are complete.
+- At the user's explicit post-training scope revision, official behavioral
+  evaluation was limited to the first 256 rows of the frozen manifest. Further
+  lambda-weight generation was dropped. Native, historical direct MSE+SIGReg,
+  and lambda 0.25 are identity-aligned slices of already completed predictions;
+  PCGrad, CAGrad, and Du auxiliary similarity are the only new endpoints.
+- Direct versus native on the revised official panel is already rescored:
+  9/256 versus 11/256 top-1, difference -0.781 pp, 95% paired-bootstrap CI
+  [-3.125,+1.562] pp, exact McNemar p=0.7539.
+- Lambda 0.25 versus native is 5/256 versus 11/256 top-1, difference -2.344 pp,
+  CI [-4.688,-0.391] pp, exact McNemar p=0.0703.
+- The 256-only endpoint runner is currently evaluating PCGrad, followed by
+  CAGrad and auxiliary similarity, with both native and direct paired tests.
 - The autoregressive verdict must not be inferred from the early two-row
   training validation or from geometry. It remains pending the frozen panels.
-- Final work: validate all condition counts, build `summary.json`, replace the
+- Final work: validate retained condition counts, build `summary.json`, replace the
   in-progress Results section in report 09, copy all artifacts locally, rerun
   tests, commit the final report/results, and delete the cloud instance.
 
-The remote runner advances by completion files rather than active polling:
-training -> diagnostics -> generation -> `EXPERIMENT_COMPLETE`.
+The revised remote runner advances sequentially by completion files:
+PCGrad -> CAGrad -> auxiliary similarity -> `EXPERIMENT_COMPLETE`.
