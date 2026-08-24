@@ -1,0 +1,180 @@
+{
+  "scope": "exact one-step counterfactuals from frozen epoch-4 AdamW state; no persistent update",
+  "checkpoint": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\runs\\mse_ablation\\stage1\\mse_sigreg_checkpoints\\epoch_4",
+  "checkpoint_adapter_sha256": "f8c33cc5701652d26f6bf1c62332e7011dde4fc071f429a584d2875912a2e758",
+  "training_state_sha256": "ed84ae7a468ef0123a8fbfc1e2ef35e56f075f90f7ba8bdab20d10a2eb49a4e9",
+  "optimizer_global_step": 320,
+  "optimizer_lr": 1e-05,
+  "optimizer_betas": [
+    0.9,
+    0.999
+  ],
+  "optimizer_eps": 1e-08,
+  "optimizer_weight_decay": 0.01,
+  "gradient_clipping_max_norm": 1.0,
+  "active_auxiliary_formula": "2 * (MSE + 4*0.01/0.99 * SIGReg)",
+  "sigreg_global_step": 172,
+  "train_manifest": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\data\\clm_jepa_uspto_mit_pilot_1280\\uspto_mit_train.csv",
+  "train_indices_zero_based": [
+    708,
+    936,
+    620,
+    543,
+    431,
+    1188,
+    1270,
+    1106,
+    930,
+    887,
+    1020,
+    963,
+    1228,
+    234,
+    1207,
+    454
+  ],
+  "heldout_manifest": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\data\\clm_jepa_uspto_mit_validation_256\\uspto_mit_validation_length_stratified_256.csv",
+  "heldout_indices_zero_based": [
+    40,
+    217,
+    30,
+    52,
+    123,
+    35,
+    73,
+    250,
+    148,
+    28,
+    87,
+    105,
+    208,
+    111,
+    101,
+    7
+  ],
+  "physical_batch": 2,
+  "logical_batch": 16,
+  "training_objectives": {
+    "native_loss": 0.13461646158248186,
+    "mse_loss": 0.0015756359789520502,
+    "sigreg_loss": 7.0048394203186035,
+    "unweighted_auxiliary_loss": 0.2845994532108307
+  },
+  "heldout_ntp_before": 0.22553741186857224,
+  "raw_gradient_relationships": {
+    "all_trainable_main_vs_auxiliary": {
+      "parameter_tensors": 310,
+      "dot": -0.0034056701425028146,
+      "first_norm": 0.9590467381727272,
+      "second_norm": 0.15935270303595253,
+      "first_over_second_norm": 6.0183901490290435,
+      "cosine": -0.022284524653645995
+    },
+    "lora_main_vs_auxiliary": {
+      "parameter_tensors": 308,
+      "dot": -0.0017846063438368143,
+      "first_norm": 0.4896700364510672,
+      "second_norm": 0.09899350604515733,
+      "first_over_second_norm": 4.946486451623373,
+      "cosine": -0.036815626619963474
+    },
+    "main_vs_heldout_ntp": {
+      "parameter_tensors": 310,
+      "dot": 0.0691909370052719,
+      "first_norm": 0.9590467381727272,
+      "second_norm": 1.41363093814261,
+      "first_over_second_norm": 0.6784279491172092,
+      "cosine": 0.05103562034094042
+    },
+    "auxiliary_vs_heldout_ntp": {
+      "parameter_tensors": 310,
+      "dot": 0.013363618139578912,
+      "first_norm": 0.15935270303595253,
+      "second_norm": 1.41363093814261,
+      "first_over_second_norm": 0.11272581742256457,
+      "cosine": 0.05932374798751573
+    }
+  },
+  "adamw_update_relationships": {
+    "ntp_vs_jepa": {
+      "parameter_tensors": 310,
+      "dot": 5.905707030517959e-05,
+      "first_norm": 0.009256532697780472,
+      "second_norm": 0.007834665073692184,
+      "first_over_second_norm": 1.181484161826233,
+      "cosine": 0.8143350424467611
+    },
+    "combined_vs_sum_of_separate": {
+      "parameter_tensors": 310,
+      "dot": 0.00014870007675504837,
+      "first_norm": 0.009423111064940674,
+      "second_norm": 0.016284333470820568,
+      "first_over_second_norm": 0.5786611458077592,
+      "cosine": 0.9690515833080345
+    },
+    "combined_minus_ntp": {
+      "parameter_tensors": 310,
+      "dot": 3.937351238165153e-06,
+      "first_norm": 0.0017513173749466834,
+      "second_norm": 0.007834665073692184,
+      "first_over_second_norm": 0.22353442788861339,
+      "cosine": 0.2869583501439842
+    }
+  },
+  "counterfactuals": {
+    "ntp_only": {
+      "gradient_norm_before_clip": 0.9583397507667542,
+      "heldout_loss": 0.22651925217360258,
+      "first_order_predicted_heldout_ntp_change": 0.0002583557753792487,
+      "observed_heldout_ntp_change": 0.000981840305030346,
+      "observed_minus_first_order": 0.0007234845296510972,
+      "update_vs_negative_heldout_gradient": {
+        "parameter_tensors": 310,
+        "dot": -0.0002583557753792487,
+        "first_norm": 0.009256532697780472,
+        "second_norm": 1.41363093814261,
+        "first_over_second_norm": 0.006548054692367418,
+        "cosine": -0.01974393867367966
+      }
+    },
+    "jepa_only": {
+      "gradient_norm_before_clip": 0.15945127606391907,
+      "heldout_loss": 0.2257818728685379,
+      "first_order_predicted_heldout_ntp_change": 0.00012745768955246817,
+      "observed_heldout_ntp_change": 0.0002444609999656677,
+      "observed_minus_first_order": 0.00011700331041319956,
+      "update_vs_negative_heldout_gradient": {
+        "parameter_tensors": 310,
+        "dot": -0.00012745768955246817,
+        "first_norm": 0.007834665073692184,
+        "second_norm": 1.41363093814261,
+        "first_over_second_norm": 0.005542228075445394,
+        "cosine": -0.011508257343615439
+      }
+    },
+    "ntp_plus_jepa": {
+      "gradient_norm_before_clip": 0.9681006669998169,
+      "heldout_loss": 0.226077975705266,
+      "first_order_predicted_heldout_ntp_change": 0.0002833539419088149,
+      "observed_heldout_ntp_change": 0.0005405638366937637,
+      "observed_minus_first_order": 0.0002572098947849488,
+      "update_vs_negative_heldout_gradient": {
+        "parameter_tensors": 310,
+        "dot": -0.0002833539419088149,
+        "first_norm": 0.009423111064940674,
+        "second_norm": 1.41363093814261,
+        "first_over_second_norm": 0.006665891931681854,
+        "cosine": -0.0212715387598558
+      }
+    }
+  },
+  "stochastic_controls": {
+    "dropout_modules_zeroed": 154,
+    "attention_dropout_fields_zeroed": 22
+  },
+  "checkpoint_restored_exactly": true,
+  "runtime_seconds": 34.653882700018585,
+  "peak_cuda_bytes": 2710414848,
+  "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU",
+  "torch_version": "2.3.0+cu121"
+}

@@ -28,6 +28,7 @@ The A6000 experiments do not use a second ChemFM trainer. They invoke `src/train
 | `scripts/audit_sigreg_pair_specificity.py` | Frozen epoch-1/2/4 SIGReg true-vs-shuffled gradient-response audit with fresh projection draws | RTX 4050-optimized diagnostic |
 | `scripts/audit_projected_mse_sigreg.py` | Raw/projected geometry plus projected MSE, SIGReg, and full-auxiliary alignment with disjoint held-out NTP | Any compatible GPU; physical chunking controls memory |
 | `scripts/audit_gradient_interaction_checkpoints.py` | Evaluation-only epoch-1/2/4 MSE, SIGReg, full-auxiliary, and selected-combiner alignment with held-out NTP | Any compatible GPU; A6000 used for the reported matrix |
+| `scripts/audit_generation_mechanism.py` | Frozen layerwise pathway comparison, activation patching, exact saved-state AdamW virtual steps, shortcut retrieval, and existing-generation chemistry rescoring | Local RTX 4050; no training |
 | `scripts/profile_a6000_generation.py` | CUDA-event/model-forward and cProfile split for exact beam-10 generation | A6000 optimization assay |
 | `scripts/benchmark_gpu_utilization.py` | Fixed-interval NVIDIA utilization, memory, power, and clock sampler | Hardware utilization assay |
 | `scripts/summarize_training_timing.py` | Aggregate synchronized training phase timers from a saved checkpoint | Training optimization assay |

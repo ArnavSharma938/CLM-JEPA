@@ -1,0 +1,3231 @@
+{
+  "scope": "frozen cross-checkpoint activation patching; no parameter changes",
+  "seed": 533,
+  "checkpoints": {
+    "native": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\runs\\sigreg_batch16_pilot\\matched_b4\\native_checkpoints\\epoch_4",
+    "mse_sigreg": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\runs\\mse_ablation\\stage1\\mse_sigreg_checkpoints\\epoch_4"
+  },
+  "panel": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\data\\clm_jepa_uspto_mit_validation_256\\uspto_mit_validation_length_stratified_256.csv",
+  "panel_sha256": "41db8068aa3c4b6faf7149ce8ee5645e5ce3794f64d52c0e56552456721e5013",
+  "reactions": 64,
+  "batch_size": 2,
+  "boundaries": [
+    11,
+    16,
+    21
+  ],
+  "boundary_semantics": {
+    "11": "after layer 11, before implicated beneficial layers 12-16",
+    "16": "after layer 16, before implicated harmful layers 17-21",
+    "21": "after final transformer layer, before final norm and LM head"
+  },
+  "position_refinement": false,
+  "stochastic_controls": {
+    "dropout_modules_zeroed": 154,
+    "attention_dropout_fields_zeroed": 22
+  },
+  "parameter_sha256_after": "1567fb7b254c4cc12971beedf9bf89baeec91f8d33baad00b6158c772eacd81d",
+  "results": {
+    "full_native": {
+      "target_ce": 0.24381943903809206,
+      "mean_reaction_ce": 0.3017656294544808,
+      "target_tokens": 2748,
+      "reactions": [
+        {
+          "reaction_identity": "C1CCNC1.CC(=O)N(C)C.CCN(CC)CC.Cc1[nH]cc2c(=O)n(-c3ccc(Cl)cc3)nc-2c1-c1cccc(C(=O)O)c1.O=C1OCCN1P(=O)(Cl)N1CCOC1=O>>Cc1[nH]cc2c(=O)n(-c3ccc(Cl)cc3)nc-2c1-c1cccc(C(=O)N2CCCC2)c1",
+          "target_nll": 9.066412925720215,
+          "target_tokens": 61,
+          "target_ce": 0.148629720093774
+        },
+        {
+          "reaction_identity": "C1CCOC1.C1CNCCN1.Cc1nc(S(C)(=O)=O)nc2c1ccc(=O)n2-c1ccc(C(=O)NCc2ccccc2)cc1>>Cc1nc(N2CCNCC2)nc2c1ccc(=O)n2-c1ccc(C(=O)NCc2ccccc2)cc1",
+          "target_nll": 10.39011287689209,
+          "target_tokens": 57,
+          "target_ce": 0.18228268205073841
+        },
+        {
+          "reaction_identity": "Brc1cnc2[nH]ccc2c1.CO.O.O=Cc1cc(OC(F)F)cc(OC(F)F)c1.[K+].[OH-]>>OC(c1cc(OC(F)F)cc(OC(F)F)c1)c1c[nH]c2ncc(Br)cc12",
+          "target_nll": 10.27814769744873,
+          "target_tokens": 49,
+          "target_ce": 0.2097581162744639
+        },
+        {
+          "reaction_identity": "CCOC(=O)C(C)(C)Br.COc1ccc(C(=O)NCCc2ccc(-c3ccc(O)cc3)cc2)cc1OC>>CCOC(=O)C(C)(C)Oc1ccc(-c2ccc(CCNC(=O)c3ccc(OC)c(OC)c3)cc2)cc1",
+          "target_nll": 8.087634086608887,
+          "target_tokens": 61,
+          "target_ce": 0.13258416535424405
+        },
+        {
+          "reaction_identity": "CC(=O)CCC=C(C)C.CCOC(=O)OCC.[H-].[Na+]>>CCOC(=O)CC(=O)CCC=C(C)C",
+          "target_nll": 12.114797592163086,
+          "target_tokens": 27,
+          "target_ce": 0.44869620711715136
+        },
+        {
+          "reaction_identity": "COC(=O)c1ccc(C)cc1Oc1ccc(OC(CCCc2ccccc2)C(O)c2cc(OC)c(C)c(OC)c2)cc1.O=C(O)c1ccccc1>>COC(=O)c1ccc(C)cc1Oc1ccc(OC(CCCc2ccccc2)C(OC(=O)c2ccccc2)c2cc(OC)c(C)c(OC)c2)cc1",
+          "target_nll": 8.913243293762207,
+          "target_tokens": 82,
+          "target_ce": 0.1086980889483196
+        },
+        {
+          "reaction_identity": "CN(C)C=O.CS(=O)(=O)OCCCn1c(=O)[nH]c2cccc(Cl)c21.Cl.O=C([O-])[O-].O=C(c1ccc(F)cc1)C1CCNCC1.[Na+].[Na+]>>O=C(c1ccc(F)cc1)C1CCN(CCCn2c(=O)[nH]c3cccc(Cl)c32)CC1",
+          "target_nll": 7.724292755126953,
+          "target_tokens": 55,
+          "target_ce": 0.1404416864568537
+        },
+        {
+          "reaction_identity": "Brc1ccc2oc(CN3CCCC3)nc2c1.C1COCCO1.CNCCNC.N.O.[Cu]I.[I-].[Na+]>>Ic1ccc2oc(CN3CCCC3)nc2c1",
+          "target_nll": 12.608651161193848,
+          "target_tokens": 28,
+          "target_ce": 0.4503089700426374
+        },
+        {
+          "reaction_identity": "CC(C)N=C=O.O=c1[nH]sc2cc(Cl)ccc12>>CC(C)NC(=O)n1sc2cc(Cl)ccc2c1=O",
+          "target_nll": 16.142597198486328,
+          "target_tokens": 30,
+          "target_ce": 0.5380865732828776
+        },
+        {
+          "reaction_identity": "CCOC(C)=O.CC[Si](CC)(CC)OC1CCC(O)CC1.O=S(=O)([O-])[O-].O=S(=O)([O-])c1ccccc1I.[Na+].[Na+].[Na+]>>CC[Si](CC)(CC)OC1CCC(=O)CC1",
+          "target_nll": 6.454568386077881,
+          "target_tokens": 28,
+          "target_ce": 0.23052029950278147
+        },
+        {
+          "reaction_identity": "COC(=O)C1CC(S(=O)(=O)c2ccccc2Cl)CN1c1cc(C)nn1C1CCC1.[Li+].[OH-]>>Cc1cc(N2CC(S(=O)(=O)c3ccccc3Cl)CC2C(=O)O)n(C2CCC2)n1",
+          "target_nll": 1.6858307123184204,
+          "target_tokens": 51,
+          "target_ce": 0.033055504163106285
+        },
+        {
+          "reaction_identity": "BrCCCCOCc1ccccc1.COc1cc(N)c(Cl)cc1C(=O)NCC1CCNCC1.Cl.Cl.O=C([O-])[O-].[K+].[K+]>>COc1cc(N)c(Cl)cc1C(=O)NCC1CCN(CCCCOCc2ccccc2)CC1",
+          "target_nll": 4.912777423858643,
+          "target_tokens": 49,
+          "target_ce": 0.1002607637522172
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CO.CON=C(C)CN1C(=O)c2ccccc2C1=O.Clc1ncnc2nc[nH]c12.NN.O.O>>CON=C(C)CNc1ncnc2nc[nH]c12",
+          "target_nll": 16.107078552246094,
+          "target_tokens": 27,
+          "target_ce": 0.5965584648980035
+        },
+        {
+          "reaction_identity": "CC(C)(C)c1cc(CCC(=O)NN)cc(C(C)(C)C)c1O.CCCCCCCCCCCCC1CC(=O)OC1=O.Cc1ccccc1.O>>CCCCCCCCCCCCC1CC(=O)N(NC(=O)CCc2cc(C(C)(C)C)c(O)c(C(C)(C)C)c2)C1=O",
+          "target_nll": 10.5702486038208,
+          "target_tokens": 66,
+          "target_ce": 0.16015528187607275
+        },
+        {
+          "reaction_identity": "Cc1ccc(Sc2ccc(Br)cc2C=O)cc1.O=Cc1ccc(F)c(C(F)(F)F)c1>>Cc1ccc(Sc2ccc(C=O)cc2C(F)(F)F)cc1",
+          "target_nll": 8.867338180541992,
+          "target_tokens": 34,
+          "target_ce": 0.26080406413358803
+        },
+        {
+          "reaction_identity": "CNC(=O)COc1cccc2c1ccc(=O)n2CCN1CCC(N(Cc2ccc3c(c2)OCCO3)C(=O)OC(C)(C)C)CC1.ClC(Cl)Cl.O=C(O)C(F)(F)F>>CNC(=O)COc1cccc2c1ccc(=O)n2CCN1CCC(NCc2ccc3c(c2)OCCO3)CC1",
+          "target_nll": 4.4169721603393555,
+          "target_tokens": 59,
+          "target_ce": 0.07486393492100603
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CN(C)C=O.CNOC.Cl.Cl.ClCCCl.O=C(O)c1ccc(Cl)c(Br)c1>>CON(C)C(=O)c1ccc(Cl)c(Br)c1",
+          "target_nll": 14.496122360229492,
+          "target_tokens": 27,
+          "target_ce": 0.5368934207492404
+        },
+        {
+          "reaction_identity": "CC(O[Si](C)(C)C(C)(C)C)C1C(=O)N(C(C(=O)OCc2ccc([N+](=O)[O-])cc2)=P(c2ccccc2)(c2ccccc2)c2ccccc2)C1C(C)C(=O)c1cn2cnc(C(=O)c3cccnc3)c2s1.CO.Cl.O=C([O-])O.[Na+]>>CC(O)C1C(=O)N(C(C(=O)OCc2ccc([N+](=O)[O-])cc2)=P(c2ccccc2)(c2ccccc2)c2ccccc2)C1C(C)C(=O)c1cn2cnc(C(=O)c3cccnc3)c2s1",
+          "target_nll": 10.36472225189209,
+          "target_tokens": 114,
+          "target_ce": 0.09091861624466746
+        },
+        {
+          "reaction_identity": "CN1CCCC1=O.COc1ccc2c(c1)C(C)(C)CC2=O.O=C([O-])[O-].Sc1ccccc1.[K+].[K+]>>CC1(C)CC(=O)c2ccc(O)cc21",
+          "target_nll": 4.767581462860107,
+          "target_tokens": 26,
+          "target_ce": 0.18336851780231184
+        },
+        {
+          "reaction_identity": "CSC.Cc1cc(C)nc(N)n1.ClCCl.O=C1CCC(=O)N1Cl>>Cc1cc(C)nc(N=S(C)C)n1",
+          "target_nll": 15.246774673461914,
+          "target_tokens": 23,
+          "target_ce": 0.6629032466722571
+        },
+        {
+          "reaction_identity": "CN(C)C=O.COC(=O)C(=O)c1ccc(O)cc1.CS(=O)(=O)O.OCCOc1ccc(Oc2ccccc2)cc1.[H-].[Na+]>>COC(=O)C(=O)c1ccc(OCCOc2ccc(Oc3ccccc3)cc2)cc1",
+          "target_nll": 11.295950889587402,
+          "target_tokens": 49,
+          "target_ce": 0.23052960999157965
+        },
+        {
+          "reaction_identity": "CCOCC.CN(C)C(CCc1ccccc1)C1CCC2(CC1)OCCO2.Cl.O.[Na+].[OH-]>>CN(C)C(CCc1ccccc1)C1CCC(=O)CC1",
+          "target_nll": 8.677536964416504,
+          "target_tokens": 32,
+          "target_ce": 0.27117303013801575
+        },
+        {
+          "reaction_identity": "C1COCCO1.Cc1ccccc1C(=O)Cl.Nc1ccc(C(=O)N2CCc3cn[nH]c3-c3sccc32)cc1.[H-].[Na+]>>Cc1ccccc1C(=O)Nc1ccc(C(=O)N2CCc3c[nH]nc3-c3sccc32)cc1",
+          "target_nll": 8.997102737426758,
+          "target_tokens": 56,
+          "target_ce": 0.1606625488826207
+        },
+        {
+          "reaction_identity": "CC#N.CN(CCCl)CCCl.Cl.NC1=CC23C=CC=CC2=CC1=C3.O.O=C([O-])[O-].[K+].[K+]>>CN1CCN(C2=CC34C=CC=CC3=CC2=C4)CC1",
+          "target_nll": 25.383106231689453,
+          "target_tokens": 37,
+          "target_ce": 0.686029898153769
+        },
+        {
+          "reaction_identity": "CN(C)C=O.ClCC1CCOCO1.NCC1CCCCC1.O=C([O-])[O-].[I-].[K+].[K+].[Na+]>>C1CCC(CNCC2CCOCO2)CC1",
+          "target_nll": 6.341048717498779,
+          "target_tokens": 23,
+          "target_ce": 0.2756977703260339
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CCN(CC)C(=O)Cl.COC(=O)c1sc(-c2cccc(N)c2)c(Br)c1OCC(=O)OC(C)(C)C.ClCCl>>CCN(CC)C(=O)Nc1cccc(-c2sc(C(=O)OC)c(OCC(=O)OC(C)(C)C)c2Br)c1",
+          "target_nll": 9.428464889526367,
+          "target_tokens": 60,
+          "target_ce": 0.15714108149210612
+        },
+        {
+          "reaction_identity": "CC(C)(C)N(C(=O)[O-])C1CC(N2Cc3cn(CC(N)=O)nc3C2)COC1c1cc(F)ccc1F.ClCCl.O=C(O)C(F)(F)F>>NC(=O)Cn1cc2c(n1)CN(C1COC(c3cc(F)ccc3F)C(N)C1)C2",
+          "target_nll": 8.632948875427246,
+          "target_tokens": 45,
+          "target_ce": 0.1918433083428277
+        },
+        {
+          "reaction_identity": "COc1cc(F)ccc1B(O)O.N#Cc1cccnc1Cl>>COc1cc(F)ccc1-c1ncccc1C#N",
+          "target_nll": 10.393524169921875,
+          "target_tokens": 27,
+          "target_ce": 0.3849453396267361
+        },
+        {
+          "reaction_identity": "CNC(=O)NC(=O)C(CC1CCC(O)C1)c1ccc(Cl)c(Cl)c1.ClCCl.O=[Cr](=O)([O-])Cl.c1cc[nH+]cc1>>CNC(=O)NC(=O)C(CC1CCC(=O)C1)c1ccc(Cl)c(Cl)c1",
+          "target_nll": 5.3745880126953125,
+          "target_tokens": 44,
+          "target_ce": 0.1221497275612571
+        },
+        {
+          "reaction_identity": "C1CCOC1.C=C[Mg+].CC(CCCC1CCCC(O)O1)OC(C)(C)C.[Cl-].[Cl-].[NH4+]>>C=CC(O)CCCC(O)CCCC(C)OC(C)(C)C",
+          "target_nll": 26.190486907958984,
+          "target_tokens": 32,
+          "target_ce": 0.8184527158737183
+        },
+        {
+          "reaction_identity": "C1CCOC1.CC(C)N(C(C)C)P(Cl)OCCC#N.CCN(C(C)C)C(C)C.Cc1cn(C2CC(O)C(CSCc3c4ccccc4cc4ccccc34)O2)c(=O)[nH]c1=O.c1ccncc1>>Cc1cn(C2CC(OP(OCCC#N)N(C(C)C)C(C)C)C(CSCc3c4ccccc4cc4ccccc34)O2)c(=O)[nH]c1=O",
+          "target_nll": 7.557787895202637,
+          "target_tokens": 78,
+          "target_ce": 0.09689471660516201
+        },
+        {
+          "reaction_identity": "CC(C)=O.COc1cc(OC)nc(Oc2c(Cl)cccc2C=O)n1.O=P([O-])([O-])O.O=[Mn](=O)(=O)[O-].[K+].[Na+].[Na+]>>COc1cc(OC)nc(Oc2c(Cl)cccc2C(=O)O)n1",
+          "target_nll": 5.1342315673828125,
+          "target_tokens": 36,
+          "target_ce": 0.14261754353841147
+        },
+        {
+          "reaction_identity": "CC(=O)CCC(=O)OC(C)(C)C.CS(C)=O.C[S+](C)(C)=O.O.[H-].[I-].[Na+]>>CC(C)(C)OC(=O)CCC1(C)CO1",
+          "target_nll": 19.1566104888916,
+          "target_tokens": 26,
+          "target_ce": 0.7367927111112155
+        },
+        {
+          "reaction_identity": "C1=COCC1.Cc1cc(C2=NOC(c3cc(Cl)cc(Cl)c3)(C(F)(F)F)C2)ccc1C(N)=O.Cc1ccc(S(=O)(=O)O)cc1.ClCCl.O.O=C([O-])O.[Na+]>>Cc1cc(C2=NOC(c3cc(Cl)cc(Cl)c3)(C(F)(F)F)C2)ccc1C(=O)NC1CCCO1",
+          "target_nll": 9.887138366699219,
+          "target_tokens": 60,
+          "target_ce": 0.16478563944498698
+        },
+        {
+          "reaction_identity": "CCCC[Sn](CCCC)(CCCC)c1ccc(C(=O)OCC)cc1.O=S(=O)(OC1=CCC2CCC1C2)C(F)(F)F>>CCOC(=O)c1ccc(C2=CCC3CCC2C3)cc1",
+          "target_nll": 12.175934791564941,
+          "target_tokens": 35,
+          "target_ce": 0.34788385118756976
+        },
+        {
+          "reaction_identity": "CN(C)c1cccc(C2(O)CCC(=O)CC2)c1.O=C(CNC(=O)c1cccc(C(F)(F)F)c1)NC1CNC1>>CN(C)c1cccc(C2(O)CCC(N3CC(NC(=O)CNC(=O)c4cccc(C(F)(F)F)c4)C3)CC2)c1",
+          "target_nll": 5.110630035400391,
+          "target_tokens": 69,
+          "target_ce": 0.07406710196232451
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CS(=O)(=O)Cl.ClCCl.OCCOCc1ccco1>>CS(=O)(=O)CCOCc1ccco1",
+          "target_nll": 12.49738597869873,
+          "target_tokens": 24,
+          "target_ce": 0.5207244157791138
+        },
+        {
+          "reaction_identity": "CCO.CCOc1ccc(O)c2c1C(=O)N(CCl)S2(=O)=O.Sc1nnnn1-c1ccccc1.[Na]>>CCOc1ccc(O)c2c1C(=O)N(CSc1nnnn1-c1ccccc1)S2(=O)=O",
+          "target_nll": 3.528825521469116,
+          "target_tokens": 50,
+          "target_ce": 0.07057651042938233
+        },
+        {
+          "reaction_identity": "COCCl.CS(C)=O.N#CCc1ccccn1.O.[H-].[Na+]>>COCC(C#N)c1ccccn1",
+          "target_nll": 13.317712783813477,
+          "target_tokens": 18,
+          "target_ce": 0.739872932434082
+        },
+        {
+          "reaction_identity": "CC(=O)[O-].CC(=O)c1c(CBr)[n+]([O-])c2ccccc2[n+]1[O-].CN(C)C=O.[I-].[K+].[K+]>>CC(=O)OCc1c(C(C)=O)[n+]([O-])c2ccccc2[n+]1[O-]",
+          "target_nll": 4.681967258453369,
+          "target_tokens": 48,
+          "target_ce": 0.09754098455111186
+        },
+        {
+          "reaction_identity": "B.BC(C)(C)C(C)C.C1CCOC1.C=C(C)C(C)C.C=Cc1cnc2c(c1)oc(=O)n2C.O.[Na+].[OH-]>>Cn1c(=O)oc2cc(CCO)cnc21",
+          "target_nll": 13.112276077270508,
+          "target_tokens": 26,
+          "target_ce": 0.5043183106642503
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCOC(=O)CC(C)=O.CCn1nnc(C(C=CC=O)=C(c2ccc(F)cc2)c2ccc(F)cc2)n1>>CCOC(=O)CC(=O)CC(O)C=CC(=C(c1ccc(F)cc1)c1ccc(F)cc1)c1nnn(CC)n1",
+          "target_nll": 8.845359802246094,
+          "target_tokens": 63,
+          "target_ce": 0.14040253654358878
+        },
+        {
+          "reaction_identity": "COc1c(Cl)cccc1C(C)(C)CC(O)(C=O)C(F)(F)F.ClCCl.Nc1cccc2c(=O)[nH]ncc12.[Cl-].[Cl-].[Cl-].[Cl-].[Ti+4]>>COc1c(Cl)ccc2c1C(C)(C)CC(O)(C(F)(F)F)C2Nc1cccc2c(=O)[nH]ncc12",
+          "target_nll": 28.91427230834961,
+          "target_tokens": 62,
+          "target_ce": 0.46635923077983243
+        },
+        {
+          "reaction_identity": "CO.Cc1nonc1CN.N.O=C(N=C=S)c1ccccc1>>Cc1nonc1CNC(N)=S",
+          "target_nll": 15.454699516296387,
+          "target_tokens": 17,
+          "target_ce": 0.9090999715468463
+        },
+        {
+          "reaction_identity": "CC(c1ccc(Nc2nc(C(F)(F)F)cs2)cc1)c1nsnc1Cl.CO.[Na+].[OH-]>>CC(c1ccc(Nc2nc(C(F)(F)F)cs2)cc1)c1nsnc1O",
+          "target_nll": 14.22884750366211,
+          "target_tokens": 40,
+          "target_ce": 0.35572118759155275
+        },
+        {
+          "reaction_identity": "C1CCOC1.CC(O)C(Nc1ccccc1)C(=O)[O-].O=C1CCC(=O)N1Cl.c1ccc(P(c2ccccc2)c2ccccc2)cc1>>CC(Cl)C(Nc1ccccc1)C(=O)O",
+          "target_nll": 11.454242706298828,
+          "target_tokens": 25,
+          "target_ce": 0.45816970825195313
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCN(CC)CC.N#Cc1cc(C=O)ccn1.O=C1OC(P(=O)(O)O)c2ccccc21>>N#Cc1cc(C=C2OC(=O)c3ccccc32)ccn1",
+          "target_nll": 12.859689712524414,
+          "target_tokens": 33,
+          "target_ce": 0.38968756704619434
+        },
+        {
+          "reaction_identity": "CCN(CC)CC.Cc1cccc2c1NCCC2.ClCCl.O=C(Cl)CCl>>Cc1cccc2c1N(C(=O)CCl)CCC2",
+          "target_nll": 5.575501441955566,
+          "target_tokens": 26,
+          "target_ce": 0.21444236315213716
+        },
+        {
+          "reaction_identity": "CCO.CI.S=C1NC(c2ccccc2Cl)C(c2ccccc2Cl)N1>>CSC1=NC(c2ccccc2Cl)C(c2ccccc2Cl)N1.I",
+          "target_nll": 19.557662963867188,
+          "target_tokens": 38,
+          "target_ce": 0.5146753411543997
+        },
+        {
+          "reaction_identity": "CC(=O)[O-].CC(=O)[O-].CS(=O)(=O)c1ccc(Nc2n[nH]cc2C#N)cc1.Cl.ClCCl.OB(O)c1ccc(Cl)cc1.[Cu+2].c1ccncc1>>CS(=O)(=O)c1ccc(Nc2nn(-c3ccc(Cl)cc3)cc2C#N)cc1",
+          "target_nll": 12.014457702636719,
+          "target_tokens": 47,
+          "target_ce": 0.25562675963056847
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCn1ncc(C)c1B1OC(C)(C)C(C)(C)O1.COC(=O)c1cc(Br)co1.O=C([O-])[O-].[Na+].[Na+]>>CCn1ncc(C)c1-c1coc(C(=O)OC)c1",
+          "target_nll": 12.679974555969238,
+          "target_tokens": 29,
+          "target_ce": 0.4372405019299737
+        },
+        {
+          "reaction_identity": "CN(C)C=O.O=C(O)c1cc([N+](=O)[O-])cc2sc3ccccc3c(=O)c12.O=C([O-])[O-].OCCS.[K+].[K+]>>O=C(O)c1cc(SCCO)cc2sc3ccccc3c(=O)c12",
+          "target_nll": 9.827522277832031,
+          "target_tokens": 37,
+          "target_ce": 0.26560871021167654
+        },
+        {
+          "reaction_identity": "CC(C)c1nc(Cl)c([N+](=O)[O-])c(Cl)n1.CCN.CCN(CC)CC.CCO>>CCNc1nc(C(C)C)nc(Cl)c1[N+](=O)[O-]",
+          "target_nll": 6.287181854248047,
+          "target_tokens": 37,
+          "target_ce": 0.16992383389859586
+        },
+        {
+          "reaction_identity": "CCO.CN=Cc1c(C)n(C)c2ccccc12.[BH4-].[Na+]>>CNCc1c(C)n(C)c2ccccc12",
+          "target_nll": 2.648552179336548,
+          "target_tokens": 24,
+          "target_ce": 0.1103563408056895
+        },
+        {
+          "reaction_identity": "CC(C)OC(C)C.CCCCCCC.CCOC(=O)CC(=O)Cl.COC(=O)c1cc2ccc(Cl)cc2n1C.ClCCCl.O.[Cl-].[Cl-].[Cl-].[Cl-].[Ti+4]>>CCOC(=O)CC(=O)c1c(C(=O)OC)n(C)c2cc(Cl)ccc12",
+          "target_nll": 18.197851181030273,
+          "target_tokens": 42,
+          "target_ce": 0.4332821709769113
+        },
+        {
+          "reaction_identity": "ClCCCl.NC(=O)c1c(F)cccc1F.O=C(Cl)C(=O)Cl>>O=C=NC(=O)c1c(F)cccc1F",
+          "target_nll": 13.428536415100098,
+          "target_tokens": 26,
+          "target_ce": 0.5164821698115423
+        },
+        {
+          "reaction_identity": "CCNC(=O)Oc1cc(CCCOC)cc(CN(C(=O)C(CNC(=O)OC(C)(C)C)Cc2ccc(OCCOc3c(Cl)cc(C)cc3Cl)cc2)C2CC2)c1.Cl.ClCCl>>CCNC(=O)Oc1cc(CCCOC)cc(CN(C(=O)C(CN)Cc2ccc(OCCOc3c(Cl)cc(C)cc3Cl)cc2)C2CC2)c1",
+          "target_nll": 4.432316303253174,
+          "target_tokens": 77,
+          "target_ce": 0.057562549392898364
+        },
+        {
+          "reaction_identity": "CC(C)Cn1c(S)nc2ccccc2c1=O.CO.C[O-].Cl.ClCc1ccccn1.O.[Na+]>>CC(C)Cn1c(SCc2ccccn2)nc2ccccc2c1=O",
+          "target_nll": 4.749691963195801,
+          "target_tokens": 34,
+          "target_ce": 0.13969682244693532
+        },
+        {
+          "reaction_identity": "NC(=O)c1ccc(F)cc1Br.O=C(OC(=O)C(F)(F)F)C(F)(F)F.c1ccncc1>>N#Cc1ccc(F)cc1Br",
+          "target_nll": 9.606928825378418,
+          "target_tokens": 17,
+          "target_ce": 0.5651134603163775
+        },
+        {
+          "reaction_identity": "C=CCc1cc(Cl)c(O)c2c(C)c(C(=O)c3ccc(OC)cc3)oc12.CCO>>CCCc1cc(Cl)c(O)c2c(C)c(C(=O)c3ccc(OC)cc3)oc12",
+          "target_nll": 5.109618663787842,
+          "target_tokens": 46,
+          "target_ce": 0.11107866660408351
+        },
+        {
+          "reaction_identity": "CCOc1nccc(C)c1-c1ccc2c3c(cnn3C3CCOCC3)c(=O)n(Cc3ccc(OC)cc3OC)c2c1.O=C(O)C(F)(F)F>>CCOc1nccc(C)c1-c1ccc2c(c1)[nH]c(=O)c1cnn(C3CCOCC3)c12",
+          "target_nll": 9.725982666015625,
+          "target_tokens": 54,
+          "target_ce": 0.18011079011140047
+        },
+        {
+          "reaction_identity": "CO.Cc1cc(Nc2cc3cc(C(=O)OC(C)C)ccc3c(OC(C)C)n2)n[nH]1.[K+].[OH-]>>Cc1cc(Nc2cc3cc(C(=O)O)ccc3c(OC(C)C)n2)n[nH]1",
+          "target_nll": 2.2759954929351807,
+          "target_tokens": 46,
+          "target_ce": 0.04947816288989523
+        },
+        {
+          "reaction_identity": "CN(C)C=O.O.O=C([O-])O.O=P(Cl)(Cl)Cl.O=c1[nH]ccc2nc(-c3ccc(CN4CCC(c5n[nH]c(-c6ccccn6)n5)CC4)cc3)c(-c3ccccc3)cc12.[Na+]>>Clc1nccc2nc(-c3ccc(CN4CCC(c5nnc(-c6ccccn6)[nH]5)CC4)cc3)c(-c3ccccc3)cc12",
+          "target_nll": 14.860309600830078,
+          "target_tokens": 74,
+          "target_ce": 0.20081499460581187
+        },
+        {
+          "reaction_identity": "CC(=O)O[BH-](OC(C)=O)OC(C)=O.CSc1ccc(N)cn1.ClCCl.O=Cc1ccc(F)cc1.[Na+]>>CSc1ccc(NCc2ccc(F)cc2)cn1",
+          "target_nll": 7.189459323883057,
+          "target_tokens": 25,
+          "target_ce": 0.2875783729553223
+        }
+      ]
+    },
+    "full_mse_sigreg": {
+      "target_ce": 0.2532357948315716,
+      "mean_reaction_ce": 0.3110576998597078,
+      "target_tokens": 2748,
+      "reactions": [
+        {
+          "reaction_identity": "C1CCNC1.CC(=O)N(C)C.CCN(CC)CC.Cc1[nH]cc2c(=O)n(-c3ccc(Cl)cc3)nc-2c1-c1cccc(C(=O)O)c1.O=C1OCCN1P(=O)(Cl)N1CCOC1=O>>Cc1[nH]cc2c(=O)n(-c3ccc(Cl)cc3)nc-2c1-c1cccc(C(=O)N2CCCC2)c1",
+          "target_nll": 10.280497550964355,
+          "target_tokens": 61,
+          "target_ce": 0.16853274673712057
+        },
+        {
+          "reaction_identity": "C1CCOC1.C1CNCCN1.Cc1nc(S(C)(=O)=O)nc2c1ccc(=O)n2-c1ccc(C(=O)NCc2ccccc2)cc1>>Cc1nc(N2CCNCC2)nc2c1ccc(=O)n2-c1ccc(C(=O)NCc2ccccc2)cc1",
+          "target_nll": 8.964776039123535,
+          "target_tokens": 57,
+          "target_ce": 0.15727677261620238
+        },
+        {
+          "reaction_identity": "Brc1cnc2[nH]ccc2c1.CO.O.O=Cc1cc(OC(F)F)cc(OC(F)F)c1.[K+].[OH-]>>OC(c1cc(OC(F)F)cc(OC(F)F)c1)c1c[nH]c2ncc(Br)cc12",
+          "target_nll": 11.541754722595215,
+          "target_tokens": 49,
+          "target_ce": 0.23554601474684111
+        },
+        {
+          "reaction_identity": "CCOC(=O)C(C)(C)Br.COc1ccc(C(=O)NCCc2ccc(-c3ccc(O)cc3)cc2)cc1OC>>CCOC(=O)C(C)(C)Oc1ccc(-c2ccc(CCNC(=O)c3ccc(OC)c(OC)c3)cc2)cc1",
+          "target_nll": 7.53000545501709,
+          "target_tokens": 61,
+          "target_ce": 0.12344271237732934
+        },
+        {
+          "reaction_identity": "CC(=O)CCC=C(C)C.CCOC(=O)OCC.[H-].[Na+]>>CCOC(=O)CC(=O)CCC=C(C)C",
+          "target_nll": 10.493780136108398,
+          "target_tokens": 27,
+          "target_ce": 0.3886585235595703
+        },
+        {
+          "reaction_identity": "COC(=O)c1ccc(C)cc1Oc1ccc(OC(CCCc2ccccc2)C(O)c2cc(OC)c(C)c(OC)c2)cc1.O=C(O)c1ccccc1>>COC(=O)c1ccc(C)cc1Oc1ccc(OC(CCCc2ccccc2)C(OC(=O)c2ccccc2)c2cc(OC)c(C)c(OC)c2)cc1",
+          "target_nll": 8.630273818969727,
+          "target_tokens": 82,
+          "target_ce": 0.10524724169475276
+        },
+        {
+          "reaction_identity": "CN(C)C=O.CS(=O)(=O)OCCCn1c(=O)[nH]c2cccc(Cl)c21.Cl.O=C([O-])[O-].O=C(c1ccc(F)cc1)C1CCNCC1.[Na+].[Na+]>>O=C(c1ccc(F)cc1)C1CCN(CCCn2c(=O)[nH]c3cccc(Cl)c32)CC1",
+          "target_nll": 14.619538307189941,
+          "target_tokens": 55,
+          "target_ce": 0.26580978740345346
+        },
+        {
+          "reaction_identity": "Brc1ccc2oc(CN3CCCC3)nc2c1.C1COCCO1.CNCCNC.N.O.[Cu]I.[I-].[Na+]>>Ic1ccc2oc(CN3CCCC3)nc2c1",
+          "target_nll": 14.483001708984375,
+          "target_tokens": 28,
+          "target_ce": 0.5172500610351562
+        },
+        {
+          "reaction_identity": "CC(C)N=C=O.O=c1[nH]sc2cc(Cl)ccc12>>CC(C)NC(=O)n1sc2cc(Cl)ccc2c1=O",
+          "target_nll": 17.840938568115234,
+          "target_tokens": 30,
+          "target_ce": 0.5946979522705078
+        },
+        {
+          "reaction_identity": "CCOC(C)=O.CC[Si](CC)(CC)OC1CCC(O)CC1.O=S(=O)([O-])[O-].O=S(=O)([O-])c1ccccc1I.[Na+].[Na+].[Na+]>>CC[Si](CC)(CC)OC1CCC(=O)CC1",
+          "target_nll": 5.766072750091553,
+          "target_tokens": 28,
+          "target_ce": 0.20593116964612687
+        },
+        {
+          "reaction_identity": "COC(=O)C1CC(S(=O)(=O)c2ccccc2Cl)CN1c1cc(C)nn1C1CCC1.[Li+].[OH-]>>Cc1cc(N2CC(S(=O)(=O)c3ccccc3Cl)CC2C(=O)O)n(C2CCC2)n1",
+          "target_nll": 2.0385854244232178,
+          "target_tokens": 51,
+          "target_ce": 0.039972263223984665
+        },
+        {
+          "reaction_identity": "BrCCCCOCc1ccccc1.COc1cc(N)c(Cl)cc1C(=O)NCC1CCNCC1.Cl.Cl.O=C([O-])[O-].[K+].[K+]>>COc1cc(N)c(Cl)cc1C(=O)NCC1CCN(CCCCOCc2ccccc2)CC1",
+          "target_nll": 3.9966564178466797,
+          "target_tokens": 49,
+          "target_ce": 0.08156441669074857
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CO.CON=C(C)CN1C(=O)c2ccccc2C1=O.Clc1ncnc2nc[nH]c12.NN.O.O>>CON=C(C)CNc1ncnc2nc[nH]c12",
+          "target_nll": 16.087421417236328,
+          "target_tokens": 27,
+          "target_ce": 0.5958304228606047
+        },
+        {
+          "reaction_identity": "CC(C)(C)c1cc(CCC(=O)NN)cc(C(C)(C)C)c1O.CCCCCCCCCCCCC1CC(=O)OC1=O.Cc1ccccc1.O>>CCCCCCCCCCCCC1CC(=O)N(NC(=O)CCc2cc(C(C)(C)C)c(O)c(C(C)(C)C)c2)C1=O",
+          "target_nll": 9.146876335144043,
+          "target_tokens": 66,
+          "target_ce": 0.13858903538097034
+        },
+        {
+          "reaction_identity": "Cc1ccc(Sc2ccc(Br)cc2C=O)cc1.O=Cc1ccc(F)c(C(F)(F)F)c1>>Cc1ccc(Sc2ccc(C=O)cc2C(F)(F)F)cc1",
+          "target_nll": 7.705990314483643,
+          "target_tokens": 34,
+          "target_ce": 0.22664677395540125
+        },
+        {
+          "reaction_identity": "CNC(=O)COc1cccc2c1ccc(=O)n2CCN1CCC(N(Cc2ccc3c(c2)OCCO3)C(=O)OC(C)(C)C)CC1.ClC(Cl)Cl.O=C(O)C(F)(F)F>>CNC(=O)COc1cccc2c1ccc(=O)n2CCN1CCC(NCc2ccc3c(c2)OCCO3)CC1",
+          "target_nll": 7.327859401702881,
+          "target_tokens": 59,
+          "target_ce": 0.1242010068085234
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CN(C)C=O.CNOC.Cl.Cl.ClCCCl.O=C(O)c1ccc(Cl)c(Br)c1>>CON(C)C(=O)c1ccc(Cl)c(Br)c1",
+          "target_nll": 12.79088306427002,
+          "target_tokens": 27,
+          "target_ce": 0.4737364097877785
+        },
+        {
+          "reaction_identity": "CC(O[Si](C)(C)C(C)(C)C)C1C(=O)N(C(C(=O)OCc2ccc([N+](=O)[O-])cc2)=P(c2ccccc2)(c2ccccc2)c2ccccc2)C1C(C)C(=O)c1cn2cnc(C(=O)c3cccnc3)c2s1.CO.Cl.O=C([O-])O.[Na+]>>CC(O)C1C(=O)N(C(C(=O)OCc2ccc([N+](=O)[O-])cc2)=P(c2ccccc2)(c2ccccc2)c2ccccc2)C1C(C)C(=O)c1cn2cnc(C(=O)c3cccnc3)c2s1",
+          "target_nll": 10.399542808532715,
+          "target_tokens": 114,
+          "target_ce": 0.09122405972397118
+        },
+        {
+          "reaction_identity": "CN1CCCC1=O.COc1ccc2c(c1)C(C)(C)CC2=O.O=C([O-])[O-].Sc1ccccc1.[K+].[K+]>>CC1(C)CC(=O)c2ccc(O)cc21",
+          "target_nll": 5.839192867279053,
+          "target_tokens": 26,
+          "target_ce": 0.22458434104919434
+        },
+        {
+          "reaction_identity": "CSC.Cc1cc(C)nc(N)n1.ClCCl.O=C1CCC(=O)N1Cl>>Cc1cc(C)nc(N=S(C)C)n1",
+          "target_nll": 14.452587127685547,
+          "target_tokens": 23,
+          "target_ce": 0.6283733533776324
+        },
+        {
+          "reaction_identity": "CN(C)C=O.COC(=O)C(=O)c1ccc(O)cc1.CS(=O)(=O)O.OCCOc1ccc(Oc2ccccc2)cc1.[H-].[Na+]>>COC(=O)C(=O)c1ccc(OCCOc2ccc(Oc3ccccc3)cc2)cc1",
+          "target_nll": 12.974974632263184,
+          "target_tokens": 49,
+          "target_ce": 0.2647954006584323
+        },
+        {
+          "reaction_identity": "CCOCC.CN(C)C(CCc1ccccc1)C1CCC2(CC1)OCCO2.Cl.O.[Na+].[OH-]>>CN(C)C(CCc1ccccc1)C1CCC(=O)CC1",
+          "target_nll": 9.886045455932617,
+          "target_tokens": 32,
+          "target_ce": 0.3089389204978943
+        },
+        {
+          "reaction_identity": "C1COCCO1.Cc1ccccc1C(=O)Cl.Nc1ccc(C(=O)N2CCc3cn[nH]c3-c3sccc32)cc1.[H-].[Na+]>>Cc1ccccc1C(=O)Nc1ccc(C(=O)N2CCc3c[nH]nc3-c3sccc32)cc1",
+          "target_nll": 9.575479507446289,
+          "target_tokens": 56,
+          "target_ce": 0.1709907054901123
+        },
+        {
+          "reaction_identity": "CC#N.CN(CCCl)CCCl.Cl.NC1=CC23C=CC=CC2=CC1=C3.O.O=C([O-])[O-].[K+].[K+]>>CN1CCN(C2=CC34C=CC=CC3=CC2=C4)CC1",
+          "target_nll": 28.912601470947266,
+          "target_tokens": 37,
+          "target_ce": 0.7814216613769531
+        },
+        {
+          "reaction_identity": "CN(C)C=O.ClCC1CCOCO1.NCC1CCCCC1.O=C([O-])[O-].[I-].[K+].[K+].[Na+]>>C1CCC(CNCC2CCOCO2)CC1",
+          "target_nll": 9.427207946777344,
+          "target_tokens": 23,
+          "target_ce": 0.40987860638162366
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CCN(CC)C(=O)Cl.COC(=O)c1sc(-c2cccc(N)c2)c(Br)c1OCC(=O)OC(C)(C)C.ClCCl>>CCN(CC)C(=O)Nc1cccc(-c2sc(C(=O)OC)c(OCC(=O)OC(C)(C)C)c2Br)c1",
+          "target_nll": 8.635082244873047,
+          "target_tokens": 60,
+          "target_ce": 0.14391803741455078
+        },
+        {
+          "reaction_identity": "CC(C)(C)N(C(=O)[O-])C1CC(N2Cc3cn(CC(N)=O)nc3C2)COC1c1cc(F)ccc1F.ClCCl.O=C(O)C(F)(F)F>>NC(=O)Cn1cc2c(n1)CN(C1COC(c3cc(F)ccc3F)C(N)C1)C2",
+          "target_nll": 10.993292808532715,
+          "target_tokens": 45,
+          "target_ce": 0.24429539574517145
+        },
+        {
+          "reaction_identity": "COc1cc(F)ccc1B(O)O.N#Cc1cccnc1Cl>>COc1cc(F)ccc1-c1ncccc1C#N",
+          "target_nll": 9.59849739074707,
+          "target_tokens": 27,
+          "target_ce": 0.3554999033610026
+        },
+        {
+          "reaction_identity": "CNC(=O)NC(=O)C(CC1CCC(O)C1)c1ccc(Cl)c(Cl)c1.ClCCl.O=[Cr](=O)([O-])Cl.c1cc[nH+]cc1>>CNC(=O)NC(=O)C(CC1CCC(=O)C1)c1ccc(Cl)c(Cl)c1",
+          "target_nll": 6.999156951904297,
+          "target_tokens": 44,
+          "target_ce": 0.15907174890691583
+        },
+        {
+          "reaction_identity": "C1CCOC1.C=C[Mg+].CC(CCCC1CCCC(O)O1)OC(C)(C)C.[Cl-].[Cl-].[NH4+]>>C=CC(O)CCCC(O)CCCC(C)OC(C)(C)C",
+          "target_nll": 25.188377380371094,
+          "target_tokens": 32,
+          "target_ce": 0.7871367931365967
+        },
+        {
+          "reaction_identity": "C1CCOC1.CC(C)N(C(C)C)P(Cl)OCCC#N.CCN(C(C)C)C(C)C.Cc1cn(C2CC(O)C(CSCc3c4ccccc4cc4ccccc34)O2)c(=O)[nH]c1=O.c1ccncc1>>Cc1cn(C2CC(OP(OCCC#N)N(C(C)C)C(C)C)C(CSCc3c4ccccc4cc4ccccc34)O2)c(=O)[nH]c1=O",
+          "target_nll": 7.595715045928955,
+          "target_tokens": 78,
+          "target_ce": 0.0973809621272943
+        },
+        {
+          "reaction_identity": "CC(C)=O.COc1cc(OC)nc(Oc2c(Cl)cccc2C=O)n1.O=P([O-])([O-])O.O=[Mn](=O)(=O)[O-].[K+].[Na+].[Na+]>>COc1cc(OC)nc(Oc2c(Cl)cccc2C(=O)O)n1",
+          "target_nll": 3.7203762531280518,
+          "target_tokens": 36,
+          "target_ce": 0.10334378480911255
+        },
+        {
+          "reaction_identity": "CC(=O)CCC(=O)OC(C)(C)C.CS(C)=O.C[S+](C)(C)=O.O.[H-].[I-].[Na+]>>CC(C)(C)OC(=O)CCC1(C)CO1",
+          "target_nll": 20.43112564086914,
+          "target_tokens": 26,
+          "target_ce": 0.7858125246488131
+        },
+        {
+          "reaction_identity": "C1=COCC1.Cc1cc(C2=NOC(c3cc(Cl)cc(Cl)c3)(C(F)(F)F)C2)ccc1C(N)=O.Cc1ccc(S(=O)(=O)O)cc1.ClCCl.O.O=C([O-])O.[Na+]>>Cc1cc(C2=NOC(c3cc(Cl)cc(Cl)c3)(C(F)(F)F)C2)ccc1C(=O)NC1CCCO1",
+          "target_nll": 9.719270706176758,
+          "target_tokens": 60,
+          "target_ce": 0.16198784510294598
+        },
+        {
+          "reaction_identity": "CCCC[Sn](CCCC)(CCCC)c1ccc(C(=O)OCC)cc1.O=S(=O)(OC1=CCC2CCC1C2)C(F)(F)F>>CCOC(=O)c1ccc(C2=CCC3CCC2C3)cc1",
+          "target_nll": 11.818927764892578,
+          "target_tokens": 35,
+          "target_ce": 0.33768365042550225
+        },
+        {
+          "reaction_identity": "CN(C)c1cccc(C2(O)CCC(=O)CC2)c1.O=C(CNC(=O)c1cccc(C(F)(F)F)c1)NC1CNC1>>CN(C)c1cccc(C2(O)CCC(N3CC(NC(=O)CNC(=O)c4cccc(C(F)(F)F)c4)C3)CC2)c1",
+          "target_nll": 6.274851322174072,
+          "target_tokens": 69,
+          "target_ce": 0.09093987423440685
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CS(=O)(=O)Cl.ClCCl.OCCOCc1ccco1>>CS(=O)(=O)CCOCc1ccco1",
+          "target_nll": 15.093685150146484,
+          "target_tokens": 24,
+          "target_ce": 0.6289035479227701
+        },
+        {
+          "reaction_identity": "CCO.CCOc1ccc(O)c2c1C(=O)N(CCl)S2(=O)=O.Sc1nnnn1-c1ccccc1.[Na]>>CCOc1ccc(O)c2c1C(=O)N(CSc1nnnn1-c1ccccc1)S2(=O)=O",
+          "target_nll": 3.5270211696624756,
+          "target_tokens": 50,
+          "target_ce": 0.07054042339324951
+        },
+        {
+          "reaction_identity": "COCCl.CS(C)=O.N#CCc1ccccn1.O.[H-].[Na+]>>COCC(C#N)c1ccccn1",
+          "target_nll": 14.304436683654785,
+          "target_tokens": 18,
+          "target_ce": 0.7946909268697103
+        },
+        {
+          "reaction_identity": "CC(=O)[O-].CC(=O)c1c(CBr)[n+]([O-])c2ccccc2[n+]1[O-].CN(C)C=O.[I-].[K+].[K+]>>CC(=O)OCc1c(C(C)=O)[n+]([O-])c2ccccc2[n+]1[O-]",
+          "target_nll": 5.056048393249512,
+          "target_tokens": 48,
+          "target_ce": 0.1053343415260315
+        },
+        {
+          "reaction_identity": "B.BC(C)(C)C(C)C.C1CCOC1.C=C(C)C(C)C.C=Cc1cnc2c(c1)oc(=O)n2C.O.[Na+].[OH-]>>Cn1c(=O)oc2cc(CCO)cnc21",
+          "target_nll": 11.859452247619629,
+          "target_tokens": 26,
+          "target_ce": 0.4561327787546011
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCOC(=O)CC(C)=O.CCn1nnc(C(C=CC=O)=C(c2ccc(F)cc2)c2ccc(F)cc2)n1>>CCOC(=O)CC(=O)CC(O)C=CC(=C(c1ccc(F)cc1)c1ccc(F)cc1)c1nnn(CC)n1",
+          "target_nll": 8.835111618041992,
+          "target_tokens": 63,
+          "target_ce": 0.1402398669530475
+        },
+        {
+          "reaction_identity": "COc1c(Cl)cccc1C(C)(C)CC(O)(C=O)C(F)(F)F.ClCCl.Nc1cccc2c(=O)[nH]ncc12.[Cl-].[Cl-].[Cl-].[Cl-].[Ti+4]>>COc1c(Cl)ccc2c1C(C)(C)CC(O)(C(F)(F)F)C2Nc1cccc2c(=O)[nH]ncc12",
+          "target_nll": 28.305044174194336,
+          "target_tokens": 62,
+          "target_ce": 0.45653297055152153
+        },
+        {
+          "reaction_identity": "CO.Cc1nonc1CN.N.O=C(N=C=S)c1ccccc1>>Cc1nonc1CNC(N)=S",
+          "target_nll": 12.008200645446777,
+          "target_tokens": 17,
+          "target_ce": 0.7063647438498104
+        },
+        {
+          "reaction_identity": "CC(c1ccc(Nc2nc(C(F)(F)F)cs2)cc1)c1nsnc1Cl.CO.[Na+].[OH-]>>CC(c1ccc(Nc2nc(C(F)(F)F)cs2)cc1)c1nsnc1O",
+          "target_nll": 14.37467098236084,
+          "target_tokens": 40,
+          "target_ce": 0.359366774559021
+        },
+        {
+          "reaction_identity": "C1CCOC1.CC(O)C(Nc1ccccc1)C(=O)[O-].O=C1CCC(=O)N1Cl.c1ccc(P(c2ccccc2)c2ccccc2)cc1>>CC(Cl)C(Nc1ccccc1)C(=O)O",
+          "target_nll": 14.315336227416992,
+          "target_tokens": 25,
+          "target_ce": 0.5726134490966797
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCN(CC)CC.N#Cc1cc(C=O)ccn1.O=C1OC(P(=O)(O)O)c2ccccc21>>N#Cc1cc(C=C2OC(=O)c3ccccc32)ccn1",
+          "target_nll": 10.176433563232422,
+          "target_tokens": 33,
+          "target_ce": 0.30837677464340674
+        },
+        {
+          "reaction_identity": "CCN(CC)CC.Cc1cccc2c1NCCC2.ClCCl.O=C(Cl)CCl>>Cc1cccc2c1N(C(=O)CCl)CCC2",
+          "target_nll": 4.226454734802246,
+          "target_tokens": 26,
+          "target_ce": 0.16255595133854792
+        },
+        {
+          "reaction_identity": "CCO.CI.S=C1NC(c2ccccc2Cl)C(c2ccccc2Cl)N1>>CSC1=NC(c2ccccc2Cl)C(c2ccccc2Cl)N1.I",
+          "target_nll": 18.416839599609375,
+          "target_tokens": 38,
+          "target_ce": 0.4846536736739309
+        },
+        {
+          "reaction_identity": "CC(=O)[O-].CC(=O)[O-].CS(=O)(=O)c1ccc(Nc2n[nH]cc2C#N)cc1.Cl.ClCCl.OB(O)c1ccc(Cl)cc1.[Cu+2].c1ccncc1>>CS(=O)(=O)c1ccc(Nc2nn(-c3ccc(Cl)cc3)cc2C#N)cc1",
+          "target_nll": 13.146578788757324,
+          "target_tokens": 47,
+          "target_ce": 0.2797144423139856
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCn1ncc(C)c1B1OC(C)(C)C(C)(C)O1.COC(=O)c1cc(Br)co1.O=C([O-])[O-].[Na+].[Na+]>>CCn1ncc(C)c1-c1coc(C(=O)OC)c1",
+          "target_nll": 16.279590606689453,
+          "target_tokens": 29,
+          "target_ce": 0.561365193334119
+        },
+        {
+          "reaction_identity": "CN(C)C=O.O=C(O)c1cc([N+](=O)[O-])cc2sc3ccccc3c(=O)c12.O=C([O-])[O-].OCCS.[K+].[K+]>>O=C(O)c1cc(SCCO)cc2sc3ccccc3c(=O)c12",
+          "target_nll": 7.830522060394287,
+          "target_tokens": 37,
+          "target_ce": 0.21163573136200775
+        },
+        {
+          "reaction_identity": "CC(C)c1nc(Cl)c([N+](=O)[O-])c(Cl)n1.CCN.CCN(CC)CC.CCO>>CCNc1nc(C(C)C)nc(Cl)c1[N+](=O)[O-]",
+          "target_nll": 6.752998352050781,
+          "target_tokens": 37,
+          "target_ce": 0.18251346897434545
+        },
+        {
+          "reaction_identity": "CCO.CN=Cc1c(C)n(C)c2ccccc12.[BH4-].[Na+]>>CNCc1c(C)n(C)c2ccccc12",
+          "target_nll": 3.4031362533569336,
+          "target_tokens": 24,
+          "target_ce": 0.14179734388987222
+        },
+        {
+          "reaction_identity": "CC(C)OC(C)C.CCCCCCC.CCOC(=O)CC(=O)Cl.COC(=O)c1cc2ccc(Cl)cc2n1C.ClCCCl.O.[Cl-].[Cl-].[Cl-].[Cl-].[Ti+4]>>CCOC(=O)CC(=O)c1c(C(=O)OC)n(C)c2cc(Cl)ccc12",
+          "target_nll": 19.82183265686035,
+          "target_tokens": 42,
+          "target_ce": 0.4719483965919131
+        },
+        {
+          "reaction_identity": "ClCCCl.NC(=O)c1c(F)cccc1F.O=C(Cl)C(=O)Cl>>O=C=NC(=O)c1c(F)cccc1F",
+          "target_nll": 15.002604484558105,
+          "target_tokens": 26,
+          "target_ce": 0.577023249406081
+        },
+        {
+          "reaction_identity": "CCNC(=O)Oc1cc(CCCOC)cc(CN(C(=O)C(CNC(=O)OC(C)(C)C)Cc2ccc(OCCOc3c(Cl)cc(C)cc3Cl)cc2)C2CC2)c1.Cl.ClCCl>>CCNC(=O)Oc1cc(CCCOC)cc(CN(C(=O)C(CN)Cc2ccc(OCCOc3c(Cl)cc(C)cc3Cl)cc2)C2CC2)c1",
+          "target_nll": 4.5819807052612305,
+          "target_tokens": 77,
+          "target_ce": 0.05950624292547053
+        },
+        {
+          "reaction_identity": "CC(C)Cn1c(S)nc2ccccc2c1=O.CO.C[O-].Cl.ClCc1ccccn1.O.[Na+]>>CC(C)Cn1c(SCc2ccccn2)nc2ccccc2c1=O",
+          "target_nll": 4.535274982452393,
+          "target_tokens": 34,
+          "target_ce": 0.13339044066036448
+        },
+        {
+          "reaction_identity": "NC(=O)c1ccc(F)cc1Br.O=C(OC(=O)C(F)(F)F)C(F)(F)F.c1ccncc1>>N#Cc1ccc(F)cc1Br",
+          "target_nll": 9.449005126953125,
+          "target_tokens": 17,
+          "target_ce": 0.5558238309972426
+        },
+        {
+          "reaction_identity": "C=CCc1cc(Cl)c(O)c2c(C)c(C(=O)c3ccc(OC)cc3)oc12.CCO>>CCCc1cc(Cl)c(O)c2c(C)c(C(=O)c3ccc(OC)cc3)oc12",
+          "target_nll": 7.008709907531738,
+          "target_tokens": 46,
+          "target_ce": 0.15236325885938562
+        },
+        {
+          "reaction_identity": "CCOc1nccc(C)c1-c1ccc2c3c(cnn3C3CCOCC3)c(=O)n(Cc3ccc(OC)cc3OC)c2c1.O=C(O)C(F)(F)F>>CCOc1nccc(C)c1-c1ccc2c(c1)[nH]c(=O)c1cnn(C3CCOCC3)c12",
+          "target_nll": 10.561464309692383,
+          "target_tokens": 54,
+          "target_ce": 0.1955826724017108
+        },
+        {
+          "reaction_identity": "CO.Cc1cc(Nc2cc3cc(C(=O)OC(C)C)ccc3c(OC(C)C)n2)n[nH]1.[K+].[OH-]>>Cc1cc(Nc2cc3cc(C(=O)O)ccc3c(OC(C)C)n2)n[nH]1",
+          "target_nll": 2.4180421829223633,
+          "target_tokens": 46,
+          "target_ce": 0.05256613441135572
+        },
+        {
+          "reaction_identity": "CN(C)C=O.O.O=C([O-])O.O=P(Cl)(Cl)Cl.O=c1[nH]ccc2nc(-c3ccc(CN4CCC(c5n[nH]c(-c6ccccn6)n5)CC4)cc3)c(-c3ccccc3)cc12.[Na+]>>Clc1nccc2nc(-c3ccc(CN4CCC(c5nnc(-c6ccccn6)[nH]5)CC4)cc3)c(-c3ccccc3)cc12",
+          "target_nll": 15.880762100219727,
+          "target_tokens": 74,
+          "target_ce": 0.2146048932462125
+        },
+        {
+          "reaction_identity": "CC(=O)O[BH-](OC(C)=O)OC(C)=O.CSc1ccc(N)cn1.ClCCl.O=Cc1ccc(F)cc1.[Na+]>>CSc1ccc(NCc2ccc(F)cc2)cn1",
+          "target_nll": 7.033509731292725,
+          "target_tokens": 25,
+          "target_ce": 0.281340389251709
+        }
+      ]
+    },
+    "native_with_mse_sigreg_activation_after_layer_11": {
+      "target_ce": 0.2521548256863673,
+      "mean_reaction_ce": 0.3091936207665233,
+      "target_tokens": 2748,
+      "reactions": [
+        {
+          "reaction_identity": "C1CCNC1.CC(=O)N(C)C.CCN(CC)CC.Cc1[nH]cc2c(=O)n(-c3ccc(Cl)cc3)nc-2c1-c1cccc(C(=O)O)c1.O=C1OCCN1P(=O)(Cl)N1CCOC1=O>>Cc1[nH]cc2c(=O)n(-c3ccc(Cl)cc3)nc-2c1-c1cccc(C(=O)N2CCCC2)c1",
+          "target_nll": 10.168710708618164,
+          "target_tokens": 61,
+          "target_ce": 0.16670017555111744
+        },
+        {
+          "reaction_identity": "C1CCOC1.C1CNCCN1.Cc1nc(S(C)(=O)=O)nc2c1ccc(=O)n2-c1ccc(C(=O)NCc2ccccc2)cc1>>Cc1nc(N2CCNCC2)nc2c1ccc(=O)n2-c1ccc(C(=O)NCc2ccccc2)cc1",
+          "target_nll": 9.342962265014648,
+          "target_tokens": 57,
+          "target_ce": 0.16391161868446752
+        },
+        {
+          "reaction_identity": "Brc1cnc2[nH]ccc2c1.CO.O.O=Cc1cc(OC(F)F)cc(OC(F)F)c1.[K+].[OH-]>>OC(c1cc(OC(F)F)cc(OC(F)F)c1)c1c[nH]c2ncc(Br)cc12",
+          "target_nll": 11.187485694885254,
+          "target_tokens": 49,
+          "target_ce": 0.22831603458949498
+        },
+        {
+          "reaction_identity": "CCOC(=O)C(C)(C)Br.COc1ccc(C(=O)NCCc2ccc(-c3ccc(O)cc3)cc2)cc1OC>>CCOC(=O)C(C)(C)Oc1ccc(-c2ccc(CCNC(=O)c3ccc(OC)c(OC)c3)cc2)cc1",
+          "target_nll": 7.554819107055664,
+          "target_tokens": 61,
+          "target_ce": 0.12384949355828957
+        },
+        {
+          "reaction_identity": "CC(=O)CCC=C(C)C.CCOC(=O)OCC.[H-].[Na+]>>CCOC(=O)CC(=O)CCC=C(C)C",
+          "target_nll": 10.173257827758789,
+          "target_tokens": 27,
+          "target_ce": 0.3767873269540292
+        },
+        {
+          "reaction_identity": "COC(=O)c1ccc(C)cc1Oc1ccc(OC(CCCc2ccccc2)C(O)c2cc(OC)c(C)c(OC)c2)cc1.O=C(O)c1ccccc1>>COC(=O)c1ccc(C)cc1Oc1ccc(OC(CCCc2ccccc2)C(OC(=O)c2ccccc2)c2cc(OC)c(C)c(OC)c2)cc1",
+          "target_nll": 9.110695838928223,
+          "target_tokens": 82,
+          "target_ce": 0.11110604681619783
+        },
+        {
+          "reaction_identity": "CN(C)C=O.CS(=O)(=O)OCCCn1c(=O)[nH]c2cccc(Cl)c21.Cl.O=C([O-])[O-].O=C(c1ccc(F)cc1)C1CCNCC1.[Na+].[Na+]>>O=C(c1ccc(F)cc1)C1CCN(CCCn2c(=O)[nH]c3cccc(Cl)c32)CC1",
+          "target_nll": 14.688899993896484,
+          "target_tokens": 55,
+          "target_ce": 0.2670709089799361
+        },
+        {
+          "reaction_identity": "Brc1ccc2oc(CN3CCCC3)nc2c1.C1COCCO1.CNCCNC.N.O.[Cu]I.[I-].[Na+]>>Ic1ccc2oc(CN3CCCC3)nc2c1",
+          "target_nll": 13.409200668334961,
+          "target_tokens": 28,
+          "target_ce": 0.47890002386910574
+        },
+        {
+          "reaction_identity": "CC(C)N=C=O.O=c1[nH]sc2cc(Cl)ccc12>>CC(C)NC(=O)n1sc2cc(Cl)ccc2c1=O",
+          "target_nll": 16.598901748657227,
+          "target_tokens": 30,
+          "target_ce": 0.5532967249552408
+        },
+        {
+          "reaction_identity": "CCOC(C)=O.CC[Si](CC)(CC)OC1CCC(O)CC1.O=S(=O)([O-])[O-].O=S(=O)([O-])c1ccccc1I.[Na+].[Na+].[Na+]>>CC[Si](CC)(CC)OC1CCC(=O)CC1",
+          "target_nll": 6.382458209991455,
+          "target_tokens": 28,
+          "target_ce": 0.2279449360711234
+        },
+        {
+          "reaction_identity": "COC(=O)C1CC(S(=O)(=O)c2ccccc2Cl)CN1c1cc(C)nn1C1CCC1.[Li+].[OH-]>>Cc1cc(N2CC(S(=O)(=O)c3ccccc3Cl)CC2C(=O)O)n(C2CCC2)n1",
+          "target_nll": 1.8622514009475708,
+          "target_tokens": 51,
+          "target_ce": 0.03651473335191315
+        },
+        {
+          "reaction_identity": "BrCCCCOCc1ccccc1.COc1cc(N)c(Cl)cc1C(=O)NCC1CCNCC1.Cl.Cl.O=C([O-])[O-].[K+].[K+]>>COc1cc(N)c(Cl)cc1C(=O)NCC1CCN(CCCCOCc2ccccc2)CC1",
+          "target_nll": 4.012842655181885,
+          "target_tokens": 49,
+          "target_ce": 0.08189474806493642
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CO.CON=C(C)CN1C(=O)c2ccccc2C1=O.Clc1ncnc2nc[nH]c12.NN.O.O>>CON=C(C)CNc1ncnc2nc[nH]c12",
+          "target_nll": 16.287796020507812,
+          "target_tokens": 27,
+          "target_ce": 0.6032517044632523
+        },
+        {
+          "reaction_identity": "CC(C)(C)c1cc(CCC(=O)NN)cc(C(C)(C)C)c1O.CCCCCCCCCCCCC1CC(=O)OC1=O.Cc1ccccc1.O>>CCCCCCCCCCCCC1CC(=O)N(NC(=O)CCc2cc(C(C)(C)C)c(O)c(C(C)(C)C)c2)C1=O",
+          "target_nll": 9.907431602478027,
+          "target_tokens": 66,
+          "target_ce": 0.15011260003754587
+        },
+        {
+          "reaction_identity": "Cc1ccc(Sc2ccc(Br)cc2C=O)cc1.O=Cc1ccc(F)c(C(F)(F)F)c1>>Cc1ccc(Sc2ccc(C=O)cc2C(F)(F)F)cc1",
+          "target_nll": 8.442419052124023,
+          "target_tokens": 34,
+          "target_ce": 0.2483064427095301
+        },
+        {
+          "reaction_identity": "CNC(=O)COc1cccc2c1ccc(=O)n2CCN1CCC(N(Cc2ccc3c(c2)OCCO3)C(=O)OC(C)(C)C)CC1.ClC(Cl)Cl.O=C(O)C(F)(F)F>>CNC(=O)COc1cccc2c1ccc(=O)n2CCN1CCC(NCc2ccc3c(c2)OCCO3)CC1",
+          "target_nll": 7.4561767578125,
+          "target_tokens": 59,
+          "target_ce": 0.1263758772510593
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CN(C)C=O.CNOC.Cl.Cl.ClCCCl.O=C(O)c1ccc(Cl)c(Br)c1>>CON(C)C(=O)c1ccc(Cl)c(Br)c1",
+          "target_nll": 11.66346263885498,
+          "target_tokens": 27,
+          "target_ce": 0.43198009773536966
+        },
+        {
+          "reaction_identity": "CC(O[Si](C)(C)C(C)(C)C)C1C(=O)N(C(C(=O)OCc2ccc([N+](=O)[O-])cc2)=P(c2ccccc2)(c2ccccc2)c2ccccc2)C1C(C)C(=O)c1cn2cnc(C(=O)c3cccnc3)c2s1.CO.Cl.O=C([O-])O.[Na+]>>CC(O)C1C(=O)N(C(C(=O)OCc2ccc([N+](=O)[O-])cc2)=P(c2ccccc2)(c2ccccc2)c2ccccc2)C1C(C)C(=O)c1cn2cnc(C(=O)c3cccnc3)c2s1",
+          "target_nll": 9.574048042297363,
+          "target_tokens": 114,
+          "target_ce": 0.08398287756401196
+        },
+        {
+          "reaction_identity": "CN1CCCC1=O.COc1ccc2c(c1)C(C)(C)CC2=O.O=C([O-])[O-].Sc1ccccc1.[K+].[K+]>>CC1(C)CC(=O)c2ccc(O)cc21",
+          "target_nll": 5.054463863372803,
+          "target_tokens": 26,
+          "target_ce": 0.19440245628356934
+        },
+        {
+          "reaction_identity": "CSC.Cc1cc(C)nc(N)n1.ClCCl.O=C1CCC(=O)N1Cl>>Cc1cc(C)nc(N=S(C)C)n1",
+          "target_nll": 14.572064399719238,
+          "target_tokens": 23,
+          "target_ce": 0.6335680173790973
+        },
+        {
+          "reaction_identity": "CN(C)C=O.COC(=O)C(=O)c1ccc(O)cc1.CS(=O)(=O)O.OCCOc1ccc(Oc2ccccc2)cc1.[H-].[Na+]>>COC(=O)C(=O)c1ccc(OCCOc2ccc(Oc3ccccc3)cc2)cc1",
+          "target_nll": 14.271106719970703,
+          "target_tokens": 49,
+          "target_ce": 0.29124707591776944
+        },
+        {
+          "reaction_identity": "CCOCC.CN(C)C(CCc1ccccc1)C1CCC2(CC1)OCCO2.Cl.O.[Na+].[OH-]>>CN(C)C(CCc1ccccc1)C1CCC(=O)CC1",
+          "target_nll": 9.283683776855469,
+          "target_tokens": 32,
+          "target_ce": 0.2901151180267334
+        },
+        {
+          "reaction_identity": "C1COCCO1.Cc1ccccc1C(=O)Cl.Nc1ccc(C(=O)N2CCc3cn[nH]c3-c3sccc32)cc1.[H-].[Na+]>>Cc1ccccc1C(=O)Nc1ccc(C(=O)N2CCc3c[nH]nc3-c3sccc32)cc1",
+          "target_nll": 9.743278503417969,
+          "target_tokens": 56,
+          "target_ce": 0.17398711613246373
+        },
+        {
+          "reaction_identity": "CC#N.CN(CCCl)CCCl.Cl.NC1=CC23C=CC=CC2=CC1=C3.O.O=C([O-])[O-].[K+].[K+]>>CN1CCN(C2=CC34C=CC=CC3=CC2=C4)CC1",
+          "target_nll": 28.7292537689209,
+          "target_tokens": 37,
+          "target_ce": 0.7764663180789432
+        },
+        {
+          "reaction_identity": "CN(C)C=O.ClCC1CCOCO1.NCC1CCCCC1.O=C([O-])[O-].[I-].[K+].[K+].[Na+]>>C1CCC(CNCC2CCOCO2)CC1",
+          "target_nll": 7.805238723754883,
+          "target_tokens": 23,
+          "target_ce": 0.3393582053806471
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CCN(CC)C(=O)Cl.COC(=O)c1sc(-c2cccc(N)c2)c(Br)c1OCC(=O)OC(C)(C)C.ClCCl>>CCN(CC)C(=O)Nc1cccc(-c2sc(C(=O)OC)c(OCC(=O)OC(C)(C)C)c2Br)c1",
+          "target_nll": 8.878944396972656,
+          "target_tokens": 60,
+          "target_ce": 0.14798240661621093
+        },
+        {
+          "reaction_identity": "CC(C)(C)N(C(=O)[O-])C1CC(N2Cc3cn(CC(N)=O)nc3C2)COC1c1cc(F)ccc1F.ClCCl.O=C(O)C(F)(F)F>>NC(=O)Cn1cc2c(n1)CN(C1COC(c3cc(F)ccc3F)C(N)C1)C2",
+          "target_nll": 9.621777534484863,
+          "target_tokens": 45,
+          "target_ce": 0.21381727854410806
+        },
+        {
+          "reaction_identity": "COc1cc(F)ccc1B(O)O.N#Cc1cccnc1Cl>>COc1cc(F)ccc1-c1ncccc1C#N",
+          "target_nll": 10.670941352844238,
+          "target_tokens": 27,
+          "target_ce": 0.39522005010534217
+        },
+        {
+          "reaction_identity": "CNC(=O)NC(=O)C(CC1CCC(O)C1)c1ccc(Cl)c(Cl)c1.ClCCl.O=[Cr](=O)([O-])Cl.c1cc[nH+]cc1>>CNC(=O)NC(=O)C(CC1CCC(=O)C1)c1ccc(Cl)c(Cl)c1",
+          "target_nll": 7.367900848388672,
+          "target_tokens": 44,
+          "target_ce": 0.16745229200883346
+        },
+        {
+          "reaction_identity": "C1CCOC1.C=C[Mg+].CC(CCCC1CCCC(O)O1)OC(C)(C)C.[Cl-].[Cl-].[NH4+]>>C=CC(O)CCCC(O)CCCC(C)OC(C)(C)C",
+          "target_nll": 25.00579071044922,
+          "target_tokens": 32,
+          "target_ce": 0.7814309597015381
+        },
+        {
+          "reaction_identity": "C1CCOC1.CC(C)N(C(C)C)P(Cl)OCCC#N.CCN(C(C)C)C(C)C.Cc1cn(C2CC(O)C(CSCc3c4ccccc4cc4ccccc34)O2)c(=O)[nH]c1=O.c1ccncc1>>Cc1cn(C2CC(OP(OCCC#N)N(C(C)C)C(C)C)C(CSCc3c4ccccc4cc4ccccc34)O2)c(=O)[nH]c1=O",
+          "target_nll": 7.65242338180542,
+          "target_tokens": 78,
+          "target_ce": 0.09810799207442845
+        },
+        {
+          "reaction_identity": "CC(C)=O.COc1cc(OC)nc(Oc2c(Cl)cccc2C=O)n1.O=P([O-])([O-])O.O=[Mn](=O)(=O)[O-].[K+].[Na+].[Na+]>>COc1cc(OC)nc(Oc2c(Cl)cccc2C(=O)O)n1",
+          "target_nll": 4.429731369018555,
+          "target_tokens": 36,
+          "target_ce": 0.12304809358384874
+        },
+        {
+          "reaction_identity": "CC(=O)CCC(=O)OC(C)(C)C.CS(C)=O.C[S+](C)(C)=O.O.[H-].[I-].[Na+]>>CC(C)(C)OC(=O)CCC1(C)CO1",
+          "target_nll": 18.864599227905273,
+          "target_tokens": 26,
+          "target_ce": 0.7255615087655874
+        },
+        {
+          "reaction_identity": "C1=COCC1.Cc1cc(C2=NOC(c3cc(Cl)cc(Cl)c3)(C(F)(F)F)C2)ccc1C(N)=O.Cc1ccc(S(=O)(=O)O)cc1.ClCCl.O.O=C([O-])O.[Na+]>>Cc1cc(C2=NOC(c3cc(Cl)cc(Cl)c3)(C(F)(F)F)C2)ccc1C(=O)NC1CCCO1",
+          "target_nll": 11.10939884185791,
+          "target_tokens": 60,
+          "target_ce": 0.18515664736429852
+        },
+        {
+          "reaction_identity": "CCCC[Sn](CCCC)(CCCC)c1ccc(C(=O)OCC)cc1.O=S(=O)(OC1=CCC2CCC1C2)C(F)(F)F>>CCOC(=O)c1ccc(C2=CCC3CCC2C3)cc1",
+          "target_nll": 10.64819622039795,
+          "target_tokens": 35,
+          "target_ce": 0.3042341777256557
+        },
+        {
+          "reaction_identity": "CN(C)c1cccc(C2(O)CCC(=O)CC2)c1.O=C(CNC(=O)c1cccc(C(F)(F)F)c1)NC1CNC1>>CN(C)c1cccc(C2(O)CCC(N3CC(NC(=O)CNC(=O)c4cccc(C(F)(F)F)c4)C3)CC2)c1",
+          "target_nll": 6.126602649688721,
+          "target_tokens": 69,
+          "target_ce": 0.08879134274911189
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CS(=O)(=O)Cl.ClCCl.OCCOCc1ccco1>>CS(=O)(=O)CCOCc1ccco1",
+          "target_nll": 16.647930145263672,
+          "target_tokens": 24,
+          "target_ce": 0.693663756052653
+        },
+        {
+          "reaction_identity": "CCO.CCOc1ccc(O)c2c1C(=O)N(CCl)S2(=O)=O.Sc1nnnn1-c1ccccc1.[Na]>>CCOc1ccc(O)c2c1C(=O)N(CSc1nnnn1-c1ccccc1)S2(=O)=O",
+          "target_nll": 3.720799446105957,
+          "target_tokens": 50,
+          "target_ce": 0.07441598892211915
+        },
+        {
+          "reaction_identity": "COCCl.CS(C)=O.N#CCc1ccccn1.O.[H-].[Na+]>>COCC(C#N)c1ccccn1",
+          "target_nll": 14.932732582092285,
+          "target_tokens": 18,
+          "target_ce": 0.8295962545606825
+        },
+        {
+          "reaction_identity": "CC(=O)[O-].CC(=O)c1c(CBr)[n+]([O-])c2ccccc2[n+]1[O-].CN(C)C=O.[I-].[K+].[K+]>>CC(=O)OCc1c(C(C)=O)[n+]([O-])c2ccccc2[n+]1[O-]",
+          "target_nll": 4.774561405181885,
+          "target_tokens": 48,
+          "target_ce": 0.0994700292746226
+        },
+        {
+          "reaction_identity": "B.BC(C)(C)C(C)C.C1CCOC1.C=C(C)C(C)C.C=Cc1cnc2c(c1)oc(=O)n2C.O.[Na+].[OH-]>>Cn1c(=O)oc2cc(CCO)cnc21",
+          "target_nll": 12.814455032348633,
+          "target_tokens": 26,
+          "target_ce": 0.49286365509033203
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCOC(=O)CC(C)=O.CCn1nnc(C(C=CC=O)=C(c2ccc(F)cc2)c2ccc(F)cc2)n1>>CCOC(=O)CC(=O)CC(O)C=CC(=C(c1ccc(F)cc1)c1ccc(F)cc1)c1nnn(CC)n1",
+          "target_nll": 9.0498685836792,
+          "target_tokens": 63,
+          "target_ce": 0.1436487076774476
+        },
+        {
+          "reaction_identity": "COc1c(Cl)cccc1C(C)(C)CC(O)(C=O)C(F)(F)F.ClCCl.Nc1cccc2c(=O)[nH]ncc12.[Cl-].[Cl-].[Cl-].[Cl-].[Ti+4]>>COc1c(Cl)ccc2c1C(C)(C)CC(O)(C(F)(F)F)C2Nc1cccc2c(=O)[nH]ncc12",
+          "target_nll": 28.666751861572266,
+          "target_tokens": 62,
+          "target_ce": 0.46236696550923007
+        },
+        {
+          "reaction_identity": "CO.Cc1nonc1CN.N.O=C(N=C=S)c1ccccc1>>Cc1nonc1CNC(N)=S",
+          "target_nll": 11.585379600524902,
+          "target_tokens": 17,
+          "target_ce": 0.6814929176779354
+        },
+        {
+          "reaction_identity": "CC(c1ccc(Nc2nc(C(F)(F)F)cs2)cc1)c1nsnc1Cl.CO.[Na+].[OH-]>>CC(c1ccc(Nc2nc(C(F)(F)F)cs2)cc1)c1nsnc1O",
+          "target_nll": 13.711925506591797,
+          "target_tokens": 40,
+          "target_ce": 0.34279813766479494
+        },
+        {
+          "reaction_identity": "C1CCOC1.CC(O)C(Nc1ccccc1)C(=O)[O-].O=C1CCC(=O)N1Cl.c1ccc(P(c2ccccc2)c2ccccc2)cc1>>CC(Cl)C(Nc1ccccc1)C(=O)O",
+          "target_nll": 13.097457885742188,
+          "target_tokens": 25,
+          "target_ce": 0.5238983154296875
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCN(CC)CC.N#Cc1cc(C=O)ccn1.O=C1OC(P(=O)(O)O)c2ccccc21>>N#Cc1cc(C=C2OC(=O)c3ccccc32)ccn1",
+          "target_nll": 10.448639869689941,
+          "target_tokens": 33,
+          "target_ce": 0.3166254505966649
+        },
+        {
+          "reaction_identity": "CCN(CC)CC.Cc1cccc2c1NCCC2.ClCCl.O=C(Cl)CCl>>Cc1cccc2c1N(C(=O)CCl)CCC2",
+          "target_nll": 4.44016170501709,
+          "target_tokens": 26,
+          "target_ce": 0.170775450192965
+        },
+        {
+          "reaction_identity": "CCO.CI.S=C1NC(c2ccccc2Cl)C(c2ccccc2Cl)N1>>CSC1=NC(c2ccccc2Cl)C(c2ccccc2Cl)N1.I",
+          "target_nll": 18.738466262817383,
+          "target_tokens": 38,
+          "target_ce": 0.4931175332320364
+        },
+        {
+          "reaction_identity": "CC(=O)[O-].CC(=O)[O-].CS(=O)(=O)c1ccc(Nc2n[nH]cc2C#N)cc1.Cl.ClCCl.OB(O)c1ccc(Cl)cc1.[Cu+2].c1ccncc1>>CS(=O)(=O)c1ccc(Nc2nn(-c3ccc(Cl)cc3)cc2C#N)cc1",
+          "target_nll": 13.599841117858887,
+          "target_tokens": 47,
+          "target_ce": 0.28935832165657205
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCn1ncc(C)c1B1OC(C)(C)C(C)(C)O1.COC(=O)c1cc(Br)co1.O=C([O-])[O-].[Na+].[Na+]>>CCn1ncc(C)c1-c1coc(C(=O)OC)c1",
+          "target_nll": 15.026449203491211,
+          "target_tokens": 29,
+          "target_ce": 0.5181534208100418
+        },
+        {
+          "reaction_identity": "CN(C)C=O.O=C(O)c1cc([N+](=O)[O-])cc2sc3ccccc3c(=O)c12.O=C([O-])[O-].OCCS.[K+].[K+]>>O=C(O)c1cc(SCCO)cc2sc3ccccc3c(=O)c12",
+          "target_nll": 8.111634254455566,
+          "target_tokens": 37,
+          "target_ce": 0.21923335822852882
+        },
+        {
+          "reaction_identity": "CC(C)c1nc(Cl)c([N+](=O)[O-])c(Cl)n1.CCN.CCN(CC)CC.CCO>>CCNc1nc(C(C)C)nc(Cl)c1[N+](=O)[O-]",
+          "target_nll": 6.6805644035339355,
+          "target_tokens": 37,
+          "target_ce": 0.18055579469010635
+        },
+        {
+          "reaction_identity": "CCO.CN=Cc1c(C)n(C)c2ccccc12.[BH4-].[Na+]>>CNCc1c(C)n(C)c2ccccc12",
+          "target_nll": 3.6705269813537598,
+          "target_tokens": 24,
+          "target_ce": 0.15293862422307333
+        },
+        {
+          "reaction_identity": "CC(C)OC(C)C.CCCCCCC.CCOC(=O)CC(=O)Cl.COC(=O)c1cc2ccc(Cl)cc2n1C.ClCCCl.O.[Cl-].[Cl-].[Cl-].[Cl-].[Ti+4]>>CCOC(=O)CC(=O)c1c(C(=O)OC)n(C)c2cc(Cl)ccc12",
+          "target_nll": 19.20042610168457,
+          "target_tokens": 42,
+          "target_ce": 0.4571530024210612
+        },
+        {
+          "reaction_identity": "ClCCCl.NC(=O)c1c(F)cccc1F.O=C(Cl)C(=O)Cl>>O=C=NC(=O)c1c(F)cccc1F",
+          "target_nll": 14.468121528625488,
+          "target_tokens": 26,
+          "target_ce": 0.5564662126394418
+        },
+        {
+          "reaction_identity": "CCNC(=O)Oc1cc(CCCOC)cc(CN(C(=O)C(CNC(=O)OC(C)(C)C)Cc2ccc(OCCOc3c(Cl)cc(C)cc3Cl)cc2)C2CC2)c1.Cl.ClCCl>>CCNC(=O)Oc1cc(CCCOC)cc(CN(C(=O)C(CN)Cc2ccc(OCCOc3c(Cl)cc(C)cc3Cl)cc2)C2CC2)c1",
+          "target_nll": 4.561863422393799,
+          "target_tokens": 77,
+          "target_ce": 0.05924497951160778
+        },
+        {
+          "reaction_identity": "CC(C)Cn1c(S)nc2ccccc2c1=O.CO.C[O-].Cl.ClCc1ccccn1.O.[Na+]>>CC(C)Cn1c(SCc2ccccn2)nc2ccccc2c1=O",
+          "target_nll": 4.532077312469482,
+          "target_tokens": 34,
+          "target_ce": 0.13329639154322007
+        },
+        {
+          "reaction_identity": "NC(=O)c1ccc(F)cc1Br.O=C(OC(=O)C(F)(F)F)C(F)(F)F.c1ccncc1>>N#Cc1ccc(F)cc1Br",
+          "target_nll": 9.865255355834961,
+          "target_tokens": 17,
+          "target_ce": 0.5803091385785271
+        },
+        {
+          "reaction_identity": "C=CCc1cc(Cl)c(O)c2c(C)c(C(=O)c3ccc(OC)cc3)oc12.CCO>>CCCc1cc(Cl)c(O)c2c(C)c(C(=O)c3ccc(OC)cc3)oc12",
+          "target_nll": 6.5821123123168945,
+          "target_tokens": 46,
+          "target_ce": 0.14308939809384552
+        },
+        {
+          "reaction_identity": "CCOc1nccc(C)c1-c1ccc2c3c(cnn3C3CCOCC3)c(=O)n(Cc3ccc(OC)cc3OC)c2c1.O=C(O)C(F)(F)F>>CCOc1nccc(C)c1-c1ccc2c(c1)[nH]c(=O)c1cnn(C3CCOCC3)c12",
+          "target_nll": 10.361437797546387,
+          "target_tokens": 54,
+          "target_ce": 0.19187847773234049
+        },
+        {
+          "reaction_identity": "CO.Cc1cc(Nc2cc3cc(C(=O)OC(C)C)ccc3c(OC(C)C)n2)n[nH]1.[K+].[OH-]>>Cc1cc(Nc2cc3cc(C(=O)O)ccc3c(OC(C)C)n2)n[nH]1",
+          "target_nll": 2.470566511154175,
+          "target_tokens": 46,
+          "target_ce": 0.05370796763378641
+        },
+        {
+          "reaction_identity": "CN(C)C=O.O.O=C([O-])O.O=P(Cl)(Cl)Cl.O=c1[nH]ccc2nc(-c3ccc(CN4CCC(c5n[nH]c(-c6ccccn6)n5)CC4)cc3)c(-c3ccccc3)cc12.[Na+]>>Clc1nccc2nc(-c3ccc(CN4CCC(c5nnc(-c6ccccn6)[nH]5)CC4)cc3)c(-c3ccccc3)cc12",
+          "target_nll": 15.180023193359375,
+          "target_tokens": 74,
+          "target_ce": 0.20513544855891047
+        },
+        {
+          "reaction_identity": "CC(=O)O[BH-](OC(C)=O)OC(C)=O.CSc1ccc(N)cn1.ClCCl.O=Cc1ccc(F)cc1.[Na+]>>CSc1ccc(NCc2ccc(F)cc2)cn1",
+          "target_nll": 8.32221508026123,
+          "target_tokens": 25,
+          "target_ce": 0.3328886032104492
+        }
+      ]
+    },
+    "native_with_mse_sigreg_activation_after_layer_16": {
+      "target_ce": 0.2507162511435485,
+      "mean_reaction_ce": 0.3081909517497132,
+      "target_tokens": 2748,
+      "reactions": [
+        {
+          "reaction_identity": "C1CCNC1.CC(=O)N(C)C.CCN(CC)CC.Cc1[nH]cc2c(=O)n(-c3ccc(Cl)cc3)nc-2c1-c1cccc(C(=O)O)c1.O=C1OCCN1P(=O)(Cl)N1CCOC1=O>>Cc1[nH]cc2c(=O)n(-c3ccc(Cl)cc3)nc-2c1-c1cccc(C(=O)N2CCCC2)c1",
+          "target_nll": 10.567328453063965,
+          "target_tokens": 61,
+          "target_ce": 0.17323489267317976
+        },
+        {
+          "reaction_identity": "C1CCOC1.C1CNCCN1.Cc1nc(S(C)(=O)=O)nc2c1ccc(=O)n2-c1ccc(C(=O)NCc2ccccc2)cc1>>Cc1nc(N2CCNCC2)nc2c1ccc(=O)n2-c1ccc(C(=O)NCc2ccccc2)cc1",
+          "target_nll": 8.890847206115723,
+          "target_tokens": 57,
+          "target_ce": 0.15597977554588988
+        },
+        {
+          "reaction_identity": "Brc1cnc2[nH]ccc2c1.CO.O.O=Cc1cc(OC(F)F)cc(OC(F)F)c1.[K+].[OH-]>>OC(c1cc(OC(F)F)cc(OC(F)F)c1)c1c[nH]c2ncc(Br)cc12",
+          "target_nll": 11.345907211303711,
+          "target_tokens": 49,
+          "target_ce": 0.2315491267613002
+        },
+        {
+          "reaction_identity": "CCOC(=O)C(C)(C)Br.COc1ccc(C(=O)NCCc2ccc(-c3ccc(O)cc3)cc2)cc1OC>>CCOC(=O)C(C)(C)Oc1ccc(-c2ccc(CCNC(=O)c3ccc(OC)c(OC)c3)cc2)cc1",
+          "target_nll": 7.503083229064941,
+          "target_tokens": 61,
+          "target_ce": 0.12300136441090068
+        },
+        {
+          "reaction_identity": "CC(=O)CCC=C(C)C.CCOC(=O)OCC.[H-].[Na+]>>CCOC(=O)CC(=O)CCC=C(C)C",
+          "target_nll": 10.970320701599121,
+          "target_tokens": 27,
+          "target_ce": 0.4063081741333008
+        },
+        {
+          "reaction_identity": "COC(=O)c1ccc(C)cc1Oc1ccc(OC(CCCc2ccccc2)C(O)c2cc(OC)c(C)c(OC)c2)cc1.O=C(O)c1ccccc1>>COC(=O)c1ccc(C)cc1Oc1ccc(OC(CCCc2ccccc2)C(OC(=O)c2ccccc2)c2cc(OC)c(C)c(OC)c2)cc1",
+          "target_nll": 8.45236873626709,
+          "target_tokens": 82,
+          "target_ce": 0.10307766751545232
+        },
+        {
+          "reaction_identity": "CN(C)C=O.CS(=O)(=O)OCCCn1c(=O)[nH]c2cccc(Cl)c21.Cl.O=C([O-])[O-].O=C(c1ccc(F)cc1)C1CCNCC1.[Na+].[Na+]>>O=C(c1ccc(F)cc1)C1CCN(CCCn2c(=O)[nH]c3cccc(Cl)c32)CC1",
+          "target_nll": 15.093499183654785,
+          "target_tokens": 55,
+          "target_ce": 0.27442725788463246
+        },
+        {
+          "reaction_identity": "Brc1ccc2oc(CN3CCCC3)nc2c1.C1COCCO1.CNCCNC.N.O.[Cu]I.[I-].[Na+]>>Ic1ccc2oc(CN3CCCC3)nc2c1",
+          "target_nll": 14.558416366577148,
+          "target_tokens": 28,
+          "target_ce": 0.5199434416634696
+        },
+        {
+          "reaction_identity": "CC(C)N=C=O.O=c1[nH]sc2cc(Cl)ccc12>>CC(C)NC(=O)n1sc2cc(Cl)ccc2c1=O",
+          "target_nll": 17.152917861938477,
+          "target_tokens": 30,
+          "target_ce": 0.5717639287312826
+        },
+        {
+          "reaction_identity": "CCOC(C)=O.CC[Si](CC)(CC)OC1CCC(O)CC1.O=S(=O)([O-])[O-].O=S(=O)([O-])c1ccccc1I.[Na+].[Na+].[Na+]>>CC[Si](CC)(CC)OC1CCC(=O)CC1",
+          "target_nll": 5.6971116065979,
+          "target_tokens": 28,
+          "target_ce": 0.20346827166421072
+        },
+        {
+          "reaction_identity": "COC(=O)C1CC(S(=O)(=O)c2ccccc2Cl)CN1c1cc(C)nn1C1CCC1.[Li+].[OH-]>>Cc1cc(N2CC(S(=O)(=O)c3ccccc3Cl)CC2C(=O)O)n(C2CCC2)n1",
+          "target_nll": 1.9009730815887451,
+          "target_tokens": 51,
+          "target_ce": 0.03727398199193618
+        },
+        {
+          "reaction_identity": "BrCCCCOCc1ccccc1.COc1cc(N)c(Cl)cc1C(=O)NCC1CCNCC1.Cl.Cl.O=C([O-])[O-].[K+].[K+]>>COc1cc(N)c(Cl)cc1C(=O)NCC1CCN(CCCCOCc2ccccc2)CC1",
+          "target_nll": 4.225419044494629,
+          "target_tokens": 49,
+          "target_ce": 0.08623304172438018
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CO.CON=C(C)CN1C(=O)c2ccccc2C1=O.Clc1ncnc2nc[nH]c12.NN.O.O>>CON=C(C)CNc1ncnc2nc[nH]c12",
+          "target_nll": 15.749122619628906,
+          "target_tokens": 27,
+          "target_ce": 0.5833008377640335
+        },
+        {
+          "reaction_identity": "CC(C)(C)c1cc(CCC(=O)NN)cc(C(C)(C)C)c1O.CCCCCCCCCCCCC1CC(=O)OC1=O.Cc1ccccc1.O>>CCCCCCCCCCCCC1CC(=O)N(NC(=O)CCc2cc(C(C)(C)C)c(O)c(C(C)(C)C)c2)C1=O",
+          "target_nll": 9.379961013793945,
+          "target_tokens": 66,
+          "target_ce": 0.1421206214211204
+        },
+        {
+          "reaction_identity": "Cc1ccc(Sc2ccc(Br)cc2C=O)cc1.O=Cc1ccc(F)c(C(F)(F)F)c1>>Cc1ccc(Sc2ccc(C=O)cc2C(F)(F)F)cc1",
+          "target_nll": 7.616889476776123,
+          "target_tokens": 34,
+          "target_ce": 0.2240261610816507
+        },
+        {
+          "reaction_identity": "CNC(=O)COc1cccc2c1ccc(=O)n2CCN1CCC(N(Cc2ccc3c(c2)OCCO3)C(=O)OC(C)(C)C)CC1.ClC(Cl)Cl.O=C(O)C(F)(F)F>>CNC(=O)COc1cccc2c1ccc(=O)n2CCN1CCC(NCc2ccc3c(c2)OCCO3)CC1",
+          "target_nll": 7.750618934631348,
+          "target_tokens": 59,
+          "target_ce": 0.1313664226208703
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CN(C)C=O.CNOC.Cl.Cl.ClCCCl.O=C(O)c1ccc(Cl)c(Br)c1>>CON(C)C(=O)c1ccc(Cl)c(Br)c1",
+          "target_nll": 12.218695640563965,
+          "target_tokens": 27,
+          "target_ce": 0.4525442829838506
+        },
+        {
+          "reaction_identity": "CC(O[Si](C)(C)C(C)(C)C)C1C(=O)N(C(C(=O)OCc2ccc([N+](=O)[O-])cc2)=P(c2ccccc2)(c2ccccc2)c2ccccc2)C1C(C)C(=O)c1cn2cnc(C(=O)c3cccnc3)c2s1.CO.Cl.O=C([O-])O.[Na+]>>CC(O)C1C(=O)N(C(C(=O)OCc2ccc([N+](=O)[O-])cc2)=P(c2ccccc2)(c2ccccc2)c2ccccc2)C1C(C)C(=O)c1cn2cnc(C(=O)c3cccnc3)c2s1",
+          "target_nll": 9.685821533203125,
+          "target_tokens": 114,
+          "target_ce": 0.08496334678248356
+        },
+        {
+          "reaction_identity": "CN1CCCC1=O.COc1ccc2c(c1)C(C)(C)CC2=O.O=C([O-])[O-].Sc1ccccc1.[K+].[K+]>>CC1(C)CC(=O)c2ccc(O)cc21",
+          "target_nll": 5.395157337188721,
+          "target_tokens": 26,
+          "target_ce": 0.2075060514303354
+        },
+        {
+          "reaction_identity": "CSC.Cc1cc(C)nc(N)n1.ClCCl.O=C1CCC(=O)N1Cl>>Cc1cc(C)nc(N=S(C)C)n1",
+          "target_nll": 14.531980514526367,
+          "target_tokens": 23,
+          "target_ce": 0.631825239762016
+        },
+        {
+          "reaction_identity": "CN(C)C=O.COC(=O)C(=O)c1ccc(O)cc1.CS(=O)(=O)O.OCCOc1ccc(Oc2ccccc2)cc1.[H-].[Na+]>>COC(=O)C(=O)c1ccc(OCCOc2ccc(Oc3ccccc3)cc2)cc1",
+          "target_nll": 13.718079566955566,
+          "target_tokens": 49,
+          "target_ce": 0.27996080748888913
+        },
+        {
+          "reaction_identity": "CCOCC.CN(C)C(CCc1ccccc1)C1CCC2(CC1)OCCO2.Cl.O.[Na+].[OH-]>>CN(C)C(CCc1ccccc1)C1CCC(=O)CC1",
+          "target_nll": 9.390663146972656,
+          "target_tokens": 32,
+          "target_ce": 0.2934582233428955
+        },
+        {
+          "reaction_identity": "C1COCCO1.Cc1ccccc1C(=O)Cl.Nc1ccc(C(=O)N2CCc3cn[nH]c3-c3sccc32)cc1.[H-].[Na+]>>Cc1ccccc1C(=O)Nc1ccc(C(=O)N2CCc3c[nH]nc3-c3sccc32)cc1",
+          "target_nll": 9.193829536437988,
+          "target_tokens": 56,
+          "target_ce": 0.16417552743639266
+        },
+        {
+          "reaction_identity": "CC#N.CN(CCCl)CCCl.Cl.NC1=CC23C=CC=CC2=CC1=C3.O.O=C([O-])[O-].[K+].[K+]>>CN1CCN(C2=CC34C=CC=CC3=CC2=C4)CC1",
+          "target_nll": 27.683868408203125,
+          "target_tokens": 37,
+          "target_ce": 0.7482126596811656
+        },
+        {
+          "reaction_identity": "CN(C)C=O.ClCC1CCOCO1.NCC1CCCCC1.O=C([O-])[O-].[I-].[K+].[K+].[Na+]>>C1CCC(CNCC2CCOCO2)CC1",
+          "target_nll": 9.277447700500488,
+          "target_tokens": 23,
+          "target_ce": 0.4033672913261082
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CCN(CC)C(=O)Cl.COC(=O)c1sc(-c2cccc(N)c2)c(Br)c1OCC(=O)OC(C)(C)C.ClCCl>>CCN(CC)C(=O)Nc1cccc(-c2sc(C(=O)OC)c(OCC(=O)OC(C)(C)C)c2Br)c1",
+          "target_nll": 8.692914009094238,
+          "target_tokens": 60,
+          "target_ce": 0.14488190015157063
+        },
+        {
+          "reaction_identity": "CC(C)(C)N(C(=O)[O-])C1CC(N2Cc3cn(CC(N)=O)nc3C2)COC1c1cc(F)ccc1F.ClCCl.O=C(O)C(F)(F)F>>NC(=O)Cn1cc2c(n1)CN(C1COC(c3cc(F)ccc3F)C(N)C1)C2",
+          "target_nll": 10.065189361572266,
+          "target_tokens": 45,
+          "target_ce": 0.2236708747016059
+        },
+        {
+          "reaction_identity": "COc1cc(F)ccc1B(O)O.N#Cc1cccnc1Cl>>COc1cc(F)ccc1-c1ncccc1C#N",
+          "target_nll": 9.786161422729492,
+          "target_tokens": 27,
+          "target_ce": 0.3624504230640553
+        },
+        {
+          "reaction_identity": "CNC(=O)NC(=O)C(CC1CCC(O)C1)c1ccc(Cl)c(Cl)c1.ClCCl.O=[Cr](=O)([O-])Cl.c1cc[nH+]cc1>>CNC(=O)NC(=O)C(CC1CCC(=O)C1)c1ccc(Cl)c(Cl)c1",
+          "target_nll": 6.946990966796875,
+          "target_tokens": 44,
+          "target_ce": 0.1578861583362926
+        },
+        {
+          "reaction_identity": "C1CCOC1.C=C[Mg+].CC(CCCC1CCCC(O)O1)OC(C)(C)C.[Cl-].[Cl-].[NH4+]>>C=CC(O)CCCC(O)CCCC(C)OC(C)(C)C",
+          "target_nll": 24.771291732788086,
+          "target_tokens": 32,
+          "target_ce": 0.7741028666496277
+        },
+        {
+          "reaction_identity": "C1CCOC1.CC(C)N(C(C)C)P(Cl)OCCC#N.CCN(C(C)C)C(C)C.Cc1cn(C2CC(O)C(CSCc3c4ccccc4cc4ccccc34)O2)c(=O)[nH]c1=O.c1ccncc1>>Cc1cn(C2CC(OP(OCCC#N)N(C(C)C)C(C)C)C(CSCc3c4ccccc4cc4ccccc34)O2)c(=O)[nH]c1=O",
+          "target_nll": 7.71066427230835,
+          "target_tokens": 78,
+          "target_ce": 0.09885467015779935
+        },
+        {
+          "reaction_identity": "CC(C)=O.COc1cc(OC)nc(Oc2c(Cl)cccc2C=O)n1.O=P([O-])([O-])O.O=[Mn](=O)(=O)[O-].[K+].[Na+].[Na+]>>COc1cc(OC)nc(Oc2c(Cl)cccc2C(=O)O)n1",
+          "target_nll": 3.8701021671295166,
+          "target_tokens": 36,
+          "target_ce": 0.1075028379758199
+        },
+        {
+          "reaction_identity": "CC(=O)CCC(=O)OC(C)(C)C.CS(C)=O.C[S+](C)(C)=O.O.[H-].[I-].[Na+]>>CC(C)(C)OC(=O)CCC1(C)CO1",
+          "target_nll": 20.107446670532227,
+          "target_tokens": 26,
+          "target_ce": 0.7733633334820087
+        },
+        {
+          "reaction_identity": "C1=COCC1.Cc1cc(C2=NOC(c3cc(Cl)cc(Cl)c3)(C(F)(F)F)C2)ccc1C(N)=O.Cc1ccc(S(=O)(=O)O)cc1.ClCCl.O.O=C([O-])O.[Na+]>>Cc1cc(C2=NOC(c3cc(Cl)cc(Cl)c3)(C(F)(F)F)C2)ccc1C(=O)NC1CCCO1",
+          "target_nll": 9.910932540893555,
+          "target_tokens": 60,
+          "target_ce": 0.16518220901489258
+        },
+        {
+          "reaction_identity": "CCCC[Sn](CCCC)(CCCC)c1ccc(C(=O)OCC)cc1.O=S(=O)(OC1=CCC2CCC1C2)C(F)(F)F>>CCOC(=O)c1ccc(C2=CCC3CCC2C3)cc1",
+          "target_nll": 12.154936790466309,
+          "target_tokens": 35,
+          "target_ce": 0.3472839082990374
+        },
+        {
+          "reaction_identity": "CN(C)c1cccc(C2(O)CCC(=O)CC2)c1.O=C(CNC(=O)c1cccc(C(F)(F)F)c1)NC1CNC1>>CN(C)c1cccc(C2(O)CCC(N3CC(NC(=O)CNC(=O)c4cccc(C(F)(F)F)c4)C3)CC2)c1",
+          "target_nll": 6.246155738830566,
+          "target_tokens": 69,
+          "target_ce": 0.09052399621493575
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CS(=O)(=O)Cl.ClCCl.OCCOCc1ccco1>>CS(=O)(=O)CCOCc1ccco1",
+          "target_nll": 15.987143516540527,
+          "target_tokens": 24,
+          "target_ce": 0.6661309798558553
+        },
+        {
+          "reaction_identity": "CCO.CCOc1ccc(O)c2c1C(=O)N(CCl)S2(=O)=O.Sc1nnnn1-c1ccccc1.[Na]>>CCOc1ccc(O)c2c1C(=O)N(CSc1nnnn1-c1ccccc1)S2(=O)=O",
+          "target_nll": 3.5707781314849854,
+          "target_tokens": 50,
+          "target_ce": 0.07141556262969971
+        },
+        {
+          "reaction_identity": "COCCl.CS(C)=O.N#CCc1ccccn1.O.[H-].[Na+]>>COCC(C#N)c1ccccn1",
+          "target_nll": 14.334301948547363,
+          "target_tokens": 18,
+          "target_ce": 0.7963501082526313
+        },
+        {
+          "reaction_identity": "CC(=O)[O-].CC(=O)c1c(CBr)[n+]([O-])c2ccccc2[n+]1[O-].CN(C)C=O.[I-].[K+].[K+]>>CC(=O)OCc1c(C(C)=O)[n+]([O-])c2ccccc2[n+]1[O-]",
+          "target_nll": 4.814476013183594,
+          "target_tokens": 48,
+          "target_ce": 0.10030158360799153
+        },
+        {
+          "reaction_identity": "B.BC(C)(C)C(C)C.C1CCOC1.C=C(C)C(C)C.C=Cc1cnc2c(c1)oc(=O)n2C.O.[Na+].[OH-]>>Cn1c(=O)oc2cc(CCO)cnc21",
+          "target_nll": 11.862507820129395,
+          "target_tokens": 26,
+          "target_ce": 0.4562503007742075
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCOC(=O)CC(C)=O.CCn1nnc(C(C=CC=O)=C(c2ccc(F)cc2)c2ccc(F)cc2)n1>>CCOC(=O)CC(=O)CC(O)C=CC(=C(c1ccc(F)cc1)c1ccc(F)cc1)c1nnn(CC)n1",
+          "target_nll": 8.851686477661133,
+          "target_tokens": 63,
+          "target_ce": 0.14050295996287512
+        },
+        {
+          "reaction_identity": "COc1c(Cl)cccc1C(C)(C)CC(O)(C=O)C(F)(F)F.ClCCl.Nc1cccc2c(=O)[nH]ncc12.[Cl-].[Cl-].[Cl-].[Cl-].[Ti+4]>>COc1c(Cl)ccc2c1C(C)(C)CC(O)(C(F)(F)F)C2Nc1cccc2c(=O)[nH]ncc12",
+          "target_nll": 28.056331634521484,
+          "target_tokens": 62,
+          "target_ce": 0.452521477976153
+        },
+        {
+          "reaction_identity": "CO.Cc1nonc1CN.N.O=C(N=C=S)c1ccccc1>>Cc1nonc1CNC(N)=S",
+          "target_nll": 12.13889217376709,
+          "target_tokens": 17,
+          "target_ce": 0.7140524808098289
+        },
+        {
+          "reaction_identity": "CC(c1ccc(Nc2nc(C(F)(F)F)cs2)cc1)c1nsnc1Cl.CO.[Na+].[OH-]>>CC(c1ccc(Nc2nc(C(F)(F)F)cs2)cc1)c1nsnc1O",
+          "target_nll": 13.74605941772461,
+          "target_tokens": 40,
+          "target_ce": 0.34365148544311525
+        },
+        {
+          "reaction_identity": "C1CCOC1.CC(O)C(Nc1ccccc1)C(=O)[O-].O=C1CCC(=O)N1Cl.c1ccc(P(c2ccccc2)c2ccccc2)cc1>>CC(Cl)C(Nc1ccccc1)C(=O)O",
+          "target_nll": 13.224139213562012,
+          "target_tokens": 25,
+          "target_ce": 0.5289655685424804
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCN(CC)CC.N#Cc1cc(C=O)ccn1.O=C1OC(P(=O)(O)O)c2ccccc21>>N#Cc1cc(C=C2OC(=O)c3ccccc32)ccn1",
+          "target_nll": 10.15499210357666,
+          "target_tokens": 33,
+          "target_ce": 0.307727033441717
+        },
+        {
+          "reaction_identity": "CCN(CC)CC.Cc1cccc2c1NCCC2.ClCCl.O=C(Cl)CCl>>Cc1cccc2c1N(C(=O)CCl)CCC2",
+          "target_nll": 4.4634246826171875,
+          "target_tokens": 26,
+          "target_ce": 0.17167018010066107
+        },
+        {
+          "reaction_identity": "CCO.CI.S=C1NC(c2ccccc2Cl)C(c2ccccc2Cl)N1>>CSC1=NC(c2ccccc2Cl)C(c2ccccc2Cl)N1.I",
+          "target_nll": 18.25958824157715,
+          "target_tokens": 38,
+          "target_ce": 0.4805154800415039
+        },
+        {
+          "reaction_identity": "CC(=O)[O-].CC(=O)[O-].CS(=O)(=O)c1ccc(Nc2n[nH]cc2C#N)cc1.Cl.ClCCl.OB(O)c1ccc(Cl)cc1.[Cu+2].c1ccncc1>>CS(=O)(=O)c1ccc(Nc2nn(-c3ccc(Cl)cc3)cc2C#N)cc1",
+          "target_nll": 12.620524406433105,
+          "target_tokens": 47,
+          "target_ce": 0.26852179588155545
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCn1ncc(C)c1B1OC(C)(C)C(C)(C)O1.COC(=O)c1cc(Br)co1.O=C([O-])[O-].[Na+].[Na+]>>CCn1ncc(C)c1-c1coc(C(=O)OC)c1",
+          "target_nll": 15.0496244430542,
+          "target_tokens": 29,
+          "target_ce": 0.518952567001869
+        },
+        {
+          "reaction_identity": "CN(C)C=O.O=C(O)c1cc([N+](=O)[O-])cc2sc3ccccc3c(=O)c12.O=C([O-])[O-].OCCS.[K+].[K+]>>O=C(O)c1cc(SCCO)cc2sc3ccccc3c(=O)c12",
+          "target_nll": 8.091398239135742,
+          "target_tokens": 37,
+          "target_ce": 0.2186864388955606
+        },
+        {
+          "reaction_identity": "CC(C)c1nc(Cl)c([N+](=O)[O-])c(Cl)n1.CCN.CCN(CC)CC.CCO>>CCNc1nc(C(C)C)nc(Cl)c1[N+](=O)[O-]",
+          "target_nll": 6.603961944580078,
+          "target_tokens": 37,
+          "target_ce": 0.17848545796162374
+        },
+        {
+          "reaction_identity": "CCO.CN=Cc1c(C)n(C)c2ccccc12.[BH4-].[Na+]>>CNCc1c(C)n(C)c2ccccc12",
+          "target_nll": 3.3918850421905518,
+          "target_tokens": 24,
+          "target_ce": 0.14132854342460632
+        },
+        {
+          "reaction_identity": "CC(C)OC(C)C.CCCCCCC.CCOC(=O)CC(=O)Cl.COC(=O)c1cc2ccc(Cl)cc2n1C.ClCCCl.O.[Cl-].[Cl-].[Cl-].[Cl-].[Ti+4]>>CCOC(=O)CC(=O)c1c(C(=O)OC)n(C)c2cc(Cl)ccc12",
+          "target_nll": 19.33957290649414,
+          "target_tokens": 42,
+          "target_ce": 0.46046602158319383
+        },
+        {
+          "reaction_identity": "ClCCCl.NC(=O)c1c(F)cccc1F.O=C(Cl)C(=O)Cl>>O=C=NC(=O)c1c(F)cccc1F",
+          "target_nll": 15.129706382751465,
+          "target_tokens": 26,
+          "target_ce": 0.5819117839519794
+        },
+        {
+          "reaction_identity": "CCNC(=O)Oc1cc(CCCOC)cc(CN(C(=O)C(CNC(=O)OC(C)(C)C)Cc2ccc(OCCOc3c(Cl)cc(C)cc3Cl)cc2)C2CC2)c1.Cl.ClCCl>>CCNC(=O)Oc1cc(CCCOC)cc(CN(C(=O)C(CN)Cc2ccc(OCCOc3c(Cl)cc(C)cc3Cl)cc2)C2CC2)c1",
+          "target_nll": 4.591904640197754,
+          "target_tokens": 77,
+          "target_ce": 0.05963512519737343
+        },
+        {
+          "reaction_identity": "CC(C)Cn1c(S)nc2ccccc2c1=O.CO.C[O-].Cl.ClCc1ccccn1.O.[Na+]>>CC(C)Cn1c(SCc2ccccn2)nc2ccccc2c1=O",
+          "target_nll": 4.636679649353027,
+          "target_tokens": 34,
+          "target_ce": 0.13637293086332433
+        },
+        {
+          "reaction_identity": "NC(=O)c1ccc(F)cc1Br.O=C(OC(=O)C(F)(F)F)C(F)(F)F.c1ccncc1>>N#Cc1ccc(F)cc1Br",
+          "target_nll": 9.359077453613281,
+          "target_tokens": 17,
+          "target_ce": 0.5505339678596047
+        },
+        {
+          "reaction_identity": "C=CCc1cc(Cl)c(O)c2c(C)c(C(=O)c3ccc(OC)cc3)oc12.CCO>>CCCc1cc(Cl)c(O)c2c(C)c(C(=O)c3ccc(OC)cc3)oc12",
+          "target_nll": 6.93994665145874,
+          "target_tokens": 46,
+          "target_ce": 0.15086840546649435
+        },
+        {
+          "reaction_identity": "CCOc1nccc(C)c1-c1ccc2c3c(cnn3C3CCOCC3)c(=O)n(Cc3ccc(OC)cc3OC)c2c1.O=C(O)C(F)(F)F>>CCOc1nccc(C)c1-c1ccc2c(c1)[nH]c(=O)c1cnn(C3CCOCC3)c12",
+          "target_nll": 10.216175079345703,
+          "target_tokens": 54,
+          "target_ce": 0.1891884273952908
+        },
+        {
+          "reaction_identity": "CO.Cc1cc(Nc2cc3cc(C(=O)OC(C)C)ccc3c(OC(C)C)n2)n[nH]1.[K+].[OH-]>>Cc1cc(Nc2cc3cc(C(=O)O)ccc3c(OC(C)C)n2)n[nH]1",
+          "target_nll": 2.442927122116089,
+          "target_tokens": 46,
+          "target_ce": 0.053107111350349755
+        },
+        {
+          "reaction_identity": "CN(C)C=O.O.O=C([O-])O.O=P(Cl)(Cl)Cl.O=c1[nH]ccc2nc(-c3ccc(CN4CCC(c5n[nH]c(-c6ccccn6)n5)CC4)cc3)c(-c3ccccc3)cc12.[Na+]>>Clc1nccc2nc(-c3ccc(CN4CCC(c5nnc(-c6ccccn6)[nH]5)CC4)cc3)c(-c3ccccc3)cc12",
+          "target_nll": 15.395851135253906,
+          "target_tokens": 74,
+          "target_ce": 0.20805204236829603
+        },
+        {
+          "reaction_identity": "CC(=O)O[BH-](OC(C)=O)OC(C)=O.CSc1ccc(N)cn1.ClCCl.O=Cc1ccc(F)cc1.[Na+]>>CSc1ccc(NCc2ccc(F)cc2)cn1",
+          "target_nll": 7.481587886810303,
+          "target_tokens": 25,
+          "target_ce": 0.2992635154724121
+        }
+      ]
+    },
+    "native_with_mse_sigreg_activation_after_layer_21": {
+      "target_ce": 0.2745070159869076,
+      "mean_reaction_ce": 0.3360763459311845,
+      "target_tokens": 2748,
+      "reactions": [
+        {
+          "reaction_identity": "C1CCNC1.CC(=O)N(C)C.CCN(CC)CC.Cc1[nH]cc2c(=O)n(-c3ccc(Cl)cc3)nc-2c1-c1cccc(C(=O)O)c1.O=C1OCCN1P(=O)(Cl)N1CCOC1=O>>Cc1[nH]cc2c(=O)n(-c3ccc(Cl)cc3)nc-2c1-c1cccc(C(=O)N2CCCC2)c1",
+          "target_nll": 11.201376914978027,
+          "target_tokens": 61,
+          "target_ce": 0.18362912975373816
+        },
+        {
+          "reaction_identity": "C1CCOC1.C1CNCCN1.Cc1nc(S(C)(=O)=O)nc2c1ccc(=O)n2-c1ccc(C(=O)NCc2ccccc2)cc1>>Cc1nc(N2CCNCC2)nc2c1ccc(=O)n2-c1ccc(C(=O)NCc2ccccc2)cc1",
+          "target_nll": 10.050336837768555,
+          "target_tokens": 57,
+          "target_ce": 0.17632169890822025
+        },
+        {
+          "reaction_identity": "Brc1cnc2[nH]ccc2c1.CO.O.O=Cc1cc(OC(F)F)cc(OC(F)F)c1.[K+].[OH-]>>OC(c1cc(OC(F)F)cc(OC(F)F)c1)c1c[nH]c2ncc(Br)cc12",
+          "target_nll": 12.45099925994873,
+          "target_tokens": 49,
+          "target_ce": 0.2541020257132394
+        },
+        {
+          "reaction_identity": "CCOC(=O)C(C)(C)Br.COc1ccc(C(=O)NCCc2ccc(-c3ccc(O)cc3)cc2)cc1OC>>CCOC(=O)C(C)(C)Oc1ccc(-c2ccc(CCNC(=O)c3ccc(OC)c(OC)c3)cc2)cc1",
+          "target_nll": 8.496855735778809,
+          "target_tokens": 61,
+          "target_ce": 0.13929271697998047
+        },
+        {
+          "reaction_identity": "CC(=O)CCC=C(C)C.CCOC(=O)OCC.[H-].[Na+]>>CCOC(=O)CC(=O)CCC=C(C)C",
+          "target_nll": 11.418808937072754,
+          "target_tokens": 27,
+          "target_ce": 0.4229188495212131
+        },
+        {
+          "reaction_identity": "COC(=O)c1ccc(C)cc1Oc1ccc(OC(CCCc2ccccc2)C(O)c2cc(OC)c(C)c(OC)c2)cc1.O=C(O)c1ccccc1>>COC(=O)c1ccc(C)cc1Oc1ccc(OC(CCCc2ccccc2)C(OC(=O)c2ccccc2)c2cc(OC)c(C)c(OC)c2)cc1",
+          "target_nll": 9.618517875671387,
+          "target_tokens": 82,
+          "target_ce": 0.11729899848379739
+        },
+        {
+          "reaction_identity": "CN(C)C=O.CS(=O)(=O)OCCCn1c(=O)[nH]c2cccc(Cl)c21.Cl.O=C([O-])[O-].O=C(c1ccc(F)cc1)C1CCNCC1.[Na+].[Na+]>>O=C(c1ccc(F)cc1)C1CCN(CCCn2c(=O)[nH]c3cccc(Cl)c32)CC1",
+          "target_nll": 15.578039169311523,
+          "target_tokens": 55,
+          "target_ce": 0.28323707580566404
+        },
+        {
+          "reaction_identity": "Brc1ccc2oc(CN3CCCC3)nc2c1.C1COCCO1.CNCCNC.N.O.[Cu]I.[I-].[Na+]>>Ic1ccc2oc(CN3CCCC3)nc2c1",
+          "target_nll": 15.395722389221191,
+          "target_tokens": 28,
+          "target_ce": 0.5498472281864711
+        },
+        {
+          "reaction_identity": "CC(C)N=C=O.O=c1[nH]sc2cc(Cl)ccc12>>CC(C)NC(=O)n1sc2cc(Cl)ccc2c1=O",
+          "target_nll": 18.66783332824707,
+          "target_tokens": 30,
+          "target_ce": 0.622261110941569
+        },
+        {
+          "reaction_identity": "CCOC(C)=O.CC[Si](CC)(CC)OC1CCC(O)CC1.O=S(=O)([O-])[O-].O=S(=O)([O-])c1ccccc1I.[Na+].[Na+].[Na+]>>CC[Si](CC)(CC)OC1CCC(=O)CC1",
+          "target_nll": 6.707045555114746,
+          "target_tokens": 28,
+          "target_ce": 0.23953734125409806
+        },
+        {
+          "reaction_identity": "COC(=O)C1CC(S(=O)(=O)c2ccccc2Cl)CN1c1cc(C)nn1C1CCC1.[Li+].[OH-]>>Cc1cc(N2CC(S(=O)(=O)c3ccccc3Cl)CC2C(=O)O)n(C2CCC2)n1",
+          "target_nll": 3.024296283721924,
+          "target_tokens": 51,
+          "target_ce": 0.059299927131802425
+        },
+        {
+          "reaction_identity": "BrCCCCOCc1ccccc1.COc1cc(N)c(Cl)cc1C(=O)NCC1CCNCC1.Cl.Cl.O=C([O-])[O-].[K+].[K+]>>COc1cc(N)c(Cl)cc1C(=O)NCC1CCN(CCCCOCc2ccccc2)CC1",
+          "target_nll": 4.833736419677734,
+          "target_tokens": 49,
+          "target_ce": 0.09864768203423947
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CO.CON=C(C)CN1C(=O)c2ccccc2C1=O.Clc1ncnc2nc[nH]c12.NN.O.O>>CON=C(C)CNc1ncnc2nc[nH]c12",
+          "target_nll": 17.1102352142334,
+          "target_tokens": 27,
+          "target_ce": 0.6337124153419778
+        },
+        {
+          "reaction_identity": "CC(C)(C)c1cc(CCC(=O)NN)cc(C(C)(C)C)c1O.CCCCCCCCCCCCC1CC(=O)OC1=O.Cc1ccccc1.O>>CCCCCCCCCCCCC1CC(=O)N(NC(=O)CCc2cc(C(C)(C)C)c(O)c(C(C)(C)C)c2)C1=O",
+          "target_nll": 10.024345397949219,
+          "target_tokens": 66,
+          "target_ce": 0.15188402118104877
+        },
+        {
+          "reaction_identity": "Cc1ccc(Sc2ccc(Br)cc2C=O)cc1.O=Cc1ccc(F)c(C(F)(F)F)c1>>Cc1ccc(Sc2ccc(C=O)cc2C(F)(F)F)cc1",
+          "target_nll": 8.746811866760254,
+          "target_tokens": 34,
+          "target_ce": 0.25725917255177216
+        },
+        {
+          "reaction_identity": "CNC(=O)COc1cccc2c1ccc(=O)n2CCN1CCC(N(Cc2ccc3c(c2)OCCO3)C(=O)OC(C)(C)C)CC1.ClC(Cl)Cl.O=C(O)C(F)(F)F>>CNC(=O)COc1cccc2c1ccc(=O)n2CCN1CCC(NCc2ccc3c(c2)OCCO3)CC1",
+          "target_nll": 8.41667652130127,
+          "target_tokens": 59,
+          "target_ce": 0.14265553425934355
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CN(C)C=O.CNOC.Cl.Cl.ClCCCl.O=C(O)c1ccc(Cl)c(Br)c1>>CON(C)C(=O)c1ccc(Cl)c(Br)c1",
+          "target_nll": 13.755278587341309,
+          "target_tokens": 27,
+          "target_ce": 0.5094547624941226
+        },
+        {
+          "reaction_identity": "CC(O[Si](C)(C)C(C)(C)C)C1C(=O)N(C(C(=O)OCc2ccc([N+](=O)[O-])cc2)=P(c2ccccc2)(c2ccccc2)c2ccccc2)C1C(C)C(=O)c1cn2cnc(C(=O)c3cccnc3)c2s1.CO.Cl.O=C([O-])O.[Na+]>>CC(O)C1C(=O)N(C(C(=O)OCc2ccc([N+](=O)[O-])cc2)=P(c2ccccc2)(c2ccccc2)c2ccccc2)C1C(C)C(=O)c1cn2cnc(C(=O)c3cccnc3)c2s1",
+          "target_nll": 11.448134422302246,
+          "target_tokens": 114,
+          "target_ce": 0.10042223177458111
+        },
+        {
+          "reaction_identity": "CN1CCCC1=O.COc1ccc2c(c1)C(C)(C)CC2=O.O=C([O-])[O-].Sc1ccccc1.[K+].[K+]>>CC1(C)CC(=O)c2ccc(O)cc21",
+          "target_nll": 6.812948703765869,
+          "target_tokens": 26,
+          "target_ce": 0.26203648860637957
+        },
+        {
+          "reaction_identity": "CSC.Cc1cc(C)nc(N)n1.ClCCl.O=C1CCC(=O)N1Cl>>Cc1cc(C)nc(N=S(C)C)n1",
+          "target_nll": 15.194267272949219,
+          "target_tokens": 23,
+          "target_ce": 0.6606203162151835
+        },
+        {
+          "reaction_identity": "CN(C)C=O.COC(=O)C(=O)c1ccc(O)cc1.CS(=O)(=O)O.OCCOc1ccc(Oc2ccccc2)cc1.[H-].[Na+]>>COC(=O)C(=O)c1ccc(OCCOc2ccc(Oc3ccccc3)cc2)cc1",
+          "target_nll": 14.111461639404297,
+          "target_tokens": 49,
+          "target_ce": 0.28798901304906727
+        },
+        {
+          "reaction_identity": "CCOCC.CN(C)C(CCc1ccccc1)C1CCC2(CC1)OCCO2.Cl.O.[Na+].[OH-]>>CN(C)C(CCc1ccccc1)C1CCC(=O)CC1",
+          "target_nll": 10.92470645904541,
+          "target_tokens": 32,
+          "target_ce": 0.34139707684516907
+        },
+        {
+          "reaction_identity": "C1COCCO1.Cc1ccccc1C(=O)Cl.Nc1ccc(C(=O)N2CCc3cn[nH]c3-c3sccc32)cc1.[H-].[Na+]>>Cc1ccccc1C(=O)Nc1ccc(C(=O)N2CCc3c[nH]nc3-c3sccc32)cc1",
+          "target_nll": 10.470513343811035,
+          "target_tokens": 56,
+          "target_ce": 0.1869734525680542
+        },
+        {
+          "reaction_identity": "CC#N.CN(CCCl)CCCl.Cl.NC1=CC23C=CC=CC2=CC1=C3.O.O=C([O-])[O-].[K+].[K+]>>CN1CCN(C2=CC34C=CC=CC3=CC2=C4)CC1",
+          "target_nll": 29.722362518310547,
+          "target_tokens": 37,
+          "target_ce": 0.8033070950894743
+        },
+        {
+          "reaction_identity": "CN(C)C=O.ClCC1CCOCO1.NCC1CCCCC1.O=C([O-])[O-].[I-].[K+].[K+].[Na+]>>C1CCC(CNCC2CCOCO2)CC1",
+          "target_nll": 10.30344009399414,
+          "target_tokens": 23,
+          "target_ce": 0.4479756562606148
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CCN(CC)C(=O)Cl.COC(=O)c1sc(-c2cccc(N)c2)c(Br)c1OCC(=O)OC(C)(C)C.ClCCl>>CCN(CC)C(=O)Nc1cccc(-c2sc(C(=O)OC)c(OCC(=O)OC(C)(C)C)c2Br)c1",
+          "target_nll": 9.660223007202148,
+          "target_tokens": 60,
+          "target_ce": 0.16100371678670247
+        },
+        {
+          "reaction_identity": "CC(C)(C)N(C(=O)[O-])C1CC(N2Cc3cn(CC(N)=O)nc3C2)COC1c1cc(F)ccc1F.ClCCl.O=C(O)C(F)(F)F>>NC(=O)Cn1cc2c(n1)CN(C1COC(c3cc(F)ccc3F)C(N)C1)C2",
+          "target_nll": 12.076079368591309,
+          "target_tokens": 45,
+          "target_ce": 0.2683573193020291
+        },
+        {
+          "reaction_identity": "COc1cc(F)ccc1B(O)O.N#Cc1cccnc1Cl>>COc1cc(F)ccc1-c1ncccc1C#N",
+          "target_nll": 10.536833763122559,
+          "target_tokens": 27,
+          "target_ce": 0.3902531023378725
+        },
+        {
+          "reaction_identity": "CNC(=O)NC(=O)C(CC1CCC(O)C1)c1ccc(Cl)c(Cl)c1.ClCCl.O=[Cr](=O)([O-])Cl.c1cc[nH+]cc1>>CNC(=O)NC(=O)C(CC1CCC(=O)C1)c1ccc(Cl)c(Cl)c1",
+          "target_nll": 7.942162036895752,
+          "target_tokens": 44,
+          "target_ce": 0.18050368265672165
+        },
+        {
+          "reaction_identity": "C1CCOC1.C=C[Mg+].CC(CCCC1CCCC(O)O1)OC(C)(C)C.[Cl-].[Cl-].[NH4+]>>C=CC(O)CCCC(O)CCCC(C)OC(C)(C)C",
+          "target_nll": 25.879661560058594,
+          "target_tokens": 32,
+          "target_ce": 0.808739423751831
+        },
+        {
+          "reaction_identity": "C1CCOC1.CC(C)N(C(C)C)P(Cl)OCCC#N.CCN(C(C)C)C(C)C.Cc1cn(C2CC(O)C(CSCc3c4ccccc4cc4ccccc34)O2)c(=O)[nH]c1=O.c1ccncc1>>Cc1cn(C2CC(OP(OCCC#N)N(C(C)C)C(C)C)C(CSCc3c4ccccc4cc4ccccc34)O2)c(=O)[nH]c1=O",
+          "target_nll": 8.48167610168457,
+          "target_tokens": 78,
+          "target_ce": 0.10873943720108424
+        },
+        {
+          "reaction_identity": "CC(C)=O.COc1cc(OC)nc(Oc2c(Cl)cccc2C=O)n1.O=P([O-])([O-])O.O=[Mn](=O)(=O)[O-].[K+].[Na+].[Na+]>>COc1cc(OC)nc(Oc2c(Cl)cccc2C(=O)O)n1",
+          "target_nll": 4.6163411140441895,
+          "target_tokens": 36,
+          "target_ce": 0.1282316976123386
+        },
+        {
+          "reaction_identity": "CC(=O)CCC(=O)OC(C)(C)C.CS(C)=O.C[S+](C)(C)=O.O.[H-].[I-].[Na+]>>CC(C)(C)OC(=O)CCC1(C)CO1",
+          "target_nll": 21.2471981048584,
+          "target_tokens": 26,
+          "target_ce": 0.8171999271099384
+        },
+        {
+          "reaction_identity": "C1=COCC1.Cc1cc(C2=NOC(c3cc(Cl)cc(Cl)c3)(C(F)(F)F)C2)ccc1C(N)=O.Cc1ccc(S(=O)(=O)O)cc1.ClCCl.O.O=C([O-])O.[Na+]>>Cc1cc(C2=NOC(c3cc(Cl)cc(Cl)c3)(C(F)(F)F)C2)ccc1C(=O)NC1CCCO1",
+          "target_nll": 10.625086784362793,
+          "target_tokens": 60,
+          "target_ce": 0.1770847797393799
+        },
+        {
+          "reaction_identity": "CCCC[Sn](CCCC)(CCCC)c1ccc(C(=O)OCC)cc1.O=S(=O)(OC1=CCC2CCC1C2)C(F)(F)F>>CCOC(=O)c1ccc(C2=CCC3CCC2C3)cc1",
+          "target_nll": 12.763067245483398,
+          "target_tokens": 35,
+          "target_ce": 0.36465906415666854
+        },
+        {
+          "reaction_identity": "CN(C)c1cccc(C2(O)CCC(=O)CC2)c1.O=C(CNC(=O)c1cccc(C(F)(F)F)c1)NC1CNC1>>CN(C)c1cccc(C2(O)CCC(N3CC(NC(=O)CNC(=O)c4cccc(C(F)(F)F)c4)C3)CC2)c1",
+          "target_nll": 7.297933578491211,
+          "target_tokens": 69,
+          "target_ce": 0.10576715331146683
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CS(=O)(=O)Cl.ClCCl.OCCOCc1ccco1>>CS(=O)(=O)CCOCc1ccco1",
+          "target_nll": 16.014284133911133,
+          "target_tokens": 24,
+          "target_ce": 0.6672618389129639
+        },
+        {
+          "reaction_identity": "CCO.CCOc1ccc(O)c2c1C(=O)N(CCl)S2(=O)=O.Sc1nnnn1-c1ccccc1.[Na]>>CCOc1ccc(O)c2c1C(=O)N(CSc1nnnn1-c1ccccc1)S2(=O)=O",
+          "target_nll": 4.357437610626221,
+          "target_tokens": 50,
+          "target_ce": 0.08714875221252441
+        },
+        {
+          "reaction_identity": "COCCl.CS(C)=O.N#CCc1ccccn1.O.[H-].[Na+]>>COCC(C#N)c1ccccn1",
+          "target_nll": 15.09852409362793,
+          "target_tokens": 18,
+          "target_ce": 0.8388068940904405
+        },
+        {
+          "reaction_identity": "CC(=O)[O-].CC(=O)c1c(CBr)[n+]([O-])c2ccccc2[n+]1[O-].CN(C)C=O.[I-].[K+].[K+]>>CC(=O)OCc1c(C(C)=O)[n+]([O-])c2ccccc2[n+]1[O-]",
+          "target_nll": 5.944422245025635,
+          "target_tokens": 48,
+          "target_ce": 0.12384213010470073
+        },
+        {
+          "reaction_identity": "B.BC(C)(C)C(C)C.C1CCOC1.C=C(C)C(C)C.C=Cc1cnc2c(c1)oc(=O)n2C.O.[Na+].[OH-]>>Cn1c(=O)oc2cc(CCO)cnc21",
+          "target_nll": 12.801901817321777,
+          "target_tokens": 26,
+          "target_ce": 0.49238083912776065
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCOC(=O)CC(C)=O.CCn1nnc(C(C=CC=O)=C(c2ccc(F)cc2)c2ccc(F)cc2)n1>>CCOC(=O)CC(=O)CC(O)C=CC(=C(c1ccc(F)cc1)c1ccc(F)cc1)c1nnn(CC)n1",
+          "target_nll": 9.855738639831543,
+          "target_tokens": 63,
+          "target_ce": 0.15644029587034194
+        },
+        {
+          "reaction_identity": "COc1c(Cl)cccc1C(C)(C)CC(O)(C=O)C(F)(F)F.ClCCl.Nc1cccc2c(=O)[nH]ncc12.[Cl-].[Cl-].[Cl-].[Cl-].[Ti+4]>>COc1c(Cl)ccc2c1C(C)(C)CC(O)(C(F)(F)F)C2Nc1cccc2c(=O)[nH]ncc12",
+          "target_nll": 29.170854568481445,
+          "target_tokens": 62,
+          "target_ce": 0.4704976543303459
+        },
+        {
+          "reaction_identity": "CO.Cc1nonc1CN.N.O=C(N=C=S)c1ccccc1>>Cc1nonc1CNC(N)=S",
+          "target_nll": 12.876195907592773,
+          "target_tokens": 17,
+          "target_ce": 0.7574232886819279
+        },
+        {
+          "reaction_identity": "CC(c1ccc(Nc2nc(C(F)(F)F)cs2)cc1)c1nsnc1Cl.CO.[Na+].[OH-]>>CC(c1ccc(Nc2nc(C(F)(F)F)cs2)cc1)c1nsnc1O",
+          "target_nll": 15.086737632751465,
+          "target_tokens": 40,
+          "target_ce": 0.37716844081878664
+        },
+        {
+          "reaction_identity": "C1CCOC1.CC(O)C(Nc1ccccc1)C(=O)[O-].O=C1CCC(=O)N1Cl.c1ccc(P(c2ccccc2)c2ccccc2)cc1>>CC(Cl)C(Nc1ccccc1)C(=O)O",
+          "target_nll": 15.044303894042969,
+          "target_tokens": 25,
+          "target_ce": 0.6017721557617187
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCN(CC)CC.N#Cc1cc(C=O)ccn1.O=C1OC(P(=O)(O)O)c2ccccc21>>N#Cc1cc(C=C2OC(=O)c3ccccc32)ccn1",
+          "target_nll": 11.242952346801758,
+          "target_tokens": 33,
+          "target_ce": 0.3406955256606593
+        },
+        {
+          "reaction_identity": "CCN(CC)CC.Cc1cccc2c1NCCC2.ClCCl.O=C(Cl)CCl>>Cc1cccc2c1N(C(=O)CCl)CCC2",
+          "target_nll": 5.137757301330566,
+          "target_tokens": 26,
+          "target_ce": 0.19760605005117562
+        },
+        {
+          "reaction_identity": "CCO.CI.S=C1NC(c2ccccc2Cl)C(c2ccccc2Cl)N1>>CSC1=NC(c2ccccc2Cl)C(c2ccccc2Cl)N1.I",
+          "target_nll": 19.325464248657227,
+          "target_tokens": 38,
+          "target_ce": 0.5085648486488744
+        },
+        {
+          "reaction_identity": "CC(=O)[O-].CC(=O)[O-].CS(=O)(=O)c1ccc(Nc2n[nH]cc2C#N)cc1.Cl.ClCCl.OB(O)c1ccc(Cl)cc1.[Cu+2].c1ccncc1>>CS(=O)(=O)c1ccc(Nc2nn(-c3ccc(Cl)cc3)cc2C#N)cc1",
+          "target_nll": 13.928360939025879,
+          "target_tokens": 47,
+          "target_ce": 0.296348105085657
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCn1ncc(C)c1B1OC(C)(C)C(C)(C)O1.COC(=O)c1cc(Br)co1.O=C([O-])[O-].[Na+].[Na+]>>CCn1ncc(C)c1-c1coc(C(=O)OC)c1",
+          "target_nll": 16.935218811035156,
+          "target_tokens": 29,
+          "target_ce": 0.5839730624494881
+        },
+        {
+          "reaction_identity": "CN(C)C=O.O=C(O)c1cc([N+](=O)[O-])cc2sc3ccccc3c(=O)c12.O=C([O-])[O-].OCCS.[K+].[K+]>>O=C(O)c1cc(SCCO)cc2sc3ccccc3c(=O)c12",
+          "target_nll": 8.791234970092773,
+          "target_tokens": 37,
+          "target_ce": 0.23760094513764252
+        },
+        {
+          "reaction_identity": "CC(C)c1nc(Cl)c([N+](=O)[O-])c(Cl)n1.CCN.CCN(CC)CC.CCO>>CCNc1nc(C(C)C)nc(Cl)c1[N+](=O)[O-]",
+          "target_nll": 7.634942531585693,
+          "target_tokens": 37,
+          "target_ce": 0.2063497981509647
+        },
+        {
+          "reaction_identity": "CCO.CN=Cc1c(C)n(C)c2ccccc12.[BH4-].[Na+]>>CNCc1c(C)n(C)c2ccccc12",
+          "target_nll": 4.245760917663574,
+          "target_tokens": 24,
+          "target_ce": 0.17690670490264893
+        },
+        {
+          "reaction_identity": "CC(C)OC(C)C.CCCCCCC.CCOC(=O)CC(=O)Cl.COC(=O)c1cc2ccc(Cl)cc2n1C.ClCCCl.O.[Cl-].[Cl-].[Cl-].[Cl-].[Ti+4]>>CCOC(=O)CC(=O)c1c(C(=O)OC)n(C)c2cc(Cl)ccc12",
+          "target_nll": 20.717811584472656,
+          "target_tokens": 42,
+          "target_ce": 0.4932812282017299
+        },
+        {
+          "reaction_identity": "ClCCCl.NC(=O)c1c(F)cccc1F.O=C(Cl)C(=O)Cl>>O=C=NC(=O)c1c(F)cccc1F",
+          "target_nll": 15.684985160827637,
+          "target_tokens": 26,
+          "target_ce": 0.6032686600318322
+        },
+        {
+          "reaction_identity": "CCNC(=O)Oc1cc(CCCOC)cc(CN(C(=O)C(CNC(=O)OC(C)(C)C)Cc2ccc(OCCOc3c(Cl)cc(C)cc3Cl)cc2)C2CC2)c1.Cl.ClCCl>>CCNC(=O)Oc1cc(CCCOC)cc(CN(C(=O)C(CN)Cc2ccc(OCCOc3c(Cl)cc(C)cc3Cl)cc2)C2CC2)c1",
+          "target_nll": 5.485570430755615,
+          "target_tokens": 77,
+          "target_ce": 0.0712411744253976
+        },
+        {
+          "reaction_identity": "CC(C)Cn1c(S)nc2ccccc2c1=O.CO.C[O-].Cl.ClCc1ccccn1.O.[Na+]>>CC(C)Cn1c(SCc2ccccn2)nc2ccccc2c1=O",
+          "target_nll": 5.418961048126221,
+          "target_tokens": 34,
+          "target_ce": 0.15938120729783
+        },
+        {
+          "reaction_identity": "NC(=O)c1ccc(F)cc1Br.O=C(OC(=O)C(F)(F)F)C(F)(F)F.c1ccncc1>>N#Cc1ccc(F)cc1Br",
+          "target_nll": 10.367657661437988,
+          "target_tokens": 17,
+          "target_ce": 0.6098622153787052
+        },
+        {
+          "reaction_identity": "C=CCc1cc(Cl)c(O)c2c(C)c(C(=O)c3ccc(OC)cc3)oc12.CCO>>CCCc1cc(Cl)c(O)c2c(C)c(C(=O)c3ccc(OC)cc3)oc12",
+          "target_nll": 8.11361312866211,
+          "target_tokens": 46,
+          "target_ce": 0.1763828941013502
+        },
+        {
+          "reaction_identity": "CCOc1nccc(C)c1-c1ccc2c3c(cnn3C3CCOCC3)c(=O)n(Cc3ccc(OC)cc3OC)c2c1.O=C(O)C(F)(F)F>>CCOc1nccc(C)c1-c1ccc2c(c1)[nH]c(=O)c1cnn(C3CCOCC3)c12",
+          "target_nll": 11.388644218444824,
+          "target_tokens": 54,
+          "target_ce": 0.21090081886008935
+        },
+        {
+          "reaction_identity": "CO.Cc1cc(Nc2cc3cc(C(=O)OC(C)C)ccc3c(OC(C)C)n2)n[nH]1.[K+].[OH-]>>Cc1cc(Nc2cc3cc(C(=O)O)ccc3c(OC(C)C)n2)n[nH]1",
+          "target_nll": 3.334851026535034,
+          "target_tokens": 46,
+          "target_ce": 0.07249676144641379
+        },
+        {
+          "reaction_identity": "CN(C)C=O.O.O=C([O-])O.O=P(Cl)(Cl)Cl.O=c1[nH]ccc2nc(-c3ccc(CN4CCC(c5n[nH]c(-c6ccccn6)n5)CC4)cc3)c(-c3ccccc3)cc12.[Na+]>>Clc1nccc2nc(-c3ccc(CN4CCC(c5nnc(-c6ccccn6)[nH]5)CC4)cc3)c(-c3ccccc3)cc12",
+          "target_nll": 16.632619857788086,
+          "target_tokens": 74,
+          "target_ce": 0.2247651332133525
+        },
+        {
+          "reaction_identity": "CC(=O)O[BH-](OC(C)=O)OC(C)=O.CSc1ccc(N)cn1.ClCCl.O=Cc1ccc(F)cc1.[Na+]>>CSc1ccc(NCc2ccc(F)cc2)cn1",
+          "target_nll": 8.09745979309082,
+          "target_tokens": 25,
+          "target_ce": 0.32389839172363283
+        }
+      ]
+    },
+    "mse_sigreg_with_native_activation_after_layer_11": {
+      "target_ce": 0.24601528851052384,
+      "mean_reaction_ce": 0.30628521120837787,
+      "target_tokens": 2748,
+      "reactions": [
+        {
+          "reaction_identity": "C1CCNC1.CC(=O)N(C)C.CCN(CC)CC.Cc1[nH]cc2c(=O)n(-c3ccc(Cl)cc3)nc-2c1-c1cccc(C(=O)O)c1.O=C1OCCN1P(=O)(Cl)N1CCOC1=O>>Cc1[nH]cc2c(=O)n(-c3ccc(Cl)cc3)nc-2c1-c1cccc(C(=O)N2CCCC2)c1",
+          "target_nll": 8.667713165283203,
+          "target_tokens": 61,
+          "target_ce": 0.14209365844726562
+        },
+        {
+          "reaction_identity": "C1CCOC1.C1CNCCN1.Cc1nc(S(C)(=O)=O)nc2c1ccc(=O)n2-c1ccc(C(=O)NCc2ccccc2)cc1>>Cc1nc(N2CCNCC2)nc2c1ccc(=O)n2-c1ccc(C(=O)NCc2ccccc2)cc1",
+          "target_nll": 9.906634330749512,
+          "target_tokens": 57,
+          "target_ce": 0.17380060229385108
+        },
+        {
+          "reaction_identity": "Brc1cnc2[nH]ccc2c1.CO.O.O=Cc1cc(OC(F)F)cc(OC(F)F)c1.[K+].[OH-]>>OC(c1cc(OC(F)F)cc(OC(F)F)c1)c1c[nH]c2ncc(Br)cc12",
+          "target_nll": 9.876900672912598,
+          "target_tokens": 49,
+          "target_ce": 0.2015694014880122
+        },
+        {
+          "reaction_identity": "CCOC(=O)C(C)(C)Br.COc1ccc(C(=O)NCCc2ccc(-c3ccc(O)cc3)cc2)cc1OC>>CCOC(=O)C(C)(C)Oc1ccc(-c2ccc(CCNC(=O)c3ccc(OC)c(OC)c3)cc2)cc1",
+          "target_nll": 8.512542724609375,
+          "target_tokens": 61,
+          "target_ce": 0.13954988073130123
+        },
+        {
+          "reaction_identity": "CC(=O)CCC=C(C)C.CCOC(=O)OCC.[H-].[Na+]>>CCOC(=O)CC(=O)CCC=C(C)C",
+          "target_nll": 12.663121223449707,
+          "target_tokens": 27,
+          "target_ce": 0.46900448975739656
+        },
+        {
+          "reaction_identity": "COC(=O)c1ccc(C)cc1Oc1ccc(OC(CCCc2ccccc2)C(O)c2cc(OC)c(C)c(OC)c2)cc1.O=C(O)c1ccccc1>>COC(=O)c1ccc(C)cc1Oc1ccc(OC(CCCc2ccccc2)C(OC(=O)c2ccccc2)c2cc(OC)c(C)c(OC)c2)cc1",
+          "target_nll": 8.222766876220703,
+          "target_tokens": 82,
+          "target_ce": 0.10027764483195979
+        },
+        {
+          "reaction_identity": "CN(C)C=O.CS(=O)(=O)OCCCn1c(=O)[nH]c2cccc(Cl)c21.Cl.O=C([O-])[O-].O=C(c1ccc(F)cc1)C1CCNCC1.[Na+].[Na+]>>O=C(c1ccc(F)cc1)C1CCN(CCCn2c(=O)[nH]c3cccc(Cl)c32)CC1",
+          "target_nll": 7.234001159667969,
+          "target_tokens": 55,
+          "target_ce": 0.1315272938121449
+        },
+        {
+          "reaction_identity": "Brc1ccc2oc(CN3CCCC3)nc2c1.C1COCCO1.CNCCNC.N.O.[Cu]I.[I-].[Na+]>>Ic1ccc2oc(CN3CCCC3)nc2c1",
+          "target_nll": 13.032466888427734,
+          "target_tokens": 28,
+          "target_ce": 0.4654452460152762
+        },
+        {
+          "reaction_identity": "CC(C)N=C=O.O=c1[nH]sc2cc(Cl)ccc12>>CC(C)NC(=O)n1sc2cc(Cl)ccc2c1=O",
+          "target_nll": 17.14554214477539,
+          "target_tokens": 30,
+          "target_ce": 0.571518071492513
+        },
+        {
+          "reaction_identity": "CCOC(C)=O.CC[Si](CC)(CC)OC1CCC(O)CC1.O=S(=O)([O-])[O-].O=S(=O)([O-])c1ccccc1I.[Na+].[Na+].[Na+]>>CC[Si](CC)(CC)OC1CCC(=O)CC1",
+          "target_nll": 5.862748622894287,
+          "target_tokens": 28,
+          "target_ce": 0.20938387938908168
+        },
+        {
+          "reaction_identity": "COC(=O)C1CC(S(=O)(=O)c2ccccc2Cl)CN1c1cc(C)nn1C1CCC1.[Li+].[OH-]>>Cc1cc(N2CC(S(=O)(=O)c3ccccc3Cl)CC2C(=O)O)n(C2CCC2)n1",
+          "target_nll": 2.205625057220459,
+          "target_tokens": 51,
+          "target_ce": 0.04324755014157763
+        },
+        {
+          "reaction_identity": "BrCCCCOCc1ccccc1.COc1cc(N)c(Cl)cc1C(=O)NCC1CCNCC1.Cl.Cl.O=C([O-])[O-].[K+].[K+]>>COc1cc(N)c(Cl)cc1C(=O)NCC1CCN(CCCCOCc2ccccc2)CC1",
+          "target_nll": 4.848450183868408,
+          "target_tokens": 49,
+          "target_ce": 0.09894796293608997
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CO.CON=C(C)CN1C(=O)c2ccccc2C1=O.Clc1ncnc2nc[nH]c12.NN.O.O>>CON=C(C)CNc1ncnc2nc[nH]c12",
+          "target_nll": 15.84167194366455,
+          "target_tokens": 27,
+          "target_ce": 0.5867285905060945
+        },
+        {
+          "reaction_identity": "CC(C)(C)c1cc(CCC(=O)NN)cc(C(C)(C)C)c1O.CCCCCCCCCCCCC1CC(=O)OC1=O.Cc1ccccc1.O>>CCCCCCCCCCCCC1CC(=O)N(NC(=O)CCc2cc(C(C)(C)C)c(O)c(C(C)(C)C)c2)C1=O",
+          "target_nll": 9.535823822021484,
+          "target_tokens": 66,
+          "target_ce": 0.14448217912153763
+        },
+        {
+          "reaction_identity": "Cc1ccc(Sc2ccc(Br)cc2C=O)cc1.O=Cc1ccc(F)c(C(F)(F)F)c1>>Cc1ccc(Sc2ccc(C=O)cc2C(F)(F)F)cc1",
+          "target_nll": 8.288447380065918,
+          "target_tokens": 34,
+          "target_ce": 0.24377786411958582
+        },
+        {
+          "reaction_identity": "CNC(=O)COc1cccc2c1ccc(=O)n2CCN1CCC(N(Cc2ccc3c(c2)OCCO3)C(=O)OC(C)(C)C)CC1.ClC(Cl)Cl.O=C(O)C(F)(F)F>>CNC(=O)COc1cccc2c1ccc(=O)n2CCN1CCC(NCc2ccc3c(c2)OCCO3)CC1",
+          "target_nll": 4.146608829498291,
+          "target_tokens": 59,
+          "target_ce": 0.0702815055847168
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CN(C)C=O.CNOC.Cl.Cl.ClCCCl.O=C(O)c1ccc(Cl)c(Br)c1>>CON(C)C(=O)c1ccc(Cl)c(Br)c1",
+          "target_nll": 16.09242057800293,
+          "target_tokens": 27,
+          "target_ce": 0.5960155769630715
+        },
+        {
+          "reaction_identity": "CC(O[Si](C)(C)C(C)(C)C)C1C(=O)N(C(C(=O)OCc2ccc([N+](=O)[O-])cc2)=P(c2ccccc2)(c2ccccc2)c2ccccc2)C1C(C)C(=O)c1cn2cnc(C(=O)c3cccnc3)c2s1.CO.Cl.O=C([O-])O.[Na+]>>CC(O)C1C(=O)N(C(C(=O)OCc2ccc([N+](=O)[O-])cc2)=P(c2ccccc2)(c2ccccc2)c2ccccc2)C1C(C)C(=O)c1cn2cnc(C(=O)c3cccnc3)c2s1",
+          "target_nll": 10.880210876464844,
+          "target_tokens": 114,
+          "target_ce": 0.09544044628477934
+        },
+        {
+          "reaction_identity": "CN1CCCC1=O.COc1ccc2c(c1)C(C)(C)CC2=O.O=C([O-])[O-].Sc1ccccc1.[K+].[K+]>>CC1(C)CC(=O)c2ccc(O)cc21",
+          "target_nll": 6.1383843421936035,
+          "target_tokens": 26,
+          "target_ce": 0.23609170546898475
+        },
+        {
+          "reaction_identity": "CSC.Cc1cc(C)nc(N)n1.ClCCl.O=C1CCC(=O)N1Cl>>Cc1cc(C)nc(N=S(C)C)n1",
+          "target_nll": 15.276660919189453,
+          "target_tokens": 23,
+          "target_ce": 0.664202648660411
+        },
+        {
+          "reaction_identity": "CN(C)C=O.COC(=O)C(=O)c1ccc(O)cc1.CS(=O)(=O)O.OCCOc1ccc(Oc2ccccc2)cc1.[H-].[Na+]>>COC(=O)C(=O)c1ccc(OCCOc2ccc(Oc3ccccc3)cc2)cc1",
+          "target_nll": 10.64491081237793,
+          "target_tokens": 49,
+          "target_ce": 0.21724307780363122
+        },
+        {
+          "reaction_identity": "CCOCC.CN(C)C(CCc1ccccc1)C1CCC2(CC1)OCCO2.Cl.O.[Na+].[OH-]>>CN(C)C(CCc1ccccc1)C1CCC(=O)CC1",
+          "target_nll": 8.632295608520508,
+          "target_tokens": 32,
+          "target_ce": 0.26975923776626587
+        },
+        {
+          "reaction_identity": "C1COCCO1.Cc1ccccc1C(=O)Cl.Nc1ccc(C(=O)N2CCc3cn[nH]c3-c3sccc32)cc1.[H-].[Na+]>>Cc1ccccc1C(=O)Nc1ccc(C(=O)N2CCc3c[nH]nc3-c3sccc32)cc1",
+          "target_nll": 10.185872077941895,
+          "target_tokens": 56,
+          "target_ce": 0.18189057282039098
+        },
+        {
+          "reaction_identity": "CC#N.CN(CCCl)CCCl.Cl.NC1=CC23C=CC=CC2=CC1=C3.O.O=C([O-])[O-].[K+].[K+]>>CN1CCN(C2=CC34C=CC=CC3=CC2=C4)CC1",
+          "target_nll": 24.073951721191406,
+          "target_tokens": 37,
+          "target_ce": 0.650647343815984
+        },
+        {
+          "reaction_identity": "CN(C)C=O.ClCC1CCOCO1.NCC1CCCCC1.O=C([O-])[O-].[I-].[K+].[K+].[Na+]>>C1CCC(CNCC2CCOCO2)CC1",
+          "target_nll": 7.480724811553955,
+          "target_tokens": 23,
+          "target_ce": 0.32524890485017194
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CCN(CC)C(=O)Cl.COC(=O)c1sc(-c2cccc(N)c2)c(Br)c1OCC(=O)OC(C)(C)C.ClCCl>>CCN(CC)C(=O)Nc1cccc(-c2sc(C(=O)OC)c(OCC(=O)OC(C)(C)C)c2Br)c1",
+          "target_nll": 9.400644302368164,
+          "target_tokens": 60,
+          "target_ce": 0.1566774050394694
+        },
+        {
+          "reaction_identity": "CC(C)(C)N(C(=O)[O-])C1CC(N2Cc3cn(CC(N)=O)nc3C2)COC1c1cc(F)ccc1F.ClCCl.O=C(O)C(F)(F)F>>NC(=O)Cn1cc2c(n1)CN(C1COC(c3cc(F)ccc3F)C(N)C1)C2",
+          "target_nll": 10.337851524353027,
+          "target_tokens": 45,
+          "target_ce": 0.2297300338745117
+        },
+        {
+          "reaction_identity": "COc1cc(F)ccc1B(O)O.N#Cc1cccnc1Cl>>COc1cc(F)ccc1-c1ncccc1C#N",
+          "target_nll": 10.371170997619629,
+          "target_tokens": 27,
+          "target_ce": 0.38411744435628253
+        },
+        {
+          "reaction_identity": "CNC(=O)NC(=O)C(CC1CCC(O)C1)c1ccc(Cl)c(Cl)c1.ClCCl.O=[Cr](=O)([O-])Cl.c1cc[nH+]cc1>>CNC(=O)NC(=O)C(CC1CCC(=O)C1)c1ccc(Cl)c(Cl)c1",
+          "target_nll": 5.076948642730713,
+          "target_tokens": 44,
+          "target_ce": 0.11538519642569801
+        },
+        {
+          "reaction_identity": "C1CCOC1.C=C[Mg+].CC(CCCC1CCCC(O)O1)OC(C)(C)C.[Cl-].[Cl-].[NH4+]>>C=CC(O)CCCC(O)CCCC(C)OC(C)(C)C",
+          "target_nll": 25.847400665283203,
+          "target_tokens": 32,
+          "target_ce": 0.8077312707901001
+        },
+        {
+          "reaction_identity": "C1CCOC1.CC(C)N(C(C)C)P(Cl)OCCC#N.CCN(C(C)C)C(C)C.Cc1cn(C2CC(O)C(CSCc3c4ccccc4cc4ccccc34)O2)c(=O)[nH]c1=O.c1ccncc1>>Cc1cn(C2CC(OP(OCCC#N)N(C(C)C)C(C)C)C(CSCc3c4ccccc4cc4ccccc34)O2)c(=O)[nH]c1=O",
+          "target_nll": 7.481389999389648,
+          "target_tokens": 78,
+          "target_ce": 0.09591525640243138
+        },
+        {
+          "reaction_identity": "CC(C)=O.COc1cc(OC)nc(Oc2c(Cl)cccc2C=O)n1.O=P([O-])([O-])O.O=[Mn](=O)(=O)[O-].[K+].[Na+].[Na+]>>COc1cc(OC)nc(Oc2c(Cl)cccc2C(=O)O)n1",
+          "target_nll": 4.194314002990723,
+          "target_tokens": 36,
+          "target_ce": 0.11650872230529785
+        },
+        {
+          "reaction_identity": "CC(=O)CCC(=O)OC(C)(C)C.CS(C)=O.C[S+](C)(C)=O.O.[H-].[I-].[Na+]>>CC(C)(C)OC(=O)CCC1(C)CO1",
+          "target_nll": 20.716520309448242,
+          "target_tokens": 26,
+          "target_ce": 0.7967892426710862
+        },
+        {
+          "reaction_identity": "C1=COCC1.Cc1cc(C2=NOC(c3cc(Cl)cc(Cl)c3)(C(F)(F)F)C2)ccc1C(N)=O.Cc1ccc(S(=O)(=O)O)cc1.ClCCl.O.O=C([O-])O.[Na+]>>Cc1cc(C2=NOC(c3cc(Cl)cc(Cl)c3)(C(F)(F)F)C2)ccc1C(=O)NC1CCCO1",
+          "target_nll": 8.601816177368164,
+          "target_tokens": 60,
+          "target_ce": 0.14336360295613607
+        },
+        {
+          "reaction_identity": "CCCC[Sn](CCCC)(CCCC)c1ccc(C(=O)OCC)cc1.O=S(=O)(OC1=CCC2CCC1C2)C(F)(F)F>>CCOC(=O)c1ccc(C2=CCC3CCC2C3)cc1",
+          "target_nll": 12.424612045288086,
+          "target_tokens": 35,
+          "target_ce": 0.3549889155796596
+        },
+        {
+          "reaction_identity": "CN(C)c1cccc(C2(O)CCC(=O)CC2)c1.O=C(CNC(=O)c1cccc(C(F)(F)F)c1)NC1CNC1>>CN(C)c1cccc(C2(O)CCC(N3CC(NC(=O)CNC(=O)c4cccc(C(F)(F)F)c4)C3)CC2)c1",
+          "target_nll": 5.158918380737305,
+          "target_tokens": 69,
+          "target_ce": 0.07476693305416383
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CS(=O)(=O)Cl.ClCCl.OCCOCc1ccco1>>CS(=O)(=O)CCOCc1ccco1",
+          "target_nll": 11.935461044311523,
+          "target_tokens": 24,
+          "target_ce": 0.4973108768463135
+        },
+        {
+          "reaction_identity": "CCO.CCOc1ccc(O)c2c1C(=O)N(CCl)S2(=O)=O.Sc1nnnn1-c1ccccc1.[Na]>>CCOc1ccc(O)c2c1C(=O)N(CSc1nnnn1-c1ccccc1)S2(=O)=O",
+          "target_nll": 3.447686195373535,
+          "target_tokens": 50,
+          "target_ce": 0.0689537239074707
+        },
+        {
+          "reaction_identity": "COCCl.CS(C)=O.N#CCc1ccccn1.O.[H-].[Na+]>>COCC(C#N)c1ccccn1",
+          "target_nll": 13.166583061218262,
+          "target_tokens": 18,
+          "target_ce": 0.7314768367343478
+        },
+        {
+          "reaction_identity": "CC(=O)[O-].CC(=O)c1c(CBr)[n+]([O-])c2ccccc2[n+]1[O-].CN(C)C=O.[I-].[K+].[K+]>>CC(=O)OCc1c(C(C)=O)[n+]([O-])c2ccccc2[n+]1[O-]",
+          "target_nll": 5.1026611328125,
+          "target_tokens": 48,
+          "target_ce": 0.10630544026692708
+        },
+        {
+          "reaction_identity": "B.BC(C)(C)C(C)C.C1CCOC1.C=C(C)C(C)C.C=Cc1cnc2c(c1)oc(=O)n2C.O.[Na+].[OH-]>>Cn1c(=O)oc2cc(CCO)cnc21",
+          "target_nll": 14.036349296569824,
+          "target_tokens": 26,
+          "target_ce": 0.5398595883296087
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCOC(=O)CC(C)=O.CCn1nnc(C(C=CC=O)=C(c2ccc(F)cc2)c2ccc(F)cc2)n1>>CCOC(=O)CC(=O)CC(O)C=CC(=C(c1ccc(F)cc1)c1ccc(F)cc1)c1nnn(CC)n1",
+          "target_nll": 8.96985912322998,
+          "target_tokens": 63,
+          "target_ce": 0.14237871624174572
+        },
+        {
+          "reaction_identity": "COc1c(Cl)cccc1C(C)(C)CC(O)(C=O)C(F)(F)F.ClCCl.Nc1cccc2c(=O)[nH]ncc12.[Cl-].[Cl-].[Cl-].[Cl-].[Ti+4]>>COc1c(Cl)ccc2c1C(C)(C)CC(O)(C(F)(F)F)C2Nc1cccc2c(=O)[nH]ncc12",
+          "target_nll": 28.186891555786133,
+          "target_tokens": 62,
+          "target_ce": 0.45462728315784084
+        },
+        {
+          "reaction_identity": "CO.Cc1nonc1CN.N.O=C(N=C=S)c1ccccc1>>Cc1nonc1CNC(N)=S",
+          "target_nll": 15.874971389770508,
+          "target_tokens": 17,
+          "target_ce": 0.9338218464570887
+        },
+        {
+          "reaction_identity": "CC(c1ccc(Nc2nc(C(F)(F)F)cs2)cc1)c1nsnc1Cl.CO.[Na+].[OH-]>>CC(c1ccc(Nc2nc(C(F)(F)F)cs2)cc1)c1nsnc1O",
+          "target_nll": 14.881073951721191,
+          "target_tokens": 40,
+          "target_ce": 0.3720268487930298
+        },
+        {
+          "reaction_identity": "C1CCOC1.CC(O)C(Nc1ccccc1)C(=O)[O-].O=C1CCC(=O)N1Cl.c1ccc(P(c2ccccc2)c2ccccc2)cc1>>CC(Cl)C(Nc1ccccc1)C(=O)O",
+          "target_nll": 11.64700984954834,
+          "target_tokens": 25,
+          "target_ce": 0.4658803939819336
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCN(CC)CC.N#Cc1cc(C=O)ccn1.O=C1OC(P(=O)(O)O)c2ccccc21>>N#Cc1cc(C=C2OC(=O)c3ccccc32)ccn1",
+          "target_nll": 12.275665283203125,
+          "target_tokens": 33,
+          "target_ce": 0.37198985706676135
+        },
+        {
+          "reaction_identity": "CCN(CC)CC.Cc1cccc2c1NCCC2.ClCCl.O=C(Cl)CCl>>Cc1cccc2c1N(C(=O)CCl)CCC2",
+          "target_nll": 5.301078796386719,
+          "target_tokens": 26,
+          "target_ce": 0.2038876460148738
+        },
+        {
+          "reaction_identity": "CCO.CI.S=C1NC(c2ccccc2Cl)C(c2ccccc2Cl)N1>>CSC1=NC(c2ccccc2Cl)C(c2ccccc2Cl)N1.I",
+          "target_nll": 19.488689422607422,
+          "target_tokens": 38,
+          "target_ce": 0.5128602479633532
+        },
+        {
+          "reaction_identity": "CC(=O)[O-].CC(=O)[O-].CS(=O)(=O)c1ccc(Nc2n[nH]cc2C#N)cc1.Cl.ClCCl.OB(O)c1ccc(Cl)cc1.[Cu+2].c1ccncc1>>CS(=O)(=O)c1ccc(Nc2nn(-c3ccc(Cl)cc3)cc2C#N)cc1",
+          "target_nll": 11.055971145629883,
+          "target_tokens": 47,
+          "target_ce": 0.23523342863042304
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCn1ncc(C)c1B1OC(C)(C)C(C)(C)O1.COC(=O)c1cc(Br)co1.O=C([O-])[O-].[Na+].[Na+]>>CCn1ncc(C)c1-c1coc(C(=O)OC)c1",
+          "target_nll": 14.696096420288086,
+          "target_tokens": 29,
+          "target_ce": 0.5067619455271754
+        },
+        {
+          "reaction_identity": "CN(C)C=O.O=C(O)c1cc([N+](=O)[O-])cc2sc3ccccc3c(=O)c12.O=C([O-])[O-].OCCS.[K+].[K+]>>O=C(O)c1cc(SCCO)cc2sc3ccccc3c(=O)c12",
+          "target_nll": 9.52608871459961,
+          "target_tokens": 37,
+          "target_ce": 0.2574618571513408
+        },
+        {
+          "reaction_identity": "CC(C)c1nc(Cl)c([N+](=O)[O-])c(Cl)n1.CCN.CCN(CC)CC.CCO>>CCNc1nc(C(C)C)nc(Cl)c1[N+](=O)[O-]",
+          "target_nll": 6.2179436683654785,
+          "target_tokens": 37,
+          "target_ce": 0.16805253157744537
+        },
+        {
+          "reaction_identity": "CCO.CN=Cc1c(C)n(C)c2ccccc12.[BH4-].[Na+]>>CNCc1c(C)n(C)c2ccccc12",
+          "target_nll": 2.848393440246582,
+          "target_tokens": 24,
+          "target_ce": 0.11868306001027425
+        },
+        {
+          "reaction_identity": "CC(C)OC(C)C.CCCCCCC.CCOC(=O)CC(=O)Cl.COC(=O)c1cc2ccc(Cl)cc2n1C.ClCCCl.O.[Cl-].[Cl-].[Cl-].[Cl-].[Ti+4]>>CCOC(=O)CC(=O)c1c(C(=O)OC)n(C)c2cc(Cl)ccc12",
+          "target_nll": 18.63863182067871,
+          "target_tokens": 42,
+          "target_ce": 0.4437769481113979
+        },
+        {
+          "reaction_identity": "ClCCCl.NC(=O)c1c(F)cccc1F.O=C(Cl)C(=O)Cl>>O=C=NC(=O)c1c(F)cccc1F",
+          "target_nll": 14.218000411987305,
+          "target_tokens": 26,
+          "target_ce": 0.5468461696918194
+        },
+        {
+          "reaction_identity": "CCNC(=O)Oc1cc(CCCOC)cc(CN(C(=O)C(CNC(=O)OC(C)(C)C)Cc2ccc(OCCOc3c(Cl)cc(C)cc3Cl)cc2)C2CC2)c1.Cl.ClCCl>>CCNC(=O)Oc1cc(CCCOC)cc(CN(C(=O)C(CN)Cc2ccc(OCCOc3c(Cl)cc(C)cc3Cl)cc2)C2CC2)c1",
+          "target_nll": 4.384803295135498,
+          "target_tokens": 77,
+          "target_ce": 0.05694549733942205
+        },
+        {
+          "reaction_identity": "CC(C)Cn1c(S)nc2ccccc2c1=O.CO.C[O-].Cl.ClCc1ccccn1.O.[Na+]>>CC(C)Cn1c(SCc2ccccn2)nc2ccccc2c1=O",
+          "target_nll": 5.375565052032471,
+          "target_tokens": 34,
+          "target_ce": 0.15810485447154327
+        },
+        {
+          "reaction_identity": "NC(=O)c1ccc(F)cc1Br.O=C(OC(=O)C(F)(F)F)C(F)(F)F.c1ccncc1>>N#Cc1ccc(F)cc1Br",
+          "target_nll": 9.910798072814941,
+          "target_tokens": 17,
+          "target_ce": 0.5829881219302907
+        },
+        {
+          "reaction_identity": "C=CCc1cc(Cl)c(O)c2c(C)c(C(=O)c3ccc(OC)cc3)oc12.CCO>>CCCc1cc(Cl)c(O)c2c(C)c(C(=O)c3ccc(OC)cc3)oc12",
+          "target_nll": 5.847684860229492,
+          "target_tokens": 46,
+          "target_ce": 0.12712358391803244
+        },
+        {
+          "reaction_identity": "CCOc1nccc(C)c1-c1ccc2c3c(cnn3C3CCOCC3)c(=O)n(Cc3ccc(OC)cc3OC)c2c1.O=C(O)C(F)(F)F>>CCOc1nccc(C)c1-c1ccc2c(c1)[nH]c(=O)c1cnn(C3CCOCC3)c12",
+          "target_nll": 9.422609329223633,
+          "target_tokens": 54,
+          "target_ce": 0.1744927653559932
+        },
+        {
+          "reaction_identity": "CO.Cc1cc(Nc2cc3cc(C(=O)OC(C)C)ccc3c(OC(C)C)n2)n[nH]1.[K+].[OH-]>>Cc1cc(Nc2cc3cc(C(=O)O)ccc3c(OC(C)C)n2)n[nH]1",
+          "target_nll": 2.3237993717193604,
+          "target_tokens": 46,
+          "target_ce": 0.05051737764607305
+        },
+        {
+          "reaction_identity": "CN(C)C=O.O.O=C([O-])O.O=P(Cl)(Cl)Cl.O=c1[nH]ccc2nc(-c3ccc(CN4CCC(c5n[nH]c(-c6ccccn6)n5)CC4)cc3)c(-c3ccccc3)cc12.[Na+]>>Clc1nccc2nc(-c3ccc(CN4CCC(c5nnc(-c6ccccn6)[nH]5)CC4)cc3)c(-c3ccccc3)cc12",
+          "target_nll": 15.884546279907227,
+          "target_tokens": 74,
+          "target_ce": 0.2146560308095571
+        },
+        {
+          "reaction_identity": "CC(=O)O[BH-](OC(C)=O)OC(C)=O.CSc1ccc(N)cn1.ClCCl.O=Cc1ccc(F)cc1.[Na+]>>CSc1ccc(NCc2ccc(F)cc2)cn1",
+          "target_nll": 6.377017021179199,
+          "target_tokens": 25,
+          "target_ce": 0.25508068084716795
+        }
+      ]
+    },
+    "mse_sigreg_with_native_activation_after_layer_16": {
+      "target_ce": 0.24993238161050943,
+      "mean_reaction_ce": 0.30895084830648456,
+      "target_tokens": 2748,
+      "reactions": [
+        {
+          "reaction_identity": "C1CCNC1.CC(=O)N(C)C.CCN(CC)CC.Cc1[nH]cc2c(=O)n(-c3ccc(Cl)cc3)nc-2c1-c1cccc(C(=O)O)c1.O=C1OCCN1P(=O)(Cl)N1CCOC1=O>>Cc1[nH]cc2c(=O)n(-c3ccc(Cl)cc3)nc-2c1-c1cccc(C(=O)N2CCCC2)c1",
+          "target_nll": 8.762065887451172,
+          "target_tokens": 61,
+          "target_ce": 0.14364042438444544
+        },
+        {
+          "reaction_identity": "C1CCOC1.C1CNCCN1.Cc1nc(S(C)(=O)=O)nc2c1ccc(=O)n2-c1ccc(C(=O)NCc2ccccc2)cc1>>Cc1nc(N2CCNCC2)nc2c1ccc(=O)n2-c1ccc(C(=O)NCc2ccccc2)cc1",
+          "target_nll": 10.416692733764648,
+          "target_tokens": 57,
+          "target_ce": 0.18274899532920436
+        },
+        {
+          "reaction_identity": "Brc1cnc2[nH]ccc2c1.CO.O.O=Cc1cc(OC(F)F)cc(OC(F)F)c1.[K+].[OH-]>>OC(c1cc(OC(F)F)cc(OC(F)F)c1)c1c[nH]c2ncc(Br)cc12",
+          "target_nll": 10.404709815979004,
+          "target_tokens": 49,
+          "target_ce": 0.21234101665263272
+        },
+        {
+          "reaction_identity": "CCOC(=O)C(C)(C)Br.COc1ccc(C(=O)NCCc2ccc(-c3ccc(O)cc3)cc2)cc1OC>>CCOC(=O)C(C)(C)Oc1ccc(-c2ccc(CCNC(=O)c3ccc(OC)c(OC)c3)cc2)cc1",
+          "target_nll": 8.323601722717285,
+          "target_tokens": 61,
+          "target_ce": 0.1364524872576604
+        },
+        {
+          "reaction_identity": "CC(=O)CCC=C(C)C.CCOC(=O)OCC.[H-].[Na+]>>CCOC(=O)CC(=O)CCC=C(C)C",
+          "target_nll": 12.032369613647461,
+          "target_tokens": 27,
+          "target_ce": 0.44564331902398
+        },
+        {
+          "reaction_identity": "COC(=O)c1ccc(C)cc1Oc1ccc(OC(CCCc2ccccc2)C(O)c2cc(OC)c(C)c(OC)c2)cc1.O=C(O)c1ccccc1>>COC(=O)c1ccc(C)cc1Oc1ccc(OC(CCCc2ccccc2)C(OC(=O)c2ccccc2)c2cc(OC)c(C)c(OC)c2)cc1",
+          "target_nll": 9.243293762207031,
+          "target_tokens": 82,
+          "target_ce": 0.11272309466106135
+        },
+        {
+          "reaction_identity": "CN(C)C=O.CS(=O)(=O)OCCCn1c(=O)[nH]c2cccc(Cl)c21.Cl.O=C([O-])[O-].O=C(c1ccc(F)cc1)C1CCNCC1.[Na+].[Na+]>>O=C(c1ccc(F)cc1)C1CCN(CCCn2c(=O)[nH]c3cccc(Cl)c32)CC1",
+          "target_nll": 7.646878719329834,
+          "target_tokens": 55,
+          "target_ce": 0.1390341585332697
+        },
+        {
+          "reaction_identity": "Brc1ccc2oc(CN3CCCC3)nc2c1.C1COCCO1.CNCCNC.N.O.[Cu]I.[I-].[Na+]>>Ic1ccc2oc(CN3CCCC3)nc2c1",
+          "target_nll": 12.52471923828125,
+          "target_tokens": 28,
+          "target_ce": 0.4473114013671875
+        },
+        {
+          "reaction_identity": "CC(C)N=C=O.O=c1[nH]sc2cc(Cl)ccc12>>CC(C)NC(=O)n1sc2cc(Cl)ccc2c1=O",
+          "target_nll": 16.63370704650879,
+          "target_tokens": 30,
+          "target_ce": 0.5544569015502929
+        },
+        {
+          "reaction_identity": "CCOC(C)=O.CC[Si](CC)(CC)OC1CCC(O)CC1.O=S(=O)([O-])[O-].O=S(=O)([O-])c1ccccc1I.[Na+].[Na+].[Na+]>>CC[Si](CC)(CC)OC1CCC(=O)CC1",
+          "target_nll": 6.421456813812256,
+          "target_tokens": 28,
+          "target_ce": 0.22933774335043772
+        },
+        {
+          "reaction_identity": "COC(=O)C1CC(S(=O)(=O)c2ccccc2Cl)CN1c1cc(C)nn1C1CCC1.[Li+].[OH-]>>Cc1cc(N2CC(S(=O)(=O)c3ccccc3Cl)CC2C(=O)O)n(C2CCC2)n1",
+          "target_nll": 1.884505271911621,
+          "target_tokens": 51,
+          "target_ce": 0.036951083762972965
+        },
+        {
+          "reaction_identity": "BrCCCCOCc1ccccc1.COc1cc(N)c(Cl)cc1C(=O)NCC1CCNCC1.Cl.Cl.O=C([O-])[O-].[K+].[K+]>>COc1cc(N)c(Cl)cc1C(=O)NCC1CCN(CCCCOCc2ccccc2)CC1",
+          "target_nll": 4.884735107421875,
+          "target_tokens": 49,
+          "target_ce": 0.09968847158003827
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CO.CON=C(C)CN1C(=O)c2ccccc2C1=O.Clc1ncnc2nc[nH]c12.NN.O.O>>CON=C(C)CNc1ncnc2nc[nH]c12",
+          "target_nll": 16.71335792541504,
+          "target_tokens": 27,
+          "target_ce": 0.6190132564968533
+        },
+        {
+          "reaction_identity": "CC(C)(C)c1cc(CCC(=O)NN)cc(C(C)(C)C)c1O.CCCCCCCCCCCCC1CC(=O)OC1=O.Cc1ccccc1.O>>CCCCCCCCCCCCC1CC(=O)N(NC(=O)CCc2cc(C(C)(C)C)c(O)c(C(C)(C)C)c2)C1=O",
+          "target_nll": 10.390130996704102,
+          "target_tokens": 66,
+          "target_ce": 0.15742622722278943
+        },
+        {
+          "reaction_identity": "Cc1ccc(Sc2ccc(Br)cc2C=O)cc1.O=Cc1ccc(F)c(C(F)(F)F)c1>>Cc1ccc(Sc2ccc(C=O)cc2C(F)(F)F)cc1",
+          "target_nll": 9.31232738494873,
+          "target_tokens": 34,
+          "target_ce": 0.27389198191025677
+        },
+        {
+          "reaction_identity": "CNC(=O)COc1cccc2c1ccc(=O)n2CCN1CCC(N(Cc2ccc3c(c2)OCCO3)C(=O)OC(C)(C)C)CC1.ClC(Cl)Cl.O=C(O)C(F)(F)F>>CNC(=O)COc1cccc2c1ccc(=O)n2CCN1CCC(NCc2ccc3c(c2)OCCO3)CC1",
+          "target_nll": 4.21268367767334,
+          "target_tokens": 59,
+          "target_ce": 0.07140141826564983
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CN(C)C=O.CNOC.Cl.Cl.ClCCCl.O=C(O)c1ccc(Cl)c(Br)c1>>CON(C)C(=O)c1ccc(Cl)c(Br)c1",
+          "target_nll": 15.259309768676758,
+          "target_tokens": 27,
+          "target_ce": 0.5651596210621022
+        },
+        {
+          "reaction_identity": "CC(O[Si](C)(C)C(C)(C)C)C1C(=O)N(C(C(=O)OCc2ccc([N+](=O)[O-])cc2)=P(c2ccccc2)(c2ccccc2)c2ccccc2)C1C(C)C(=O)c1cn2cnc(C(=O)c3cccnc3)c2s1.CO.Cl.O=C([O-])O.[Na+]>>CC(O)C1C(=O)N(C(C(=O)OCc2ccc([N+](=O)[O-])cc2)=P(c2ccccc2)(c2ccccc2)c2ccccc2)C1C(C)C(=O)c1cn2cnc(C(=O)c3cccnc3)c2s1",
+          "target_nll": 11.28404426574707,
+          "target_tokens": 114,
+          "target_ce": 0.09898284443637781
+        },
+        {
+          "reaction_identity": "CN1CCCC1=O.COc1ccc2c(c1)C(C)(C)CC2=O.O=C([O-])[O-].Sc1ccccc1.[K+].[K+]>>CC1(C)CC(=O)c2ccc(O)cc21",
+          "target_nll": 5.189449787139893,
+          "target_tokens": 26,
+          "target_ce": 0.19959422258230355
+        },
+        {
+          "reaction_identity": "CSC.Cc1cc(C)nc(N)n1.ClCCl.O=C1CCC(=O)N1Cl>>Cc1cc(C)nc(N=S(C)C)n1",
+          "target_nll": 15.242623329162598,
+          "target_tokens": 23,
+          "target_ce": 0.662722753441852
+        },
+        {
+          "reaction_identity": "CN(C)C=O.COC(=O)C(=O)c1ccc(O)cc1.CS(=O)(=O)O.OCCOc1ccc(Oc2ccccc2)cc1.[H-].[Na+]>>COC(=O)C(=O)c1ccc(OCCOc2ccc(Oc3ccccc3)cc2)cc1",
+          "target_nll": 11.492227554321289,
+          "target_tokens": 49,
+          "target_ce": 0.23453525621063856
+        },
+        {
+          "reaction_identity": "CCOCC.CN(C)C(CCc1ccccc1)C1CCC2(CC1)OCCO2.Cl.O.[Na+].[OH-]>>CN(C)C(CCc1ccccc1)C1CCC(=O)CC1",
+          "target_nll": 8.795884132385254,
+          "target_tokens": 32,
+          "target_ce": 0.2748713791370392
+        },
+        {
+          "reaction_identity": "C1COCCO1.Cc1ccccc1C(=O)Cl.Nc1ccc(C(=O)N2CCc3cn[nH]c3-c3sccc32)cc1.[H-].[Na+]>>Cc1ccccc1C(=O)Nc1ccc(C(=O)N2CCc3c[nH]nc3-c3sccc32)cc1",
+          "target_nll": 9.518035888671875,
+          "target_tokens": 56,
+          "target_ce": 0.16996492658342635
+        },
+        {
+          "reaction_identity": "CC#N.CN(CCCl)CCCl.Cl.NC1=CC23C=CC=CC2=CC1=C3.O.O=C([O-])[O-].[K+].[K+]>>CN1CCN(C2=CC34C=CC=CC3=CC2=C4)CC1",
+          "target_nll": 26.70966339111328,
+          "target_tokens": 37,
+          "target_ce": 0.721882794354413
+        },
+        {
+          "reaction_identity": "CN(C)C=O.ClCC1CCOCO1.NCC1CCCCC1.O=C([O-])[O-].[I-].[K+].[K+].[Na+]>>C1CCC(CNCC2CCOCO2)CC1",
+          "target_nll": 6.028517723083496,
+          "target_tokens": 23,
+          "target_ce": 0.26210946622102155
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CCN(CC)C(=O)Cl.COC(=O)c1sc(-c2cccc(N)c2)c(Br)c1OCC(=O)OC(C)(C)C.ClCCl>>CCN(CC)C(=O)Nc1cccc(-c2sc(C(=O)OC)c(OCC(=O)OC(C)(C)C)c2Br)c1",
+          "target_nll": 9.520825386047363,
+          "target_tokens": 60,
+          "target_ce": 0.1586804231007894
+        },
+        {
+          "reaction_identity": "CC(C)(C)N(C(=O)[O-])C1CC(N2Cc3cn(CC(N)=O)nc3C2)COC1c1cc(F)ccc1F.ClCCl.O=C(O)C(F)(F)F>>NC(=O)Cn1cc2c(n1)CN(C1COC(c3cc(F)ccc3F)C(N)C1)C2",
+          "target_nll": 9.27515983581543,
+          "target_tokens": 45,
+          "target_ce": 0.20611466301812065
+        },
+        {
+          "reaction_identity": "COc1cc(F)ccc1B(O)O.N#Cc1cccnc1Cl>>COc1cc(F)ccc1-c1ncccc1C#N",
+          "target_nll": 10.629674911499023,
+          "target_tokens": 27,
+          "target_ce": 0.3936916633888527
+        },
+        {
+          "reaction_identity": "CNC(=O)NC(=O)C(CC1CCC(O)C1)c1ccc(Cl)c(Cl)c1.ClCCl.O=[Cr](=O)([O-])Cl.c1cc[nH+]cc1>>CNC(=O)NC(=O)C(CC1CCC(=O)C1)c1ccc(Cl)c(Cl)c1",
+          "target_nll": 5.537791728973389,
+          "target_tokens": 44,
+          "target_ce": 0.12585890293121338
+        },
+        {
+          "reaction_identity": "C1CCOC1.C=C[Mg+].CC(CCCC1CCCC(O)O1)OC(C)(C)C.[Cl-].[Cl-].[NH4+]>>C=CC(O)CCCC(O)CCCC(C)OC(C)(C)C",
+          "target_nll": 26.649511337280273,
+          "target_tokens": 32,
+          "target_ce": 0.8327972292900085
+        },
+        {
+          "reaction_identity": "C1CCOC1.CC(C)N(C(C)C)P(Cl)OCCC#N.CCN(C(C)C)C(C)C.Cc1cn(C2CC(O)C(CSCc3c4ccccc4cc4ccccc34)O2)c(=O)[nH]c1=O.c1ccncc1>>Cc1cn(C2CC(OP(OCCC#N)N(C(C)C)C(C)C)C(CSCc3c4ccccc4cc4ccccc34)O2)c(=O)[nH]c1=O",
+          "target_nll": 7.606906890869141,
+          "target_tokens": 78,
+          "target_ce": 0.09752444731883514
+        },
+        {
+          "reaction_identity": "CC(C)=O.COc1cc(OC)nc(Oc2c(Cl)cccc2C=O)n1.O=P([O-])([O-])O.O=[Mn](=O)(=O)[O-].[K+].[Na+].[Na+]>>COc1cc(OC)nc(Oc2c(Cl)cccc2C(=O)O)n1",
+          "target_nll": 5.381985187530518,
+          "target_tokens": 36,
+          "target_ce": 0.14949958854251438
+        },
+        {
+          "reaction_identity": "CC(=O)CCC(=O)OC(C)(C)C.CS(C)=O.C[S+](C)(C)=O.O.[H-].[I-].[Na+]>>CC(C)(C)OC(=O)CCC1(C)CO1",
+          "target_nll": 19.648210525512695,
+          "target_tokens": 26,
+          "target_ce": 0.7557004048274114
+        },
+        {
+          "reaction_identity": "C1=COCC1.Cc1cc(C2=NOC(c3cc(Cl)cc(Cl)c3)(C(F)(F)F)C2)ccc1C(N)=O.Cc1ccc(S(=O)(=O)O)cc1.ClCCl.O.O=C([O-])O.[Na+]>>Cc1cc(C2=NOC(c3cc(Cl)cc(Cl)c3)(C(F)(F)F)C2)ccc1C(=O)NC1CCCO1",
+          "target_nll": 9.744701385498047,
+          "target_tokens": 60,
+          "target_ce": 0.16241168975830078
+        },
+        {
+          "reaction_identity": "CCCC[Sn](CCCC)(CCCC)c1ccc(C(=O)OCC)cc1.O=S(=O)(OC1=CCC2CCC1C2)C(F)(F)F>>CCOC(=O)c1ccc(C2=CCC3CCC2C3)cc1",
+          "target_nll": 12.044599533081055,
+          "target_tokens": 35,
+          "target_ce": 0.34413141523088725
+        },
+        {
+          "reaction_identity": "CN(C)c1cccc(C2(O)CCC(=O)CC2)c1.O=C(CNC(=O)c1cccc(C(F)(F)F)c1)NC1CNC1>>CN(C)c1cccc(C2(O)CCC(N3CC(NC(=O)CNC(=O)c4cccc(C(F)(F)F)c4)C3)CC2)c1",
+          "target_nll": 5.2431793212890625,
+          "target_tokens": 69,
+          "target_ce": 0.07598810610563858
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CS(=O)(=O)Cl.ClCCl.OCCOCc1ccco1>>CS(=O)(=O)CCOCc1ccco1",
+          "target_nll": 11.988746643066406,
+          "target_tokens": 24,
+          "target_ce": 0.4995311101277669
+        },
+        {
+          "reaction_identity": "CCO.CCOc1ccc(O)c2c1C(=O)N(CCl)S2(=O)=O.Sc1nnnn1-c1ccccc1.[Na]>>CCOc1ccc(O)c2c1C(=O)N(CSc1nnnn1-c1ccccc1)S2(=O)=O",
+          "target_nll": 3.671477794647217,
+          "target_tokens": 50,
+          "target_ce": 0.07342955589294434
+        },
+        {
+          "reaction_identity": "COCCl.CS(C)=O.N#CCc1ccccn1.O.[H-].[Na+]>>COCC(C#N)c1ccccn1",
+          "target_nll": 13.238393783569336,
+          "target_tokens": 18,
+          "target_ce": 0.7354663213094076
+        },
+        {
+          "reaction_identity": "CC(=O)[O-].CC(=O)c1c(CBr)[n+]([O-])c2ccccc2[n+]1[O-].CN(C)C=O.[I-].[K+].[K+]>>CC(=O)OCc1c(C(C)=O)[n+]([O-])c2ccccc2[n+]1[O-]",
+          "target_nll": 5.031947612762451,
+          "target_tokens": 48,
+          "target_ce": 0.10483224193255107
+        },
+        {
+          "reaction_identity": "B.BC(C)(C)C(C)C.C1CCOC1.C=C(C)C(C)C.C=Cc1cnc2c(c1)oc(=O)n2C.O.[Na+].[OH-]>>Cn1c(=O)oc2cc(CCO)cnc21",
+          "target_nll": 13.77279281616211,
+          "target_tokens": 26,
+          "target_ce": 0.5297228006216196
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCOC(=O)CC(C)=O.CCn1nnc(C(C=CC=O)=C(c2ccc(F)cc2)c2ccc(F)cc2)n1>>CCOC(=O)CC(=O)CC(O)C=CC(=C(c1ccc(F)cc1)c1ccc(F)cc1)c1nnn(CC)n1",
+          "target_nll": 9.025175094604492,
+          "target_tokens": 63,
+          "target_ce": 0.14325674753340464
+        },
+        {
+          "reaction_identity": "COc1c(Cl)cccc1C(C)(C)CC(O)(C=O)C(F)(F)F.ClCCl.Nc1cccc2c(=O)[nH]ncc12.[Cl-].[Cl-].[Cl-].[Cl-].[Ti+4]>>COc1c(Cl)ccc2c1C(C)(C)CC(O)(C(F)(F)F)C2Nc1cccc2c(=O)[nH]ncc12",
+          "target_nll": 29.252735137939453,
+          "target_tokens": 62,
+          "target_ce": 0.4718183086764428
+        },
+        {
+          "reaction_identity": "CO.Cc1nonc1CN.N.O=C(N=C=S)c1ccccc1>>Cc1nonc1CNC(N)=S",
+          "target_nll": 15.343461990356445,
+          "target_tokens": 17,
+          "target_ce": 0.9025565876680262
+        },
+        {
+          "reaction_identity": "CC(c1ccc(Nc2nc(C(F)(F)F)cs2)cc1)c1nsnc1Cl.CO.[Na+].[OH-]>>CC(c1ccc(Nc2nc(C(F)(F)F)cs2)cc1)c1nsnc1O",
+          "target_nll": 15.30465030670166,
+          "target_tokens": 40,
+          "target_ce": 0.3826162576675415
+        },
+        {
+          "reaction_identity": "C1CCOC1.CC(O)C(Nc1ccccc1)C(=O)[O-].O=C1CCC(=O)N1Cl.c1ccc(P(c2ccccc2)c2ccccc2)cc1>>CC(Cl)C(Nc1ccccc1)C(=O)O",
+          "target_nll": 12.928420066833496,
+          "target_tokens": 25,
+          "target_ce": 0.5171368026733398
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCN(CC)CC.N#Cc1cc(C=O)ccn1.O=C1OC(P(=O)(O)O)c2ccccc21>>N#Cc1cc(C=C2OC(=O)c3ccccc32)ccn1",
+          "target_nll": 12.93930435180664,
+          "target_tokens": 33,
+          "target_ce": 0.3921001318729285
+        },
+        {
+          "reaction_identity": "CCN(CC)CC.Cc1cccc2c1NCCC2.ClCCl.O=C(Cl)CCl>>Cc1cccc2c1N(C(=O)CCl)CCC2",
+          "target_nll": 5.816528797149658,
+          "target_tokens": 26,
+          "target_ce": 0.22371264604421762
+        },
+        {
+          "reaction_identity": "CCO.CI.S=C1NC(c2ccccc2Cl)C(c2ccccc2Cl)N1>>CSC1=NC(c2ccccc2Cl)C(c2ccccc2Cl)N1.I",
+          "target_nll": 20.00041961669922,
+          "target_tokens": 38,
+          "target_ce": 0.5263268320184005
+        },
+        {
+          "reaction_identity": "CC(=O)[O-].CC(=O)[O-].CS(=O)(=O)c1ccc(Nc2n[nH]cc2C#N)cc1.Cl.ClCCl.OB(O)c1ccc(Cl)cc1.[Cu+2].c1ccncc1>>CS(=O)(=O)c1ccc(Nc2nn(-c3ccc(Cl)cc3)cc2C#N)cc1",
+          "target_nll": 12.539190292358398,
+          "target_tokens": 47,
+          "target_ce": 0.2667912828161361
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCn1ncc(C)c1B1OC(C)(C)C(C)(C)O1.COC(=O)c1cc(Br)co1.O=C([O-])[O-].[Na+].[Na+]>>CCn1ncc(C)c1-c1coc(C(=O)OC)c1",
+          "target_nll": 13.71738338470459,
+          "target_tokens": 29,
+          "target_ce": 0.47301322016222724
+        },
+        {
+          "reaction_identity": "CN(C)C=O.O=C(O)c1cc([N+](=O)[O-])cc2sc3ccccc3c(=O)c12.O=C([O-])[O-].OCCS.[K+].[K+]>>O=C(O)c1cc(SCCO)cc2sc3ccccc3c(=O)c12",
+          "target_nll": 9.667232513427734,
+          "target_tokens": 37,
+          "target_ce": 0.2612765544169658
+        },
+        {
+          "reaction_identity": "CC(C)c1nc(Cl)c([N+](=O)[O-])c(Cl)n1.CCN.CCN(CC)CC.CCO>>CCNc1nc(C(C)C)nc(Cl)c1[N+](=O)[O-]",
+          "target_nll": 6.491054058074951,
+          "target_tokens": 37,
+          "target_ce": 0.17543389346148516
+        },
+        {
+          "reaction_identity": "CCO.CN=Cc1c(C)n(C)c2ccccc12.[BH4-].[Na+]>>CNCc1c(C)n(C)c2ccccc12",
+          "target_nll": 2.782557964324951,
+          "target_tokens": 24,
+          "target_ce": 0.1159399151802063
+        },
+        {
+          "reaction_identity": "CC(C)OC(C)C.CCCCCCC.CCOC(=O)CC(=O)Cl.COC(=O)c1cc2ccc(Cl)cc2n1C.ClCCCl.O.[Cl-].[Cl-].[Cl-].[Cl-].[Ti+4]>>CCOC(=O)CC(=O)c1c(C(=O)OC)n(C)c2cc(Cl)ccc12",
+          "target_nll": 18.774133682250977,
+          "target_tokens": 42,
+          "target_ce": 0.44700318291073754
+        },
+        {
+          "reaction_identity": "ClCCCl.NC(=O)c1c(F)cccc1F.O=C(Cl)C(=O)Cl>>O=C=NC(=O)c1c(F)cccc1F",
+          "target_nll": 13.715991020202637,
+          "target_tokens": 26,
+          "target_ce": 0.5275381161616399
+        },
+        {
+          "reaction_identity": "CCNC(=O)Oc1cc(CCCOC)cc(CN(C(=O)C(CNC(=O)OC(C)(C)C)Cc2ccc(OCCOc3c(Cl)cc(C)cc3Cl)cc2)C2CC2)c1.Cl.ClCCl>>CCNC(=O)Oc1cc(CCCOC)cc(CN(C(=O)C(CN)Cc2ccc(OCCOc3c(Cl)cc(C)cc3Cl)cc2)C2CC2)c1",
+          "target_nll": 4.526464462280273,
+          "target_tokens": 77,
+          "target_ce": 0.05878525275688667
+        },
+        {
+          "reaction_identity": "CC(C)Cn1c(S)nc2ccccc2c1=O.CO.C[O-].Cl.ClCc1ccccn1.O.[Na+]>>CC(C)Cn1c(SCc2ccccn2)nc2ccccc2c1=O",
+          "target_nll": 4.9764556884765625,
+          "target_tokens": 34,
+          "target_ce": 0.14636634377872243
+        },
+        {
+          "reaction_identity": "NC(=O)c1ccc(F)cc1Br.O=C(OC(=O)C(F)(F)F)C(F)(F)F.c1ccncc1>>N#Cc1ccc(F)cc1Br",
+          "target_nll": 10.03727912902832,
+          "target_tokens": 17,
+          "target_ce": 0.5904281840604895
+        },
+        {
+          "reaction_identity": "C=CCc1cc(Cl)c(O)c2c(C)c(C(=O)c3ccc(OC)cc3)oc12.CCO>>CCCc1cc(Cl)c(O)c2c(C)c(C(=O)c3ccc(OC)cc3)oc12",
+          "target_nll": 5.400635242462158,
+          "target_tokens": 46,
+          "target_ce": 0.11740511396656865
+        },
+        {
+          "reaction_identity": "CCOc1nccc(C)c1-c1ccc2c3c(cnn3C3CCOCC3)c(=O)n(Cc3ccc(OC)cc3OC)c2c1.O=C(O)C(F)(F)F>>CCOc1nccc(C)c1-c1ccc2c(c1)[nH]c(=O)c1cnn(C3CCOCC3)c12",
+          "target_nll": 10.188559532165527,
+          "target_tokens": 54,
+          "target_ce": 0.1886770283734357
+        },
+        {
+          "reaction_identity": "CO.Cc1cc(Nc2cc3cc(C(=O)OC(C)C)ccc3c(OC(C)C)n2)n[nH]1.[K+].[OH-]>>Cc1cc(Nc2cc3cc(C(=O)O)ccc3c(OC(C)C)n2)n[nH]1",
+          "target_nll": 2.393458843231201,
+          "target_tokens": 46,
+          "target_ce": 0.05203171398328698
+        },
+        {
+          "reaction_identity": "CN(C)C=O.O.O=C([O-])O.O=P(Cl)(Cl)Cl.O=c1[nH]ccc2nc(-c3ccc(CN4CCC(c5n[nH]c(-c6ccccn6)n5)CC4)cc3)c(-c3ccccc3)cc12.[Na+]>>Clc1nccc2nc(-c3ccc(CN4CCC(c5nnc(-c6ccccn6)[nH]5)CC4)cc3)c(-c3ccccc3)cc12",
+          "target_nll": 15.548816680908203,
+          "target_tokens": 74,
+          "target_ce": 0.21011914433659734
+        },
+        {
+          "reaction_identity": "CC(=O)O[BH-](OC(C)=O)OC(C)=O.CSc1ccc(N)cn1.ClCCl.O=Cc1ccc(F)cc1.[Na+]>>CSc1ccc(NCc2ccc(F)cc2)cn1",
+          "target_nll": 7.131380558013916,
+          "target_tokens": 25,
+          "target_ce": 0.28525522232055667
+        }
+      ]
+    },
+    "mse_sigreg_with_native_activation_after_layer_21": {
+      "target_ce": 0.24710267200914185,
+      "mean_reaction_ce": 0.30566070108034266,
+      "target_tokens": 2748,
+      "reactions": [
+        {
+          "reaction_identity": "C1CCNC1.CC(=O)N(C)C.CCN(CC)CC.Cc1[nH]cc2c(=O)n(-c3ccc(Cl)cc3)nc-2c1-c1cccc(C(=O)O)c1.O=C1OCCN1P(=O)(Cl)N1CCOC1=O>>Cc1[nH]cc2c(=O)n(-c3ccc(Cl)cc3)nc-2c1-c1cccc(C(=O)N2CCCC2)c1",
+          "target_nll": 9.237091064453125,
+          "target_tokens": 61,
+          "target_ce": 0.15142772236808402
+        },
+        {
+          "reaction_identity": "C1CCOC1.C1CNCCN1.Cc1nc(S(C)(=O)=O)nc2c1ccc(=O)n2-c1ccc(C(=O)NCc2ccccc2)cc1>>Cc1nc(N2CCNCC2)nc2c1ccc(=O)n2-c1ccc(C(=O)NCc2ccccc2)cc1",
+          "target_nll": 10.42684268951416,
+          "target_tokens": 57,
+          "target_ce": 0.1829270647283186
+        },
+        {
+          "reaction_identity": "Brc1cnc2[nH]ccc2c1.CO.O.O=Cc1cc(OC(F)F)cc(OC(F)F)c1.[K+].[OH-]>>OC(c1cc(OC(F)F)cc(OC(F)F)c1)c1c[nH]c2ncc(Br)cc12",
+          "target_nll": 10.480555534362793,
+          "target_tokens": 49,
+          "target_ce": 0.21388888845638354
+        },
+        {
+          "reaction_identity": "CCOC(=O)C(C)(C)Br.COc1ccc(C(=O)NCCc2ccc(-c3ccc(O)cc3)cc2)cc1OC>>CCOC(=O)C(C)(C)Oc1ccc(-c2ccc(CCNC(=O)c3ccc(OC)c(OC)c3)cc2)cc1",
+          "target_nll": 8.216124534606934,
+          "target_tokens": 61,
+          "target_ce": 0.13469056614109728
+        },
+        {
+          "reaction_identity": "CC(=O)CCC=C(C)C.CCOC(=O)OCC.[H-].[Na+]>>CCOC(=O)CC(=O)CCC=C(C)C",
+          "target_nll": 12.155348777770996,
+          "target_tokens": 27,
+          "target_ce": 0.45019810288040724
+        },
+        {
+          "reaction_identity": "COC(=O)c1ccc(C)cc1Oc1ccc(OC(CCCc2ccccc2)C(O)c2cc(OC)c(C)c(OC)c2)cc1.O=C(O)c1ccccc1>>COC(=O)c1ccc(C)cc1Oc1ccc(OC(CCCc2ccccc2)C(OC(=O)c2ccccc2)c2cc(OC)c(C)c(OC)c2)cc1",
+          "target_nll": 8.933433532714844,
+          "target_tokens": 82,
+          "target_ce": 0.10894431137457126
+        },
+        {
+          "reaction_identity": "CN(C)C=O.CS(=O)(=O)OCCCn1c(=O)[nH]c2cccc(Cl)c21.Cl.O=C([O-])[O-].O=C(c1ccc(F)cc1)C1CCNCC1.[Na+].[Na+]>>O=C(c1ccc(F)cc1)C1CCN(CCCn2c(=O)[nH]c3cccc(Cl)c32)CC1",
+          "target_nll": 7.83132791519165,
+          "target_tokens": 55,
+          "target_ce": 0.14238778027621182
+        },
+        {
+          "reaction_identity": "Brc1ccc2oc(CN3CCCC3)nc2c1.C1COCCO1.CNCCNC.N.O.[Cu]I.[I-].[Na+]>>Ic1ccc2oc(CN3CCCC3)nc2c1",
+          "target_nll": 12.787873268127441,
+          "target_tokens": 28,
+          "target_ce": 0.45670975957598003
+        },
+        {
+          "reaction_identity": "CC(C)N=C=O.O=c1[nH]sc2cc(Cl)ccc12>>CC(C)NC(=O)n1sc2cc(Cl)ccc2c1=O",
+          "target_nll": 16.343400955200195,
+          "target_tokens": 30,
+          "target_ce": 0.5447800318400066
+        },
+        {
+          "reaction_identity": "CCOC(C)=O.CC[Si](CC)(CC)OC1CCC(O)CC1.O=S(=O)([O-])[O-].O=S(=O)([O-])c1ccccc1I.[Na+].[Na+].[Na+]>>CC[Si](CC)(CC)OC1CCC(=O)CC1",
+          "target_nll": 6.5887274742126465,
+          "target_tokens": 28,
+          "target_ce": 0.2353116955075945
+        },
+        {
+          "reaction_identity": "COC(=O)C1CC(S(=O)(=O)c2ccccc2Cl)CN1c1cc(C)nn1C1CCC1.[Li+].[OH-]>>Cc1cc(N2CC(S(=O)(=O)c3ccccc3Cl)CC2C(=O)O)n(C2CCC2)n1",
+          "target_nll": 1.8490142822265625,
+          "target_tokens": 51,
+          "target_ce": 0.0362551820044424
+        },
+        {
+          "reaction_identity": "BrCCCCOCc1ccccc1.COc1cc(N)c(Cl)cc1C(=O)NCC1CCNCC1.Cl.Cl.O=C([O-])[O-].[K+].[K+]>>COc1cc(N)c(Cl)cc1C(=O)NCC1CCN(CCCCOCc2ccccc2)CC1",
+          "target_nll": 5.058259963989258,
+          "target_tokens": 49,
+          "target_ce": 0.10322979518345424
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CO.CON=C(C)CN1C(=O)c2ccccc2C1=O.Clc1ncnc2nc[nH]c12.NN.O.O>>CON=C(C)CNc1ncnc2nc[nH]c12",
+          "target_nll": 16.0767765045166,
+          "target_tokens": 27,
+          "target_ce": 0.5954361668339482
+        },
+        {
+          "reaction_identity": "CC(C)(C)c1cc(CCC(=O)NN)cc(C(C)(C)C)c1O.CCCCCCCCCCCCC1CC(=O)OC1=O.Cc1ccccc1.O>>CCCCCCCCCCCCC1CC(=O)N(NC(=O)CCc2cc(C(C)(C)C)c(O)c(C(C)(C)C)c2)C1=O",
+          "target_nll": 10.78919506072998,
+          "target_tokens": 66,
+          "target_ce": 0.16347265243530273
+        },
+        {
+          "reaction_identity": "Cc1ccc(Sc2ccc(Br)cc2C=O)cc1.O=Cc1ccc(F)c(C(F)(F)F)c1>>Cc1ccc(Sc2ccc(C=O)cc2C(F)(F)F)cc1",
+          "target_nll": 8.948079109191895,
+          "target_tokens": 34,
+          "target_ce": 0.2631787973291734
+        },
+        {
+          "reaction_identity": "CNC(=O)COc1cccc2c1ccc(=O)n2CCN1CCC(N(Cc2ccc3c(c2)OCCO3)C(=O)OC(C)(C)C)CC1.ClC(Cl)Cl.O=C(O)C(F)(F)F>>CNC(=O)COc1cccc2c1ccc(=O)n2CCN1CCC(NCc2ccc3c(c2)OCCO3)CC1",
+          "target_nll": 4.441946506500244,
+          "target_tokens": 59,
+          "target_ce": 0.07528722892373295
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CN(C)C=O.CNOC.Cl.Cl.ClCCCl.O=C(O)c1ccc(Cl)c(Br)c1>>CON(C)C(=O)c1ccc(Cl)c(Br)c1",
+          "target_nll": 14.767760276794434,
+          "target_tokens": 27,
+          "target_ce": 0.5469540843257198
+        },
+        {
+          "reaction_identity": "CC(O[Si](C)(C)C(C)(C)C)C1C(=O)N(C(C(=O)OCc2ccc([N+](=O)[O-])cc2)=P(c2ccccc2)(c2ccccc2)c2ccccc2)C1C(C)C(=O)c1cn2cnc(C(=O)c3cccnc3)c2s1.CO.Cl.O=C([O-])O.[Na+]>>CC(O)C1C(=O)N(C(C(=O)OCc2ccc([N+](=O)[O-])cc2)=P(c2ccccc2)(c2ccccc2)c2ccccc2)C1C(C)C(=O)c1cn2cnc(C(=O)c3cccnc3)c2s1",
+          "target_nll": 10.532379150390625,
+          "target_tokens": 114,
+          "target_ce": 0.09238929079290022
+        },
+        {
+          "reaction_identity": "CN1CCCC1=O.COc1ccc2c(c1)C(C)(C)CC2=O.O=C([O-])[O-].Sc1ccccc1.[K+].[K+]>>CC1(C)CC(=O)c2ccc(O)cc21",
+          "target_nll": 4.841089248657227,
+          "target_tokens": 26,
+          "target_ce": 0.18619574033297026
+        },
+        {
+          "reaction_identity": "CSC.Cc1cc(C)nc(N)n1.ClCCl.O=C1CCC(=O)N1Cl>>Cc1cc(C)nc(N=S(C)C)n1",
+          "target_nll": 15.455079078674316,
+          "target_tokens": 23,
+          "target_ce": 0.6719599599423616
+        },
+        {
+          "reaction_identity": "CN(C)C=O.COC(=O)C(=O)c1ccc(O)cc1.CS(=O)(=O)O.OCCOc1ccc(Oc2ccccc2)cc1.[H-].[Na+]>>COC(=O)C(=O)c1ccc(OCCOc2ccc(Oc3ccccc3)cc2)cc1",
+          "target_nll": 11.21396541595459,
+          "target_tokens": 49,
+          "target_ce": 0.22885643706029776
+        },
+        {
+          "reaction_identity": "CCOCC.CN(C)C(CCc1ccccc1)C1CCC2(CC1)OCCO2.Cl.O.[Na+].[OH-]>>CN(C)C(CCc1ccccc1)C1CCC(=O)CC1",
+          "target_nll": 8.657308578491211,
+          "target_tokens": 32,
+          "target_ce": 0.27054089307785034
+        },
+        {
+          "reaction_identity": "C1COCCO1.Cc1ccccc1C(=O)Cl.Nc1ccc(C(=O)N2CCc3cn[nH]c3-c3sccc32)cc1.[H-].[Na+]>>Cc1ccccc1C(=O)Nc1ccc(C(=O)N2CCc3c[nH]nc3-c3sccc32)cc1",
+          "target_nll": 9.17275333404541,
+          "target_tokens": 56,
+          "target_ce": 0.16379916667938232
+        },
+        {
+          "reaction_identity": "CC#N.CN(CCCl)CCCl.Cl.NC1=CC23C=CC=CC2=CC1=C3.O.O=C([O-])[O-].[K+].[K+]>>CN1CCN(C2=CC34C=CC=CC3=CC2=C4)CC1",
+          "target_nll": 25.624675750732422,
+          "target_tokens": 37,
+          "target_ce": 0.6925588040738493
+        },
+        {
+          "reaction_identity": "CN(C)C=O.ClCC1CCOCO1.NCC1CCCCC1.O=C([O-])[O-].[I-].[K+].[K+].[Na+]>>C1CCC(CNCC2CCOCO2)CC1",
+          "target_nll": 6.49597692489624,
+          "target_tokens": 23,
+          "target_ce": 0.2824337793433148
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CCN(CC)C(=O)Cl.COC(=O)c1sc(-c2cccc(N)c2)c(Br)c1OCC(=O)OC(C)(C)C.ClCCl>>CCN(CC)C(=O)Nc1cccc(-c2sc(C(=O)OC)c(OCC(=O)OC(C)(C)C)c2Br)c1",
+          "target_nll": 9.592174530029297,
+          "target_tokens": 60,
+          "target_ce": 0.15986957550048828
+        },
+        {
+          "reaction_identity": "CC(C)(C)N(C(=O)[O-])C1CC(N2Cc3cn(CC(N)=O)nc3C2)COC1c1cc(F)ccc1F.ClCCl.O=C(O)C(F)(F)F>>NC(=O)Cn1cc2c(n1)CN(C1COC(c3cc(F)ccc3F)C(N)C1)C2",
+          "target_nll": 8.76439380645752,
+          "target_tokens": 45,
+          "target_ce": 0.1947643068101671
+        },
+        {
+          "reaction_identity": "COc1cc(F)ccc1B(O)O.N#Cc1cccnc1Cl>>COc1cc(F)ccc1-c1ncccc1C#N",
+          "target_nll": 10.413951873779297,
+          "target_tokens": 27,
+          "target_ce": 0.38570192125108504
+        },
+        {
+          "reaction_identity": "CNC(=O)NC(=O)C(CC1CCC(O)C1)c1ccc(Cl)c(Cl)c1.ClCCl.O=[Cr](=O)([O-])Cl.c1cc[nH+]cc1>>CNC(=O)NC(=O)C(CC1CCC(=O)C1)c1ccc(Cl)c(Cl)c1",
+          "target_nll": 5.456428050994873,
+          "target_tokens": 44,
+          "target_ce": 0.12400972843170166
+        },
+        {
+          "reaction_identity": "C1CCOC1.C=C[Mg+].CC(CCCC1CCCC(O)O1)OC(C)(C)C.[Cl-].[Cl-].[NH4+]>>C=CC(O)CCCC(O)CCCC(C)OC(C)(C)C",
+          "target_nll": 26.62732696533203,
+          "target_tokens": 32,
+          "target_ce": 0.832103967666626
+        },
+        {
+          "reaction_identity": "C1CCOC1.CC(C)N(C(C)C)P(Cl)OCCC#N.CCN(C(C)C)C(C)C.Cc1cn(C2CC(O)C(CSCc3c4ccccc4cc4ccccc34)O2)c(=O)[nH]c1=O.c1ccncc1>>Cc1cn(C2CC(OP(OCCC#N)N(C(C)C)C(C)C)C(CSCc3c4ccccc4cc4ccccc34)O2)c(=O)[nH]c1=O",
+          "target_nll": 7.744931221008301,
+          "target_tokens": 78,
+          "target_ce": 0.09929399001292694
+        },
+        {
+          "reaction_identity": "CC(C)=O.COc1cc(OC)nc(Oc2c(Cl)cccc2C=O)n1.O=P([O-])([O-])O.O=[Mn](=O)(=O)[O-].[K+].[Na+].[Na+]>>COc1cc(OC)nc(Oc2c(Cl)cccc2C(=O)O)n1",
+          "target_nll": 5.23110294342041,
+          "target_tokens": 36,
+          "target_ce": 0.14530841509501138
+        },
+        {
+          "reaction_identity": "CC(=O)CCC(=O)OC(C)(C)C.CS(C)=O.C[S+](C)(C)=O.O.[H-].[I-].[Na+]>>CC(C)(C)OC(=O)CCC1(C)CO1",
+          "target_nll": 19.376935958862305,
+          "target_tokens": 26,
+          "target_ce": 0.7452667676485502
+        },
+        {
+          "reaction_identity": "C1=COCC1.Cc1cc(C2=NOC(c3cc(Cl)cc(Cl)c3)(C(F)(F)F)C2)ccc1C(N)=O.Cc1ccc(S(=O)(=O)O)cc1.ClCCl.O.O=C([O-])O.[Na+]>>Cc1cc(C2=NOC(c3cc(Cl)cc(Cl)c3)(C(F)(F)F)C2)ccc1C(=O)NC1CCCO1",
+          "target_nll": 10.049160957336426,
+          "target_tokens": 60,
+          "target_ce": 0.1674860159556071
+        },
+        {
+          "reaction_identity": "CCCC[Sn](CCCC)(CCCC)c1ccc(C(=O)OCC)cc1.O=S(=O)(OC1=CCC2CCC1C2)C(F)(F)F>>CCOC(=O)c1ccc(C2=CCC3CCC2C3)cc1",
+          "target_nll": 12.478034973144531,
+          "target_tokens": 35,
+          "target_ce": 0.3565152849469866
+        },
+        {
+          "reaction_identity": "CN(C)c1cccc(C2(O)CCC(=O)CC2)c1.O=C(CNC(=O)c1cccc(C(F)(F)F)c1)NC1CNC1>>CN(C)c1cccc(C2(O)CCC(N3CC(NC(=O)CNC(=O)c4cccc(C(F)(F)F)c4)C3)CC2)c1",
+          "target_nll": 5.246953010559082,
+          "target_tokens": 69,
+          "target_ce": 0.07604279725447945
+        },
+        {
+          "reaction_identity": "CCN(C(C)C)C(C)C.CS(=O)(=O)Cl.ClCCl.OCCOCc1ccco1>>CS(=O)(=O)CCOCc1ccco1",
+          "target_nll": 12.643754005432129,
+          "target_tokens": 24,
+          "target_ce": 0.526823083559672
+        },
+        {
+          "reaction_identity": "CCO.CCOc1ccc(O)c2c1C(=O)N(CCl)S2(=O)=O.Sc1nnnn1-c1ccccc1.[Na]>>CCOc1ccc(O)c2c1C(=O)N(CSc1nnnn1-c1ccccc1)S2(=O)=O",
+          "target_nll": 3.6543030738830566,
+          "target_tokens": 50,
+          "target_ce": 0.07308606147766113
+        },
+        {
+          "reaction_identity": "COCCl.CS(C)=O.N#CCc1ccccn1.O.[H-].[Na+]>>COCC(C#N)c1ccccn1",
+          "target_nll": 13.562545776367188,
+          "target_tokens": 18,
+          "target_ce": 0.7534747653537326
+        },
+        {
+          "reaction_identity": "CC(=O)[O-].CC(=O)c1c(CBr)[n+]([O-])c2ccccc2[n+]1[O-].CN(C)C=O.[I-].[K+].[K+]>>CC(=O)OCc1c(C(C)=O)[n+]([O-])c2ccccc2[n+]1[O-]",
+          "target_nll": 4.824241638183594,
+          "target_tokens": 48,
+          "target_ce": 0.10050503412882487
+        },
+        {
+          "reaction_identity": "B.BC(C)(C)C(C)C.C1CCOC1.C=C(C)C(C)C.C=Cc1cnc2c(c1)oc(=O)n2C.O.[Na+].[OH-]>>Cn1c(=O)oc2cc(CCO)cnc21",
+          "target_nll": 13.093182563781738,
+          "target_tokens": 26,
+          "target_ce": 0.5035839447608361
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCOC(=O)CC(C)=O.CCn1nnc(C(C=CC=O)=C(c2ccc(F)cc2)c2ccc(F)cc2)n1>>CCOC(=O)CC(=O)CC(O)C=CC(=C(c1ccc(F)cc1)c1ccc(F)cc1)c1nnn(CC)n1",
+          "target_nll": 8.908141136169434,
+          "target_tokens": 63,
+          "target_ce": 0.14139906565348306
+        },
+        {
+          "reaction_identity": "COc1c(Cl)cccc1C(C)(C)CC(O)(C=O)C(F)(F)F.ClCCl.Nc1cccc2c(=O)[nH]ncc12.[Cl-].[Cl-].[Cl-].[Cl-].[Ti+4]>>COc1c(Cl)ccc2c1C(C)(C)CC(O)(C(F)(F)F)C2Nc1cccc2c(=O)[nH]ncc12",
+          "target_nll": 29.181461334228516,
+          "target_tokens": 62,
+          "target_ce": 0.4706687311972341
+        },
+        {
+          "reaction_identity": "CO.Cc1nonc1CN.N.O=C(N=C=S)c1ccccc1>>Cc1nonc1CNC(N)=S",
+          "target_nll": 15.62692928314209,
+          "target_tokens": 17,
+          "target_ce": 0.9192311343024758
+        },
+        {
+          "reaction_identity": "CC(c1ccc(Nc2nc(C(F)(F)F)cs2)cc1)c1nsnc1Cl.CO.[Na+].[OH-]>>CC(c1ccc(Nc2nc(C(F)(F)F)cs2)cc1)c1nsnc1O",
+          "target_nll": 14.56708812713623,
+          "target_tokens": 40,
+          "target_ce": 0.36417720317840574
+        },
+        {
+          "reaction_identity": "C1CCOC1.CC(O)C(Nc1ccccc1)C(=O)[O-].O=C1CCC(=O)N1Cl.c1ccc(P(c2ccccc2)c2ccccc2)cc1>>CC(Cl)C(Nc1ccccc1)C(=O)O",
+          "target_nll": 11.648759841918945,
+          "target_tokens": 25,
+          "target_ce": 0.46595039367675783
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCN(CC)CC.N#Cc1cc(C=O)ccn1.O=C1OC(P(=O)(O)O)c2ccccc21>>N#Cc1cc(C=C2OC(=O)c3ccccc32)ccn1",
+          "target_nll": 12.892904281616211,
+          "target_tokens": 33,
+          "target_ce": 0.3906940691398852
+        },
+        {
+          "reaction_identity": "CCN(CC)CC.Cc1cccc2c1NCCC2.ClCCl.O=C(Cl)CCl>>Cc1cccc2c1N(C(=O)CCl)CCC2",
+          "target_nll": 5.578724384307861,
+          "target_tokens": 26,
+          "target_ce": 0.21456632247337928
+        },
+        {
+          "reaction_identity": "CCO.CI.S=C1NC(c2ccccc2Cl)C(c2ccccc2Cl)N1>>CSC1=NC(c2ccccc2Cl)C(c2ccccc2Cl)N1.I",
+          "target_nll": 19.82107162475586,
+          "target_tokens": 38,
+          "target_ce": 0.521607148019891
+        },
+        {
+          "reaction_identity": "CC(=O)[O-].CC(=O)[O-].CS(=O)(=O)c1ccc(Nc2n[nH]cc2C#N)cc1.Cl.ClCCl.OB(O)c1ccc(Cl)cc1.[Cu+2].c1ccncc1>>CS(=O)(=O)c1ccc(Nc2nn(-c3ccc(Cl)cc3)cc2C#N)cc1",
+          "target_nll": 12.14995002746582,
+          "target_tokens": 47,
+          "target_ce": 0.25850957505246425
+        },
+        {
+          "reaction_identity": "C1CCOC1.CCn1ncc(C)c1B1OC(C)(C)C(C)(C)O1.COC(=O)c1cc(Br)co1.O=C([O-])[O-].[Na+].[Na+]>>CCn1ncc(C)c1-c1coc(C(=O)OC)c1",
+          "target_nll": 12.974380493164062,
+          "target_tokens": 29,
+          "target_ce": 0.4473924307987608
+        },
+        {
+          "reaction_identity": "CN(C)C=O.O=C(O)c1cc([N+](=O)[O-])cc2sc3ccccc3c(=O)c12.O=C([O-])[O-].OCCS.[K+].[K+]>>O=C(O)c1cc(SCCO)cc2sc3ccccc3c(=O)c12",
+          "target_nll": 9.985124588012695,
+          "target_tokens": 37,
+          "target_ce": 0.26986823210845123
+        },
+        {
+          "reaction_identity": "CC(C)c1nc(Cl)c([N+](=O)[O-])c(Cl)n1.CCN.CCN(CC)CC.CCO>>CCNc1nc(C(C)C)nc(Cl)c1[N+](=O)[O-]",
+          "target_nll": 6.457958698272705,
+          "target_tokens": 37,
+          "target_ce": 0.1745394242776407
+        },
+        {
+          "reaction_identity": "CCO.CN=Cc1c(C)n(C)c2ccccc12.[BH4-].[Na+]>>CNCc1c(C)n(C)c2ccccc12",
+          "target_nll": 2.716066837310791,
+          "target_tokens": 24,
+          "target_ce": 0.11316945155461629
+        },
+        {
+          "reaction_identity": "CC(C)OC(C)C.CCCCCCC.CCOC(=O)CC(=O)Cl.COC(=O)c1cc2ccc(Cl)cc2n1C.ClCCCl.O.[Cl-].[Cl-].[Cl-].[Cl-].[Ti+4]>>CCOC(=O)CC(=O)c1c(C(=O)OC)n(C)c2cc(Cl)ccc12",
+          "target_nll": 18.426233291625977,
+          "target_tokens": 42,
+          "target_ce": 0.438719840276809
+        },
+        {
+          "reaction_identity": "ClCCCl.NC(=O)c1c(F)cccc1F.O=C(Cl)C(=O)Cl>>O=C=NC(=O)c1c(F)cccc1F",
+          "target_nll": 13.663534164428711,
+          "target_tokens": 26,
+          "target_ce": 0.5255205447857196
+        },
+        {
+          "reaction_identity": "CCNC(=O)Oc1cc(CCCOC)cc(CN(C(=O)C(CNC(=O)OC(C)(C)C)Cc2ccc(OCCOc3c(Cl)cc(C)cc3Cl)cc2)C2CC2)c1.Cl.ClCCl>>CCNC(=O)Oc1cc(CCCOC)cc(CN(C(=O)C(CN)Cc2ccc(OCCOc3c(Cl)cc(C)cc3Cl)cc2)C2CC2)c1",
+          "target_nll": 4.620771884918213,
+          "target_tokens": 77,
+          "target_ce": 0.06001002447945731
+        },
+        {
+          "reaction_identity": "CC(C)Cn1c(S)nc2ccccc2c1=O.CO.C[O-].Cl.ClCc1ccccn1.O.[Na+]>>CC(C)Cn1c(SCc2ccccn2)nc2ccccc2c1=O",
+          "target_nll": 4.774990558624268,
+          "target_tokens": 34,
+          "target_ce": 0.1404408987830667
+        },
+        {
+          "reaction_identity": "NC(=O)c1ccc(F)cc1Br.O=C(OC(=O)C(F)(F)F)C(F)(F)F.c1ccncc1>>N#Cc1ccc(F)cc1Br",
+          "target_nll": 9.714653968811035,
+          "target_tokens": 17,
+          "target_ce": 0.5714502334594727
+        },
+        {
+          "reaction_identity": "C=CCc1cc(Cl)c(O)c2c(C)c(C(=O)c3ccc(OC)cc3)oc12.CCO>>CCCc1cc(Cl)c(O)c2c(C)c(C(=O)c3ccc(OC)cc3)oc12",
+          "target_nll": 5.133912086486816,
+          "target_tokens": 46,
+          "target_ce": 0.11160678448884384
+        },
+        {
+          "reaction_identity": "CCOc1nccc(C)c1-c1ccc2c3c(cnn3C3CCOCC3)c(=O)n(Cc3ccc(OC)cc3OC)c2c1.O=C(O)C(F)(F)F>>CCOc1nccc(C)c1-c1ccc2c(c1)[nH]c(=O)c1cnn(C3CCOCC3)c12",
+          "target_nll": 9.852087020874023,
+          "target_tokens": 54,
+          "target_ce": 0.18244605594211155
+        },
+        {
+          "reaction_identity": "CO.Cc1cc(Nc2cc3cc(C(=O)OC(C)C)ccc3c(OC(C)C)n2)n[nH]1.[K+].[OH-]>>Cc1cc(Nc2cc3cc(C(=O)O)ccc3c(OC(C)C)n2)n[nH]1",
+          "target_nll": 2.4201884269714355,
+          "target_tokens": 46,
+          "target_ce": 0.05261279189068338
+        },
+        {
+          "reaction_identity": "CN(C)C=O.O.O=C([O-])O.O=P(Cl)(Cl)Cl.O=c1[nH]ccc2nc(-c3ccc(CN4CCC(c5n[nH]c(-c6ccccn6)n5)CC4)cc3)c(-c3ccccc3)cc12.[Na+]>>Clc1nccc2nc(-c3ccc(CN4CCC(c5nnc(-c6ccccn6)[nH]5)CC4)cc3)c(-c3ccccc3)cc12",
+          "target_nll": 15.08305835723877,
+          "target_tokens": 74,
+          "target_ce": 0.20382511293565905
+        },
+        {
+          "reaction_identity": "CC(=O)O[BH-](OC(C)=O)OC(C)=O.CSc1ccc(N)cn1.ClCCl.O=Cc1ccc(F)cc1.[Na+]>>CSc1ccc(NCc2ccc(F)cc2)cn1",
+          "target_nll": 7.155745983123779,
+          "target_tokens": 25,
+          "target_ce": 0.28622983932495116
+        }
+      ]
+    }
+  },
+  "paired_changes_vs_recipient": {
+    "native_with_mse_sigreg_activation_after_layer_11": {
+      "aggregate_target_ce_change": 0.008335386648275267,
+      "mean_reaction_ce_change": 0.007427991312042472,
+      "mean_reaction_ce_change_bootstrap_95_ci": [
+        -0.005859200299544204,
+        0.02024634237435971
+      ],
+      "improved_reactions": 24,
+      "worsened_reactions": 40,
+      "tied_reactions": 0
+    },
+    "native_with_mse_sigreg_activation_after_layer_16": {
+      "aggregate_target_ce_change": 0.006896812105456451,
+      "mean_reaction_ce_change": 0.006425322295232389,
+      "mean_reaction_ce_change_bootstrap_95_ci": [
+        -0.00643220320962448,
+        0.018884908218487442
+      ],
+      "improved_reactions": 27,
+      "worsened_reactions": 37,
+      "tied_reactions": 0
+    },
+    "native_with_mse_sigreg_activation_after_layer_21": {
+      "aggregate_target_ce_change": 0.03068757694881552,
+      "mean_reaction_ce_change": 0.034310716476703695,
+      "mean_reaction_ce_change_bootstrap_95_ci": [
+        0.02148651558434313,
+        0.047504311363251596
+      ],
+      "improved_reactions": 15,
+      "worsened_reactions": 49,
+      "tied_reactions": 0
+    },
+    "mse_sigreg_with_native_activation_after_layer_11": {
+      "aggregate_target_ce_change": -0.007220506321047759,
+      "mean_reaction_ce_change": -0.004772488651329994,
+      "mean_reaction_ce_change_bootstrap_95_ci": [
+        -0.017750743850487367,
+        0.00907100642725059
+      ],
+      "improved_reactions": 33,
+      "worsened_reactions": 31,
+      "tied_reactions": 0
+    },
+    "mse_sigreg_with_native_activation_after_layer_16": {
+      "aggregate_target_ce_change": -0.0033034132210621736,
+      "mean_reaction_ce_change": -0.0021068515532232795,
+      "mean_reaction_ce_change_bootstrap_95_ci": [
+        -0.01473972479713811,
+        0.011172206735164596
+      ],
+      "improved_reactions": 32,
+      "worsened_reactions": 32,
+      "tied_reactions": 0
+    },
+    "mse_sigreg_with_native_activation_after_layer_21": {
+      "aggregate_target_ce_change": -0.006133122822429754,
+      "mean_reaction_ce_change": -0.005396998779365171,
+      "mean_reaction_ce_change_bootstrap_95_ci": [
+        -0.018065000062450993,
+        0.007930824792463745
+      ],
+      "improved_reactions": 31,
+      "worsened_reactions": 33,
+      "tied_reactions": 0
+    }
+  },
+  "position_refinements_vs_recipient": {},
+  "runtime_seconds": 82.80419100006111,
+  "peak_cuda_bytes": 2033244672,
+  "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU",
+  "torch_version": "2.3.0+cu121"
+}
