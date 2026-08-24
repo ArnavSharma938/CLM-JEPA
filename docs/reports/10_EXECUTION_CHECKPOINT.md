@@ -1,8 +1,8 @@
 # Gradient-interaction execution checkpoint
 
-Status updated 2026-08-24 01:05 UTC. This is a recovery handoff, not the
-scientific conclusion; the controlled matrix is still running sequentially on
-the sole retained RTX A6000.
+Final status updated 2026-08-24. The controlled matrix and revised 256-reaction
+endpoint are complete. This recovery handoff is superseded by the measured
+results and verdict in [report 09](09_GRADIENT_INTERACTION_EXPERIMENT.md).
 
 ## Saved and complete
 
@@ -24,7 +24,7 @@ the sole retained RTX A6000.
 - The full local suite passes: 84 passed, one intentional skip.
 - Local implementation checkpoint commit: `07fac75`.
 
-## Running and incomplete
+## Final completion
 
 - All seven training conditions, cross-checkpoint gradient audits, and
   seven-condition representation diagnostics are complete.
@@ -38,13 +38,12 @@ the sole retained RTX A6000.
   [-3.125,+1.562] pp, exact McNemar p=0.7539.
 - Lambda 0.25 versus native is 5/256 versus 11/256 top-1, difference -2.344 pp,
   CI [-4.688,-0.391] pp, exact McNemar p=0.0703.
-- The 256-only endpoint runner is currently evaluating PCGrad, followed by
-  CAGrad and auxiliary similarity, with both native and direct paired tests.
-- The autoregressive verdict must not be inferred from the early two-row
-  training validation or from geometry. It remains pending the frozen panels.
-- Final work: validate retained condition counts, build `summary.json`, replace the
-  in-progress Results section in report 09, copy all artifacts locally, rerun
-  tests, commit the final report/results, and delete the cloud instance.
-
-The revised remote runner advances sequentially by completion files:
-PCGrad -> CAGrad -> auxiliary similarity -> `EXPERIMENT_COMPLETE`.
+- PCGrad, CAGrad, and Du auxiliary similarity each completed one-view and
+  official five-view evaluation on exactly 256 reactions.
+- Every retained prediction file has 256 unique identities in exact frozen
+  manifest order. All paired native/direct summaries were produced.
+- The consolidated local artifact is
+  `runs/gradient_interaction/a6000/endpoint_256/summary.json`.
+- The autoregressive verdict is negative: PCGrad and CAGrad worsen target-token
+  CE; Du adaptation largely suppresses JEPA and approaches but does not improve
+  on native CE or official generation. See report 09 for full statistics.
