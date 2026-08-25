@@ -79,12 +79,22 @@ def load_condition(checkpoint: Path, *, legacy_predictor_vocabulary: bool):
 
 
 def linear_cka(first: torch.Tensor, second: torch.Tensor) -> float:
-    """Feature-space linear CKA without allocating an N-by-N token Gram."""
-    x = first.double() - first.double().mean(dim=0, keepdim=True)
-    y = second.double() - second.double().mean(dim=0, keepdim=True)
-    cross = x.T @ y
-    denominator = (x.T @ x).square().sum().sqrt() * (y.T @ y).square().sum().sqrt()
-    return float(cross.square().sum() / denominator.clamp_min(torch.finfo(x.dtype).eps))
+    """Exact linear CKA using the smaller Gram orientation and CUDA GEMMs."""
+    device = torch.device("cuda") if torch.cuda.is_available() else first.device
+    x = first.float().to(device)
+    y = second.float().to(device)
+    x = x - x.mean(dim=0, keepdim=True)
+    y = y - y.mean(dim=0, keepdim=True)
+    if x.size(0) <= x.size(1):
+        x_gram = x @ x.T
+        y_gram = y @ y.T
+        numerator = (x_gram * y_gram).sum()
+        denominator = x_gram.square().sum().sqrt() * y_gram.square().sum().sqrt()
+    else:
+        cross = x.T @ y
+        numerator = cross.square().sum()
+        denominator = (x.T @ x).square().sum().sqrt() * (y.T @ y).square().sum().sqrt()
+    return float(numerator / denominator.clamp_min(torch.finfo(x.dtype).eps))
 
 
 @torch.inference_mode()

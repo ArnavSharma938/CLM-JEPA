@@ -25,6 +25,7 @@ The official endpoint result excludes the prespecified +1 percentage-point benef
 | `src/train.py` | Canonical ChemFM native/cLM-JEPA trainer for both RTX 4050 and A6000 |
 | `src/chemfm.py` | Tokenization, task collation, LoRA loading, generation, canonicalization |
 | `src/jepa.py` | JEPA readouts, SIGReg, and the shared train-only projection head |
+| `src/vjepa2_1.py` | Dense causal token prediction, deep supervision, latent predictor, and EMA target state |
 | `src/metrics.py` | Generative and representation metrics |
 | `src/representation_eval.py` | Standard frozen representation evaluation |
 | `src/eval_uspto_mit_five_view_a6000.py` | Official five-view endpoint evaluation optimized for one A6000 |
@@ -51,6 +52,7 @@ The base ChemFM checkpoint is expected at `models/ChemFM-1B` unless `CHEMFM_MODE
 ```powershell
 python src/train.py --help
 python src/representation_eval.py --help
+python scripts/audit_vjepa2_1_feasibility.py --help
 python scripts/decoder_coupling.py --help
 python src/eval_uspto_mit_five_view_a6000.py --help
 ```

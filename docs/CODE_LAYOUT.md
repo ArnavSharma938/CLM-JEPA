@@ -9,6 +9,7 @@ There is one ChemFM training implementation for both GPUs:
 | `src/train.py` | Native and cLM-JEPA fine-tuning, checkpoint/resume, validation, diagnostics, W&B | Hardware-agnostic; batch/checkpointing settings determine fit |
 | `src/chemfm.py` | ChemFM tokenizer, collation, LoRA loading, generation | Hardware-agnostic |
 | `src/jepa.py` | Direct raw-endpoint JEPA readouts/losses and exact SIGReg | Hardware-agnostic |
+| `src/vjepa2_1.py` | V-JEPA 2.1 dense causal masking, deep feature fusion, latent predictor, and functional EMA target | Hardware-agnostic; pilot uses A6000 |
 | `src/gradient_interaction.py` | Weighted sum, asymmetric PCGrad, two-task CAGrad, and Du auxiliary-gradient similarity | Hardware-agnostic |
 | `src/metrics.py` | Generative and vectorized representation/PCA metrics | Hardware-agnostic |
 | `src/representation_eval.py` | Standard frozen representation diagnostics | Any compatible GPU |
@@ -29,6 +30,7 @@ The A6000 experiments do not use a second ChemFM trainer. They invoke `src/train
 | `scripts/audit_projected_mse_sigreg.py` | Raw/projected geometry plus projected MSE, SIGReg, and full-auxiliary alignment with disjoint held-out NTP | Any compatible GPU; physical chunking controls memory |
 | `scripts/audit_gradient_interaction_checkpoints.py` | Evaluation-only epoch-1/2/4 MSE, SIGReg, full-auxiliary, and selected-combiner alignment with held-out NTP | Any compatible GPU; A6000 used for the reported matrix |
 | `scripts/audit_generation_mechanism.py` | Frozen layerwise pathway comparison, activation patching, exact saved-state AdamW virtual steps, shortcut retrieval, and existing-generation chemistry rescoring | Local RTX 4050; no training |
+| `scripts/audit_vjepa2_1_feasibility.py` | Frozen exact target-token CE and representation comparison for native, endpoint MSE+SIGReg, and dense V-JEPA, plus training/VJP summary | Any compatible CUDA GPU |
 | `scripts/profile_a6000_generation.py` | CUDA-event/model-forward and cProfile split for exact beam-10 generation | A6000 optimization assay |
 | `scripts/benchmark_gpu_utilization.py` | Fixed-interval NVIDIA utilization, memory, power, and clock sampler | Hardware utilization assay |
 | `scripts/summarize_training_timing.py` | Aggregate synchronized training phase timers from a saved checkpoint | Training optimization assay |
@@ -48,6 +50,7 @@ The A6000 wrappers are also in flat `scripts/`; they are not alternative scienti
 | File | Purpose |
 |---|---|
 | `run_uspto_mit_official_endpoint.sh` | Four-worker parity-verified ChemFM endpoint run and stopping decision |
+| `run_vjepa2_1_a6000.sh` | Pinned setup, hash-verified model acquisition, 16-reaction super-mini, and sequential 1,280-reaction pilot |
 | `run_pcsf_a6000_benchmarks.sh` | Fixed A6000 execution frontier for the PCSF trainer |
 | `run_pcsf_generation_shards.sh` | Four exact batch-1 generation shards with deterministic identity merge |
 | `run_gradient_interaction_matrix.sh` | Restartable seven-condition training, diagnostics, and frozen generation matrix |
