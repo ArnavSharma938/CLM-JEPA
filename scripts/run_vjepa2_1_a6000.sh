@@ -38,7 +38,23 @@ print(json.dumps({
 PY
     "$PYTHON" -m pytest -q
     ;;
+  download-model)
+    setup_pid=$(cat "$ROOT/setup.pid")
+    while kill -0 "$setup_pid" 2>/dev/null; do
+      sleep 5
+    done
+    "$PYTHON" -c 'import huggingface_hub, torch, transformers'
+    "$PYTHON" scripts/download_chemfm_model.py
+    ;;
   supermini)
+    if [[ -f "$ROOT/model_download.pid" ]]; then
+      model_pid=$(cat "$ROOT/model_download.pid")
+      while kill -0 "$model_pid" 2>/dev/null; do
+        sleep 5
+      done
+    fi
+    test "$(sha256sum models/ChemFM-1B/model.safetensors | cut -d' ' -f1)" \
+      = "24686705d779db6876acc09c81d64d432262ef8b5dbfccc385212587079ce419"
     out="$ROOT/supermini"
     mkdir -p "$out"
     "$PYTHON" src/train.py \
@@ -103,7 +119,7 @@ PY
       --output "$out/result.json"
     ;;
   *)
-    echo "usage: $0 {setup|supermini|pilot}" >&2
+    echo "usage: $0 {setup|download-model|supermini|pilot}" >&2
     exit 2
     ;;
 esac
