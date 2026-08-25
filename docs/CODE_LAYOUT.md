@@ -51,6 +51,7 @@ The A6000 wrappers are also in flat `scripts/`; they are not alternative scienti
 |---|---|
 | `run_uspto_mit_official_endpoint.sh` | Four-worker parity-verified ChemFM endpoint run and stopping decision |
 | `run_vjepa2_1_a6000.sh` | Pinned setup, hash-verified model acquisition, 16-reaction super-mini, and sequential 1,280-reaction pilot |
+| `run_vjepa2_1_evaluation_a6000.sh` | Process-triggered global pair-structure and local target-token evaluation after the dense pilot |
 | `run_pcsf_a6000_benchmarks.sh` | Fixed A6000 execution frontier for the PCSF trainer |
 | `run_pcsf_generation_shards.sh` | Four exact batch-1 generation shards with deterministic identity merge |
 | `run_gradient_interaction_matrix.sh` | Restartable seven-condition training, diagnostics, and frozen generation matrix |

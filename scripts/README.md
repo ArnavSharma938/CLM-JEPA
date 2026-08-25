@@ -27,6 +27,7 @@ These are executable diagnostics, setup utilities, and hardware-specific wrapper
 ## A6000 wrappers
 
 - `run_vjepa2_1_a6000.sh`: sequential setup, 16-reaction super-mini, and controlled 1,280-reaction dense causal V-JEPA 2.1 pilot.
+- `run_vjepa2_1_evaluation_a6000.sh`: waits on the pilot PID, then runs the matched 256-reaction global diagnostic and frozen 64-reaction local target-token comparison sequentially.
 - `run_uspto_mit_official_endpoint.sh`: official five-view ChemFM endpoint evaluation.
 - `train_llm_jepa_gsm8k.py`: verified execution wrapper for upstream LLM-JEPA training.
 - `eval_llm_jepa_gsm8k.py`: batch-optimized GSM8K evaluation with upstream string parity checks.
