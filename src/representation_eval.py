@@ -19,6 +19,11 @@ def main() -> None:
     parser.add_argument("--dataset", choices=sorted(TASKS), required=True)
     parser.add_argument("--validation-manifest", type=Path, required=True)
     parser.add_argument("--run-json", type=Path, action="append", default=[])
+    parser.add_argument(
+        "--legacy-checkpoint", nargs=2, action="append", default=[],
+        metavar=("LABEL", "PATH"),
+        help="explicit labeled checkpoint using the historical predictor vocabulary",
+    )
     parser.add_argument("--include-pretrained", action="store_true")
     parser.add_argument("--seed", type=int, default=533)
     parser.add_argument("--k", type=int, default=1)
@@ -32,6 +37,8 @@ def main() -> None:
     conditions = []
     if args.include_pretrained:
         conditions.append(("pretrained", None, None, False))
+    for label, checkpoint in args.legacy_checkpoint:
+        conditions.append((label, Path(checkpoint), None, False))
     for path in args.run_json:
         result = json.loads(path.read_text(encoding="utf-8"))
         if result["dataset"] != args.dataset:
@@ -40,6 +47,9 @@ def main() -> None:
             result["condition"], Path(result["selected_checkpoint"]), path,
             result["condition"] == "clm_jepa_vjepa2_1",
         ))
+    labels = [condition[0] for condition in conditions]
+    if len(labels) != len(set(labels)):
+        raise ValueError("representation condition labels must be unique")
     output = {
         "dataset": args.dataset,
         "task": task,
