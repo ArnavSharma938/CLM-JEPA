@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import nullcontext
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 import torch
 import torch.nn.functional as F
@@ -40,6 +40,10 @@ from gradient_interaction import (  # noqa: E402
 from metrics import (  # noqa: E402
     canonical_set, effective_rank, rank_augmented_candidates,
     pca_structure, relationship_metrics, score_candidates,
+)
+from vjepa2_1 import (  # noqa: E402
+    VJEPA21_PAPER, VJEPA21_UPSTREAM_COMMIT, DenseVJEPA21,
+    DenseVJEPA21Config, component_gradient_norms, dense_trainable_parameters,
 )
 
 
@@ -155,6 +159,7 @@ class WandbTracker:
         max_gradient_parameter: str, max_parameter_gradient_norm: float,
         estimated_flops: float | None = None,
         gradient_interaction: Mapping[str, Any] | None = None,
+        extra_metrics: Mapping[str, float] | None = None,
     ) -> None:
         self.total_tokens += int(batch_tokens)
         self.jepa_active_batches += int(jepa_active)
@@ -196,6 +201,8 @@ class WandbTracker:
             payload["gradient/conflict"] = int(
                 gradient_interaction.get("conflict", False)
             )
+        if extra_metrics is not None:
+            payload.update({f"dense_jepa/{name}": value for name, value in extra_metrics.items()})
         if self.run is not None:
             self.run.log(payload, step=step)
 
@@ -679,14 +686,17 @@ def save_training_checkpoint(
         "numpy_rng_state": np.random.get_state(),
         "torch_rng_state": torch.get_rng_state(),
         "cuda_rng_states": torch.cuda.get_rng_state_all(),
-        "jepa_dropout_generator_state": method.jepa_dropout_generator.get_state(),
-        "sigreg_global_step": method.sigreg.global_step,
         "curves": curves,
         "epoch_history": epoch_history,
         "best_selector": best_selector,
         "best_checkpoint": best_checkpoint,
         "elapsed_wall_time_seconds": elapsed_wall_time_seconds,
     }
+    if isinstance(method, DenseVJEPA21):
+        state["dense_vjepa2_1"] = method.checkpoint_state()
+    else:
+        state["jepa_dropout_generator_state"] = method.jepa_dropout_generator.get_state()
+        state["sigreg_global_step"] = method.sigreg.global_step
     torch.save(state, checkpoint / "training_state.pt")
 
 
@@ -716,12 +726,24 @@ def restore_training_checkpoint(
         )
     if method is not None and "sigreg_global_step" in state:
         method.sigreg.global_step = state["sigreg_global_step"]
+    if isinstance(method, DenseVJEPA21):
+        if "dense_vjepa2_1" not in state:
+            raise ValueError("resume checkpoint is missing dense V-JEPA 2.1 state")
+        method.load_checkpoint_state(state["dense_vjepa2_1"], model)
     return state
 
 
-def gradient_diagnostics(model) -> tuple[float, tuple[str, float]]:
+def gradient_diagnostics(
+    model, extra_modules: Sequence[tuple[str, torch.nn.Module]] = (),
+) -> tuple[float, tuple[str, float]]:
     """Clip gradients and preserve the established per-parameter diagnostics."""
     named_parameters = [(f"model.{name}", parameter) for name, parameter in model.named_parameters()]
+    for prefix, module in extra_modules:
+        named_parameters.extend(
+            (f"{prefix}.{name}", parameter)
+            for name, parameter in module.named_parameters()
+            if parameter.requires_grad
+        )
     total = torch.nn.utils.clip_grad_norm_(
         [parameter for _, parameter in named_parameters], 1.0,
     )
@@ -1107,9 +1129,13 @@ def train(args):
     if not train_rows or not val_rows:
         raise ValueError("training and validation manifests must both be nonempty")
     has_mse_sigreg = args.condition == "clm_jepa_mse_sigreg"
+    has_dense_vjepa = args.condition == "clm_jepa_vjepa2_1"
     tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
     chemfm_vocab_size = len(tokenizer)
-    predictor_ids = add_predictor_tokens(tokenizer)
+    # The V-JEPA 2.1 predictor is a train-only latent transformer.  Unlike the
+    # historical LLM-JEPA path it never adds vocabulary tokens, so native
+    # ChemFM logits and generation vocabulary remain unchanged.
+    predictor_ids = [] if has_dense_vjepa else add_predictor_tokens(tokenizer)
     collator = ReactionCollator(tokenizer, task=task)
     shuffle_manifest_sha256 = None
     if args.condition == "shuffled":
@@ -1127,11 +1153,6 @@ def train(args):
             gradient_checkpointing_kwargs={"use_reentrant": False}
         )
         model.enable_input_require_grads()
-    method = CLMJEPA(
-        predictor_ids, tokenizer.eos_token_id, tokenizer.pad_token_id,
-        sigreg_seed=args.seed,
-        optimized_native_logits=args.optimized_jepa_forward,
-    )
     non_embedding_parameters = model.num_parameters(exclude_embeddings=True)
     generator = torch.Generator().manual_seed(args.seed)
     worker_kwargs = {
@@ -1155,20 +1176,38 @@ def train(args):
         if args.sigreg_tradeoff is None else args.sigreg_tradeoff
     )
     streaming_sigreg = has_mse_sigreg
-    optimizer_parameters = [
-        parameter for parameter in model.parameters() if parameter.requires_grad
-    ]
-    optimizer = torch.optim.AdamW(
-        optimizer_parameters,
-        lr=args.learning_rate, betas=ADAM_BETAS, eps=ADAM_EPSILON,
-        weight_decay=WEIGHT_DECAY, fused=args.fused_adamw,
-    )
     updates_per_epoch = (
         len(train_rows) // args.sigreg_batch_size
         if streaming_sigreg
         else max(1, math.ceil(len(loader) / args.gradient_accumulation_steps))
     )
     steps = max(1, args.epochs * updates_per_epoch)
+    if has_dense_vjepa:
+        method = DenseVJEPA21(
+            DenseVJEPA21Config(
+                encoder_dim=model.config.hidden_size,
+                seed=args.seed,
+            ),
+            total_steps=steps,
+            ignore_index=IGNORE_INDEX,
+        ).to(model.device)
+        method.initialize_ema(model)
+    else:
+        method = CLMJEPA(
+            predictor_ids, tokenizer.eos_token_id, tokenizer.pad_token_id,
+            sigreg_seed=args.seed,
+            optimized_native_logits=args.optimized_jepa_forward,
+        )
+    optimizer_parameters = [
+        parameter for parameter in model.parameters() if parameter.requires_grad
+    ]
+    if has_dense_vjepa:
+        optimizer_parameters.extend(dense_trainable_parameters(method))
+    optimizer = torch.optim.AdamW(
+        optimizer_parameters,
+        lr=args.learning_rate, betas=ADAM_BETAS, eps=ADAM_EPSILON,
+        weight_decay=WEIGHT_DECAY, fused=args.fused_adamw,
+    )
     scheduler = get_scheduler(
         "cosine_with_min_lr", optimizer,
         num_warmup_steps=int(steps * WARMUP_RATIO),
@@ -1178,11 +1217,12 @@ def train(args):
     has_jepa = args.condition in {
         "monitor", "clm_jepa", "clm_jepa_target_sg",
         "clm_jepa_mse", "clm_jepa_mse_sigreg",
-        "shuffled", "jepa_only",
+        "clm_jepa_vjepa2_1", "shuffled", "jepa_only",
     }
     stop_gradient_target = args.condition == "clm_jepa_target_sg"
     has_sigreg = has_mse_sigreg
     jepa_loss_type = (
+        "dense_vjepa2_1" if has_dense_vjepa else
         "mse" if args.condition in {
             "clm_jepa_mse", "clm_jepa_mse_sigreg",
         }
@@ -1191,7 +1231,7 @@ def train(args):
     # With two global views, LeJEPA's view-center prediction loss is exactly
     # raw pairwise MSE / 4. This scale retains coefficient one on raw MSE.
     sigreg_relative_scale = 4.0 if jepa_loss_type == "mse" else 1.0
-    ratio = 1.0 - args.dropout
+    ratio = 1.0 if has_dense_vjepa else 1.0 - args.dropout
     resolved_ratio = ratio if has_jepa else -1.0
     actual_lambda = args.lambda_eff / ratio if has_jepa else 0.0
     native_weight = 0.0 if args.condition == "jepa_only" else 1.0
@@ -1205,11 +1245,14 @@ def train(args):
             if streaming_sigreg
             else args.batch_size * args.gradient_accumulation_steps
         ),
-        "k": args.k,
+        "k": None if has_dense_vjepa else args.k,
         "lambda_eff": args.lambda_eff, "actual_lambda": actual_lambda,
-        "jepa_loss_dropout": args.dropout if has_jepa else None,
+        "jepa_loss_dropout": (
+            None if has_dense_vjepa else args.dropout if has_jepa else None
+        ),
         "jepa_ratio": resolved_ratio,
-        "jepa_target_stop_gradient": stop_gradient_target,
+        "jepa_target_stop_gradient": has_dense_vjepa or stop_gradient_target,
+        "jepa_target_encoder": "EMA ChemFM causal encoder" if has_dense_vjepa else None,
         "jepa_loss_type": jepa_loss_type if has_jepa else None,
         "sigreg": has_sigreg,
         "sigreg_formulation": (
@@ -1230,6 +1273,20 @@ def train(args):
         ),
         "sigreg_exact_chunk_recomputation": streaming_sigreg,
         "raw_endpoint_auxiliary": has_mse_sigreg,
+        "dense_vjepa2_1": has_dense_vjepa,
+        "dense_vjepa2_1_paper": VJEPA21_PAPER if has_dense_vjepa else None,
+        "dense_vjepa2_1_upstream_commit": (
+            VJEPA21_UPSTREAM_COMMIT if has_dense_vjepa else None
+        ),
+        "dense_vjepa2_1_config": (
+            asdict(method.config) if has_dense_vjepa else None
+        ),
+        "dense_vjepa2_1_context_warmup_steps": (
+            [method.context_schedule.start, method.context_schedule.end]
+            if has_dense_vjepa else None
+        ),
+        "dense_vjepa2_1_total_planned_steps": steps if has_dense_vjepa else None,
+        "generation_vocabulary_unchanged": has_dense_vjepa,
         "gradient_interaction": (
             args.gradient_interaction if has_mse_sigreg else None
         ),
@@ -1314,6 +1371,7 @@ def train(args):
     try:
         for epoch_index in range(start_epoch, args.stop_after_epoch):
             model.train()
+            method.train()
             torch.cuda.synchronize()
             epoch_training_started = time.perf_counter()
             if has_mse_sigreg:
@@ -1386,25 +1444,100 @@ def train(args):
                     args.gradient_accumulation_steps, len(loader) - window_start
                 )
                 microbatch_number = epoch_index * len(loader) + batch_index + 1
-                output = method(
-                    model, batch, k=args.k,
-                    jepa_weight=actual_lambda if has_jepa else 0.0,
-                    native_weight=native_weight,
-                    monitor_only=args.condition == "monitor",
-                    stop_gradient_target=stop_gradient_target,
-                    jepa_loss_type=jepa_loss_type,
-                    sigreg_tradeoff=sigreg_tradeoff if has_sigreg else 0.0,
-                    sigreg_relative_scale=sigreg_relative_scale,
-                    jepa_ratio=resolved_ratio,
-                    jepa_targets=jepa_targets,
-                )
+                if has_dense_vjepa:
+                    output = method(
+                        model, batch, jepa_weight=actual_lambda,
+                        global_step=global_step,
+                    )
+                    dense_metrics = {
+                        "mask_loss": float(output.mask_loss.detach()),
+                        "context_loss": float(output.context_loss.detach()),
+                        "context_coefficient": output.context_coefficient,
+                        "mean_horizon_tokens": float(output.mask.horizons.float().mean()),
+                        "long_horizon_fraction": float(
+                            (output.mask.mask_token_indices >= method.config.short_mask_tokens)
+                            .float().mean()
+                        ),
+                    }
+                    for depth in method.supervised_depths:
+                        dense_metrics[f"mask_loss_depth_{depth}"] = float(
+                            output.mask_loss_by_depth[depth].detach()
+                        )
+                        dense_metrics[f"context_loss_depth_{depth}"] = float(
+                            output.context_loss_by_depth[depth].detach()
+                        )
+                        dense_metrics[f"student_scale_depth_{depth}"] = float(
+                            output.student_scale_by_depth[depth].detach()
+                        )
+                        dense_metrics[f"target_scale_depth_{depth}"] = float(
+                            output.target_scale_by_depth[depth].detach()
+                        )
+                    # V-JEPA 2.1 deep-supervision attribution is expensive
+                    # (one VJP per component), so collect it once at the first
+                    # step where the progressive context loss is fully active.
+                    if (
+                        global_step == method.context_schedule.end
+                        and batch_index % args.gradient_accumulation_steps == 0
+                    ):
+                        level_scale = 1.0 / len(method.supervised_depths)
+                        component_losses = {}
+                        for depth in method.supervised_depths:
+                            component_losses[f"mask_depth_{depth}"] = (
+                                level_scale * output.mask_loss_by_depth[depth]
+                            )
+                            component_losses[f"context_depth_{depth}"] = (
+                                level_scale
+                                * output.context_coefficient
+                                * output.context_loss_by_depth[depth]
+                            )
+                        dense_metrics.update(component_gradient_norms(
+                            component_losses,
+                            {
+                                "chemfm": tuple(
+                                    parameter for parameter in model.parameters()
+                                    if parameter.requires_grad
+                                ),
+                                "predictor": tuple(
+                                    dense_trainable_parameters(method)
+                                ),
+                            },
+                        ))
+                    jepa_active = True
+                    sigreg_value = None
+                    objective_value = float(output.jepa_loss.detach())
+                else:
+                    output = method(
+                        model, batch, k=args.k,
+                        jepa_weight=actual_lambda if has_jepa else 0.0,
+                        native_weight=native_weight,
+                        monitor_only=args.condition == "monitor",
+                        stop_gradient_target=stop_gradient_target,
+                        jepa_loss_type=jepa_loss_type,
+                        sigreg_tradeoff=sigreg_tradeoff if has_sigreg else 0.0,
+                        sigreg_relative_scale=sigreg_relative_scale,
+                        jepa_ratio=resolved_ratio,
+                        jepa_targets=jepa_targets,
+                    )
+                    dense_metrics = {}
+                    jepa_active = output.jepa_active
+                    sigreg_value = (
+                        None if output.sigreg_loss is None
+                        else float(output.sigreg_loss.detach())
+                    )
+                    objective_value = (
+                        None if output.jepa_objective_loss is None
+                        else float(output.jepa_objective_loss.detach())
+                    )
                 if not torch.isfinite(output.loss):
                     raise FloatingPointError(
                         f"non-finite loss at microbatch {microbatch_number}"
                     )
                 (output.loss / window_size).backward()
                 effective_tokens = batch_tokens
-                if output.jepa_active:
+                if has_dense_vjepa:
+                    # One causal student pass and one causal EMA-target pass.
+                    effective_tokens = 2 * batch_tokens
+                elif output.jepa_active:
                     effective_tokens += batch_tokens + args.k * len(batch["input_ids"])
                 window_records.append({
                     "native_loss": float(output.native_loss.detach()),
@@ -1412,18 +1545,13 @@ def train(args):
                         None if output.jepa_loss is None
                         else float(output.jepa_loss.detach())
                     ),
-                    "sigreg_loss": (
-                        None if output.sigreg_loss is None
-                        else float(output.sigreg_loss.detach())
-                    ),
-                    "jepa_objective_loss": (
-                        None if output.jepa_objective_loss is None
-                        else float(output.jepa_objective_loss.detach())
-                    ),
+                    "sigreg_loss": sigreg_value,
+                    "jepa_objective_loss": objective_value,
                     "total_loss": float(output.loss.detach()),
-                    "jepa_active": output.jepa_active,
+                    "jepa_active": jepa_active,
                     "batch_tokens": batch_tokens,
                     "effective_tokens": effective_tokens,
+                    "dense_metrics": dense_metrics,
                 })
                 boundary = (
                     (batch_index + 1) % args.gradient_accumulation_steps == 0
@@ -1432,8 +1560,12 @@ def train(args):
                 if not boundary:
                     continue
                 learning_rate = optimizer.param_groups[0]["lr"]
-                total_gradient_norm, largest_gradient = gradient_diagnostics(model)
+                total_gradient_norm, largest_gradient = gradient_diagnostics(
+                    model,
+                    (("dense_jepa", method),) if has_dense_vjepa else (),
+                )
                 optimizer.step()
+                ema_coefficient = method.update_ema(model) if has_dense_vjepa else None
                 scheduler.step()
                 optimizer.zero_grad(set_to_none=True)
                 global_step += 1
@@ -1480,8 +1612,21 @@ def train(args):
                     "effective_tokens": sum(
                         row["effective_tokens"] for row in window_records
                     ),
-                    "model_calls": len(window_records),
+                    "model_calls": len(window_records) * (2 if has_dense_vjepa else 1),
                 }
+                dense_keys = sorted(set().union(*(
+                    row["dense_metrics"] for row in window_records
+                )))
+                dense_record = {
+                    key: sum(
+                        row["dense_metrics"][key] for row in window_records
+                        if key in row["dense_metrics"]
+                    ) / sum(key in row["dense_metrics"] for row in window_records)
+                    for key in dense_keys
+                }
+                if ema_coefficient is not None:
+                    dense_record["ema_coefficient"] = ema_coefficient
+                record["dense_vjepa2_1"] = dense_record if dense_record else None
                 record["estimated_flops"] = (
                     6.0 * record["effective_tokens"] * non_embedding_parameters
                 )
@@ -1501,6 +1646,7 @@ def train(args):
                     effective_tokens=record["effective_tokens"],
                     peak_vram_bytes=torch.cuda.max_memory_allocated(),
                     estimated_flops=record["estimated_flops"],
+                    extra_metrics=dense_record if dense_record else None,
                 )
                 window_records = []
 
@@ -1564,9 +1710,20 @@ def train(args):
     val_loss = selected["validation_native_loss"]
     metrics = selected["validation_metrics"]
     predictions = selected["predictions"]
-    diagnostics = representation_diagnostics(
-        model, method, collator, val_rows, args.k, args.seed, task,
-    )
+    if has_dense_vjepa:
+        diagnostics = {
+            "type": "dense_vjepa2_1_training_summary",
+            "supervised_depths": list(method.supervised_depths),
+            "last_training_step": curves[-1].get("dense_vjepa2_1"),
+            "note": (
+                "causal token-representation comparison is computed by the "
+                "frozen feasibility evaluator, not endpoint-EOS diagnostics"
+            ),
+        }
+    else:
+        diagnostics = representation_diagnostics(
+            model, method, collator, val_rows, args.k, args.seed, task,
+        )
     result = {
         "gate": args.gate, "dataset": args.dataset, "task": task,
         "condition": args.condition, "seed": args.seed, "config": config,
@@ -1614,7 +1771,7 @@ def main():
         "--condition",
         choices=(
             "native", "monitor", "clm_jepa", "clm_jepa_target_sg",
-            "clm_jepa_mse", "clm_jepa_mse_sigreg",
+            "clm_jepa_mse", "clm_jepa_mse_sigreg", "clm_jepa_vjepa2_1",
             "shuffled", "jepa_only",
         ),
         required=True,
@@ -1779,6 +1936,17 @@ def main():
         raise ValueError("--gradient-interaction only applies to MSE+SIGReg")
     if args.condition == "native" and (args.lambda_eff != 1.0 or args.dropout != 0.5):
         raise ValueError("native trials must leave irrelevant JEPA defaults unchanged")
+    if args.condition == "clm_jepa_vjepa2_1" and (
+        args.k != 0
+        or args.lambda_eff != 1.0
+        or args.dropout != 0.5
+        or args.gradient_interaction != "weighted_sum"
+        or args.optimized_jepa_forward
+    ):
+        raise ValueError(
+            "dense V-JEPA 2.1 is frozen to lambda-eff=1, k=0, default dropout "
+            "placeholder, weighted-sum gradients, and the ordinary native-logit path"
+        )
     result = train(args)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
