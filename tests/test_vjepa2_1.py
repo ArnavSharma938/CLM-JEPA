@@ -309,3 +309,14 @@ def test_component_gradient_norms_are_exact_and_do_not_mutate_grad_buffers():
     }
     assert left.grad is None
     assert right.grad is None
+
+
+def test_dense_module_can_inherit_bfloat16_chemfm_dtype():
+    method = DenseVJEPA21(
+        tiny_config(), total_steps=4, ignore_index=IGNORE_INDEX,
+    ).to(dtype=torch.bfloat16)
+    assert method.online_norms[0].weight.dtype == torch.bfloat16
+    assert method.predictor.fusion[0].weight.dtype == torch.bfloat16
+    values = torch.randn(2, 7, 8, dtype=torch.bfloat16)
+    normalized = method.online_norms[0](values)
+    assert normalized.dtype == torch.bfloat16

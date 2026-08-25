@@ -1190,7 +1190,7 @@ def train(args):
             ),
             total_steps=steps,
             ignore_index=IGNORE_INDEX,
-        ).to(model.device)
+        ).to(device=model.device, dtype=model.dtype)
         method.initialize_ema(model)
     else:
         method = CLMJEPA(
