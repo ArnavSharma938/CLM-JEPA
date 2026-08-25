@@ -31,13 +31,14 @@ def main() -> None:
     task = TASKS[args.dataset]
     conditions = []
     if args.include_pretrained:
-        conditions.append(("pretrained", None, None))
+        conditions.append(("pretrained", None, None, False))
     for path in args.run_json:
         result = json.loads(path.read_text(encoding="utf-8"))
         if result["dataset"] != args.dataset:
             raise ValueError(f"{path} belongs to {result['dataset']}, not {args.dataset}")
         conditions.append((
             result["condition"], Path(result["selected_checkpoint"]), path,
+            result["condition"] == "clm_jepa_vjepa2_1",
         ))
     output = {
         "dataset": args.dataset,
@@ -47,11 +48,13 @@ def main() -> None:
         "k": args.k,
         "conditions": {},
     }
-    for label, checkpoint, source_result in conditions:
+    for label, checkpoint, source_result, dense_vjepa in conditions:
         set_seed(args.seed)
         tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
         chemfm_vocab_size = len(tokenizer)
-        predictor_ids = add_predictor_tokens(tokenizer)
+        predictor_ids = [] if dense_vjepa else add_predictor_tokens(tokenizer)
+        if dense_vjepa and args.k != 0:
+            raise ValueError("dense V-JEPA endpoint diagnostics require --k 0")
         collator = ReactionCollator(tokenizer, task=task)
         model = load_lora_model(
             MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size
