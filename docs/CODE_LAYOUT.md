@@ -17,6 +17,27 @@ There is one ChemFM training implementation for both GPUs:
 
 The A6000 experiments do not use a second ChemFM trainer. They invoke `src/train.py` with larger physical batches and without low-memory checkpointing/offload when those settings are verified to fit.
 
+## Method-family boundaries
+
+`src/train.py` classifies every condition before constructing auxiliary state:
+
+| Family | Conditions | Auxiliary implementation | Vocabulary and saved state |
+|---|---|---|---|
+| Native | `native` | None | Historical extended vocabulary for checkpoint/control parity; ordinary adapter/optimizer state |
+| Original endpoint cLM-JEPA | `clm_jepa`, `clm_jepa_target_sg`, `clm_jepa_mse`, `clm_jepa_mse_sigreg` | `src/jepa.py` | Historical predictor-token vocabulary; endpoint and SIGReg state are checkpointed where applicable |
+| Dense causal V-JEPA 2.1-style | `clm_jepa_vjepa2_1` | `src/vjepa2_1.py` | Base ChemFM vocabulary; predictor, level norms, EMA encoder, EMA count, suffix sampler, and schedules are checkpointed |
+
+All three families share ChemFM loading/collation, label-shifted NTP,
+optimizer/scheduler construction, data order, validation, and generation. The
+endpoint family reads isolated source/target EOS states. The dense family reads
+causal teacher-forced token fields and full-sequence EMA targets. Neither
+auxiliary module imports or composes the other. Both auxiliary paths are
+training-only, so generation calls the same ChemFM model API.
+
+Gradient-interaction selection is an option within the endpoint MSE+SIGReg
+family; it changes LoRA gradient combination and does not define a fourth
+representation objective.
+
 ## Experiment and execution scripts
 
 | File | Purpose | Intended environment |
@@ -75,6 +96,13 @@ Pinned upstream code remains under `references/chemfm/` and `references/llm-jepa
 
 Full released datasets and these frozen manifests are intentionally visible to Git. Historical run artifacts retain the paths used at execution time.
 
-## Removed one-off utilities
+## Removed and historical utilities
 
-The cleanup removed the superseded batch-size benchmark, endpoint-forward probe, legacy parallel-beam wrapper, and two profiler scripts. Their selected optimization is implemented directly in the official A6000 evaluator, and the retained measurements are recorded in `docs/reports/03_OFFICIAL_ENDPOINT_EVALUATION.md`.
+The cleanup removed the superseded batch-size benchmark, endpoint-forward
+probe, legacy parallel-beam wrapper, two profiler scripts, unused single-prompt
+generation wrapper, unused offline prediction-record helpers, an unused
+V-JEPA selected-layer wrapper, two unreferenced diagnostic helpers, and unused
+imports. Their retained measurements remain in the reports and machine
+artifacts. PCSF and projection definitions remain explicitly historical because
+their reports and frozen diagnostics still depend on them; neither is imported
+by `src/`.

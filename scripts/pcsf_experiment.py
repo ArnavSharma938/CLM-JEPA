@@ -22,7 +22,7 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from chemfm import (  # noqa: E402
-    IGNORE_INDEX, MODEL_DIR, TOKENIZER_DIR, ReactionCollator,
+    MODEL_DIR, TOKENIZER_DIR, ReactionCollator,
     load_lora_model, load_reaction_tokenizer,
 )
 from jepa import CLMJEPA, add_predictor_tokens  # noqa: E402

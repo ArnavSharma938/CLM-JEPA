@@ -1,3 +1,11 @@
+"""Shared ChemFM trainer with explicit method-family dispatch.
+
+Native ChemFM, endpoint cLM-JEPA (``src/jepa.py``), and the dense causal
+V-JEPA-2.1-style adaptation (``src/vjepa2_1.py``) share data loading, LoRA,
+NTP, optimization, checkpointing, validation, and generation.  Only the
+training-only auxiliary method differs.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -65,6 +73,35 @@ TASKS = {
     "non_uspto_retro": "retro",
 }
 SIGREG_TRADEOFF = 0.01
+
+NATIVE_CONDITION = "native"
+DENSE_VJEPA21_CONDITION = "clm_jepa_vjepa2_1"
+ENDPOINT_JEPA_CONDITIONS = frozenset({
+    "monitor",
+    "clm_jepa",
+    "clm_jepa_target_sg",
+    "clm_jepa_mse",
+    "clm_jepa_mse_sigreg",
+    "shuffled",
+    "jepa_only",
+})
+TRAINING_CONDITIONS = (
+    NATIVE_CONDITION,
+    *sorted(ENDPOINT_JEPA_CONDITIONS),
+    DENSE_VJEPA21_CONDITION,
+)
+
+
+def condition_family(condition: str) -> str:
+    """Return the maintained implementation family for a CLI condition."""
+    if condition == NATIVE_CONDITION:
+        return "native"
+    if condition in ENDPOINT_JEPA_CONDITIONS:
+        return "endpoint_clm_jepa"
+    if condition == DENSE_VJEPA21_CONDITION:
+        return "dense_vjepa2_1"
+    raise ValueError(f"unknown training condition: {condition}")
+
 
 DATASET_SPLITS = {
     "uspto_mit_synthesis": {
@@ -343,24 +380,6 @@ def validate_serialization_endings(collator, rows, eos_token_id: int) -> None:
             ]
             if any(int(target[-1]) != eos_token_id for target in jepa_targets):
                 raise ValueError("shuffled target truncation removed a required <eos>")
-
-
-def split_rows(rows: list[dict[str, str]], seed: int, train_size: int, val_size: int):
-    # Hash grouping keeps repeated sources/parents wholly in one side.
-    groups: dict[str, list[dict[str, str]]] = {}
-    for row in rows:
-        groups.setdefault(row["src"], []).append(row)
-    ordered = sorted(
-        groups.items(),
-        key=lambda item: hashlib.sha256(f"{seed}|{item[0]}".encode()).digest(),
-    )
-    train, val = [], []
-    for _, group in ordered:
-        destination = train if len(train) < train_size else val
-        destination.extend(group)
-        if len(val) >= val_size:
-            break
-    return train[:train_size], val[:val_size]
 
 
 def native_loss(model, loader) -> float:
@@ -1128,13 +1147,14 @@ def train(args):
         val_rows = val_rows[:args.max_validation_rows]
     if not train_rows or not val_rows:
         raise ValueError("training and validation manifests must both be nonempty")
+    method_family = condition_family(args.condition)
     has_mse_sigreg = args.condition == "clm_jepa_mse_sigreg"
-    has_dense_vjepa = args.condition == "clm_jepa_vjepa2_1"
+    has_dense_vjepa = method_family == "dense_vjepa2_1"
     tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
     chemfm_vocab_size = len(tokenizer)
-    # The V-JEPA 2.1 predictor is a train-only latent transformer.  Unlike the
-    # historical LLM-JEPA path it never adds vocabulary tokens, so native
-    # ChemFM logits and generation vocabulary remain unchanged.
+    # Preserve the historical native/endpoint vocabulary for checkpoint and
+    # control parity. The dense predictor is latent-only and keeps ChemFM's
+    # unextended vocabulary.
     predictor_ids = [] if has_dense_vjepa else add_predictor_tokens(tokenizer)
     collator = ReactionCollator(tokenizer, task=task)
     shuffle_manifest_sha256 = None
@@ -1214,11 +1234,7 @@ def train(args):
         num_training_steps=steps,
         scheduler_specific_kwargs={"min_lr": MIN_LEARNING_RATE},
     )
-    has_jepa = args.condition in {
-        "monitor", "clm_jepa", "clm_jepa_target_sg",
-        "clm_jepa_mse", "clm_jepa_mse_sigreg",
-        "clm_jepa_vjepa2_1", "shuffled", "jepa_only",
-    }
+    has_jepa = method_family != "native"
     stop_gradient_target = args.condition == "clm_jepa_target_sg"
     has_sigreg = has_mse_sigreg
     jepa_loss_type = (
@@ -1236,6 +1252,7 @@ def train(args):
     actual_lambda = args.lambda_eff / ratio if has_jepa else 0.0
     native_weight = 0.0 if args.condition == "jepa_only" else 1.0
     config = {
+        "method_family": method_family,
         "learning_rate": args.learning_rate, "epochs": args.epochs,
         "resource_budget_epochs": args.stop_after_epoch,
         "physical_batch_size": args.batch_size,
@@ -1769,11 +1786,7 @@ def main():
     parser.add_argument("--dataset", choices=sorted(TASKS), required=True)
     parser.add_argument(
         "--condition",
-        choices=(
-            "native", "monitor", "clm_jepa", "clm_jepa_target_sg",
-            "clm_jepa_mse", "clm_jepa_mse_sigreg", "clm_jepa_vjepa2_1",
-            "shuffled", "jepa_only",
-        ),
+        choices=TRAINING_CONDITIONS,
         required=True,
     )
     parser.add_argument("--seed", type=int, default=533)
@@ -1934,9 +1947,9 @@ def main():
         and args.gradient_interaction != "weighted_sum"
     ):
         raise ValueError("--gradient-interaction only applies to MSE+SIGReg")
-    if args.condition == "native" and (args.lambda_eff != 1.0 or args.dropout != 0.5):
+    if args.condition == NATIVE_CONDITION and (args.lambda_eff != 1.0 or args.dropout != 0.5):
         raise ValueError("native trials must leave irrelevant JEPA defaults unchanged")
-    if args.condition == "clm_jepa_vjepa2_1" and (
+    if args.condition == DENSE_VJEPA21_CONDITION and (
         args.k != 0
         or args.lambda_eff != 1.0
         or args.dropout != 0.5

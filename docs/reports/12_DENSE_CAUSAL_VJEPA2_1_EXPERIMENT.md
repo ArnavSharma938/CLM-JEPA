@@ -1,11 +1,11 @@
-# Dense causal V-JEPA 2.1 experiment
+# Dense causal V-JEPA 2.1-style experiment
 
-## Question
+## Scope
 
-Can the mechanism that V-JEPA 2.1 uses to repair weak dense visual features be
-translated into ChemFM so that JEPA supervises the same causal product-token
-field used by next-token generation, while retaining global source-product
-prediction?
+The implementation translates V-JEPA 2.1 dense masked/context prediction and
+deep self-supervision to the causal ChemFM product-token field. The evaluation
+records causal token states, global source-product measurements, NTP, and beam
+generation.
 
 This experiment is a mechanism change, not a gradient filter. Historical
 endpoint MSE/SIGReg, PCSF, projection heads, LLM-JEPA predictor tokens, PCGrad,
@@ -137,8 +137,8 @@ ChemFM trainables were finite:
 | 17 | 9.819 | 3.665 | .2125/.0083 |
 | 22 | 7.215 | 3.033 | .2192/.0080 |
 
-The large first aggregate ChemFM gradient is the established saved-embedding
-first-step transient also present in the prior native/direct runs. It was
+The first aggregate ChemFM gradient included the saved-embedding first-step
+transient also measured in the prior native/direct runs. It was
 clipped by the unchanged canonical trainer; dense component VJPs themselves
 were finite. Validation CE was 0.93766. Exact top-1 was 0/8 and is not treated
 as an efficacy estimate.
@@ -171,8 +171,9 @@ small relative to the ordinary combined gradient norm of 14.89:
 | 17 | .02701 | .00227 | .08287 | .00547 |
 | 22 | .02691 | .00324 | .08475 | .00589 |
 
-Thus the latent objective was numerically healthy and reached ChemFM, but most
-of its immediately measured gradient capacity was in the train-only predictor.
+At step 72, the predictor/ChemFM norm ratios for masked components at depths
+6/11/17/22 were `6.84x`, `4.73x`, `3.07x`, and `3.15x`. Context-component
+ratios were `2.34x`, `3.01x`, `2.41x`, and `1.82x`.
 
 ### One-view autoregressive behavior
 
@@ -186,9 +187,8 @@ Native and direct MSE+SIGReg are the validated epoch-4 references from report
 | Direct MSE+SIGReg | 6/256 (2.34%) | 24/256 (9.38%) | 34/256 (13.28%) | 49/256 (19.14%) | 86.60% |
 | Dense causal V-JEPA 2.1 | 6/256 (2.34%) | 21/256 (8.20%) | 29/256 (11.33%) | 39/256 (15.23%) | 83.20% |
 
-Dense supervision tied both references at exact top-1, but ranked fewer true
-products at every larger cutoff. This is a descriptive 256-reaction pilot, so
-the rank differences are not promoted to a powered significance claim. The
+Dense supervision had the same exact top-1 count and lower top-3/5/10 counts
+than both references. This is a descriptive 256-reaction pilot. The
 dense run's aggregate token-weighted validation loss was 0.239423, but that
 reduction convention is not identical to the historical per-reaction CE
 reported for native/direct. The matched frozen token analysis below supplies
@@ -206,14 +206,14 @@ token, rather than an isolated JEPA endpoint.
 | Direct MSE+SIGReg | .253330 (+.009498) | 92.431% |
 | Dense causal V-JEPA 2.1 | .253547 (+.009714) | 92.249% |
 
-Dense target-token CE was 3.98% worse than native and 0.000217 worse than the
-direct endpoint condition. The dense tokenizer retains ChemFM's native 392
+Dense target-token CE was 3.98% above native and `0.000217` above the direct
+endpoint condition. The dense tokenizer retains ChemFM's native 392
 entries; the legacy endpoint checkpoints contain ten unused historical
 predictor tokens (402 entries). Shared chemical token IDs are identical. Since
-those extra legacy logits can only make legacy normalization harder, they do
-not explain dense failing to beat the endpoint checkpoint.
+the ten extra logits appear only in the legacy endpoints, this tokenizer-size
+difference does not increase the dense condition's vocabulary denominator.
 
-Dense supervision did keep the causal token field closer to native:
+The causal-token comparisons were:
 
 | Depth | Direct CKA / relative RMS displacement | Dense CKA / relative RMS displacement |
 |---:|---:|---:|
@@ -223,8 +223,9 @@ Dense supervision did keep the causal token field closer to native:
 | 22 | .9897 / .2268 | .9940 / .1444 |
 | Final ChemFM norm | .9866 / .1880 | .9936 / .1233 |
 
-This establishes partial insulation, not useful local learning: being closer
-to native did not recover native CE, teacher-forced accuracy, or beam rank.
+Dense CKA was higher and relative RMS displacement lower than direct at every
+reported depth. Dense target-token CE was `.253547`, teacher-forced top-1 was
+`92.249%`, and beam top-10 was `39/256`.
 
 ### Global source-product structure
 
@@ -237,11 +238,9 @@ validated native/direct epoch-4 checkpoints explicitly.
 | Direct MSE+SIGReg | .001293/.001282 | 38.34/34.01 | .03125 | 83.98% | 93.75% | .3162 |
 | Dense causal V-JEPA 2.1 | .001255/.001988 | 40.68/27.64 | .03182 | 33.59% | 77.34% | .0819 |
 
-The dense condition did not retain the endpoint model's strong global
-source-product relationship: raw retrieval, residual retrieval, and held-out
-linear prediction were all below native. Dense targets retained much more
-native-like variance/rank than direct MSE+SIGReg, but geometry preservation is
-not evidence of predictive coupling.
+Dense raw retrieval, residual retrieval, and ridge explained variance were
+`33.59%`, `77.34%`, and `.0819`; native values were `45.31%`, `78.52%`, and
+`.1366`; direct values were `83.98%`, `93.75%`, and `.3162`.
 
 ## Artifact preservation
 
@@ -255,27 +254,17 @@ the remote copy before the A6000 instance was deleted. In particular,
 and the adapter is
 `d594b64b71f2e6adae9a7d0859f783de13e7f76ed775720cc7cd97e16cfa9b74`.
 
-## Verdict
+## Recorded comparisons
 
-The requested implementation is feasible, causal, resumable, numerically
-stable, and faithful to the load-bearing V-JEPA 2.1 mechanics. The tested
-four-epoch adaptation is nevertheless rejected as a generation improvement.
-
-It achieved one part of the intended mechanism: causal product-token states
-remained materially closer to native than under direct endpoint MSE+SIGReg.
-It failed the other two parts: it did not establish strong global
-source-product prediction, and its locally supervised states did not improve
-target-token CE or beam rank. Exact top-1 merely tied at 6/256 while top-k
-ranking worsened.
-
-The smallest remaining explanation is no longer simply "JEPA supervises the
-wrong endpoint." In this adaptation, the train-only predictor absorbs a much
-larger share of the dense latent-learning gradient than the ChemFM encoder,
-and the weak encoder-side update neither builds the former global relation nor
-improves local token decisions. Scaling this exact configuration to a new full
-run is not justified by the pilot. Before any further training, the smallest
-useful diagnostic would be a frozen/very-short predictor-versus-encoder update
-attribution test that asks whether latent improvement is almost entirely
-predictor-side. A new full training experiment should require evidence that a
-reference-grounded change can increase useful encoder-side dense prediction
-without recreating the harmful late-layer distortion already diagnosed.
+- Causal non-leakage, target alignment, four-depth extraction, EMA-only update,
+  detached targets, disabled-JEPA parity, and checkpoint/resume tests passed.
+- The eight-step super-mini completed with finite per-depth component gradients.
+- The four-epoch pilot completed 320 updates. Target-token CE was `.253547`,
+  versus `.243832` native and `.253330` direct endpoint MSE+SIGReg.
+- Exact top-1 was `6/256` for all three conditions; dense top-3/5/10 counts were
+  `21/29/39`, versus native `26/40/52` and direct `24/34/49`.
+- Dense causal-token CKA was higher than direct at every reported depth. Dense
+  global raw retrieval was `33.59%`, versus native `45.31%` and direct
+  `83.98%`.
+- At step 72, predictor/ChemFM component-gradient norm ratios ranged from
+  `3.07x` to `6.84x` for masked loss and `1.82x` to `3.01x` for context loss.

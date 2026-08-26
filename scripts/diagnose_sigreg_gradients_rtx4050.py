@@ -27,10 +27,9 @@ from chemfm import (
     load_reaction_tokenizer,
 )
 from geometry_diagnosis import effective_rank
-from jepa import CLMJEPA, SIGReg, add_predictor_tokens
+from jepa import CLMJEPA, add_predictor_tokens
 from diagnose_sigreg_batch16_rtx4050 import (
     _capture_gradients,
-    _combine_vectors,
     _cosine,
     _vector_stats,
     relative_sigreg_coefficient,
@@ -214,10 +213,6 @@ def _geometry(values: torch.Tensor) -> dict[str, float]:
 
 def _norm(vector: dict[str, torch.Tensor]) -> float:
     return _vector_stats({"vector": vector}, {"vector": 1.0})["norm"]
-
-
-def _scaled_norm(vector: dict[str, torch.Tensor], coefficient: float) -> float:
-    return abs(coefficient) * _norm(vector)
 
 
 def _endpoint_losses_and_gradients(

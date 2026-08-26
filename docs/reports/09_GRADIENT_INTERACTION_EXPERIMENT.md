@@ -1,16 +1,12 @@
 # JEPA–NTP gradient-interaction experiment
 
-## Question
+## Scope
 
-Does direct raw-endpoint MSE+SIGReg fail primarily because its auxiliary
-gradient destructively interferes with ChemFM's next-token-prediction (NTP)
-gradient?  The controlled test keeps the data, ChemFM checkpoint, LoRA
+This experiment measures interaction between direct raw-endpoint MSE+SIGReg and
+ChemFM's next-token-prediction (NTP) gradient. The controlled test keeps the data, ChemFM checkpoint, LoRA
 configuration, optimizer, schedule, logical batch, JEPA statistic, cadence,
 and evaluation pipeline fixed.  It changes only the way the NTP and JEPA
 gradients are combined on trainable LoRA parameters.
-
-Representation geometry is diagnostic, not the success criterion.  A method
-must improve autoregressive target-token CE, product rank, and generation.
 
 ## Primary-source implementation decisions
 
@@ -38,9 +34,9 @@ gradient tensors instead of allocating flattened multi-million-element
 vectors.  This is algebraically identical to applying the published vector
 formulas to a concatenated parameter gradient.
 
-## Production cleanup
+## Endpoint objective and maintained organization
 
-The active model/training path contains one unambiguous direct objective:
+The endpoint cLM-JEPA branch uses:
 
 \[
 L_{JEPA}=\operatorname{MSE}(h_s,h_t)
@@ -61,10 +57,14 @@ The following were removed from `src/`:
   rules.
 
 Historical PCSF and projection scripts, reports, checkpoints, and artifacts
-remain available.  The old projection-head definition was moved to
+remain available. The projection-head definition was moved to
 `scripts/historical_projection.py`; it is not imported by production code.
 A case-insensitive active-path scan found no PCSF/projector/rho/reference-spread
 terms under `src/`.
+
+The later dense causal V-JEPA-2.1-style branch is implemented separately in
+`src/vjepa2_1.py` and selected as its own training family. It does not combine
+with this endpoint objective or its gradient-interaction rules.
 
 ## Exact gradient construction
 
@@ -141,6 +141,25 @@ run completed just before this scope change and is retained as an out-of-scope
 artifact, not mixed into the 256-reaction primary table. A lambda-0.5 official
 run was stopped after 52 reactions and is likewise excluded. This user-directed
 mid-execution scope revision reduces endpoint power and is reported explicitly.
+
+### Retained execution record
+
+The completed weighted-sum controls each contain 320 updates and the same 172
+active JEPA updates. Their mean active-update `(cosine, conflict fraction, raw
+JEPA/NTP norm ratio, applied JEPA/NTP norm ratio)` values were:
+
+| `lambda_eff` | Mean tuple |
+|---:|---:|
+| 0.25 | `(0.00352, 0.5407, 0.09829, 0.04914)` |
+| 0.5 | `(0.00466, 0.6453, 0.09914, 0.09914)` |
+| 1.0 | `(-0.02637, 0.8081, 0.08985, 0.17970)` |
+| 2.0 | `(-0.03769, 0.8372, 0.06889, 0.27556)` |
+
+The implementation checkpoint recorded during execution was commit `07fac75`.
+The completed consolidated artifact is
+`runs/gradient_interaction/a6000/endpoint_256/summary.json`. The superseded
+execution-handoff report was removed after these nonduplicated details were
+incorporated here.
 
 ## Verification and evaluation
 
@@ -268,16 +287,13 @@ gradients.
 | CAGrad | -0.0706 | 86.6% | 0.0593 | 67.86% | - |
 | Du auxiliary similarity | -0.0050 | 52.3% | 0.1188 | 21.63% | 0.0153 |
 
-The apparent tension between frequent negative cosine and PCGrad's small
-modification is real: the conflicting component was usually only a small
-projection of JEPA onto NTP, even though its sign was negative.  PCGrad thus
-changed the summed update by only 1.14% on average.  CAGrad was not a mild
-filter: the original two-task rule changed it by 67.86%.  Du adaptation
-accepted only a very small positively aligned JEPA component on average and
-set it to zero on conflicting steps.
+PCGrad changed the summed update by `1.14%` on average while conflict was
+recorded on `82.6%` of active updates. CAGrad changed it by `67.86%`. Du
+adaptation's mean gate was `0.0153` and it set the gate to zero on conflicting
+steps.
 
-The independently replayed held-out NTP audit agreed that late auxiliary
-pressure remained weakly adverse.  At epoch 4, the cosine triplets below are
+In the independently replayed held-out NTP audit, the full auxiliary cosine was
+negative in `20/21` epoch-state audits. At epoch 4, the cosine triplets below are
 `MSE / SIGReg / full auxiliary`; the last column is the active-weighted full
 auxiliary norm relative to held-out NTP.
 
@@ -292,10 +308,8 @@ auxiliary norm relative to held-out NTP.
 | Du auxiliary similarity | +0.009 / -0.008 / -0.005 | 0.207 | 20.27% (gate 0) |
 
 Across epochs 1, 2, and 4, SIGReg was negatively aligned in 19 of 21 audits;
-the two positive measurements occurred only on the Du trajectory.  The full
-auxiliary was negative in 20 of 21 audits.  This confirms interference exists,
-but does not establish that removing its one-dimensional conflicting
-projection is sufficient.
+the two positive measurements occurred on the Du trajectory. The full
+auxiliary was negative in 20 of 21 audits.
 
 ### Representation geometry
 
@@ -315,12 +329,11 @@ dominated.  Retrieval is four-way raw pair retrieval.
 | CAGrad | .00071 / .00064 | .02226 | 50.60 / 41.13 | .9498 / .9499 | .01751 | 82.4% |
 | Du auxiliary similarity | .00166 / .00153 | .03342 | 39.54 / 33.11 | .9789 / .9804 | .00628 | 66.4% |
 
-None preserved native geometry.  All trained representations lost roughly an
-order of magnitude of raw variance and became strongly mean-direction
-dominated.  Pair retrieval improved, but the raw cosine margin shrank.  CAGrad
-contracted variance and pair-center spread most severely; Du filtering reduced
-raw retrieval as it suppressed JEPA, yet did not recover native variance.
-This is why geometry alone cannot support a success claim.
+All trained source variances were between `.00071` and `.00188`, versus native
+`.02488`; target variances were between `.00064` and `.00338`, versus native
+`.02233`. Retrieval was `66.4%–85.2%`, versus native `40.6%`. CAGrad had the
+lowest variance and pair-center spread; Du had the lowest trained-condition
+retrieval.
 
 ### One-view autoregressive behavior
 
@@ -337,12 +350,11 @@ baseline from report 02 on the same 256 reactions.
 | CAGrad | 2.34% | 5.86% | 12.11% | 19.14% | 86.76% | .295247 | +22.67% |
 | Du auxiliary similarity | 1.17% | 8.98% | 13.67% | 18.75% | 86.76% | .243893 | +1.33% |
 
-PCGrad made aggregate CE significantly worse: mean per-reaction native-minus-
+PCGrad mean per-reaction native-minus-
 PCGrad CE was -0.01681, bootstrap 95% CI [-0.02333,-0.01051], Wilcoxon
-`p=6.44e-8`.  CAGrad was decisively adverse (-0.06015,
+`p=6.44e-8`. CAGrad was -0.06015,
 [-0.06650,-0.05405], `p=3.89e-39`).  Du filtering came closest to native CE:
--0.00168, [-0.00743,+0.00388], `p=0.962`; it reduced the historical direct
-condition's CE damage but did not improve NTP over native.
+-0.00168, [-0.00743,+0.00388], `p=0.962`.
 
 ### Official five-view generation
 
@@ -360,11 +372,10 @@ reaction identities.
 | Du auxiliary similarity | 3.91% | 19.53% | 26.56% | 35.94% | -0.39 pp [-2.73,+1.95] | 1.000 |
 
 PCGrad and Du were each +0.39 pp versus historical direct top-1, with the same
-paired CI [-1.17,+1.95] pp and McNemar `p=1.0`; this is one reaction and not
-evidence of improvement.  CAGrad was -1.17 pp versus direct (`p=.453`).  Du
-matched native top-3, but remained below native at top-1, top-5, and top-10.
-All trained conditions had 100% valid aggregated ranked candidates, so the
-negative accuracy/CE conclusion is not an invalid-SMILES artifact.
+paired CI [-1.17,+1.95] pp and McNemar `p=1.0`. CAGrad was -1.17 pp versus
+direct (`p=.453`). Du equaled native top-3 and was below native at top-1,
+top-5, and top-10. All trained conditions had 100% valid aggregated ranked
+candidates.
 
 The three newly generated official endpoints took 954.9-982.6 seconds each
 (15.9-16.4 minutes), including model load.  End-to-end throughput was
@@ -372,30 +383,15 @@ The three newly generated official endpoints took 954.9-982.6 seconds each
 193.1-194.1 W.  Native, historical direct, and lambda-0.25 were identity-sliced
 from completed exact five-view runs; they were not wastefully regenerated.
 
-## Verdict
+## Recorded comparisons
 
-Gradient conflict is measurable, but it is not the dominant removable failure
-under this integration.
-
-1. Lower auxiliary strength did not rescue generation: the retained
-   lambda-0.25 control was worse than both native and historical direct on the
-   official panel.  Because the requested endpoint scope stopped the other
-   weight generations, this is a low-weight control rather than a full
-   behavioral dose-response curve.
-2. PCGrad removed the formal negative projection on 82.6% conflicting updates,
-   but changed the actual sum by only 1.14%; geometry remained contracted and
-   target-token CE became more adverse than direct MSE+SIGReg.
-3. CAGrad strongly altered the update, but produced the worst CE and strongest
-   contraction.  Pareto-style conflict aversion did not help this objective
-   pair.
-4. Du's literature-standard auxiliary adaptation substantially suppressed
-   JEPA and came closest to native CE, but did not beat native CE or official
-   generation.  Its result is consistent with avoiding some harm by mostly
-   declining the auxiliary, not preserving a useful JEPA gain.
-
-Therefore none of the tested interaction rules succeeds.  The evidence points
-away from simple over-weighting or a correctable conflicting-gradient
-component and toward a deeper mismatch in where/how raw-endpoint JEPA is
-integrated with autoregressive ChemFM.  The next experiment should change the
-JEPA integration location (for example, the separately motivated disposable
-projection space) rather than add another gradient-combination heuristic.
+- The retained lambda-0.25 control recorded top-1 `1.95%`; native top-1 was
+  `4.30%`.
+- PCGrad recorded `82.6%` conflicting active updates, `1.14%` mean update
+  modification, top-1 `3.91%`, and CE delta `+6.82%`.
+- CAGrad recorded `67.86%` mean update modification, top-1 `2.34%`, and CE
+  delta `+22.67%`.
+- Du auxiliary similarity recorded mean gate `0.0153`, top-1 `3.91%`, and CE
+  delta `+1.33%`.
+- Historical direct MSE+SIGReg recorded top-1 `3.52%` and CE delta `+3.36%` on
+  the same 256-reaction comparison.

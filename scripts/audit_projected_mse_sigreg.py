@@ -14,7 +14,7 @@ import json
 import math
 import sys
 from pathlib import Path
-from typing import Iterable, Mapping
+from typing import Mapping
 
 import torch
 import torch.nn.functional as F
@@ -24,10 +24,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from audit_chemfm_mechanism import device_batch, disable_stochastic_behavior, geometry  # noqa: E402
+from audit_chemfm_mechanism import disable_stochastic_behavior, geometry  # noqa: E402
 from audit_sigreg_pair_specificity import (  # noqa: E402
-    accumulate_autograd_result,
-    empty_vector,
     endpoint_forward,
     endpoint_vjps,
     lora_parameters,

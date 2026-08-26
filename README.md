@@ -4,20 +4,39 @@ cLM-JEPA adds a training-only joint-embedding prediction objective to ChemFM-1B 
 
 The authoritative design is [docs/CLM_JEPA_Plan.md](docs/CLM_JEPA_Plan.md). Current results are indexed in [docs/reports/README.md](docs/reports/README.md), and executable entrypoints are mapped in [docs/CODE_LAYOUT.md](docs/CODE_LAYOUT.md).
 
-## Current result
+## Recorded experiment status
 
 | Stage | Status | Result |
 |---|---|---|
 | Gates 0–3 | Passed | Backend checks, JEPA-core parity, and frozen representation-position assay completed |
 | Gate 4 | Passed for reduced USPTO-MIT pilot | Fixed reliable configurations trained; no broad HPO |
-| Original Gate 5 | Failed strict selector | Native and symmetric cosine cLM-JEPA tied at 2/32 exact top-1 |
+| Original Gate 5 | Completed | Native and symmetric cosine cLM-JEPA tied at 2/32 exact top-1; the frozen selector threshold was not met |
 | Geometry/coupling diagnosis | Completed | Symmetric cosine JEPA produced 495× lower target variance than native while retaining residual pair retrieval; pair strength did not predict decoder improvement |
-| Rescue/regularizer studies | Completed | Stop-gradient and SIGReg studies did not establish a generation gain; MSE+SIGReg restored endpoint geometry but tied native at 6/256 top-1 and had 3.36% worse CE |
-| Projection-space MSE+SIGReg | Completed; rejected | Shared `2048->2048->2048->64` head produced low-rank z and distorted h; CE was 3.10% worse than direct MSE+SIGReg and matched 512 top-1 fell from 15 to 4 |
-| Dense causal V-JEPA 2.1 | Completed; rejected | Causal four-depth EMA supervision kept token states closer to native, but target CE was 3.98% worse, top-1 tied 6/256, top-10 fell to 39/256, and global retrieval was below native |
+| Endpoint objective studies | Completed | Stop-gradient and SIGReg comparisons completed; MSE+SIGReg epoch-4 top-1 tied native at 6/256 and CE was 3.36% above native |
+| Projection-space MSE+SIGReg | Completed | Shared `2048->2048->2048->64` head produced projected rank `3.22/3.29`; CE was 3.10% above direct MSE+SIGReg and matched-512 top-1 was 4 versus 15 |
+| Dense causal V-JEPA 2.1-style | Completed | Four-depth EMA supervision had target CE 3.98% above native, top-1 6/256, top-10 39/256, and global retrieval 33.59% |
 | Official endpoint | Stopped for prespecified futility | On 1,280 unique five-view reactions, native/cLM-JEPA top-1 was 3.906%/3.125%; difference -0.781 pp, 95% CI [-1.719,+0.156], McNemar p=0.1433 |
 
-The official endpoint result excludes the prespecified +1 percentage-point benefit at the frozen futility boundary. The later projection experiment used a separate budget-bounded 512-reaction prefix and is descriptive rather than a replacement for that confirmatory endpoint. Neither result estimates multi-seed variability or establishes a universal result for other JEPA objectives, tasks, or training scales.
+The official endpoint's prespecified 99% futility upper bound was `+0.458 pp`, below the frozen `+1 pp` threshold. The projection experiment used a separate budget-bounded 512-reaction prefix. Neither comparison estimates multi-seed variability.
+
+## Method organization
+
+One shared trainer exposes three explicit method families:
+
+| Family | Condition | Owned implementation | Training-only state | Generation path |
+|---|---|---|---|---|
+| Native ChemFM | `native` | `src/train.py`, `src/chemfm.py` | None beyond ordinary optimizer state | Historical extended-vocabulary ChemFM control |
+| Original endpoint cLM-JEPA | `clm_jepa`, `clm_jepa_mse_sigreg`, and gradient-interaction variants | `src/jepa.py` | Endpoint objective state; the family retains the historical predictor-token vocabulary | Same causal LM; no auxiliary loss at inference |
+| Dense causal V-JEPA 2.1-style | `clm_jepa_vjepa2_1` | `src/vjepa2_1.py` | Dense predictor, level norms, EMA encoder state, mask/schedule state | Ordinary ChemFM; predictor and EMA are omitted |
+
+`src/train.py` owns shared data order, NTP, optimizer/scheduler, checkpointing,
+and dispatch. `src/chemfm.py` owns shared serialization, collation, model loading,
+and generation. Endpoint and dense auxiliary implementations do not import or
+compose one another. Native and endpoint conditions retain their historical
+extended vocabulary for checkpoint/control parity. Dense V-JEPA uses ChemFM's
+base vocabulary because its predictor is latent-only.
+PCSF and projection-head experiments remain historical scripts/reports and are
+not active trainer conditions.
 
 ## Repository map
 
@@ -25,7 +44,7 @@ The official endpoint result excludes the prespecified +1 percentage-point benef
 |---|---|
 | `src/train.py` | Canonical ChemFM native/cLM-JEPA trainer for both RTX 4050 and A6000 |
 | `src/chemfm.py` | Tokenization, task collation, LoRA loading, generation, canonicalization |
-| `src/jepa.py` | JEPA readouts, SIGReg, and the shared train-only projection head |
+| `src/jepa.py` | Original endpoint cLM-JEPA readouts, predictor-token objective, MSE, and exact SIGReg |
 | `src/vjepa2_1.py` | Dense causal token prediction, deep supervision, latent predictor, and EMA target state |
 | `src/metrics.py` | Generative and representation metrics |
 | `src/representation_eval.py` | Standard frozen representation evaluation |
@@ -35,7 +54,7 @@ The official endpoint result excludes the prespecified +1 percentage-point benef
 | `references/` | Pinned upstream ChemFM and LLM-JEPA source |
 | `runs/` | Generated checkpoints, logs, diagnostics, and candidate outputs; mostly ignored |
 
-There is one ChemFM trainer. A6000 experiments use the same `src/train.py` with verified physical-batch/checkpointing settings; they do not use a separate scientific training implementation. See [docs/CODE_LAYOUT.md](docs/CODE_LAYOUT.md) for distinctions between normal validation, one-view diagnostics, and official five-view evaluation.
+There is one ChemFM trainer. A6000 experiments use the same `src/train.py` with verified physical-batch/checkpointing settings. See [docs/CODE_LAYOUT.md](docs/CODE_LAYOUT.md) for method boundaries and evaluation entrypoints.
 
 ## Setup and tests
 

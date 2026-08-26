@@ -1,23 +1,15 @@
 # Projection-space MSE+SIGReg experiment
 
-## Result
+## Measured summary
 
-Moving both MSE and SIGReg behind a shared train-only projection head did not
-protect ChemFM's task-bearing endpoint representation and did not improve
-autoregressive behavior. The projector learned a strongly centered,
-high-variance, pair-discriminative space, but it concentrated that geometry in
-about three effective dimensions. Raw LM space avoided contraction only by
-overshooting native variance while losing effective rank. On the matched
+The projected space had source/target variance `0.243582 / 0.263016`, effective
+rank `3.22 / 3.29`, and pair retrieval `76.56%`. Raw LM space had variance
+`0.004884 / 0.012639`, effective rank `12.58 / 5.22`, and pair retrieval
+`85.55%`. On the matched
 256-reaction teacher-forced panel, projected cLM-JEPA CE was `0.256497`, worse
 than direct MSE+SIGReg (`0.248779`) and native (`0.240683`). On the first 512
 reactions of the frozen official five-view manifest, exact top-1 was 4/512,
 versus 15/512 for direct MSE+SIGReg and 18/512 for native.
-
-This controlled result answers the motivating question negatively for the
-tested head and coefficients. A disposable projection space can absorb a
-different geometry, but its gradients still reshape the shared ChemFM
-backbone. Here they produced neither native-like raw geometry nor better NTP or
-generation.
 
 ## Primary-source basis
 
@@ -31,9 +23,9 @@ The architecture was fixed before training from the requested primary sources.
   separates backbone `emb` from shared-MLP `proj`, applies invariance and
   SIGReg to `proj`, and evaluates `emb`. Its MLP has two wide hidden layers with
   BatchNorm.
-- [SimCLR Section 4.2](https://arxiv.org/pdf/2002.05709) establishes that a
-  nonlinear projection head improves the self-supervised objective while the
-  representation before the head is better for downstream use.
+- [SimCLR Section 4.2](https://arxiv.org/pdf/2002.05709) reports its nonlinear,
+  linear, and no-projection comparisons and evaluates the representation before
+  the head for downstream use.
 - The official SimCLR
   [`model.py`](https://github.com/google-research/simclr/blob/master/model.py)
   and
@@ -69,10 +61,9 @@ passes that inject the endpoint VJP alongside unchanged NTP. Gradients flow
 was enabled after executable state/loss/gradient parity tests to avoid
 projecting unused token logits during active replay.
 
-There is no raw-endpoint MSE or SIGReg in this condition. Active production
-code no longer contains PCSF reference collation/cache lookup, streaming/VJP
-hooks, configuration, metrics, or loss computation. Historical PCSF scripts
-and evidence remain under `scripts/` and `runs/` only.
+There was no raw-endpoint MSE or SIGReg in this condition. The projection
+condition was subsequently removed from the maintained trainer. Historical
+scripts, checkpoints, and evidence remain under `scripts/` and `runs/`.
 
 ## Frozen training protocol and execution
 
@@ -121,19 +112,16 @@ training curve.
 | MSE alignment | n/a | `0.048751` |
 | SIGReg statistic, N=256 | n/a | `49.7792` |
 
-The projector did center and expand `z`, but it did not maintain broad rank.
 Across the four logical audit batches, projected source effective rank fell from
 `9.59` at epoch 1 to `3.23` at epoch 2 and `2.82` at epoch 4 while variance
 rose from `0.0178` to `0.3096`.
 
-Raw `h` was not substantially closer to native geometry. The earlier matched
-epoch-4 native source/target variances were `0.001431/0.002320`, effective ranks
+The matched epoch-4 native source/target variances were `0.001431/0.002320`, effective ranks
 `41.00/22.61`, and mean-direction energies `0.9818/0.9695`. Direct MSE+SIGReg
 was `0.001293/0.001281`, ranks `38.36/34.06`, and energies `0.9709/0.9698`.
-Projected training therefore replaced contraction with large variance
-overshoot and severe low-rank concentration in raw LM space. Its raw retrieval
-(`85.55%`) remained almost identical to direct MSE+SIGReg (`85.9%`), so greater
-pair discrimination still did not imply autoregressive utility.
+The projected condition's raw values were `0.004884/0.012639`, ranks
+`12.58/5.22`, energies `0.9391/0.8389`, and retrieval `85.55%`; direct
+MSE+SIGReg retrieval was `85.9%`.
 
 ## Held-out NTP gradient alignment
 
@@ -147,10 +135,9 @@ projector into the 308 LoRA gradient tensors and compared with held-out NTP.
 | 2 | 0.34753 | `0.08278 / 3.76448` | `+0.0447 / 2.89x` | `-0.0385 / 1.14x` | `+0.0330 / 2.88x` |
 | 4 | 0.28381 | `0.06437 / 2.78183` | `-0.0243 / 2.45x` | `-0.0079 / 0.81x` | `-0.0300 / 2.36x` |
 
-The late full gradient was mildly adverse, as in direct MSE+SIGReg, but was far
-larger relative to held-out NTP. The projector is disposable at evaluation,
-not causally isolated during training: its objective still sends a strong VJP
-through `h` into ChemFM.
+At epoch 4, the full projected auxiliary/NTP cosine was `-0.0300` and its norm
+ratio was `2.36x`. The training implementation propagated its VJP through `h`
+into ChemFM.
 
 ## NTP and generation
 
@@ -162,7 +149,7 @@ On the same frozen 256-reaction decoder-coupling panel used by prior reports:
 | Direct MSE+SIGReg | 0.248779 | +3.36% |
 | **Projected MSE+SIGReg** | **0.256497** | **+6.57%** |
 
-Projected CE was also 3.10% worse than direct MSE+SIGReg.
+Projected CE was 3.10% above direct MSE+SIGReg.
 
 Generation used exact ChemFM five-view, beam-10 scoring. The projected model's
 longer decodes made all 1,280 reactions incompatible with the authorized cloud
@@ -185,30 +172,18 @@ Against direct MSE+SIGReg, projected top-1 changed by `-2.148` percentage
 points, paired bootstrap 95% CI `[-3.516,-0.781]`, exact McNemar `p=0.00342`
 (3 both correct, 12 direct-only, 1 projected-only). Against native, the change
 was `-2.734` points, CI `[-4.297,-1.367]`, `p=0.000122`. Direct versus native
-on this prefix was not significant (`p=0.629`). High validity therefore does
-not explain the projected model's loss of correct-product rank.
+on this prefix was not significant (`p=0.629`).
 
-## Conclusion
+## Recorded comparisons
 
-The tested literature-standard projection strategy failed the mechanism and
-downstream criteria:
-
-1. `z` absorbed strong centering, variance, and pair separation, but collapsed
-   most of that geometry into roughly three effective dimensions.
-2. Raw `h` did not remain native-like; it overshot native variance and lost
-   effective rank while retaining the same high retrieval seen under direct
-   MSE+SIGReg.
-3. Epoch-4 projected auxiliary gradients remained mildly anti-NTP and were
-   `2.36x` the held-out NTP norm.
-4. Teacher-forced CE and five-view generation both worsened relative to direct
-   MSE+SIGReg, not merely relative to native.
-
-The result does not support treating projector placement alone as sufficient
-insulation for an autoregressive LM. Further work should not sweep projector
-depth/dimension or strengthen SIGReg based on this run. The remaining problem
-is the gradient coupling through the shared ChemFM backbone, especially how to
-retain the useful correct-pair component without the larger task-adverse
-geometric update.
+- Projected `z` effective rank was `3.22 / 3.29`; raw `h` effective rank was
+  `12.58 / 5.22`; native raw rank was `41.00 / 22.61`.
+- Raw `h` variance was `3.41x / 5.45x` native source/target variance.
+- Epoch-4 projected full-auxiliary/NTP cosine and norm ratio were `-0.0300` and
+  `2.36x`.
+- Target-token CE was `0.256497`, versus `0.248779` direct and `0.240683`
+  native. Exact top-1 on the matched 512 was `4`, versus `15` direct and `18`
+  native.
 
 ## Evidence
 

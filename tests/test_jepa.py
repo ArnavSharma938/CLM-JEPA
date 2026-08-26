@@ -2,7 +2,6 @@ import copy
 import sys
 from pathlib import Path
 
-import pytest
 import torch
 from peft import LoraConfig, get_peft_model
 from transformers import LlamaConfig, LlamaForCausalLM

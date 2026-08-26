@@ -45,7 +45,6 @@ from chemfm import MODEL_DIR, TOKENIZER_DIR, ReactionCollator, load_lora_model, 
 from jepa import (  # noqa: E402
     CLMJEPA,
     add_predictor_tokens,
-    matched_derangement,
 )
 from historical_pcsf import (  # noqa: E402
     pair_center_standard_deviation,

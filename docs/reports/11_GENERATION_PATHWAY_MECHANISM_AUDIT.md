@@ -1,12 +1,12 @@
 # Generation-pathway mechanism audit
 
-## Direct answers
+## Measured summary
 
-1. **Is JEPA information present in the actual generation computation?** Yes, but only weakly. At the final layer, cLM-JEPA increased source-to-target-only CKA from `0.128` to `0.547`, while source-to-teacher-forced-product CKA increased only from `0.182` to `0.278`. Full-panel source-to-target retrieval reached `47.27%`, but retrieval against the actual token-predicting representation was only `3.52%`. The learned relationship reaches the causal computation in attenuated form; most of its isolated-view structure does not.
-2. **If present, is it causally useful?** Not as a complete cLM residual state. Patching cLM activations into native downstream layers never improved aggregate target-token CE at the tested boundaries. The decisive effect was harmful after layer 21: `+0.03069` CE, with a reaction-level bootstrap 95% CI of `[+0.02149,+0.04750]`. Native activations directionally rescued cLM, although the 64-reaction confidence intervals crossed zero. A targeted position refinement showed that the layer-16 effect came almost entirely from target-prediction positions, not source/context positions.
-3. **Is damage caused locally by the JEPA update despite weak raw gradient conflict?** Not in the tested exact step. Raw NTP and JEPA gradients had cosine `-0.0223`, but their saved-state AdamW parameter updates had cosine `+0.8143`: optimizer state radically changed the relationship. A JEPA-only virtual AdamW step did worsen held-out CE by `+0.000244`, despite the raw auxiliary gradient pointing weakly toward held-out improvement. However, adding JEPA to NTP reduced the observed one-step worsening from `+0.000982` to `+0.000541`. The audit therefore shows that raw gradients miss optimizer effects, but it does not identify JEPA as the local cause of combined-update damage at this checkpoint and batch.
-4. **Is the strong pair signal genuine reaction information or largely a shortcut?** It survives both controls. With three molecularly and length-matched hard wrong products per query, cLM retrieval was `76.95%` versus native `42.19%`. After independently canonicalizing each molecule and sorting source components to break paired R-SMILES alignment, it remained `72.27%` versus `45.31%`. Full-256 retrieval remained `42.58%` versus `10.94%`. The signal is not largely explained by the tested molecular-size or serialization shortcuts.
-5. **Does JEPA improve a chemically meaningful aspect of generated products?** No. Across the existing 1,280-reaction five-view predictions, top-1 Morgan Tanimoto changed by `-0.00066` with a 95% CI spanning zero. Best-top-3, top-5, and top-10 Tanimoto were worse by `-0.00911`, `-0.01823`, and `-0.01285`; their intervals excluded zero. Top-1 scaffold match was unchanged, while any-top-3 and any-top-5 scaffold match were worse. Restricting to reactions where neither model was top-1 exact did not reveal a hidden gain.
+1. At the final layer, source-to-target-only CKA was `0.128` native and `0.547` cLM-JEPA. Source-to-teacher-forced-product CKA was `0.182` and `0.278`. Full-panel source-to-target retrieval was `47.27%` for cLM-JEPA; retrieval against its token-predicting representation was `3.52%`.
+2. Patching cLM activations into native downstream layers changed aggregate target-token CE by `+0.00834`, `+0.00690`, and `+0.03069` after layers 11, 16, and 21. The layer-21 reaction-level bootstrap 95% CI was `[+0.02149,+0.04750]`. Reverse-patch changes were `-0.00722`, `-0.00330`, and `-0.00613`, with all 64-reaction confidence intervals crossing zero.
+3. Raw NTP/JEPA gradient cosine was `-0.0223`; their saved-state AdamW update cosine was `+0.8143`. Observed held-out CE changes after NTP-only, JEPA-only, and combined virtual steps were `+0.000982`, `+0.000244`, and `+0.000541`.
+4. Hard-four-way retrieval was `76.95%` cLM-JEPA and `42.19%` native. After independent canonicalization and source-component sorting, it was `72.27%` and `45.31%`. Full-256 canonicalized retrieval was `42.58%` and `10.94%`.
+5. Across 1,280 existing five-view predictions, the cLM-minus-native changes in top-1 and best-top-3/5/10 Morgan Tanimoto were `-0.00066`, `-0.00911`, `-0.01823`, and `-0.01285`. The top-1 confidence interval crossed zero; the top-3/5/10 intervals did not. Scaffold-match changes are reported below.
 
 ## Scope and controls
 
@@ -47,7 +47,7 @@ The comparison used only the requested tools: centered linear CKA; ridge source-
 | 22 source-to-target retrieval | 10.55% | 47.27% |
 | 22 source-to-AR-product retrieval | 0.39% | 3.52% |
 
-The CKA and linear-prediction increases establish that some learned relation is present in the actual autoregressive path. The retrieval gap establishes the more important qualification: the strong isolated-view correspondence is mostly not expressed as pair-discriminative structure at the token-predicting states. At layer 16, cLM greatly improves isolated source-target retrieval while slightly reducing source-to-AR-product retrieval. This is a view-integration failure, not absence of a learned pair representation.
+At layer 16, the cLM-minus-native retrieval difference was `+39.45 pp` for source-to-target and `-2.35 pp` for source-to-AR-product. At layer 22, the differences were `+36.72 pp` and `+3.13 pp`.
 
 ## 2. Frozen activation patching
 
@@ -68,7 +68,7 @@ This tests checkpoint states, not individual JEPA directions. It can establish w
 | cLM + native state after 16 | -0.00330 | -0.00211 `[-0.01474,+0.01117]` |
 | cLM + native state after 21 | -0.00613 | -0.00540 `[-0.01807,+0.00793]` |
 
-The baseline CE was `0.243819` for native and `0.253236` for cLM on this panel. The one clear causal result is that the cLM final residual state is harmful even when native norm/head components consume it. Harm grows substantially between the layer-16 and layer-21 boundaries, matching report 04's independently obtained parameter-block localization.
+The baseline CE was `0.243819` for native and `0.253236` for cLM on this panel. The native-recipient CE change increased from `+0.00690` after layer 16 to `+0.03069` after layer 21.
 
 Because that initial test identified a boundary effect, the only resolution increase was a position split at layer 16. Patching cLM context positions into native changed CE by only `+0.00071`; patching target-prediction positions changed it by `+0.00635`. In the reverse direction the changes were `-0.00017` and `-0.00281`. No further layer or token sweep was run.
 
@@ -83,7 +83,7 @@ For NTP only, JEPA only, and their sum, parameters and optimizer state were rest
 ### Results
 
 - Raw train-gradient NTP-versus-JEPA cosine: `-0.02228` over all trainable parameters (`-0.03682` over LoRA only).
-- Raw JEPA-gradient versus held-out-NTP-gradient cosine: `+0.05932`. A plain negative-gradient JEPA step would therefore point weakly toward held-out improvement.
+- Raw JEPA-gradient versus held-out-NTP-gradient cosine: `+0.05932`.
 - AdamW NTP-update versus JEPA-update cosine: `+0.81434`.
 - Combined update versus the sum of separately computed updates: cosine `+0.96905`, with norm ratio `0.579`; AdamW's adaptive map is not additive.
 
@@ -93,9 +93,9 @@ For NTP only, JEPA only, and their sum, parameters and optimizer state were rest
 | JEPA only | +0.000127 | +0.000244 |
 | NTP + JEPA | +0.000283 | +0.000541 |
 
-Raw-gradient reasoning misses a direction reversal introduced by accumulated AdamW state: the JEPA gradient looks weakly favorable against held-out NTP, but its actual adaptive update is weakly harmful. Curvature/nonlinearity amplifies the predicted harm in all three cases. Crucially, the combined update is less harmful than NTP alone on this frozen sample. This does not support a claim that instantaneous JEPA interference causes the cLM generation gap. Per the prespecified staged rule, MSE/SIGReg decomposition and extra step sizes were not run.
+The raw train-gradient cosine and AdamW-update cosine had opposite signs. Observed changes exceeded first-order predictions for all three virtual updates. The combined observed change was `0.000441` below the NTP-only observed change. Per the prespecified staged rule, MSE/SIGReg decomposition and extra step sizes were not run.
 
-The 16-reaction counterfactual is a mechanism probe, not an estimator of average training benefit. Its reliable conclusion is about the optimizer's transformation of directions, not the population mean CE change.
+The counterfactual used 16 reactions and reports one frozen state and batch; it is not a population estimate.
 
 ## 4. Shortcut-controlled pair retrieval
 
@@ -108,7 +108,7 @@ For every query, the hard four-way task used its true target plus three wrong pr
 | Independent canonical SMILES, full 256 | 10.94% | 42.58% | +31.64 pp |
 | Independent canonical SMILES, hard four-way | 45.31% | 72.27% | +26.95 pp |
 
-Breaking alignment causes modest attenuation, not disappearance. This is a deliberately small shortcut audit rather than an exhaustive matched-negative framework, but the remaining advantages are too large to characterize the learned signal as largely serialization or simple molecular-similarity leakage.
+Independent canonicalization changed the cLM hard-four-way retrieval from `76.95%` to `72.27%` and native from `42.19%` to `45.31%`. This was a bounded shortcut audit rather than an exhaustive matched-negative framework.
 
 ## 5. Chemical proximity of existing generations
 
@@ -124,21 +124,7 @@ All 1,280 existing official five-view prediction records were rescored; no gener
 | Any-top-3 scaffold match | 54.84% | 52.97% | -1.88 pp `[-3.36,-0.47]` |
 | Any-top-5 scaffold match | 60.55% | 58.20% | -2.34 pp `[-3.91,-0.78]` |
 
-Among the 1,216 reactions where neither model was exactly correct at top 1, cLM top-1 Tanimoto was only `+0.00441` higher with CI `[-0.00560,+0.01455]`; top-3/5/10 Tanimoto and top-3/5 scaffold coverage remained significantly worse. JEPA does not merely exchange exact rank for chemically closer candidates.
-
-## Smallest remaining mechanism and next experiment
-
-The remaining mechanism is **view-to-decoder integration mismatch with upper-layer co-adaptation**:
-
-1. cLM learns a large, genuine source-product relation in the isolated JEPA views.
-2. Only a smaller fraction appears at the causal token-prediction states.
-3. The complete cLM state is not useful to native downstream computation, and clear harm accumulates by the final upper-layer boundary specifically at product-prediction positions.
-4. The saved optimizer does alter raw-gradient geometry, but the exact combined step does not show JEPA-specific incremental harm.
-5. The representation gain produces no exact or chemistry-aware behavioral gain.
-
-This narrows the problem beyond generic collapse or gradient conflict. There is a clear reason for exactly one new full-training experiment when compute is next authorized: retain the validated direct MSE+SIGReg objective and all existing controls, but **zero only the auxiliary-gradient contribution to LoRA blocks 17-21 while leaving their NTP gradients unchanged**. Do not change the loss, weight, cadence, optimizer, or data. This is the smallest intervention jointly motivated by report 04's favorable 12-16/harmful 17-21 parameter swaps and the present final-state activation harm. Its gate must be autoregressive CE/generation, with isolated-view retrieval only as a mechanism check.
-
-No such training was run in this audit. If that single layer-restricted condition fails, the evidence favors abandoning final-endpoint JEPA integration in this architecture rather than another loss-weight, regularizer, projector, or gradient-combiner sweep.
+Among the 1,216 reactions where neither model was exactly correct at top 1, the cLM-minus-native top-1 Tanimoto difference was `+0.00441`, with CI `[-0.00560,+0.01455]`. The top-3/5/10 Tanimoto and top-3/5 scaffold differences were negative with intervals excluding zero.
 
 ## Artifacts and verification
 

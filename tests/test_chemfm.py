@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from chemfm import (
     IGNORE_INDEX, TOKENIZER_DIR, ExactPreallocatedDynamicCache,
     ReactionCollator, canonicalize,
-    generate_products, generate_products_batch, load_reaction_tokenizer,
+    generate_products_batch, load_reaction_tokenizer,
     resize_chemfm_then_predictors,
 )
 from transformers.cache_utils import DynamicCache
@@ -139,26 +139,18 @@ class GenerationModel:
         return torch.tensor(rows)
 
 
-def test_generation_preserves_official_chemfm_beam_arguments():
+def test_batched_generation_preserves_official_chemfm_beam_arguments():
     model = GenerationModel()
-    values = generate_products(
+    values = generate_products_batch(
         model, GenerationTokenizer(), ["prompt"],
         max_length=1024, num_beams=2, num_return_sequences=2,
     )
-    assert values == ["CC", "CC"]
+    assert values == [["CC", "CC"]]
     assert model.kwargs["max_length"] == 1024
     assert model.kwargs["early_stopping"] == "never"
     assert model.kwargs["length_penalty"] == 0.0
     assert "max_new_tokens" not in model.kwargs
     assert model.config.use_cache is False
-
-
-def test_generation_rejects_batched_r_smiles_views_like_official_evaluator():
-    with pytest.raises(ValueError):
-        generate_products(
-            GenerationModel(), GenerationTokenizer(), ["view-1", "view-2"],
-            num_beams=2, num_return_sequences=2,
-        )
 
 
 def test_equal_length_batched_generation_preserves_prompt_and_beam_order():

@@ -1,10 +1,109 @@
-# MSE and MSE+SIGReg experiment
+# Endpoint cLM-JEPA objective experiments
 
-## Result
+## Measured summary
 
-Raw MSE reduced but did not eliminate the common-direction shortcut. MSE+exact-SIGReg-16 materially restored source/target geometry and source sensitivity. It did not improve generation: at epoch 4 it tied native at 6/256 exact top-1, was worse at top-3/5/10, and had 3.36% worse aggregate target-token CE. Pair strength did not predict CE or rank improvement.
+Raw MSE retained 25.4%/25.3% of native source/target variance at epoch 2.
+MSE+exact-SIGReg-16 retained 90.3%/55.2% at epoch 4. Its epoch-4
+exact top-1 tied native at 6/256; top-3/5/10 were 24/34/49 versus native
+26/40/52, and historical aggregate target-token CE was 0.248779 versus
+0.240683 native. Pair-margin correlations with CE and rank change had
+bootstrap intervals containing zero.
 
-This is the key mechanism result: the extreme cosine geometry was avoidable, but healthy global endpoint geometry was not sufficient for better autoregressive reaction prediction.
+This report also contains the precursor cosine, stop-gradient, and
+cosine+SIGReg measurements formerly stored in report 01.
+
+## Precursor cosine and SIGReg measurements
+
+### Symmetric cosine endpoint
+
+The seed-533 native and k=1 symmetric cosine checkpoints were selected at
+epoch 3 and tied at 2/32 exact top-1 on the Gate-5 selector.
+
+| 512-reaction metric | Native | Symmetric cosine cLM-JEPA |
+|---|---:|---:|
+| Exact top-1 | 24/512 (4.688%) | 17/512 (3.320%) |
+| Top-3 | 14.063% | 13.672% |
+| Top-5 | 20.508% | 20.313% |
+| Top-10 | 26.563% | 26.563% |
+| Target-token CE | 0.239942 | 0.238685 |
+
+Top-1 had 12 native-only and 5 cLM-JEPA-only successes, a -1.367 pp
+difference (95% bootstrap CI `[-2.93,+0.20]`, exact McNemar `p=0.143`).
+The aggregate CE difference was 0.524%; its per-reaction interval crossed zero
+and Wilcoxon `p=0.367`.
+
+On 1,024 fixed identities:
+
+| Checkpoint | Target variance | Effective rank | Mean-direction energy | Raw pair margin | Raw retrieval |
+|---|---:|---:|---:|---:|---:|
+| Base ChemFM | 0.022171 | 26.16 | 0.674849 | 0.025028 | 34.38% |
+| Native epoch 3 | 0.015871 | 3.05 | 0.779364 | 0.016019 | 23.63% |
+| Symmetric cosine epoch 3 | 0.00003206 | 56.50 | 0.999617 | 0.00009372 | 72.27% |
+
+The symmetric endpoint's target variance was 692x below base and 495x below
+native. Common-component removal produced:
+
+| Analysis-only representation | Pair margin | Retrieval |
+|---|---:|---:|
+| Raw | 0.0000937 | 72.27% |
+| Mean centered | 0.213060 | 76.27% |
+| Centered, remove PC1 | 0.251651 | 81.64% |
+| Centered, remove top 2 PCs | 0.285808 | 84.77% |
+| Centered, remove top 4 PCs | 0.273486 | 85.94% |
+
+Reaction-level pair metrics and decoder changes were:
+
+| Signal | Outcome | Spearman rho | 95% bootstrap CI |
+|---|---|---:|---:|
+| Raw margin | CE improvement | -0.056 | `[-0.140,+0.033]` |
+| Residual margin | CE improvement | -0.054 | `[-0.142,+0.037]` |
+| Raw margin | Rank improvement | 0.006 | `[-0.076,+0.095]` |
+| Residual margin | Rank improvement | 0.003 | `[-0.080,+0.085]` |
+
+Raw representation sensitivity under contributor removal, contributor
+replacement, and unrelated-source substitution was
+`0.000337/0.000111/0.000271`; decoder CE changed by
+`0.5541/0.7595/0.9221`. Residual sensitivities were
+`0.4622/0.3991/0.9106`.
+
+### Controls preceding raw MSE
+
+| Experiment | Primary generation measurement | Geometry measurement |
+|---|---|---|
+| Target stop-gradient k=1 | 26/512 vs native 24/512; +0.39 pp, CI `[-1.37,+2.15]`, `p=0.8318`; CE 7.69% higher | Target variance 12.03x symmetric and 46.3x below native |
+| SIGReg batch 2, k=0/k=1 | 2/256 and 3/256 vs native 7/256 | Both remained concentrated; the statistic used two samples/view |
+| SIGReg batch 128, k=0 | 0/256; CE 1.080978 | Variance near native scale; optimizer updates were 20 versus 320 and auxiliary activity was 15/20 |
+| SIGReg batch-16 preflight | No performance evaluation | Streamed/direct gradients matched; applied SIGReg gradient was 1.20% of NTP |
+| Frozen gradient response | No optimizer steps | SIGReg endpoint norm was 0.0376--0.0427 across the measured checkpoints |
+| Cadence-matched SIGReg-16 k=0 | Epoch-4 3/256 vs native 6/256; CE 1.30% higher | Source/target variance 16.9x/14.8x below native |
+
+The batch-16 objective was
+`L_NTP + active * 2 * [L_cos + (0.01/0.99)L_SIGReg]`, with effective batch
+16, 80 updates/epoch, and four epochs. Cosine loss changed from 0.19853 at
+epoch 1 to 0.00200 at epoch 4; SIGReg changed from 7.0744 to 7.4345.
+Residual-PC2 retrieval was 73.0%, and raw source/target mean-direction energy
+was 0.9988/0.9978.
+
+### Reduced upstream LLM-JEPA reference
+
+A two-epoch, one-seed, rank-16 LoRA DeepSeek-1.5B/GSM8K run used the official
+LLM-JEPA repository. NTP/JEPA accuracy was 36/300 and 28/300 (`p=0.229`).
+JEPA epoch-2 target variance was 1.45x below matched NTP, target effective rank
+was 73.35, and raw 300-way/four-way retrieval was 67.67%/94.00%.
+
+Precursor evidence paths:
+
+- Original geometry/coupling: `runs/diagnostics/decoder_coupling/`,
+  `runs/diagnostics/uspto_mit_geometry_diagnosis.json`,
+  `runs/diagnostics/geometry_cache/`
+- Target stop-gradient: `runs/diagnostics/target_sg_rescue_512/`
+- Batch-2 k ablation: `runs/diagnostics/sigreg_k_ablation_256/`
+- Batch-128: `runs/diagnostics/sigreg_k0_batch128_256/`
+- Batch-16 preflight/gradient assay:
+  `runs/diagnostics/sigreg_batch16_preflight.json`,
+  `runs/diagnostics/sigreg_gradient_response.json`
+- Cadence-matched batch-16: `runs/sigreg_batch16_pilot/`
+- GSM8K reference: `runs/diagnostics/llm_jepa_reference/`
 
 ## Objectives and protocol
 
@@ -46,7 +145,7 @@ Training remained finite and NTP descended normally:
 | MSE+SIGReg | 3 | 0.19851 | 0.002470 | 6.9976 | - |
 | MSE+SIGReg | 4 | 0.15981 | 0.002154 | 6.9992 | - |
 
-SIGReg did not decrease. The geometry decision therefore came from the measured representation distribution, not from assuming scalar SIGReg loss had improved.
+SIGReg changed from `6.6591` at epoch 1 to `6.9992` at epoch 4. The frozen continuation gate used representation-distribution measurements rather than the scalar SIGReg loss.
 
 ## Epoch-4 comparison
 
@@ -59,11 +158,11 @@ SIGReg did not decrease. The geometry decision therefore came from the measured 
 | Top-5 | 40/256 (15.63%) | 34/256 (13.28%) | native higher |
 | Top-10 | 52/256 (20.31%) | 49/256 (19.14%) | native higher |
 | Valid candidates | 78.20% | 86.60% | MSE+SIGReg higher |
-| Historical aggregate CE | 0.240683 | 0.248779 | MSE+SIGReg 3.36% worse |
+| Historical aggregate CE | 0.240683 | 0.248779 | MSE+SIGReg 3.36% higher |
 
 Top-1 paired outcomes were 4 both correct, 2 native-only, 2 MSE+SIGReg-only, and 248 neither. Correct-product rank improved/worsened/tied on 18/35/203 reactions. Mean rank improvement was `-0.137` with 95% CI `[-0.383,+0.105]`. Mean per-reaction `native CE - MSE+SIGReg CE` was `-0.00773`, 95% CI `[-0.01386,-0.00188]`; 44.5% improved, 55.5% worsened, Wilcoxon `p=0.0221`.
 
-The later mechanistic audit found that this historical aggregate denominator excludes the supervised `<prostart>` and `<eos>` labels: 10,642 raw-product tokens versus 11,154 model labels. Per-reaction CE and the native-vs-cLM direction were unaffected. The correctly label-normalized local reproduction was `0.229702` native and `0.237275` MSE+SIGReg (3.30% worse); see [report 04](04_MECHANISTIC_GRADIENT_AND_BLOCK_SWAP_AUDIT.md).
+The later mechanistic audit found that this historical aggregate denominator excludes the supervised `<prostart>` and `<eos>` labels: 10,642 raw-product tokens versus 11,154 model labels. Per-reaction CE and the native-vs-cLM direction were unaffected. The correctly label-normalized local reproduction was `0.229702` native and `0.237275` MSE+SIGReg (3.30% higher); see [report 04](04_MECHANISTIC_GRADIENT_AND_BLOCK_SWAP_AUDIT.md).
 
 ### Geometry and interventions
 
@@ -82,15 +181,14 @@ MSE+SIGReg retained 90.3%/55.2% of native source/target variance and produced hi
 
 The MSE+SIGReg representation and normal decoder both responded to the source interventions.
 
-The missing link was reaction-level utility. Raw pair margin correlations with CE and rank improvement were `rho=0.028/-0.086`; residual-PC2 correlations were `0.090/-0.110`. Every bootstrap interval included zero.
+Raw pair margin correlations with CE and rank change were `rho=0.028/-0.086`; residual-PC2 correlations were `0.090/-0.110`. Every bootstrap interval included zero.
 
-## Conclusion
+## Recorded comparisons
 
-1. Raw MSE was healthier than cosine+SIGReg but still contracted about fourfold below native at epoch 2.
-2. Adding exact batch-16 SIGReg to MSE materially and durably repaired global representation geometry.
-3. That repair did not improve exact generation, wider beam ranks, CE, or measured decoder coupling.
-
-The result does not support another anti-contraction-only intervention. A later experiment would need to change how the auxiliary relationship affects the autoregressive pathway, while exact generated top-1 remains the primary endpoint.
+- Raw MSE source/target variance at epoch 2 was 25.4%/25.3% of native.
+- MSE+SIGReg source/target variance at epoch 4 was 90.3%/55.2% of native.
+- MSE+SIGReg and native each produced 6/256 exact top-1; native had higher
+  top-3, top-5, and top-10 counts and lower target-token CE.
 
 ## Runtime and evidence
 

@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn.functional as F
-from scipy.stats import binomtest, mannwhitneyu, spearmanr, wilcoxon
+from scipy.stats import binomtest, spearmanr, wilcoxon
 from torch.nn.utils.rnn import pad_sequence
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,7 +25,6 @@ from chemfm import (
     TOKENIZER_DIR,
     ReactionCollator,
     canonicalize,
-    generate_products,
     generate_products_batch,
     load_lora_model,
     load_reaction_tokenizer,

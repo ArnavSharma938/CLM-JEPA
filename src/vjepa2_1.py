@@ -203,15 +203,6 @@ def context_distance_weights(mask: CausalSuffixMask, dtype: torch.dtype) -> torc
     return weights * mask.context_mask.to(dtype)
 
 
-def selected_layer_outputs(
-    hidden_states: Sequence[torch.Tensor], depths: Sequence[int],
-) -> tuple[torch.Tensor, ...]:
-    """Select block outputs using HF's embedding=0, block-depth=depth semantics."""
-    if not depths or max(depths) >= len(hidden_states):
-        raise ValueError("hidden-state tuple does not cover all requested depths")
-    return tuple(hidden_states[depth] for depth in depths)
-
-
 def _llama_backbone(model: nn.Module) -> nn.Module:
     causal_lm = model.get_base_model() if hasattr(model, "get_base_model") else model
     backbone = getattr(causal_lm, "model", None)

@@ -10,7 +10,6 @@ import argparse
 import csv
 import hashlib
 import json
-import math
 import os
 import random
 import statistics
@@ -20,7 +19,7 @@ import threading
 import time
 import types
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 

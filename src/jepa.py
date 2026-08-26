@@ -1,3 +1,10 @@
+"""Original endpoint cLM-JEPA objective family.
+
+This module owns source/target serialization, EOS or predictor-token readouts,
+cosine/MSE alignment, exact SIGReg, and historical endpoint controls.  The
+dense causal predictor and EMA target are isolated in ``src/vjepa2_1.py``.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -248,6 +255,7 @@ class CLMJEPAOutput:
 
 
 class CLMJEPA:
+    """Endpoint cLM-JEPA adapter around a shared causal ChemFM model."""
     def __init__(
         self, predictor_token_ids: Sequence[int], eos_token_id: int,
         pad_token_id: int, *, sigreg_seed: int = 0,

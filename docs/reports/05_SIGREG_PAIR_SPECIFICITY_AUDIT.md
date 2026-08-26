@@ -1,16 +1,10 @@
 # SIGReg pair-specificity audit
 
-## Result
+## Measured summary
 
-SIGReg is **not pair-destructive in these frozen checkpoints**. Across all 48 cLM checkpoint/batch/draw measurements (epochs 1, 2, and 4; four batches; four fresh slice draws), an infinitesimal SIGReg descent step increased squared-distance discrimination between the correct product and its length-matched derangement. It also increased cosine pair margin, reaction-center separation, and representation variance in every draw.
+Across all 48 cLM checkpoint/batch/draw measurements (epochs 1, 2, and 4; four batches; four fresh slice draws), an infinitesimal SIGReg descent step increased squared-distance discrimination between the correct product and its length-matched derangement. It also increased cosine pair margin, reaction-center separation, and representation variance in every draw.
 
-SIGReg does, however, increasingly dominate the applied MSE gradient and mildly oppose native next-token prediction (NTP). The applied SIGReg-to-MSE norm ratio rose from `1.51x` at epoch 1 to `3.43x` at epoch 2 and `4.06x` at epoch 4. The fraction of the full active auxiliary gradient that changed when the correct pairing was replaced by a derangement fell from `0.468` to `0.418` to `0.398`. SIGReg/NTP cosine was consistently small and negative at all cLM checkpoints (`-0.056`, `-0.047`, `-0.047`).
-
-The supported diagnosis is:
-
-> SIGReg dilutes the fraction of the auxiliary update that is explicitly pair-dependent and introduces mild NTP interference, but it does not erase or reverse reaction-pair discrimination. Its marginal pressure counteracts an MSE parameter update that, at these frozen states, reduces correct-versus-wrong discrimination even while reducing absolute true-pair distance.
-
-This rejects “SIGReg damages the model's preference for the correct product” as the explanation for the negative generation result. It supports an alignment/uniformity tradeoff at the task-bearing EOS state: SIGReg improves relative separation but opposes absolute MSE alignment and is weakly anti-NTP.
+The applied SIGReg-to-MSE norm ratio rose from `1.51x` at epoch 1 to `3.43x` at epoch 2 and `4.06x` at epoch 4. The fraction of the full active auxiliary gradient that changed when the correct pairing was replaced by a derangement fell from `0.468` to `0.418` to `0.398`. SIGReg/NTP cosine was negative at all cLM checkpoints (`-0.056`, `-0.047`, `-0.047`).
 
 ## Frozen design and validation
 
@@ -101,32 +95,26 @@ Effects are normalized by objective-gradient norm. Values are mean ± SD of four
 | e4 SIGReg | `+.00606±.00234` | `+.00437±.00097` | `+.00782±.00249` | `+.08228±.02823` | `+.00480±.00148` | `16/16` |
 | e4 full | `+.00235±.00190` | `+.00134±.00096` | `+.00285±.00215` | `+.04086±.02334` | `+.00176±.00128` | `15/16` |
 
-At epochs 2 and 4 the full auxiliary generally increases both true-pair and wrong-pair distance, but increases wrong-pair distance more. SIGReg therefore weakens absolute source–target alignment while strengthening relative identification. NTP itself had near-zero, mixed-sign effects on `M`, consistent with the earlier reaction-level decoupling result.
+At epochs 2 and 4 the full auxiliary increased both true-pair and wrong-pair distance in most measurements, with a larger increase for wrong-pair distance. NTP had near-zero, mixed-sign effects on `M`.
 
-## Interpretation against primary literature
+## Reference-method comparison
 
-- [LeJEPA](https://arxiv.org/abs/2511.08544) combines squared prediction with marginal isotropic-Gaussian regularization, and its [official implementation](https://github.com/galilai-group/lejepa) resamples random slices on every call. The observed SIGReg direction performs the intended spreading function: variance, center separation, and mismatched-pair discrimination all increase.
-- [Alignment and uniformity](https://arxiv.org/abs/2005.10242) treats positive-pair alignment and distributional spreading as separate properties. The ChemFM gradients show this separation directly: MSE improves absolute alignment but reduces the finite-batch correct-versus-wrong margin; SIGReg worsens absolute alignment but improves spreading and margin.
-- [Temporally Centered SIGReg](https://arxiv.org/abs/2607.26924) reports that marginal Gaussianization can compress task-cluster centers in a multi-task temporal world model. That instantaneous mechanism is not observed here: SIGReg increased reaction-center separation in `48/48` cLM measurements. Its broader warning about global marginal priors remains relevant but does not establish ChemFM pair damage.
-- [Sub-JEPA](https://arxiv.org/abs/2605.09241) relaxes a potentially excessive full-space Gaussian prior with frozen subspaces. The measured dominance ratio makes excessive marginal influence plausible, but positive pair-margin and center-separation effects do not identify subspace SIGReg as the required repair.
-- [VICReg](https://arxiv.org/abs/2105.04906), [Barlow Twins](https://proceedings.mlr.press/v139/zbontar21a.html), and [Whitening-MSE](https://proceedings.mlr.press/v139/ermolov21a.html) provide weaker marginal, pair-coupled redundancy-reduction, and whitened-alignment alternatives. This assay gives no evidence that replacing SIGReg with one would improve pair discrimination: SIGReg already improves it.
+- [LeJEPA](https://arxiv.org/abs/2511.08544) combines squared prediction with marginal isotropic-Gaussian regularization, and its [official implementation](https://github.com/galilai-group/lejepa) resamples random slices on every call. In this assay, the SIGReg descent direction increased variance, center separation, and mismatched-pair discrimination.
+- [Alignment and uniformity](https://arxiv.org/abs/2005.10242) defines positive-pair alignment and distributional spreading as separate properties. Here, the MSE descent direction reduced absolute true-pair distance and finite-batch correct-versus-wrong margin, while the SIGReg descent direction increased both absolute true-pair distance and the margin.
+- [Temporally Centered SIGReg](https://arxiv.org/abs/2607.26924) reports marginal-Gaussianization measurements in a multi-task temporal world model. In the ChemFM assay, SIGReg increased reaction-center separation in `48/48` cLM measurements.
+- [Sub-JEPA](https://arxiv.org/abs/2605.09241), [VICReg](https://arxiv.org/abs/2105.04906), [Barlow Twins](https://proceedings.mlr.press/v139/zbontar21a.html), and [Whitening-MSE](https://proceedings.mlr.press/v139/ermolov21a.html) use different marginal or redundancy-reduction objectives; none was evaluated in this audit.
 
-## Mechanistic verdict
+## Summary of measured signs
 
-| Hypothesis | Verdict | Evidence |
-|---|---|---|
-| SIGReg is pair-destructive | Rejected for these frozen states | Positive `ΔM`, cosine margin, and center separation in `48/48` cLM measurements |
-| SIGReg is pair-blind | True by construction, incomplete as a failure diagnosis | Its statistic is invariant to target permutation, yet its parameter step indirectly improves pair discrimination |
-| SIGReg eventually overwhelms pair-specific MSE | Supported in relative scale | Applied SIGReg/MSE rises `1.51x→3.43x→4.06x`; full pair-dependent fraction falls `.468→.398` |
-| SIGReg directly conflicts with NTP | Weakly supported | SIGReg/NTP cosine near `-0.05` in every cLM draw, with applied norm `0.18–0.30x` NTP |
-| SIGReg compresses reaction centers | Rejected as an instantaneous gradient mechanism | Center separation increases in every cLM draw |
-| MSE alone supplies useful discrimination pressure | Rejected at the measured states | MSE descent reduces `M` and cosine margin in every batch despite reducing true-pair distance |
-
-## One next experiment
-
-Run one matched **raw-endpoint MSE + projection-head SIGReg** condition: keep MSE on the existing source/target EOS states, but apply SIGReg only after a small shared projection head. Compare it with the existing direct-endpoint MSE+SIGReg checkpoint under the same cadence and seed.
-
-This preserves SIGReg's positive spreading/discrimination direction while testing whether an auxiliary coordinate system can absorb the full marginal Gaussian constraint instead of imposing its mildly anti-NTP, increasingly dominant gradient directly on ChemFM's task-bearing EOS state. Do not weaken SIGReg, replace it with VICReg/Barlow/Whitening-MSE, or use temporal/subspace variants based on this audit alone.
+| Quantity | Measurement |
+|---|---|
+| Pair discrimination, cosine margin, center separation under SIGReg descent | Positive in `48/48` cLM measurements |
+| Pair dependence of the statistic | SIGReg is invariant to target permutation |
+| Applied SIGReg/MSE norm ratio | `1.51x → 3.43x → 4.06x` at epochs `1 → 2 → 4` |
+| Pair-dependent fraction of full auxiliary | `.468 → .418 → .398` |
+| SIGReg/NTP cosine | `-0.056`, `-0.047`, `-0.047` |
+| Center separation under SIGReg descent | Increased in every cLM draw |
+| MSE descent | Reduced true-pair distance, `M`, and cosine margin in every batch |
 
 ## Artifacts
 

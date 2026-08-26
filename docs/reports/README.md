@@ -1,75 +1,73 @@
-# cLM-JEPA experiment results
+# cLM-JEPA experiment reports
 
-## Current answer
+This directory contains objective records of the completed experiments and
+frozen diagnostic audits. Each report records its protocol, measurements,
+limitations, and artifact paths. Interpretive recommendations are intentionally
+excluded.
 
-The dense causal V-JEPA 2.1 adaptation is now implemented and tested. It uses
-causal future-suffix prediction, dense proximity-weighted context prediction,
-four-depth self-supervision, the official-style deep latent predictor, and an
-EMA ChemFM target. In the controlled 320-update pilot it kept product-token
-states closer to native than direct endpoint MSE+SIGReg, but did not improve
-their function: target-token CE was 3.98% worse than native, exact top-1 tied
-at 6/256, and top-10 fell to 39/256 versus native 52/256. It also failed to
-reproduce the endpoint model's global pair signal (33.6% raw retrieval versus
-45.3% native and 84.0% direct). The exact tested configuration is therefore
-not justified for a longer run; report 12 contains the implementation and
-mechanistic verdict.
+## Current measurements
 
-The final frozen generation-pathway audit resolves the apparent contradiction. Direct MSE+SIGReg learns a large and shortcut-resistant source-product relation in isolated JEPA views, but only an attenuated fraction reaches the causal product-token representations. Cross-checkpoint activation patching finds no useful complete cLM state and localizes decisive harm to the final upper-layer residual state at target-prediction positions. Exact saved-state AdamW counterfactuals show that adaptive moments radically transform the weak raw-gradient relationship, but JEPA does not add local harm to the combined step in the tested batch. Existing cLM generations are not chemically closer: top-k Morgan similarity and scaffold coverage are generally worse. The smallest remaining mechanism is therefore view-to-decoder integration mismatch with harmful upper-layer co-adaptation, not collapse, a retrieval shortcut, or global gradient conflict.
+| Condition or audit | Recorded endpoint |
+|---|---|
+| Native NTP | Official five-view top-1 `50/1,280`; fixed-256 one-view top-1 `6/256` |
+| Symmetric cosine endpoint JEPA | Top-1 `17/512` versus native `24/512`; target variance `495x` below native |
+| Endpoint MSE+SIGReg | Official five-view top-1 `40/1,280`; fixed-256 one-view top-1 `6/256`; target-token CE `0.248779`; raw pair retrieval `85.9%` |
+| PCSF | Floor ratio `0.535` at epoch 4 for `rho=0.80`; top-1 `4/256`; CE `0.246664` |
+| Projection-space MSE+SIGReg | Projected rank `3.22/3.29`; raw rank `12.58/5.22`; CE `0.256497`; top-1 `4/512` |
+| Gradient-interaction methods | PCGrad/CAGrad/Du top-1 `3.91%/2.34%/3.91%` on 256; CE deltas `+6.82%/+22.67%/+1.33%` versus native |
+| Dense causal V-JEPA 2.1-style | Target-token CE `0.253547`; top-1 `6/256`; top-10 `39/256`; global raw retrieval `33.59%` |
 
-MSE and MSE+SIGReg were tested. MSE alone reduced but did not eliminate ChemFM's JEPA variance contraction. MSE+exact-SIGReg-16 restored source/target variance to 90.3%/55.2% of native at epoch 4 and produced 85.9% raw four-way pair retrieval (25% chance), but it did not improve generation. The frozen mechanistic audit localizes the adverse update to mostly SIGReg-driven pressure in layers 17-21 rather than broad model-wide gradient opposition. A temporal fresh-slice audit then rejected direct SIGReg pair destruction: SIGReg improves pair discrimination, but becomes 4.06x larger than applied MSE by epoch 4 and remains mildly anti-NTP.
+The official native-versus-endpoint-MSE+SIGReg top-1 difference was `-0.781`
+percentage points, bootstrap 95% CI `[-1.719,+0.156]`, exact McNemar
+`p=0.1433`. The frozen futility rule stopped evaluation at 1,280 reactions.
 
-A subsequent Pair-Center Spread Floor (PCSF) test attempted the smallest anti-contraction constraint: a reference-relative one-sided standard-deviation floor on positive-pair centers. Its prespecified `rho=0.80`, `beta=4.2` configuration did not hold the floor (`0.535x` native-reference pair-center sigma at epoch 4), scored 4/256 top-1 versus native 6/256, and had 2.49% worse target CE. This tested calibration therefore failed both its mechanism and downstream criteria; it does not establish that a successfully enforced minimal floor would fail.
+The generation-pathway audit additionally recorded:
 
-The final frozen directional audit separated contraction from task utility. MSE contracted pair-center spread in all 33 checkpoint-batch measurements, while the correct-pair-specific residual expanded it in all 33 and modestly improved held-out NTP at the important trained states. The contraction therefore comes from MSE's pair-blind alignment component. SIGReg genuinely reverses that direction but becomes adverse to held-out NTP; PCSF is directionally restorative and NTP-compatible where active, but too weak to overcome total MSE. Anti-contraction tuning alone is not the next bottleneck.
+- final-layer cLM source-to-target CKA `0.547` and source-to-AR-product CKA
+  `0.278`;
+- native-recipient activation-patch CE changes of `+0.00834`, `+0.00690`, and
+  `+0.03069` after layers 11, 16, and 21;
+- raw NTP/JEPA gradient cosine `-0.0223` and saved-state AdamW update cosine
+  `+0.8143`;
+- cLM hard-four-way retrieval `76.95%`, and `72.27%` after independent
+  canonicalization;
+- cLM-minus-native best-top-3/5/10 Morgan Tanimoto changes of `-0.00911`,
+  `-0.01823`, and `-0.01285` across 1,280 existing predictions.
 
-The requested projection-space test then placed both MSE and SIGReg behind one shared `2048->2048->2048->64` BN/ReLU head. It did not insulate ChemFM: projected `z` concentrated into about three effective dimensions, while raw `h` overshot native variance and lost rank. Target-token CE was `0.256497`, worse than direct MSE+SIGReg `0.248779`; on a matched budget-bounded 512-reaction five-view panel, native/direct/projected top-1 was `18/15/4`. Projected versus direct was `-2.148` pp, 95% CI `[-3.516,-0.781]`, McNemar `p=0.00342`.
+## Experiment inventory
 
-The final benchmark-faithful comparison used 1,280 unique USPTO-MIT reactions and all five official R-SMILES views:
-
-| Primary endpoint | Native epoch 4 | MSE+SIGReg cLM-JEPA epoch 4 |
-|---|---:|---:|
-| Exact top-1 | 50/1,280 (3.906%) | 40/1,280 (3.125%) |
-
-The paired difference was `-0.781` percentage points, 95% CI `[-1.719,+0.156]`, exact McNemar `p=0.1433`. A frozen futility rule excluded the prespecified `+1` pp benefit and stopped evaluation at 1,280. This result applies to the fixed seed-533 pilot endpoints; it is not a universal conclusion about JEPA.
-
-## What was tested
-
-| Experiment | Main result | Why it mattered |
-|---|---|---|
-| Native NTP | Final reference endpoint | Preserved ChemFM autoregressive fine-tuning |
-| Symmetric cosine JEPA, k=1 | 17/512 vs native 24/512; target variance 495x below native | Identified extreme common-direction concentration with useful residual pair information |
-| Target stop-gradient, k=1 | 26/512 vs native 24/512, `p=0.8318`; CE 7.69% worse | Partially relaxed geometry without an established behavioral gain |
-| Cosine+SIGReg batch 2, k=0/k=1 | 2/256 and 3/256 vs native 7/256 | Neither k value restored geometry; batch-2 statistic was inadequate |
-| Cosine+SIGReg batch 128, k=0 | Geometry restored; 0/256 top-1 | Cadence-confounded because updates fell from 320 to 20 |
-| SIGReg batch-16 calibration | Exact streamed/direct gradients; SIGReg gradient did not vanish under contraction | Qualified a controlled batch-16 run |
-| Cadence-matched cosine+SIGReg-16, k=0 | 3/256 vs native 6/256; variance remained 16.9x/14.8x lower | Showed the fixed cosine+SIGReg configuration did not stop contraction |
-| Raw MSE, k=0 | Variance remained about 4x below native at epoch 2 | MSE alone was insufficient and stopped at the gate |
-| **MSE+SIGReg-16, k=0** | Geometry restored; epoch-4 top-1 tied 6/256; CE 3.36% worse | Selected endpoint; separated geometry repair from generation benefit |
-| MSE+PCSF-16, k=0 | Floor not held; epoch-4 top-1 4/256 vs native 6/256; CE 2.49% worse | Falsified the tested PCSF calibration without resolving the broader minimal-floor hypothesis |
-| Projection-space MSE+SIGReg, k=0 | z became centered but ~3-rank; h was not native-like; CE 6.57% worse than native; 4/512 top-1 | Rejected projector placement as sufficient insulation for this objective |
-| Dense causal V-JEPA 2.1 | Causal token states stayed closer to native, but CE was 3.98% worse; 6/256 top-1 and 39/256 top-10; global retrieval 33.6% | Rejected the tested dense/EMA/predictor configuration as a generation improvement |
-| Official five-view endpoint | Native 50/1,280 vs cLM-JEPA 40/1,280 | Final benchmark-faithful behavioral result |
-| Reduced GSM8K LLM-JEPA reference | NTP 36/300 vs JEPA 28/300 | Not a successful control; its contraction was much less extreme than ChemFM's |
+| Experiment | Main recorded comparison |
+|---|---|
+| Native NTP | ChemFM autoregressive fine-tuning reference |
+| Symmetric cosine JEPA, k=1 | `17/512` top-1 versus native `24/512` |
+| Target stop-gradient, k=1 | `26/512` versus native `24/512`, `p=0.8318`; CE `7.69%` above native |
+| Cosine+SIGReg batch 2, k=0/k=1 | `2/256` and `3/256` versus native `7/256` |
+| Cosine+SIGReg batch 128, k=0 | `0/256`; 20 rather than 320 updates |
+| SIGReg batch-16 calibration | Direct/streamed objective and gradient parity measured |
+| Cadence-matched cosine+SIGReg-16, k=0 | `3/256` versus native `6/256`; source/target variance `16.9x/14.8x` below native |
+| Raw MSE, k=0 | Epoch-2 variance about `4x` below native; stopped at the frozen gate |
+| Endpoint MSE+SIGReg-16, k=0 | Epoch-4 top-1 `6/256`; CE `3.36%` above native; raw retrieval `85.9%` |
+| MSE+PCSF-16, k=0 | Floor not held; top-1 `4/256`; CE `2.49%` above native |
+| Projection-space MSE+SIGReg, k=0 | CE `6.57%` above native; top-1 `4/512` |
+| Gradient-interaction methods | Weight controls, PCGrad, CAGrad, and Du auxiliary similarity completed |
+| Dense causal V-JEPA 2.1-style | CE `3.98%` above native; top-1 `6/256`; top-10 `39/256` |
+| Reduced GSM8K reference | NTP `36/300`; JEPA `28/300` |
 
 ## Reports
 
 Read in this order:
 
-1. [Method and protocol fidelity](00_METHOD_AND_PROTOCOL_FIDELITY.md): what is faithful to LLM-JEPA and ChemFM, exact objectives, and evaluation semantics.
-2. [Why the project moved from cosine to MSE+SIGReg](01_COSINE_TO_MSE_SIGREG_DIAGNOSIS.md): consolidated cosine failure, stop-gradient, SIGReg batch/cadence studies, gradient assay, and GSM8K comparison.
-3. [MSE and MSE+SIGReg experiment](02_MSE_SIGREG_EXPERIMENT.md): the decisive objective ablation and representation result.
-4. [Official five-view endpoint evaluation](03_OFFICIAL_ENDPOINT_EVALUATION.md): powered endpoint design, exact inference parity, statistics, and stopping decision.
-5. [Mechanistic gradient and block-swap audit](04_MECHANISTIC_GRADIENT_AND_BLOCK_SWAP_AUDIT.md): auxiliary/NTP gradient decomposition, pair specificity, token-position compatibility, and causal depth localization.
-6. [SIGReg pair-specificity audit](05_SIGREG_PAIR_SPECIFICITY_AUDIT.md): temporal true/shuffled and fresh-slice gradient responses at MSE+SIGReg epochs 1, 2, and 4.
-7. [Pair-Center Spread Floor experiment](06_PCSF_EXPERIMENT.md): derivation, implementation, frozen calibration, A6000 optimization, four-epoch run, geometry, and downstream verdict.
-8. [Contraction and held-out NTP directional audit](07_CONTRACTION_AND_NTP_DIRECTIONAL_AUDIT.md): time-matched spread trajectories, objective-induced spread velocity, and disjoint-batch NTP effects.
-9. [Projection-space MSE+SIGReg experiment](08_PROJECTION_SPACE_MSE_SIGREG_EXPERIMENT.md): primary-source design, PCSF production cleanup, logical-batch projector training, two-space geometry, gradient alignment, CE, and generation verdict.
-10. [JEPA–NTP gradient-interaction experiment](09_GRADIENT_INTERACTION_EXPERIMENT.md): clean direct MSE+SIGReg baseline, weight controls, PCGrad, CAGrad, published auxiliary-gradient similarity, optimized diagnostics, and autoregressive verdict.
+1. [Method and protocol fidelity](00_METHOD_AND_PROTOCOL_FIDELITY.md): exact objectives and evaluation semantics.
+2. [Endpoint objective experiments](02_MSE_SIGREG_EXPERIMENT.md): cosine precursors, MSE, MSE+SIGReg, representation measurements, and endpoint comparisons.
+3. [Official five-view endpoint evaluation](03_OFFICIAL_ENDPOINT_EVALUATION.md): powered endpoint design, inference parity, statistics, and stopping rule.
+4. [Gradient and block-swap audit](04_MECHANISTIC_GRADIENT_AND_BLOCK_SWAP_AUDIT.md): gradient decomposition, token positions, and depth-block swaps.
+5. [SIGReg pair-specificity audit](05_SIGREG_PAIR_SPECIFICITY_AUDIT.md): true/shuffled and fresh-slice measurements at epochs 1, 2, and 4.
+6. [Pair-Center Spread Floor experiment](06_PCSF_EXPERIMENT.md): historical PCSF implementation, calibration, run, and evaluation.
+7. [Contraction and held-out NTP directional audit](07_CONTRACTION_AND_NTP_DIRECTIONAL_AUDIT.md): spread velocities and disjoint-batch NTP directions.
+8. [Projection-space MSE+SIGReg experiment](08_PROJECTION_SPACE_MSE_SIGREG_EXPERIMENT.md): historical projector design, training, two-space geometry, and evaluation.
+9. [JEPA–NTP gradient-interaction experiment](09_GRADIENT_INTERACTION_EXPERIMENT.md): weights, PCGrad, CAGrad, Du similarity, diagnostics, and evaluation. The former execution-handoff report is consolidated here.
+10. [Generation-pathway audit](11_GENERATION_PATHWAY_MECHANISM_AUDIT.md): layerwise comparisons, activation patching, AdamW counterfactuals, shortcut controls, and chemical similarity.
+11. [Dense causal V-JEPA 2.1-style experiment](12_DENSE_CAUSAL_VJEPA2_1_EXPERIMENT.md): source mapping, implementation, verification, super-mini, pilot, and frozen evaluation.
 
-11. [Gradient-interaction execution checkpoint](10_EXECUTION_CHECKPOINT.md): recovery handoff listing completed artifacts, active execution, and remaining work.
-12. [Generation-pathway mechanism audit](11_GENERATION_PATHWAY_MECHANISM_AUDIT.md): layerwise JEPA-to-autoregressive transfer, causal activation patching, exact AdamW counterfactuals, shortcut-controlled retrieval, and chemistry-aware generation analysis.
-13. [Dense causal V-JEPA 2.1 experiment](12_DENSE_CAUSAL_VJEPA2_1_EXPERIMENT.md): primary-source mapping, causal dense predictor/EMA implementation, verification, A6000 feasibility, controlled pilot, and frozen global/local verdict.
-
-## Research status
-
-Global contraction remains reproducible, but report 11 shows that the more immediate behavioral bottleneck is integration: the genuine isolated-view pair signal is attenuated in the causal decoding path and becomes a harmful upper-layer residual state. Report 12 tested the principled dense/EMA/deep-supervision translation intended to address that mismatch. It preserved more native-like token states but did not create useful global or local predictive coupling; its train-only predictor received substantially larger dense-loss gradients than ChemFM. No longer run of this exact configuration is supported. The smallest next step is predictor-versus-encoder update attribution, not another weight, regularizer, projector, gradient-combiner, or full-scale training sweep.
+Reports 01 and 10 were removed after their unique content was merged into
+reports 02 and 09. No experiment artifacts or measurements were deleted.

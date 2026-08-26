@@ -1,10 +1,15 @@
 # Official five-view endpoint evaluation
 
-## Result
+## Measured summary
 
-The fixed epoch-4 MSE+SIGReg cLM-JEPA endpoint did not improve official ChemFM USPTO-MIT generation over the cadence-matched native endpoint. On 1,280 prespecified unique reactions, native exact top-1 was 3.906% and cLM-JEPA was 3.125%: `-0.781` percentage points, 95% paired bootstrap CI `[-1.719,+0.156]`, exact McNemar `p=0.1433`.
+On 1,280 prespecified unique reactions, the fixed epoch-4 native endpoint had
+3.906% exact top-1 and the fixed epoch-4 MSE+SIGReg cLM-JEPA endpoint had
+3.125%: `-0.781` percentage points, 95% paired bootstrap CI
+`[-1.719,+0.156]`, exact McNemar `p=0.1433`.
 
-The prespecified 99% futility interval had upper bound `+0.458` pp, below the minimum effect of interest of `+1` pp. Evaluation therefore stopped at 1,280 rather than extending to 3,300. This rejects the targeted +1 pp benefit for these fixed endpoints under the frozen stopping rule; it is not a claim of exact equivalence or a universal result for other training regimes.
+The prespecified 99% futility interval had upper bound `+0.458` pp, below the
+minimum effect of interest of `+1` pp. Under the frozen stopping rule,
+evaluation stopped at 1,280 rather than extending to 3,300.
 
 ## Fixed comparison and official semantics
 
@@ -16,7 +21,7 @@ Each unique reaction used all five official R-SMILES views, beam width 10, ten r
 
 The selected A6000 path used four independent batch-1 model workers with one CPU thread each, left padding, SDPA, and exact CUDA-graph fast paths. Tokenization, candidate handling, and five-view aggregation were unchanged.
 
-On a fixed 24-reaction panel, every ordered raw, canonical, and aggregated candidate list and every exact-match flag matched the sequential reference; the complete digest was identical (`8ded7c06...`). Throughput increased from `0.01877` to `0.15496` complete five-view reactions/s, an `8.25x` speedup. The completed cLM-JEPA pass ran at `0.1752` reactions/s, 69.5% mean GPU utilization, 89% maximum utilization, and 16.4 GiB peak VRAM. Larger prompt batches or five/six replicas were rejected because they were slower or did not meet exact-output parity.
+On a fixed 24-reaction panel, every ordered raw, canonical, and aggregated candidate list and every exact-match flag matched the sequential reference; the complete digest was identical (`8ded7c06...`). Throughput increased from `0.01877` to `0.15496` complete five-view reactions/s, an `8.25x` speedup. The completed cLM-JEPA pass ran at `0.1752` reactions/s, 69.5% mean GPU utilization, 89% maximum utilization, and 16.4 GiB peak VRAM. Larger prompt batches were slower; five/six replicas either were slower or changed exact outputs, so neither candidate was used.
 
 ## Prespecified sample and power
 
@@ -43,11 +48,17 @@ The official test population contained 40,000 five-view reaction groups. Before 
 
 Top-1 paired counts were 26 both correct, 24 native-only, 14 cLM-JEPA-only, and 1,216 neither. The 99% Wald interval was `[-2.021,+0.458]` pp. Secondary exact McNemar p-values were 0.0448/0.000359/0.0369 for top-3/5/10. Holm-adjusted p-values were 0.0737/0.00108/0.0737; only top-5 remained significant, favoring native.
 
-## What this establishes
+## Measurement scope
 
-For these two seed-533 epoch-4 checkpoints, reduced pilot exposure, and the frozen official test sample, the evidence does not support the prespecified +1 pp exact-top-1 benefit. Point estimates favored native at every top-k cutoff.
+For these two seed-533 epoch-4 checkpoints, reduced pilot exposure, and the
+frozen official test sample, the cLM-JEPA-minus-native 99% interval upper bound
+was below the prespecified +1 pp threshold. Native point estimates were higher
+at every top-k cutoff.
 
-The result does not estimate multi-seed training variability, test larger training exposure, cover MetaTrans or retrosynthesis, prove that every smaller effect is absent, or show that all possible JEPA objectives fail. Teacher-forced CE and representation geometry are not used as substitutes for this behavioral endpoint.
+The evaluation does not estimate multi-seed training variability, test larger
+training exposure, cover MetaTrans or retrosynthesis, or measure untested JEPA
+objectives. Teacher-forced CE and representation geometry were not endpoint
+substitutes in this evaluation.
 
 ## Evidence paths
 

@@ -15,7 +15,6 @@ from vjepa2_1 import (
     ProgressiveContextSchedule,
     component_gradient_norms,
     context_distance_weights,
-    selected_layer_outputs,
 )
 
 
@@ -172,12 +171,6 @@ def test_real_llama_prefix_features_have_no_future_token_leakage():
         second_levels = second.values()
     for left, right in zip(first_levels, second_levels):
         torch.testing.assert_close(left[:, :4], right[:, :4], rtol=0, atol=0)
-
-
-def test_selected_depths_use_hf_block_output_semantics():
-    states = tuple(torch.full((1, 2, 3), float(index)) for index in range(5))
-    selected = selected_layer_outputs(states, (1, 2, 4))
-    assert [float(value[0, 0, 0]) for value in selected] == [1.0, 2.0, 4.0]
 
 
 def test_progressive_context_schedule_matches_reference_shape():

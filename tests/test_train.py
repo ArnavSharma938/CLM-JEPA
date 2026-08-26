@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from train import (
     ADAM_BETAS, ADAM_EPSILON, MIN_LEARNING_RATE, WARMUP_RATIO,
     WEIGHT_DECAY, attach_matched_targets, restore_training_checkpoint,
-    raw_auxiliary_vjp,
+    raw_auxiliary_vjp, condition_family,
     _largest_target_overlap_component, _representation_sample, validation_selector,
 )
 from jepa import SIGReg
@@ -22,6 +22,12 @@ from jepa import SIGReg
 class LengthTokenizer:
     def __call__(self, values, add_special_tokens=False):
         return {"input_ids": [list(range(len(value))) for value in values]}
+
+
+def test_training_conditions_have_explicit_implementation_families():
+    assert condition_family("native") == "native"
+    assert condition_family("clm_jepa_mse_sigreg") == "endpoint_clm_jepa"
+    assert condition_family("clm_jepa_vjepa2_1") == "dense_vjepa2_1"
 
 
 def shuffled_rows():

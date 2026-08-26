@@ -1,12 +1,21 @@
 # Mechanistic gradient and LoRA block-swap audit
 
-## Result
+## Measured summary
 
-The MSE+SIGReg objective does not create a strong model-wide gradient opposition to native product-token prediction. At the selected epoch-4 cLM-JEPA checkpoint, the active weighted auxiliary gradient was `0.212x` the LoRA NTP-gradient norm, cosine `-0.042`, and `99.82%` orthogonal by the one-dimensional projection decomposition. The adverse signal was localized: SIGReg dominated the weighted auxiliary gradient in layers 17-21, where the auxiliary-versus-early-token NTP cosine was `-0.107` (`-0.272` and `-0.213` in layers 20 and 21).
+At the selected epoch-4 cLM-JEPA checkpoint, the active weighted auxiliary
+gradient was `0.212x` the LoRA NTP-gradient norm, cosine `-0.042`, and `99.82%`
+orthogonal by the one-dimensional projection decomposition. In layers 17--21,
+the auxiliary-versus-early-token NTP cosine was `-0.107`; layers 20 and 21 were
+`-0.272` and `-0.213`. SIGReg supplied most of the coefficient-weighted
+auxiliary norm at this checkpoint.
 
-Frozen adapter swaps provide causal support for this localization. Substituting cLM-JEPA layers 17-21 into the native adapter worsened aggregate CE by `+0.015607`; the reaction-level bootstrap 95% CI was `[+0.014308,+0.017021]`. Restoring native layers 17-21 in the cLM-JEPA adapter removed `55.1%` of the full native-to-cLM aggregate CE gap. In contrast, cLM-JEPA layers 12-16 improved the native background by `-0.003447`, CI `[-0.005278,-0.001631]`. The learned auxiliary update is therefore not uniformly harmful across depth.
+Substituting cLM-JEPA layers 17--21 into the native adapter changed aggregate
+CE by `+0.015607`; the reaction-level bootstrap 95% CI was
+`[+0.014308,+0.017021]`. Substituting native layers 17--21 into the cLM-JEPA
+adapter changed CE by `-0.004371`, equal to 55.1% of the full native-to-cLM
+aggregate CE gap. Substituting cLM-JEPA layers 12--16 into native changed CE by
+`-0.003447`, CI `[-0.005278,-0.001631]`.
 
-The most supported mechanism is **localized, mostly SIGReg-driven interference with decoder-facing upper layers, combined with weak alignment between the pair-specific auxiliary residual and NTP**. Broad gradient conflict, target-branch interference, and a simple late-token alignment account are not supported as the primary explanations.
 
 ## Inputs and implementation
 
@@ -53,7 +62,9 @@ Values use LoRA A/B parameters only. Norm ratios are raw objective gradient norm
 | Native epoch 4 | `0.184 / -0.048` | `5.270 / +0.022` | `0.359 / -0.023` | 99.95% |
 | MSE+SIGReg epoch 4 | `0.029 / -0.045` | `2.807 / -0.028` | `0.212 / -0.042` | 99.82% |
 
-At the cLM-JEPA endpoint, coefficient-weighted MSE and SIGReg norm ratios were approximately `0.058` and `0.227`; the combined ratio was `0.212`. SIGReg therefore supplied most of the remaining auxiliary force. The slightly negative global dot product exists, but only `0.18%` of auxiliary energy lies in the opposed one-dimensional NTP direction. This rules out strong, uniform gradient opposition as the main account.
+At the cLM-JEPA endpoint, coefficient-weighted MSE and SIGReg norm ratios were
+approximately `0.058` and `0.227`; the combined ratio was `0.212`. The opposed
+one-dimensional NTP direction contained `0.18%` of auxiliary energy.
 
 ## Source and target MSE branches
 
@@ -63,7 +74,9 @@ At the cLM-JEPA endpoint, coefficient-weighted MSE and SIGReg norm ratios were a
 | Native epoch 4 | `0.089; -0.010` | `0.213; -0.038` |
 | MSE+SIGReg epoch 4 | `0.028; -0.026` | `0.034; -0.017` |
 
-Target-side MSE was larger at the native checkpoint, but its conflict was weak; at the trained cLM checkpoint both branches were small and nearly orthogonal. The audit therefore weakens target-branch interference as the primary mechanism. This does not claim that symmetric target adaptation is always harmless; it shows that it does not explain this endpoint's dominant adverse signal.
+Target-side MSE was larger at the native checkpoint. At the trained cLM
+checkpoint, source-only and target-only ratios/cosines were `0.028/-0.026` and
+`0.034/-0.017`.
 
 ## Pair specificity
 
@@ -73,7 +86,9 @@ Target-side MSE was larger at the native checkpoint, but its conflict was weak; 
 | Native epoch 4 | 0.977 | 0.257 | 0.967 | 0.263 |
 | MSE+SIGReg epoch 4 | 0.939 | 1.649 | 0.902 | 0.454 |
 
-At the cLM endpoint the shuffled MSE gradient was much larger than the already-small true-pair MSE gradient, but pointed in nearly the same direction. Adding the pair-invariant SIGReg component made the true and shuffled active gradients still more similar in scale: cosine `0.902`, `||g_true|| / ||g_shuffle|| = 0.958`. The pair-specific residual was `0.096x` the NTP norm and cosine `+0.032` with NTP (`99.90%` orthogonal energy). Correct pairing therefore changes a nontrivial residual, but most auxiliary direction is preserved without the correct pair and the residual is not aligned with product-token optimization.
+At the cLM endpoint, true and shuffled active gradients had cosine `0.902` and
+`||g_true|| / ||g_shuffle|| = 0.958`. The pair-specific residual was `0.096x`
+the NTP norm, cosine `+0.032` with NTP, and `99.90%` orthogonal energy.
 
 ## Autoregressive positions and localization
 
@@ -83,7 +98,8 @@ At the cLM endpoint the shuffled MSE gradient was much larger than the already-s
 | Native epoch 4 | -0.030 | +0.007 | -0.004 |
 | MSE+SIGReg epoch 4 | -0.041 | -0.010 | -0.012 |
 
-There is no evidence that the endpoint objective is usefully aligned with late-token NTP but not early-token NTP. At the selected cLM checkpoint all three global relationships are weakly negative. The depth-localized result is stronger:
+At the selected cLM checkpoint, active-auxiliary cosine with early, middle, and
+late NTP was `-0.041`, `-0.010`, and `-0.012`:
 
 | cLM depth | Active aux / NTP norm | Active aux vs total NTP | Active aux vs early NTP | Raw SIGReg / NTP norm; cosine |
 |---|---:|---:|---:|---:|
@@ -92,7 +108,10 @@ There is no evidence that the endpoint objective is usefully aligned with late-t
 | 12-16 | 0.149 | -0.043 | -0.042 | `1.918; -0.045` |
 | **17-21** | **0.445** | **-0.085** | **-0.107** | **`5.566; -0.084`** |
 
-Within layers 17-21, layers 20 and 21 had active-auxiliary/early-NTP cosines `-0.272` and `-0.213`. Across module families at the cLM endpoint, the strongest adverse relationships were `down_proj` (cosine `-0.115`, norm ratio `0.796`) and `q_proj` (cosine `-0.110`, norm ratio `0.051`). Other attention and MLP families were weakly negative. Token I/O had cosine `+0.025`; its swap result below indicates co-adaptation, not a matching local gradient-conflict signature.
+Within layers 17--21, layers 20 and 21 had active-auxiliary/early-NTP cosines
+`-0.272` and `-0.213`. Across module families, `down_proj` had cosine `-0.115`
+and norm ratio `0.796`; `q_proj` had cosine `-0.110` and norm ratio `0.051`.
+Token I/O had cosine `+0.025`.
 
 ## Frozen block-swap causal localization
 
@@ -111,24 +130,16 @@ Native and cLM full aggregate CEs were `0.240753` and `0.248691`; the full gap w
 | Native + cLM token I/O | 0.255083 | +0.014331 | +0.006393 | 180.5% | +0.014777 | 88/168 |
 | cLM + native token I/O | 0.267329 | +0.026577 | +0.018639 | 334.8% | +0.028449 | 40/216 |
 
-The layers 17-21 effects are directionally consistent: adding the cLM block is harmful, and removing it from cLM improves CE. The native-background effect is broader (247/256 reactions worsened) and has a narrow bootstrap interval. Layers 12-16 show the opposite effect in the native background. The reverse 12-16 hybrid worsens cLM, demonstrating substantial block co-adaptation and preventing additive interpretation.
+The native-plus-cLM-17--21 hybrid increased per-reaction CE for 247/256
+reactions. The native-plus-cLM-12--16 hybrid changed aggregate CE by
+`-0.003447`; the reverse cLM-plus-native-12--16 hybrid changed it by
+`+0.003643`. Hybrid effects are not additive because each combines blocks from
+different trained states.
 
-Token I/O swaps worsen both backgrounds. This means the two token-I/O states are incompatible with the opposite model context; it does not identify the cLM token-I/O state alone as the cause. The result is retained as evidence of co-adaptation rather than used to select the intervention.
+Token I/O swaps increased CE in both backgrounds: `+0.014331` for native plus cLM token I/O and `+0.018639` relative to cLM for cLM plus native token I/O. Each swap changes token-I/O tensors while retaining the recipient's transformer blocks.
 
-## Unified diagnosis
-
-| Hypothesis | Audit conclusion |
-|---|---|
-| Broad direct gradient interference | **Weakened.** The trained active auxiliary gradient is mostly orthogonal globally, with only 0.18% opposed energy. |
-| SIGReg-specific interference | **Strengthened and localized.** At the cLM endpoint SIGReg dominates weighted auxiliary norm and its strongest adverse relationship is in layers 17-21. |
-| Target-branch interference | **Weakened.** Source and target MSE branches are both small and nearly orthogonal at the selected endpoint; target conflict is not dominant. |
-| Weak pair specificity | **Strengthened.** True and shuffled active gradients have cosine 0.902; the pair-specific residual is nearly orthogonal to NTP. |
-| Endpoint/trajectory mismatch | **Partially strengthened.** There is no late-token alignment; conflict is most visible for early NTP in upper layers. |
-| Localized harmful parameter changes | **Strongly strengthened.** Bidirectional layers 17-21 swaps track the adverse gradient localization, while layers 12-16 can improve native CE. |
-| No meaningful conflict anywhere | **Ruled out.** Global conflict is weak, but upper-layer gradient and causal swap evidence agree. |
-
-The audit does not reconstruct every gradient encountered during four training epochs. It measures exact local gradients at three frozen states. Block swaps are causal parameter interventions but are off the training trajectory and expose nonlinear co-adaptation. These limitations prevent assigning the full endpoint gap additively to individual blocks; they do not explain away the convergent layers 17-21 gradient and bidirectional-swap result.
-
-## One next experiment
-
-Run exactly one cadence-matched seed-533 MSE+SIGReg replication in which **only SIGReg gradients to LoRA parameters in layers 17-21 are masked**, while NTP and MSE gradients continue through all existing trainable parameters and every other setting remains unchanged. Evaluate the fixed epoch-4 checkpoint against the matched native endpoint using the existing CE panel and exact generation protocol. This intervention isolates the component and depth jointly identified by the audit; it does not alter pairing, MSE, target symmetry, token I/O, data exposure, or regularizer strength.
+The audit does not reconstruct every gradient encountered during four training
+epochs. It measures exact local gradients at three frozen states. Block swaps
+are off-trajectory parameter interventions and combine co-adapted blocks from
+different checkpoints, so the normalized gap fractions are not additive
+attributions.
