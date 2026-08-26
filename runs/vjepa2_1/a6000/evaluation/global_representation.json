@@ -1,0 +1,315 @@
+{
+  "dataset": "uspto_mit_synthesis",
+  "task": "forward",
+  "validation_manifest": "/home/ubuntu/CLM-JEPA/data/clm_jepa_uspto_mit_validation_256/uspto_mit_validation_length_stratified_256.csv",
+  "seed": 533,
+  "k": 0,
+  "conditions": {
+    "native_epoch_4": {
+      "source_result": null,
+      "checkpoint": "runs/sigreg_batch16_pilot/matched_b4/native_checkpoints/epoch_4",
+      "metrics": {
+        "centered_normalized_rescue": false,
+        "correct_cosine": 0.9687639474868774,
+        "random_cosine": 0.9625411033630371,
+        "matched_shuffle_cosine": 0.9633185267448425,
+        "correct_minus_random": 0.006222858093678951,
+        "correct_minus_matched": 0.005445465911179781,
+        "matched_assignment_cost": 298,
+        "target_variance": 0.0023170514032244682,
+        "target_effective_rank": 22.701160430908203,
+        "target_mean_direction_energy": 0.9695466756820679,
+        "ridge_explained_variance": 0.13658416271209717,
+        "retrieval_top1": 0.453125,
+        "retrieval_mrr": 0.6494140625,
+        "retrieval_chance_top1": 0.25,
+        "heldout_identity_count": 52,
+        "retains_pair_signal": true,
+        "source_variance": 0.0014318274334073067,
+        "pair_center_spread": 0.034467797726392746,
+        "source_effective_rank": 41.02116394042969,
+        "source_mean_direction_energy": 0.9817671775817871,
+        "pca_structure": {
+          "source": {
+            "top8_explained_variance_fraction": [
+              0.15867149829864502,
+              0.12821368873119354,
+              0.07569349557161331,
+              0.04860790818929672,
+              0.040222715586423874,
+              0.03662601485848427,
+              0.03440504148602486,
+              0.02777034044265747
+            ],
+            "top1_explained_variance_fraction": 0.15867149829864502,
+            "top2_cumulative_explained_variance_fraction": 0.28688520193099976,
+            "top8_cumulative_explained_variance_fraction": 0.55021071434021
+          },
+          "target": {
+            "top8_explained_variance_fraction": [
+              0.3679901361465454,
+              0.08445276319980621,
+              0.060621749609708786,
+              0.041307758539915085,
+              0.0347149558365345,
+              0.030794713646173477,
+              0.02488153614103794,
+              0.02122742496430874
+            ],
+            "top1_explained_variance_fraction": 0.3679901361465454,
+            "top2_cumulative_explained_variance_fraction": 0.45244288444519043,
+            "top8_cumulative_explained_variance_fraction": 0.6659910082817078
+          },
+          "pair_center": {
+            "top8_explained_variance_fraction": [
+              0.21633540093898773,
+              0.11160048842430115,
+              0.07696449011564255,
+              0.04961163178086281,
+              0.04114416986703873,
+              0.03646111115813255,
+              0.027899475768208504,
+              0.024675922468304634
+            ],
+            "top1_explained_variance_fraction": 0.21633540093898773,
+            "top2_cumulative_explained_variance_fraction": 0.3279358744621277,
+            "top8_cumulative_explained_variance_fraction": 0.584692656993866
+          }
+        },
+        "residual_pc2": {
+          "centered_normalized_rescue": false,
+          "correct_cosine": 0.3112236559391022,
+          "random_cosine": 0.0036827921867370605,
+          "matched_shuffle_cosine": 0.05706437677145004,
+          "correct_minus_random": 0.3075408637523651,
+          "correct_minus_matched": 0.25415927171707153,
+          "matched_assignment_cost": 298,
+          "target_variance": 0.0014440694358199835,
+          "target_effective_rank": 49.747928619384766,
+          "target_mean_direction_energy": 0.006907274480909109,
+          "ridge_explained_variance": 0.06327623128890991,
+          "retrieval_top1": 0.78515625,
+          "retrieval_mrr": 0.8756510615348816,
+          "retrieval_chance_top1": 0.25,
+          "heldout_identity_count": 52,
+          "retains_pair_signal": true
+        },
+        "source_target_difference_effective_rank": 30.290882110595703,
+        "source_target_difference_top_singular_energy": 0.2974576950073242,
+        "diagnostic_sample_rows": 256,
+        "diagnostic_unique_target_identities": 256,
+        "necessary_component_policy": "source component with the largest ring-aware MCS atom overlap to any target component; heavy-atom count and original order break ties",
+        "alternate_smiles_cosine": 0.9945791959762573,
+        "necessary_component_ablation_cosine": 0.9745437502861023,
+        "necessary_component_sensitivity": 0.025456249713897705,
+        "necessary_component_replacement_cosine": 0.994400143623352,
+        "necessary_component_replacement_sensitivity": 0.005599856376647949
+      },
+      "peak_cuda_bytes": 2332729856
+    },
+    "endpoint_mse_sigreg_epoch_4": {
+      "source_result": null,
+      "checkpoint": "runs/mse_ablation/stage1/mse_sigreg_checkpoints/epoch_4",
+      "metrics": {
+        "centered_normalized_rescue": false,
+        "correct_cosine": 0.982003927230835,
+        "random_cosine": 0.9667032957077026,
+        "matched_shuffle_cosine": 0.970579206943512,
+        "correct_minus_random": 0.015300562605261803,
+        "correct_minus_matched": 0.011424703523516655,
+        "matched_assignment_cost": 298,
+        "target_variance": 0.0012815510854125023,
+        "target_effective_rank": 34.00813293457031,
+        "target_mean_direction_energy": 0.9698163866996765,
+        "ridge_explained_variance": 0.31617486476898193,
+        "retrieval_top1": 0.83984375,
+        "retrieval_mrr": 0.9059244394302368,
+        "retrieval_chance_top1": 0.25,
+        "heldout_identity_count": 52,
+        "retains_pair_signal": true,
+        "source_variance": 0.001293095643632114,
+        "pair_center_spread": 0.03124631568789482,
+        "source_effective_rank": 38.33549118041992,
+        "source_mean_direction_energy": 0.9708567261695862,
+        "pca_structure": {
+          "source": {
+            "top8_explained_variance_fraction": [
+              0.20572403073310852,
+              0.0836261585354805,
+              0.06938321888446808,
+              0.058010976761579514,
+              0.04460844770073891,
+              0.03986940532922745,
+              0.0349680632352829,
+              0.033391620963811874
+            ],
+            "top1_explained_variance_fraction": 0.20572403073310852,
+            "top2_cumulative_explained_variance_fraction": 0.2893501818180084,
+            "top8_cumulative_explained_variance_fraction": 0.569581925868988
+          },
+          "target": {
+            "top8_explained_variance_fraction": [
+              0.24653558433055878,
+              0.08873223513364792,
+              0.0703703984618187,
+              0.056338708847761154,
+              0.04816857725381851,
+              0.03689189255237579,
+              0.030192021280527115,
+              0.02765469439327717
+            ],
+            "top1_explained_variance_fraction": 0.24653558433055878,
+            "top2_cumulative_explained_variance_fraction": 0.3352678120136261,
+            "top8_cumulative_explained_variance_fraction": 0.6048840880393982
+          },
+          "pair_center": {
+            "top8_explained_variance_fraction": [
+              0.2548636794090271,
+              0.08964119106531143,
+              0.07724490016698837,
+              0.050094541162252426,
+              0.048211123794317245,
+              0.03461387753486633,
+              0.02814013510942459,
+              0.024809736758470535
+            ],
+            "top1_explained_variance_fraction": 0.2548636794090271,
+            "top2_cumulative_explained_variance_fraction": 0.34450486302375793,
+            "top8_cumulative_explained_variance_fraction": 0.6076191663742065
+          }
+        },
+        "residual_pc2": {
+          "centered_normalized_rescue": false,
+          "correct_cosine": 0.430268794298172,
+          "random_cosine": 0.0043808636255562305,
+          "matched_shuffle_cosine": -0.003535057883709669,
+          "correct_minus_random": 0.42588794231414795,
+          "correct_minus_matched": 0.43380385637283325,
+          "matched_assignment_cost": 298,
+          "target_variance": 0.0009474431280978024,
+          "target_effective_rank": 52.62557601928711,
+          "target_mean_direction_energy": 0.008775072172284126,
+          "ridge_explained_variance": 0.18566954135894775,
+          "retrieval_top1": 0.9375,
+          "retrieval_mrr": 0.9651692509651184,
+          "retrieval_chance_top1": 0.25,
+          "heldout_identity_count": 52,
+          "retains_pair_signal": true
+        },
+        "source_target_difference_effective_rank": 56.216087341308594,
+        "source_target_difference_top_singular_energy": 0.10627343505620956,
+        "diagnostic_sample_rows": 256,
+        "diagnostic_unique_target_identities": 256,
+        "necessary_component_policy": "source component with the largest ring-aware MCS atom overlap to any target component; heavy-atom count and original order break ties",
+        "alternate_smiles_cosine": 0.9914406538009644,
+        "necessary_component_ablation_cosine": 0.9682174921035767,
+        "necessary_component_sensitivity": 0.03178250789642334,
+        "necessary_component_replacement_cosine": 0.989647388458252,
+        "necessary_component_replacement_sensitivity": 0.010352611541748047
+      },
+      "peak_cuda_bytes": 2326965248
+    },
+    "clm_jepa_vjepa2_1": {
+      "source_result": "runs/vjepa2_1/a6000/pilot/result.json",
+      "checkpoint": "/home/ubuntu/CLM-JEPA/runs/vjepa2_1/a6000/pilot/checkpoints/epoch_4",
+      "metrics": {
+        "centered_normalized_rescue": false,
+        "correct_cosine": 0.9679487943649292,
+        "random_cosine": 0.963071346282959,
+        "matched_shuffle_cosine": 0.9636504650115967,
+        "correct_minus_random": 0.0048773931339383125,
+        "correct_minus_matched": 0.00429827393963933,
+        "matched_assignment_cost": 298,
+        "target_variance": 0.001987977186217904,
+        "target_effective_rank": 27.640459060668945,
+        "target_mean_direction_energy": 0.9739345908164978,
+        "ridge_explained_variance": 0.08187425136566162,
+        "retrieval_top1": 0.3359375,
+        "retrieval_mrr": 0.5914713740348816,
+        "retrieval_chance_top1": 0.25,
+        "heldout_identity_count": 52,
+        "retains_pair_signal": true,
+        "source_variance": 0.0012553242268040776,
+        "pair_center_spread": 0.03182337433099747,
+        "source_effective_rank": 40.6849479675293,
+        "source_mean_direction_energy": 0.9840317368507385,
+        "pca_structure": {
+          "source": {
+            "top8_explained_variance_fraction": [
+              0.15897105634212494,
+              0.1204712763428688,
+              0.08812319487333298,
+              0.04881274327635765,
+              0.03841201961040497,
+              0.03678799420595169,
+              0.03045516274869442,
+              0.02849661558866501
+            ],
+            "top1_explained_variance_fraction": 0.15897105634212494,
+            "top2_cumulative_explained_variance_fraction": 0.27944234013557434,
+            "top8_cumulative_explained_variance_fraction": 0.5505300760269165
+          },
+          "target": {
+            "top8_explained_variance_fraction": [
+              0.29505184292793274,
+              0.09279393404722214,
+              0.061954252421855927,
+              0.058024920523166656,
+              0.04275604337453842,
+              0.032541658729314804,
+              0.02974764257669449,
+              0.02519695833325386
+            ],
+            "top1_explained_variance_fraction": 0.29505184292793274,
+            "top2_cumulative_explained_variance_fraction": 0.3878457844257355,
+            "top8_cumulative_explained_variance_fraction": 0.6380672454833984
+          },
+          "pair_center": {
+            "top8_explained_variance_fraction": [
+              0.20427323877811432,
+              0.09847355633974075,
+              0.06989797949790955,
+              0.05944688618183136,
+              0.05137544497847557,
+              0.03496340662240982,
+              0.032043296843767166,
+              0.027434593066573143
+            ],
+            "top1_explained_variance_fraction": 0.20427323877811432,
+            "top2_cumulative_explained_variance_fraction": 0.30274680256843567,
+            "top8_cumulative_explained_variance_fraction": 0.5779083967208862
+          }
+        },
+        "residual_pc2": {
+          "centered_normalized_rescue": false,
+          "correct_cosine": 0.2622709572315216,
+          "random_cosine": 0.010748786851763725,
+          "matched_shuffle_cosine": 0.025621172040700912,
+          "correct_minus_random": 0.2515221834182739,
+          "correct_minus_matched": 0.2366497814655304,
+          "matched_assignment_cost": 298,
+          "target_variance": 0.0013216066872701049,
+          "target_effective_rank": 50.84859848022461,
+          "target_mean_direction_energy": 0.005308166146278381,
+          "ridge_explained_variance": 0.010044693946838379,
+          "retrieval_top1": 0.7734375,
+          "retrieval_mrr": 0.8766276240348816,
+          "retrieval_chance_top1": 0.25,
+          "heldout_identity_count": 52,
+          "retains_pair_signal": true
+        },
+        "source_target_difference_effective_rank": 37.07313537597656,
+        "source_target_difference_top_singular_energy": 0.22511133551597595,
+        "diagnostic_sample_rows": 256,
+        "diagnostic_unique_target_identities": 256,
+        "necessary_component_policy": "source component with the largest ring-aware MCS atom overlap to any target component; heavy-atom count and original order break ties",
+        "alternate_smiles_cosine": 0.9950376152992249,
+        "necessary_component_ablation_cosine": 0.9665724039077759,
+        "necessary_component_sensitivity": 0.03342759609222412,
+        "necessary_component_replacement_cosine": 0.9949496388435364,
+        "necessary_component_replacement_sensitivity": 0.005050361156463623
+      },
+      "peak_cuda_bytes": 2326965248
+    }
+  }
+}

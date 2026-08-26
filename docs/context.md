@@ -28,6 +28,8 @@ See `docs/CODE_LAYOUT.md` for the full map. Key entrypoints:
 - `src/train.py`: canonical ChemFM training, validation, checkpoint/resume, and W&B.
 - `src/chemfm.py`: tokenizer, collation, LoRA loading, and generation.
 - `src/jepa.py`: readouts, exact SIGReg, and the shared train-only projection head; direct raw MSE+SIGReg is disabled.
+- `src/vjepa2_1.py`: dense causal suffix/context prediction, four-depth fusion,
+  train-only predictor, and functional EMA ChemFM target.
 - `src/representation_eval.py`: standard frozen representation evaluation.
 - `src/eval_uspto_mit_five_view_a6000.py`: official five-view beam-10 endpoint evaluation.
 - `scripts/`: report-specific diagnostics, setup utilities, A6000 execution wrappers, and the GSM8K upstream reference.
@@ -98,8 +100,37 @@ Both MSE and exact SIGReg were moved from raw ChemFM EOS states into one shared 
 
 The four-epoch seed-533 run completed 320 updates in 32.33 minutes. Projected z became centered and high-variance but only about three-dimensional by effective rank. Raw h did not remain native-like: it overshot native variance and lost rank. The matched 256-reaction target-token CE was `0.256497`, versus direct MSE+SIGReg `0.248779` and native `0.240683`. On the first 512 reactions of the frozen official manifest, native/direct/projected exact top-1 was `18/15/4`; projected versus direct was `-2.148` pp, 95% CI `[-3.516,-0.781]`, McNemar `p=0.00342`. The 512 panel was budget-bounded during execution and is descriptive, not the original confirmatory 1,280 endpoint. Full details are in `docs/reports/08_PROJECTION_SPACE_MSE_SIGREG_EXPERIMENT.md`.
 
+### Dense causal V-JEPA 2.1
+
+The primary-source-locked translation uses causal product-suffix masks, dense
+`1/sqrt(distance)` context L1, depths 6/11/17/22, a 24-block width-384
+noncausal latent predictor, and a fixed-0.99925 EMA target. The exact
+JEPA-disabled path is ordinary ChemFM NTP and generation remains unchanged.
+The test suite passed 102 tests with one intentional skip.
+
+The seed-533 A6000 pilot completed 320 updates on the same 1,280/256 protocol.
+Exact one-view top-1 tied native/direct at 6/256, but dense top-10 was 39/256
+versus 52/256 native. On 2,748 matched causal target tokens, dense CE was
+`.253547` versus `.243832` native and `.253330` direct MSE+SIGReg. Dense states
+were closer to native at every supervised depth, yet global k=0 retrieval was
+only 33.59% versus 45.31% native and 83.98% direct. Exact component VJPs showed
+the latent predictor receiving substantially larger dense-loss gradients than
+ChemFM. The selected epoch-4 checkpoint and all JSONs are preserved locally;
+the A6000 instance was deleted after SHA-256 verification. Full details are in
+`docs/reports/12_DENSE_CAUSAL_VJEPA2_1_EXPERIMENT.md`.
+
 ## Current conclusion
 
-For the fixed USPTO-MIT pilot endpoints, neither strong global geometry repair (MSE+SIGReg), the tested minimal-floor attempt (PCSF), nor projection-space placement improved reaction generation. PCSF did not enforce its floor, so it is not evidence against every minimal spread constraint; the projection run more directly shows that a disposable head does not make its training gradients disposable to the shared backbone. Across objectives, residual pair structure remains weakly coupled to autoregressive gains. This conclusion does not cover MetaTrans or retrosynthesis training, additional seeds, larger training exposure, or an objective that changes how the pair-specific signal couples to autoregressive decoding.
+For the fixed USPTO-MIT pilot endpoints, neither strong global geometry repair
+(MSE+SIGReg), the tested minimal-floor attempt (PCSF), projection-space
+placement, nor the tested dense causal V-JEPA 2.1 translation improved reaction
+generation. Dense supervision did reduce product-token displacement from
+native, but failed to establish either the former global pair signal or useful
+local target-token behavior. The immediate unresolved mechanism is how much of
+the dense objective is absorbed by the train-only predictor versus transmitted
+as useful ChemFM encoder learning. This conclusion does not cover MetaTrans or
+retrosynthesis training, additional seeds, larger training exposure, or a
+reference-grounded design that demonstrably strengthens useful encoder-side
+dense prediction.
 
-The consolidated report index and artifact paths are in `docs/reports/README.md`. The projection-space implementation and verdict are report 08.
+The consolidated report index and artifact paths are in `docs/reports/README.md`. The dense causal implementation and verdict are report 12.

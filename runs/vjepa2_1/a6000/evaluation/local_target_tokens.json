@@ -1,0 +1,282 @@
+{
+  "protocol": {
+    "paper": "arXiv:2603.14482v3",
+    "upstream_commit": "204698b45b3712590f06245fbfba32d3be539812",
+    "panel": "/home/ubuntu/CLM-JEPA/data/clm_jepa_uspto_mit_validation_256/uspto_mit_validation_length_stratified_256.csv",
+    "panel_sha256": "41db8068aa3c4b6faf7149ce8ee5645e5ce3794f64d52c0e56552456721e5013",
+    "reaction_limit": 64,
+    "max_aligned_target_tokens": 4096,
+    "depths": [
+      6,
+      11,
+      17,
+      22
+    ],
+    "position_semantics": "h[:, :-1] where labels[:, 1:] is a product target; these are the exact teacher-forced states feeding next-token prediction"
+  },
+  "training": {
+    "path": "/home/ubuntu/CLM-JEPA/runs/vjepa2_1/a6000/pilot/result.json",
+    "sha256": "0fd611ff4190fcc89a7c07489f0b5723db8c21717605925c52c25f6e5df87078",
+    "steps": 320,
+    "initial": {
+      "step": 1,
+      "epoch": 1,
+      "native_loss": 1.559815764427185,
+      "jepa_loss": 0.77734375,
+      "sigreg_loss": null,
+      "jepa_objective_loss": 0.77734375,
+      "total_loss": 2.3371594548225403,
+      "jepa_active": true,
+      "jepa_active_microbatches": 4,
+      "learning_rate": 0.0,
+      "gradient_norm": 1970324836974592.0,
+      "max_gradient_parameter": "model.base_model.model.model.embed_tokens.modules_to_save.USPTO-MIT-Synthesis.weight",
+      "max_parameter_gradient_norm": 1970646623977472.0,
+      "batch_tokens": 2137,
+      "effective_tokens": 4274,
+      "model_calls": 8,
+      "dense_vjepa2_1": {
+        "context_coefficient": 0.0,
+        "context_loss": 0.13330078125,
+        "context_loss_depth_11": 0.137451171875,
+        "context_loss_depth_17": 0.13818359375,
+        "context_loss_depth_22": 0.132080078125,
+        "context_loss_depth_6": 0.1246337890625,
+        "long_horizon_fraction": 0.1875,
+        "mask_loss": 0.77734375,
+        "mask_loss_depth_11": 0.8115234375,
+        "mask_loss_depth_17": 0.8046875,
+        "mask_loss_depth_22": 0.771484375,
+        "mask_loss_depth_6": 0.7216796875,
+        "mean_horizon_tokens": 16.0625,
+        "student_scale_depth_11": 0.9959605634212494,
+        "student_scale_depth_17": 0.9999499619007111,
+        "student_scale_depth_22": 0.9999894052743912,
+        "student_scale_depth_6": 0.9948929399251938,
+        "target_scale_depth_11": 0.997311070561409,
+        "target_scale_depth_17": 0.9999534636735916,
+        "target_scale_depth_22": 0.9999924153089523,
+        "target_scale_depth_6": 0.9950584918260574,
+        "ema_coefficient": 0.99925
+      },
+      "estimated_flops": 25051363467264.0
+    },
+    "final": {
+      "step": 320,
+      "epoch": 4,
+      "native_loss": 0.13404429703950882,
+      "jepa_loss": 0.685546875,
+      "sigreg_loss": null,
+      "jepa_objective_loss": 0.685546875,
+      "total_loss": 0.8195911794900894,
+      "jepa_active": true,
+      "jepa_active_microbatches": 4,
+      "learning_rate": 1.0002402875289219e-05,
+      "gradient_norm": 7.762303829193115,
+      "max_gradient_parameter": "model.base_model.model.model.embed_tokens.modules_to_save.USPTO-MIT-Synthesis.weight",
+      "max_parameter_gradient_norm": 7.71106187736146,
+      "batch_tokens": 2460,
+      "effective_tokens": 4920,
+      "model_calls": 8,
+      "dense_vjepa2_1": {
+        "context_coefficient": 0.5,
+        "context_loss": 0.1015625,
+        "context_loss_depth_11": 0.109619140625,
+        "context_loss_depth_17": 0.111328125,
+        "context_loss_depth_22": 0.09375,
+        "context_loss_depth_6": 0.09130859375,
+        "long_horizon_fraction": 0.3125,
+        "mask_loss": 0.634765625,
+        "mask_loss_depth_11": 0.68359375,
+        "mask_loss_depth_17": 0.6865234375,
+        "mask_loss_depth_22": 0.6064453125,
+        "mask_loss_depth_6": 0.5654296875,
+        "mean_horizon_tokens": 16.875,
+        "student_scale_depth_11": 0.999731257557869,
+        "student_scale_depth_17": 0.9998405277729034,
+        "student_scale_depth_22": 0.9998749792575836,
+        "student_scale_depth_6": 0.998991921544075,
+        "target_scale_depth_11": 0.9997943788766861,
+        "target_scale_depth_17": 0.9999370574951172,
+        "target_scale_depth_22": 0.9999695867300034,
+        "target_scale_depth_6": 0.9988981485366821,
+        "ema_coefficient": 0.99925
+      },
+      "estimated_flops": 28837788549120.0
+    },
+    "component_gradient_diagnostic": {
+      "step": 72,
+      "epoch": 1,
+      "native_loss": 0.5512847825884819,
+      "jepa_loss": 0.5908203125,
+      "sigreg_loss": null,
+      "jepa_objective_loss": 0.5908203125,
+      "total_loss": 1.1421050727367401,
+      "jepa_active": true,
+      "jepa_active_microbatches": 4,
+      "learning_rate": 9.292482727672588e-05,
+      "gradient_norm": 14.89256763458252,
+      "max_gradient_parameter": "model.base_model.model.model.embed_tokens.modules_to_save.USPTO-MIT-Synthesis.weight",
+      "max_parameter_gradient_norm": 14.906002575810655,
+      "batch_tokens": 1936,
+      "effective_tokens": 3872,
+      "model_calls": 8,
+      "dense_vjepa2_1": {
+        "context_coefficient": 0.5,
+        "context_depth_11_chemfm_gradient_norm": 0.0016866178484633565,
+        "context_depth_11_predictor_gradient_norm": 0.005091241095215082,
+        "context_depth_17_chemfm_gradient_norm": 0.0022745647002011538,
+        "context_depth_17_predictor_gradient_norm": 0.005473138764500618,
+        "context_depth_22_chemfm_gradient_norm": 0.0032359398901462555,
+        "context_depth_22_predictor_gradient_norm": 0.005889691412448883,
+        "context_depth_6_chemfm_gradient_norm": 0.0019589108414947987,
+        "context_depth_6_predictor_gradient_norm": 0.004594630096107721,
+        "context_loss": 0.0994873046875,
+        "context_loss_depth_11": 0.103271484375,
+        "context_loss_depth_17": 0.0999755859375,
+        "context_loss_depth_22": 0.102783203125,
+        "context_loss_depth_6": 0.0916748046875,
+        "long_horizon_fraction": 0.25,
+        "mask_depth_11_chemfm_gradient_norm": 0.015330773778259754,
+        "mask_depth_11_predictor_gradient_norm": 0.07256516069173813,
+        "mask_depth_17_chemfm_gradient_norm": 0.027011355385184288,
+        "mask_depth_17_predictor_gradient_norm": 0.08286729454994202,
+        "mask_depth_22_chemfm_gradient_norm": 0.026912203058600426,
+        "mask_depth_22_predictor_gradient_norm": 0.08475412428379059,
+        "mask_depth_6_chemfm_gradient_norm": 0.009112169034779072,
+        "mask_depth_6_predictor_gradient_norm": 0.06231245398521423,
+        "mask_loss": 0.54150390625,
+        "mask_loss_depth_11": 0.55810546875,
+        "mask_loss_depth_17": 0.5537109375,
+        "mask_loss_depth_22": 0.572265625,
+        "mask_loss_depth_6": 0.47900390625,
+        "mean_horizon_tokens": 12.1875,
+        "student_scale_depth_11": 0.9998356699943542,
+        "student_scale_depth_17": 0.9999418407678604,
+        "student_scale_depth_22": 0.9999847859144211,
+        "student_scale_depth_6": 0.9990149885416031,
+        "target_scale_depth_11": 0.9998416006565094,
+        "target_scale_depth_17": 0.9999627470970154,
+        "target_scale_depth_22": 0.9999947398900986,
+        "target_scale_depth_6": 0.9994430094957352,
+        "ema_coefficient": 0.99925
+      },
+      "estimated_flops": 22695105134592.0
+    },
+    "selected_epoch": 4,
+    "validation_native_loss": 0.23942283262018235,
+    "validation_metrics": {
+      "exact_top1": 0.0234375,
+      "exact_top3": 0.08203125,
+      "exact_top5": 0.11328125,
+      "exact_top10": 0.15234375,
+      "valid_rate": 0.83203125,
+      "duplicate_rate": 0.0,
+      "mean_unique_valid": 8.3203125,
+      "stereo_exact_top1": 0.0234375,
+      "connectivity_correct_stereo_wrong": 0.0
+    }
+  },
+  "local_target_token_behavior": {
+    "native": {
+      "checkpoint": "/home/ubuntu/CLM-JEPA/runs/sigreg_batch16_pilot/matched_b4/native_checkpoints/epoch_4",
+      "target_token_count": 2748,
+      "normalized_target_token_ce": 0.24383215606212616,
+      "teacher_forced_top1": 0.9239446870451238,
+      "tokenizer_size": 402,
+      "by_depth": {}
+    },
+    "endpoint_mse_sigreg": {
+      "checkpoint": "/home/ubuntu/CLM-JEPA/runs/mse_ablation/stage1/mse_sigreg_checkpoints/epoch_4",
+      "target_token_count": 2748,
+      "normalized_target_token_ce": 0.25332993268966675,
+      "teacher_forced_top1": 0.9243085880640466,
+      "tokenizer_size": 402,
+      "by_depth": {
+        "6": {
+          "linear_cka_with_native": 0.9813569188117981,
+          "mean_cosine_with_native": 0.970075249671936,
+          "relative_rms_displacement": 0.24809037148952484,
+          "mean_candidate_norm": 1.1068487167358398,
+          "mean_native_norm": 1.1219191551208496
+        },
+        "11": {
+          "linear_cka_with_native": 0.9817439317703247,
+          "mean_cosine_with_native": 0.9630865454673767,
+          "relative_rms_displacement": 0.2690005898475647,
+          "mean_candidate_norm": 2.769838571548462,
+          "mean_native_norm": 2.7739903926849365
+        },
+        "17": {
+          "linear_cka_with_native": 0.9761583209037781,
+          "mean_cosine_with_native": 0.9534136652946472,
+          "relative_rms_displacement": 0.3028293251991272,
+          "mean_candidate_norm": 4.890905857086182,
+          "mean_native_norm": 4.9137282371521
+        },
+        "22": {
+          "linear_cka_with_native": 0.9897236824035645,
+          "mean_cosine_with_native": 0.9684556722640991,
+          "relative_rms_displacement": 0.22678358852863312,
+          "mean_candidate_norm": 16.173431396484375,
+          "mean_native_norm": 16.020132064819336
+        }
+      },
+      "final_chemfm_norm": {
+        "linear_cka_with_native": 0.9866121411323547,
+        "mean_cosine_with_native": 0.9817331433296204,
+        "relative_rms_displacement": 0.18796473741531372,
+        "mean_candidate_norm": 12.571480751037598,
+        "mean_native_norm": 12.650023460388184
+      },
+      "target_ce_change_vs_native": 0.009497776627540588,
+      "teacher_forced_top1_change_vs_native": 0.0003639010189228076
+    },
+    "dense_vjepa2_1": {
+      "checkpoint": "/home/ubuntu/CLM-JEPA/runs/vjepa2_1/a6000/pilot/checkpoints/epoch_4",
+      "target_token_count": 2748,
+      "normalized_target_token_ce": 0.2535465359687805,
+      "teacher_forced_top1": 0.9224890829694323,
+      "tokenizer_size": 392,
+      "by_depth": {
+        "6": {
+          "linear_cka_with_native": 0.9877324104309082,
+          "mean_cosine_with_native": 0.981650710105896,
+          "relative_rms_displacement": 0.1947089582681656,
+          "mean_candidate_norm": 1.1209203004837036,
+          "mean_native_norm": 1.1219191551208496
+        },
+        "11": {
+          "linear_cka_with_native": 0.989072859287262,
+          "mean_cosine_with_native": 0.9774548411369324,
+          "relative_rms_displacement": 0.20971377193927765,
+          "mean_candidate_norm": 2.776670217514038,
+          "mean_native_norm": 2.7739903926849365
+        },
+        "17": {
+          "linear_cka_with_native": 0.9854013919830322,
+          "mean_cosine_with_native": 0.971644937992096,
+          "relative_rms_displacement": 0.23505499958992004,
+          "mean_candidate_norm": 4.929599761962891,
+          "mean_native_norm": 4.9137282371521
+        },
+        "22": {
+          "linear_cka_with_native": 0.9940381050109863,
+          "mean_cosine_with_native": 0.9880006909370422,
+          "relative_rms_displacement": 0.14440122246742249,
+          "mean_candidate_norm": 16.114242553710938,
+          "mean_native_norm": 16.020132064819336
+        }
+      },
+      "final_chemfm_norm": {
+        "linear_cka_with_native": 0.9936091303825378,
+        "mean_cosine_with_native": 0.9923367500305176,
+        "relative_rms_displacement": 0.1233411580324173,
+        "mean_candidate_norm": 12.652276992797852,
+        "mean_native_norm": 12.650023460388184
+      },
+      "target_ce_change_vs_native": 0.009714379906654358,
+      "teacher_forced_top1_change_vs_native": -0.0014556040756914523
+    }
+  }
+}

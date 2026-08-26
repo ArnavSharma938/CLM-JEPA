@@ -14,6 +14,7 @@ The authoritative design is [docs/CLM_JEPA_Plan.md](docs/CLM_JEPA_Plan.md). Curr
 | Geometry/coupling diagnosis | Completed | Symmetric cosine JEPA produced 495× lower target variance than native while retaining residual pair retrieval; pair strength did not predict decoder improvement |
 | Rescue/regularizer studies | Completed | Stop-gradient and SIGReg studies did not establish a generation gain; MSE+SIGReg restored endpoint geometry but tied native at 6/256 top-1 and had 3.36% worse CE |
 | Projection-space MSE+SIGReg | Completed; rejected | Shared `2048->2048->2048->64` head produced low-rank z and distorted h; CE was 3.10% worse than direct MSE+SIGReg and matched 512 top-1 fell from 15 to 4 |
+| Dense causal V-JEPA 2.1 | Completed; rejected | Causal four-depth EMA supervision kept token states closer to native, but target CE was 3.98% worse, top-1 tied 6/256, top-10 fell to 39/256, and global retrieval was below native |
 | Official endpoint | Stopped for prespecified futility | On 1,280 unique five-view reactions, native/cLM-JEPA top-1 was 3.906%/3.125%; difference -0.781 pp, 95% CI [-1.719,+0.156], McNemar p=0.1433 |
 
 The official endpoint result excludes the prespecified +1 percentage-point benefit at the frozen futility boundary. The later projection experiment used a separate budget-bounded 512-reaction prefix and is descriptive rather than a replacement for that confirmatory endpoint. Neither result estimates multi-seed variability or establishes a universal result for other JEPA objectives, tasks, or training scales.

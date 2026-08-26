@@ -2,6 +2,18 @@
 
 ## Current answer
 
+The dense causal V-JEPA 2.1 adaptation is now implemented and tested. It uses
+causal future-suffix prediction, dense proximity-weighted context prediction,
+four-depth self-supervision, the official-style deep latent predictor, and an
+EMA ChemFM target. In the controlled 320-update pilot it kept product-token
+states closer to native than direct endpoint MSE+SIGReg, but did not improve
+their function: target-token CE was 3.98% worse than native, exact top-1 tied
+at 6/256, and top-10 fell to 39/256 versus native 52/256. It also failed to
+reproduce the endpoint model's global pair signal (33.6% raw retrieval versus
+45.3% native and 84.0% direct). The exact tested configuration is therefore
+not justified for a longer run; report 12 contains the implementation and
+mechanistic verdict.
+
 The final frozen generation-pathway audit resolves the apparent contradiction. Direct MSE+SIGReg learns a large and shortcut-resistant source-product relation in isolated JEPA views, but only an attenuated fraction reaches the causal product-token representations. Cross-checkpoint activation patching finds no useful complete cLM state and localizes decisive harm to the final upper-layer residual state at target-prediction positions. Exact saved-state AdamW counterfactuals show that adaptive moments radically transform the weak raw-gradient relationship, but JEPA does not add local harm to the combined step in the tested batch. Existing cLM generations are not chemically closer: top-k Morgan similarity and scaffold coverage are generally worse. The smallest remaining mechanism is therefore view-to-decoder integration mismatch with harmful upper-layer co-adaptation, not collapse, a retrieval shortcut, or global gradient conflict.
 
 MSE and MSE+SIGReg were tested. MSE alone reduced but did not eliminate ChemFM's JEPA variance contraction. MSE+exact-SIGReg-16 restored source/target variance to 90.3%/55.2% of native at epoch 4 and produced 85.9% raw four-way pair retrieval (25% chance), but it did not improve generation. The frozen mechanistic audit localizes the adverse update to mostly SIGReg-driven pressure in layers 17-21 rather than broad model-wide gradient opposition. A temporal fresh-slice audit then rejected direct SIGReg pair destruction: SIGReg improves pair discrimination, but becomes 4.06x larger than applied MSE by epoch 4 and remains mildly anti-NTP.
@@ -35,6 +47,7 @@ The paired difference was `-0.781` percentage points, 95% CI `[-1.719,+0.156]`, 
 | **MSE+SIGReg-16, k=0** | Geometry restored; epoch-4 top-1 tied 6/256; CE 3.36% worse | Selected endpoint; separated geometry repair from generation benefit |
 | MSE+PCSF-16, k=0 | Floor not held; epoch-4 top-1 4/256 vs native 6/256; CE 2.49% worse | Falsified the tested PCSF calibration without resolving the broader minimal-floor hypothesis |
 | Projection-space MSE+SIGReg, k=0 | z became centered but ~3-rank; h was not native-like; CE 6.57% worse than native; 4/512 top-1 | Rejected projector placement as sufficient insulation for this objective |
+| Dense causal V-JEPA 2.1 | Causal token states stayed closer to native, but CE was 3.98% worse; 6/256 top-1 and 39/256 top-10; global retrieval 33.6% | Rejected the tested dense/EMA/predictor configuration as a generation improvement |
 | Official five-view endpoint | Native 50/1,280 vs cLM-JEPA 40/1,280 | Final benchmark-faithful behavioral result |
 | Reduced GSM8K LLM-JEPA reference | NTP 36/300 vs JEPA 28/300 | Not a successful control; its contraction was much less extreme than ChemFM's |
 
@@ -55,7 +68,8 @@ Read in this order:
 
 11. [Gradient-interaction execution checkpoint](10_EXECUTION_CHECKPOINT.md): recovery handoff listing completed artifacts, active execution, and remaining work.
 12. [Generation-pathway mechanism audit](11_GENERATION_PATHWAY_MECHANISM_AUDIT.md): layerwise JEPA-to-autoregressive transfer, causal activation patching, exact AdamW counterfactuals, shortcut-controlled retrieval, and chemistry-aware generation analysis.
+13. [Dense causal V-JEPA 2.1 experiment](12_DENSE_CAUSAL_VJEPA2_1_EXPERIMENT.md): primary-source mapping, causal dense predictor/EMA implementation, verification, A6000 feasibility, controlled pilot, and frozen global/local verdict.
 
 ## Research status
 
-Global contraction remains reproducible, but report 11 shows that the more immediate behavioral bottleneck is integration: the genuine isolated-view pair signal is attenuated in the causal decoding path and becomes a harmful upper-layer residual state. If another full run is authorized, the single justified test is to remove auxiliary-gradient contributions from LoRA blocks 17-21 while leaving NTP training there unchanged. Another loss-weight, anti-collapse, projector, or gradient-combiner sweep is not supported by the accumulated evidence.
+Global contraction remains reproducible, but report 11 shows that the more immediate behavioral bottleneck is integration: the genuine isolated-view pair signal is attenuated in the causal decoding path and becomes a harmful upper-layer residual state. Report 12 tested the principled dense/EMA/deep-supervision translation intended to address that mismatch. It preserved more native-like token states but did not create useful global or local predictive coupling; its train-only predictor received substantially larger dense-loss gradients than ChemFM. No longer run of this exact configuration is supported. The smallest next step is predictor-versus-encoder update attribution, not another weight, regularizer, projector, gradient-combiner, or full-scale training sweep.

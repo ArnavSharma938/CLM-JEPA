@@ -4,6 +4,20 @@ models/
 # Generated runs stay local except for the two frozen Gate 5 endpoints and
 # their decoder-coupling continuation evidence.
 runs/*
+!runs/vjepa2_1/
+runs/vjepa2_1/*
+!runs/vjepa2_1/a6000/
+runs/vjepa2_1/a6000/*
+!runs/vjepa2_1/a6000/supermini/
+runs/vjepa2_1/a6000/supermini/*
+!runs/vjepa2_1/a6000/supermini/result.json
+!runs/vjepa2_1/a6000/pilot/
+runs/vjepa2_1/a6000/pilot/*
+!runs/vjepa2_1/a6000/pilot/result.json
+!runs/vjepa2_1/a6000/evaluation/
+runs/vjepa2_1/a6000/evaluation/*
+!runs/vjepa2_1/a6000/evaluation/global_representation.json
+!runs/vjepa2_1/a6000/evaluation/local_target_tokens.json
 !runs/gate4_v2/
 runs/gate4_v2/*
 !runs/gate4_v2/reliable/
