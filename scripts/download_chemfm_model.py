@@ -1,3 +1,5 @@
+"""Download and verify the pinned ChemFM-1B model snapshot used by this repo."""
+
 from __future__ import annotations
 
 import hashlib

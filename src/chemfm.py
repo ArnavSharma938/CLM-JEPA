@@ -1,3 +1,10 @@
+"""Shared ChemFM model, tokenizer, reaction collation, and generation utilities.
+
+This module owns the unchanged task-facing path used by native ChemFM,
+endpoint cLM-JEPA, and dense V-JEPA-style training. Auxiliary objectives live
+in :mod:`jepa` and :mod:`vjepa2_1`; generation remains ordinary ChemFM.
+"""
+
 from __future__ import annotations
 
 import copy

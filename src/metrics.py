@@ -1,3 +1,10 @@
+"""Task and representation metrics shared by training and frozen evaluation.
+
+The functions here score canonical chemical products, official multi-view
+candidate aggregation, pair relationships, PCA structure, and effective rank.
+They do not load models or mutate training state.
+"""
+
 from __future__ import annotations
 
 import math

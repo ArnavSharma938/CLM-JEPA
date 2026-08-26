@@ -190,7 +190,7 @@ ratios were `2.34x`, `3.01x`, `2.41x`, and `1.82x`.
 
 All rows use the identical ordered 256-reaction panel and beam-10 evaluation.
 Native and direct MSE+SIGReg are the validated epoch-4 references recorded in
-Part III of [the trained-intervention report](06_ENDPOINT_INTERVENTION_EXPERIMENTS.md); dense
+Part III of [the trained-intervention report](03_ENDPOINT_INTERVENTION_EXPERIMENTS.md); dense
 V-JEPA is the new epoch-4 checkpoint.
 
 | Condition | Top-1 | Top-3 | Top-5 | Top-10 | Valid candidates |

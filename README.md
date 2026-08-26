@@ -49,10 +49,10 @@ not active trainer conditions.
 | `src/metrics.py` | Generative and representation metrics |
 | `src/representation_eval.py` | Standard frozen representation evaluation |
 | `src/eval_uspto_mit_five_view_a6000.py` | Official five-view endpoint evaluation optimized for one A6000 |
-| `scripts/` | Experiment diagnostics, setup utilities, and hardware-specific execution wrappers |
+| `scripts/` | Maintained setup, feasibility-evaluation, and hardware-specific execution wrappers |
 | `docs/reports/` | Numbered experiment reports and report index |
 | `references/` | Pinned upstream ChemFM and LLM-JEPA source |
-| `runs/` | Generated checkpoints, logs, diagnostics, and candidate outputs; mostly ignored |
+| `runs/` | Compact retained summaries plus selected local comparison checkpoints; new outputs are ignored |
 
 There is one ChemFM trainer. A6000 experiments use the same `src/train.py` with verified physical-batch/checkpointing settings. See [docs/CODE_LAYOUT.md](docs/CODE_LAYOUT.md) for method boundaries and evaluation entrypoints.
 
@@ -73,7 +73,6 @@ The base ChemFM checkpoint is expected at `models/ChemFM-1B` unless `CHEMFM_MODE
 python src/train.py --help
 python src/representation_eval.py --help
 python scripts/audit_vjepa2_1_feasibility.py --help
-python scripts/decoder_coupling.py --help
 python src/eval_uspto_mit_five_view_a6000.py --help
 ```
 

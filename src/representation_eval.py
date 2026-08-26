@@ -1,3 +1,10 @@
+"""Standard frozen ChemFM endpoint-representation evaluation entrypoint.
+
+It extracts source/target states from a fixed checkpoint and manifest, then
+computes the maintained geometry, retrieval, PCA, and relationship metrics.
+Training and generation are outside this module.
+"""
+
 from __future__ import annotations
 
 import argparse

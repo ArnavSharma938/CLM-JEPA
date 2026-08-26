@@ -2,6 +2,12 @@
 
 This record combines the objective-development experiments and the later official endpoint evaluation. The sections retain their original protocols and artifact paths.
 
+Large intermediate checkpoints, duplicate transfer archives, raw worker logs,
+and raw generation shards were removed after consolidation. The report tables,
+compact JSON summaries, official paired statistics, and selected native/direct
+epoch-4 checkpoints remain. Paths explicitly described as historical are
+recoverable from repository commit `61fbc74`.
+
 ## Chronology and experimental context
 
 | Part | Repository record date | Relative time | Model/checkpoint context | Method and data context | Execution type |
@@ -175,7 +181,7 @@ SIGReg changed from `6.6591` at epoch 1 to `6.9992` at epoch 4. The frozen conti
 
 Top-1 paired outcomes were 4 both correct, 2 native-only, 2 MSE+SIGReg-only, and 248 neither. Correct-product rank improved/worsened/tied on 18/35/203 reactions. Mean rank improvement was `-0.137` with 95% CI `[-0.383,+0.105]`. Mean per-reaction `native CE - MSE+SIGReg CE` was `-0.00773`, 95% CI `[-0.01386,-0.00188]`; 44.5% improved, 55.5% worsened, Wilcoxon `p=0.0221`.
 
-The later mechanistic audit found that this historical aggregate denominator excludes the supervised `<prostart>` and `<eos>` labels: 10,642 raw-product tokens versus 11,154 model labels. Per-reaction CE and the native-vs-cLM direction were unaffected. The correctly label-normalized local reproduction was `0.229702` native and `0.237275` MSE+SIGReg (3.30% higher); see [the endpoint mechanism audits](04_ENDPOINT_MECHANISM_AUDITS.md).
+The later mechanistic audit found that this historical aggregate denominator excludes the supervised `<prostart>` and `<eos>` labels: 10,642 raw-product tokens versus 11,154 model labels. Per-reaction CE and the native-vs-cLM direction were unaffected. The correctly label-normalized local reproduction was `0.229702` native and `0.237275` MSE+SIGReg (3.30% higher); see [the endpoint mechanism audits](02_ENDPOINT_MECHANISM_AUDITS.md).
 
 ### Geometry and interventions
 

@@ -1,108 +1,62 @@
-# Code and hardware layout
+# Code and execution layout
 
-## Canonical model and training code
+## Maintained model and training code
 
-There is one ChemFM training implementation for both GPUs:
+There is one ChemFM trainer for local and A6000 execution.
 
-| File | Role | Hardware scope |
-|---|---|---|
-| `src/train.py` | Native and cLM-JEPA fine-tuning, checkpoint/resume, validation, diagnostics, W&B | Hardware-agnostic; batch/checkpointing settings determine fit |
-| `src/chemfm.py` | ChemFM tokenizer, collation, LoRA loading, generation | Hardware-agnostic |
-| `src/jepa.py` | Direct raw-endpoint JEPA readouts/losses and exact SIGReg | Hardware-agnostic |
-| `src/vjepa2_1.py` | V-JEPA 2.1 dense causal masking, deep feature fusion, latent predictor, and functional EMA target | Hardware-agnostic; pilot uses A6000 |
-| `src/gradient_interaction.py` | Weighted sum, asymmetric PCGrad, two-task CAGrad, and Du auxiliary-gradient similarity | Hardware-agnostic |
-| `src/metrics.py` | Generative and vectorized representation/PCA metrics | Hardware-agnostic |
-| `src/representation_eval.py` | Standard frozen representation diagnostics | Any compatible GPU |
-| `src/eval_uspto_mit_five_view_a6000.py` | Official five-view, beam-10 endpoint generation and paired statistics | A6000 exact-parity path |
+| File | Ownership |
+|---|---|
+| `src/train.py` | Shared native/endpoint/dense training loop, method dispatch, optimizer, scheduler, checkpoint/resume, validation, and tracking |
+| `src/chemfm.py` | ChemFM loading, tokenizer, reaction collation, canonicalization, and unchanged causal generation |
+| `src/jepa.py` | Original endpoint cLM-JEPA readouts, predictor-token controls, MSE, and exact SIGReg |
+| `src/vjepa2_1.py` | Dense causal suffix/context masking, four-depth fusion, latent predictor, and functional EMA target |
+| `src/gradient_interaction.py` | Published weighted-sum, PCGrad, CAGrad, and Du gradient-combination rules retained by the endpoint trainer |
+| `src/metrics.py` | Chemical candidate scoring and representation metrics |
+| `src/representation_eval.py` | Standard frozen endpoint-representation evaluation |
+| `src/eval_uspto_mit_five_view_a6000.py` | Exact five-view beam-10 endpoint evaluation |
 
-The A6000 experiments do not use a second ChemFM trainer. They invoke `src/train.py` with larger physical batches and without low-memory checkpointing/offload when those settings are verified to fit.
+A6000 runs call the same `src/train.py`; batch and checkpointing settings are execution parameters, not alternative scientific implementations.
 
 ## Method-family boundaries
 
-`src/train.py` classifies every condition before constructing auxiliary state:
-
-| Family | Conditions | Auxiliary implementation | Vocabulary and saved state |
+| Family | Conditions | Auxiliary owner | Vocabulary and checkpoint state |
 |---|---|---|---|
-| Native | `native` | None | Historical extended vocabulary for checkpoint/control parity; ordinary adapter/optimizer state |
-| Original endpoint cLM-JEPA | `clm_jepa`, `clm_jepa_target_sg`, `clm_jepa_mse`, `clm_jepa_mse_sigreg` | `src/jepa.py` | Historical predictor-token vocabulary; endpoint and SIGReg state are checkpointed where applicable |
-| Dense causal V-JEPA 2.1-style | `clm_jepa_vjepa2_1` | `src/vjepa2_1.py` | Base ChemFM vocabulary; predictor, level norms, EMA encoder, EMA count, suffix sampler, and schedules are checkpointed |
+| Native | `native` | None | Historical extended vocabulary for control/checkpoint parity |
+| Original endpoint cLM-JEPA | `clm_jepa`, `clm_jepa_target_sg`, `clm_jepa_mse`, `clm_jepa_mse_sigreg`, and controls | `src/jepa.py` | Historical predictor-token vocabulary and endpoint/SIGReg state where applicable |
+| Dense causal V-JEPA 2.1-style | `clm_jepa_vjepa2_1` | `src/vjepa2_1.py` | Base ChemFM vocabulary plus train-only predictor, level norms, EMA encoder/count, sampler, and schedules |
 
-All three families share ChemFM loading/collation, label-shifted NTP,
-optimizer/scheduler construction, data order, validation, and generation. The
-endpoint family reads isolated source/target EOS states. The dense family reads
-causal teacher-forced token fields and full-sequence EMA targets. Neither
-auxiliary module imports or composes the other. Both auxiliary paths are
-training-only, so generation calls the same ChemFM model API.
+All families share ChemFM serialization, label-shifted NTP, data order, optimizer/scheduler construction, validation, and generation. Endpoint and dense auxiliary modules do not compose one another. Gradient-interaction selection changes endpoint LoRA gradient combination; it is not a fourth representation objective.
 
-Gradient-interaction selection is an option within the endpoint MSE+SIGReg
-family; it changes LoRA gradient combination and does not define a fourth
-representation objective.
+## Retained scripts
 
-## Experiment and execution scripts
-
-| File | Purpose | Intended environment |
-|---|---|---|
-| `scripts/geometry_diagnosis.py` | Base/native/cLM-JEPA geometry and residual PCA analysis | Any compatible GPU; initially run on RTX 4050 |
-| `scripts/decoder_coupling.py` | One-view generation, per-reaction CE, coupling, and source interventions | Any compatible GPU |
-| `scripts/diagnose_sigreg_batch16_rtx4050.py` | Exact streamed/direct SIGReg calibration and 16-update smoke test | RTX 4050-specific preflight |
-| `scripts/diagnose_sigreg_gradients_rtx4050.py` | Frozen-checkpoint gradient-response assay | RTX 4050-specific assay |
-| `scripts/audit_chemfm_mechanism.py` | Frozen NTP/MSE/SIGReg gradient decomposition and exact LoRA block-swap CE audit | RTX 4050-optimized diagnostic |
-| `scripts/audit_sigreg_pair_specificity.py` | Frozen epoch-1/2/4 SIGReg true-vs-shuffled gradient-response audit with fresh projection draws | RTX 4050-optimized diagnostic |
-| `scripts/audit_projected_mse_sigreg.py` | Raw/projected geometry plus projected MSE, SIGReg, and full-auxiliary alignment with disjoint held-out NTP | Any compatible GPU; physical chunking controls memory |
-| `scripts/audit_gradient_interaction_checkpoints.py` | Evaluation-only epoch-1/2/4 MSE, SIGReg, full-auxiliary, and selected-combiner alignment with held-out NTP | Any compatible GPU; A6000 used for the reported matrix |
-| `scripts/audit_generation_mechanism.py` | Frozen layerwise pathway comparison, activation patching, exact saved-state AdamW virtual steps, shortcut retrieval, and existing-generation chemistry rescoring | Local RTX 4050; no training |
-| `scripts/audit_vjepa2_1_feasibility.py` | Frozen exact target-token CE and representation comparison for native, endpoint MSE+SIGReg, and dense V-JEPA, plus training/VJP summary | Any compatible CUDA GPU |
-| `scripts/profile_a6000_generation.py` | CUDA-event/model-forward and cProfile split for exact beam-10 generation | A6000 optimization assay |
-| `scripts/benchmark_gpu_utilization.py` | Fixed-interval NVIDIA utilization, memory, power, and clock sampler | Hardware utilization assay |
-| `scripts/summarize_training_timing.py` | Aggregate synchronized training phase timers from a saved checkpoint | Training optimization assay |
-| `scripts/subset_endpoint_panel.py` | Deterministically order resumable worker shards against a frozen manifest prefix | CPU |
-| `scripts/pcsf_experiment.py` | PCSF reference extraction, frozen spread trajectory, and gradient calibration | Any compatible GPU; A6000 used for the reported run |
-| `scripts/benchmark_pcsf_training.py` | Exact objective/parity and A6000 throughput frontier for PCSF training | A6000 |
-| `scripts/historical_pcsf.py` | Archived PCSF mathematics used only by prior read-only diagnostics | Historical; never imported by `src/` |
-| `scripts/historical_projection.py` | Archived projection-head definition used only to reproduce the prior projection report | Historical; never imported by `src/` |
-| `scripts/prepare_uspto_mit_sigreg_panel.py` | Freeze the length-stratified 256-reaction panel | CPU |
-| `scripts/design_uspto_mit_endpoint.py` | Freeze and evaluate the sequential endpoint stopping rule | CPU |
-| `scripts/download_chemfm_model.py` | Download and hash-check the pinned ChemFM-1B snapshot | CPU/network |
-
-The report-specific PCSF and projection scripts and artifacts preserve historical evidence but are not imported by the maintained trainer. The active trainer has no PCSF reference cache, collation, statistic, VJP, configuration, or metric path, and no projection-head condition or checkpoint state. The normal training-time validation in `src/train.py`, one-view mechanism diagnostics, and official five-view endpoint evaluator answer different questions and are not interchangeable.
-
-The A6000 wrappers are also in flat `scripts/`; they are not alternative scientific implementations:
-
-| File | Purpose |
+| File | Role |
 |---|---|
-| `run_uspto_mit_official_endpoint.sh` | Four-worker parity-verified ChemFM endpoint run and stopping decision |
-| `run_vjepa2_1_a6000.sh` | Pinned setup, hash-verified model acquisition, 16-reaction super-mini, and sequential 1,280-reaction pilot |
-| `run_vjepa2_1_evaluation_a6000.sh` | Process-triggered global pair-structure and local target-token evaluation after the dense pilot |
-| `run_pcsf_a6000_benchmarks.sh` | Fixed A6000 execution frontier for the PCSF trainer |
-| `run_pcsf_generation_shards.sh` | Four exact batch-1 generation shards with deterministic identity merge |
-| `run_gradient_interaction_matrix.sh` | Restartable seven-condition training, diagnostics, and frozen generation matrix |
-| `run_gradient_endpoint_256.sh` | Revised 256-reaction endpoint for the three gradient-interaction methods and aligned reference rescoring |
-| `slice_official_panel.py` | Deterministic identity-checked official-manifest/prediction slicing |
-| `run_generation_shards.sh` | Three-worker exact-parity one-view generation wrapper used by the active matrix |
-| `train_llm_jepa_gsm8k.py` | A6000 execution wrapper around pinned upstream LLM-JEPA training |
-| `eval_llm_jepa_gsm8k.py` | Batched wrapper with exact upstream-output verification |
-| `diagnose_llm_jepa_geometry.py` | Frozen GSM8K representation diagnostics |
+| `scripts/audit_vjepa2_1_feasibility.py` | Dense checkpoint feasibility/local-token comparison |
+| `scripts/design_uspto_mit_endpoint.py` | Prespecified endpoint design and interim rule |
+| `scripts/download_chemfm_model.py` | Pinned model acquisition |
+| `scripts/run_uspto_mit_official_endpoint.sh` | Official endpoint wrapper |
+| `scripts/run_vjepa2_1_a6000.sh` | Dense setup/super-mini/pilot wrapper |
+| `scripts/run_vjepa2_1_evaluation_a6000.sh` | Dense evaluation wrapper |
 
-Pinned upstream code remains under `references/chemfm/` and `references/llm-jepa/`. Project-authored wrappers do not belong in `references/`.
+Historical audit and intervention scripts were removed after report consolidation. Their source remains in commit `61fbc74`; their exact protocols, measurements, and artifact provenance are in reports 01–03.
+
+## Retained local run state
+
+The local `runs/` directory keeps only:
+
+- selected epoch-4 native and direct endpoint checkpoints;
+- the selected dense V-JEPA epoch-4 checkpoint and its four compact result JSONs;
+- compact JSON/TXT/MD summaries needed by reports 01–03.
+
+Older checkpoint epochs, completed alternative-condition checkpoints, raw generation shards, W&B state, logs, profiler outputs, duplicate archives, and transfer bundles were removed. The reports are the authoritative human-readable records; compact retained files support machine inspection.
 
 ## Data layout
 
 | Path | Purpose |
 |---|---|
-| `data/clm_jepa_uspto_mit_pilot_1280/` | Frozen 1,280-row training and 160-row validation pilot manifests |
-| `data/clm_jepa_uspto_mit_validation_1024/` | Frozen 1,024-identity representation and coupling panel |
-| `data/clm_jepa_uspto_mit_validation_256/` | Frozen length-stratified 256-identity SIGReg/MSE panel |
-| `data/clm_jepa_uspto_mit_official_endpoint/` | Official five-view parity, powered-sample, sequential-order, and stage-1 manifests |
+| `data/clm_jepa_uspto_mit_pilot_1280/` | Frozen 1,280-row training and validation pilot |
+| `data/clm_jepa_uspto_mit_validation_1024/` | Frozen representation/coupling identities |
+| `data/clm_jepa_uspto_mit_validation_256/` | Frozen length-stratified diagnostic panel |
+| `data/clm_jepa_uspto_mit_official_endpoint/` | Official five-view parity, power, order, and stopping-rule manifests |
 
-Full released datasets and these frozen manifests are intentionally visible to Git. Historical run artifacts retain the paths used at execution time.
-
-## Removed and historical utilities
-
-The cleanup removed the superseded batch-size benchmark, endpoint-forward
-probe, legacy parallel-beam wrapper, two profiler scripts, unused single-prompt
-generation wrapper, unused offline prediction-record helpers, an unused
-V-JEPA selected-layer wrapper, two unreferenced diagnostic helpers, and unused
-imports. Their retained measurements remain in the consolidated reports and machine
-artifacts. PCSF and projection definitions remain explicitly historical because
-their reports and frozen diagnostics still depend on them; neither is imported
-by `src/`.
+Pinned upstream source remains under `references/chemfm/` and `references/llm-jepa/`.

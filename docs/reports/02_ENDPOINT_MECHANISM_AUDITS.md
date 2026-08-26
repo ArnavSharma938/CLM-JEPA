@@ -2,6 +2,12 @@
 
 This record consolidates four frozen diagnostic phases that examined the selected direct endpoint MSE+SIGReg method. No phase below is pooled statistically with another; each retains its own checkpoint set, reaction panel, gradient scope, and limitations.
 
+The original one-off audit scripts and bulky replay inputs were removed after
+their outputs were consolidated. The compact machine-readable audit JSONs and
+the selected native/direct epoch-4 checkpoints remain locally. Historical code
+paths named below are provenance references and can be recovered from commit
+`61fbc74`; they are not maintained entrypoints.
+
 ## Chronology and experimental context
 
 | Part | Repository record date | Relative time | Model/checkpoint context | Data and parameter scope | Training status |
@@ -12,6 +18,10 @@ This record consolidates four frozen diagnostic phases that examined the selecte
 | IV. Generation-pathway audit | 2026-08-24, commit `a63e251` | Recorded eight days after Part III and after the projection and gradient-interaction experiments | Returned to the matched native epoch-4 and direct endpoint MSE+SIGReg epoch-4 checkpoints; alternative trained conditions were not substituted | 256-reaction pathway/retrieval panels, 64-reaction patching panel, 16-reaction AdamW counterfactual, and existing 1,280-reaction predictions | Frozen; exact virtual optimizer steps only; no persistent update |
 
 The dates above are the first repository commits containing the original reports. All four parts use ChemFM-1B for the reaction model. They differ in checkpoint time, parameter scope, and sample panel. PCSF in Part III is a separately trained historical method, while Parts I, II, and IV principally analyze the direct endpoint MSE+SIGReg checkpoint family.
+
+### Relation to the trained-intervention record
+
+This report contains frozen measurements; [report 03](03_ENDPOINT_INTERVENTION_EXPERIMENTS.md) contains persistent training runs. Part III here was recorded after report 03's PCSF run and reads its checkpoints. Part IV was recorded after the projector and gradient-interaction runs, but deliberately returns to the native and direct endpoint MSE+SIGReg checkpoints rather than evaluating those alternative states. Shared condition names therefore identify references, not pooled samples or a continuous training trajectory.
 
 ## Part I — Gradient and LoRA block-swap audit
 
@@ -41,7 +51,7 @@ aggregate CE gap. Substituting cLM-JEPA layers 12--16 into native changed CE by
 | cLM-JEPA | `runs/mse_ablation/stage1/mse_sigreg_checkpoints/epoch_4` |
 | Gradient panel | The same 16 seed-533 USPTO-MIT training examples recorded in `runs/diagnostics/sigreg_gradient_response.json` |
 | Swap panel | The same 256 identities and parent-panel R-SMILES views used by the MSE+SIGReg decoder-coupling evaluation |
-| Code | `scripts/audit_chemfm_mechanism.py`; maintained `src/chemfm.py`, `src/jepa.py`, and `src/train.py` paths |
+| Code | Historical `scripts/audit_chemfm_mechanism.py` (recoverable at commit `61fbc74`); maintained `src/chemfm.py`, `src/jepa.py`, and `src/train.py` paths |
 | Machine results | `runs/diagnostics/mse_sigreg_mechanistic_audit/gradient_audit.json` and `block_swap_audit.json` |
 
 The audited active auxiliary gradient was the training objective
@@ -280,7 +290,7 @@ At epochs 2 and 4 the full auxiliary increased both true-pair and wrong-pair dis
 ## Artifacts
 
 - Machine result: `runs/diagnostics/sigreg_pair_specificity_audit/audit.json`
-- Audit implementation: `scripts/audit_sigreg_pair_specificity.py`
+- Historical audit implementation: `scripts/audit_sigreg_pair_specificity.py` (recoverable at commit `61fbc74`)
 - Focused tests: `tests/test_sigreg_pair_specificity_audit.py`
 
 ## Part III — Contraction and held-out NTP directional audit
@@ -413,7 +423,7 @@ Artifacts:
 - Machine results: `runs/diagnostics/contraction_ntp_directional_audit/audit.json`
 - Compact extraction: `runs/diagnostics/contraction_ntp_directional_audit/primary_tables.txt`
 - Execution logs: `runs/diagnostics/contraction_ntp_directional_audit/run.stdout.log`, `run.stderr.log`
-- Implementation: `scripts/audit_contraction_ntp_direction.py`
+- Historical implementation: `scripts/audit_contraction_ntp_direction.py` (recoverable at commit `61fbc74`)
 - Focused tests: `tests/test_contraction_ntp_direction_audit.py`
 
 ## Part IV — Generation-pathway audit
@@ -430,7 +440,7 @@ Artifacts:
 
 This was a frozen, local diagnostic audit. It used the existing epoch-4 native checkpoint at `runs/sigreg_batch16_pilot/matched_b4/native_checkpoints/epoch_4`, the direct MSE+SIGReg checkpoint at `runs/mse_ablation/stage1/mse_sigreg_checkpoints/epoch_4`, their existing AdamW state, frozen manifests, and existing official prediction artifacts. No model was trained and no cloud service was used. All model diagnostics ran on the local RTX 4050.
 
-The implementation is `scripts/audit_generation_mechanism.py`. Focused semantic tests are in `tests/test_generation_mechanism_audit.py`. Machine-readable outputs are under `runs/diagnostics/generation_mechanism/`.
+The historical implementation is `scripts/audit_generation_mechanism.py`, with focused semantic tests formerly in `tests/test_generation_mechanism_audit.py`; both are recoverable at commit `61fbc74`. Compact machine-readable outputs remain under `runs/diagnostics/generation_mechanism/`.
 
 ## 1. Pathway representation comparison
 

@@ -2,6 +2,12 @@
 
 This record consolidates three later trained intervention programs around the direct endpoint MSE+SIGReg result. Each part is a separate training trajectory. Metrics are not pooled across parts, and each section preserves its original evaluation panel and artifact paths.
 
+PCSF, projector, gradient-matrix launchers, per-epoch historical checkpoints,
+duplicate transfer archives, and raw prediction shards were removed after the
+measurements were consolidated. Compact JSON results remain. Historical script
+and artifact paths below document the original execution and are recoverable
+from commit `61fbc74`; they are not active production paths.
+
 ## Chronology and experimental context
 
 | Part | Repository record date | Relative time | Model and initialization context | Objective change | Main evaluation scope |
@@ -11,6 +17,10 @@ This record consolidates three later trained intervention programs around the di
 | III. Gradient-interaction matrix | 2026-08-23, commit `07fac75` | Recorded the day after Part II; the projector branch was removed and direct endpoint MSE+SIGReg restored | ChemFM-1B, seed 533, seven separately trained four-epoch trajectories with identical manifests and optimizer controls | Kept direct raw-endpoint MSE+SIGReg and changed only auxiliary weighting or LoRA gradient combination | All seven representation/gradient audits; user-revised 256-reaction behavioral endpoint for the retained conditions |
 
 The dates above are the first repository commits containing the original reports. These are not sequential fine-tunes of one checkpoint into the next. Each intervention has its own optimizer state and checkpoint trajectory. They share the ChemFM-1B base and controlled USPTO-MIT training manifest, but differ in auxiliary parameterization, active production code at the time, and behavioral-panel size.
+
+### Relation to the frozen-mechanism record
+
+[Report 02](02_ENDPOINT_MECHANISM_AUDITS.md) measures frozen gradients, activation substitutions, virtual updates, and representation behavior. This report records separately trained interventions. The records are chronologically interleaved: the PCSF checkpoints feed report 02 Part III, while report 02 Part IV was run only after all three intervention programs here had completed. No metric is pooled across the two reports, and no intervention here continues from another intervention's checkpoint.
 
 ## Part I — Pair-Center Spread Floor
 
@@ -72,7 +82,9 @@ Implementation paths at the time of the experiment:
 - `scripts/pcsf_experiment.py`: frozen reference extraction, trajectory measurement, and gradient calibration.
 - `scripts/benchmark_pcsf_training.py`: A6000 parity and throughput benchmarks.
 
-PCSF was subsequently removed from the maintained training path. These scripts, artifacts, and report remain historical records.
+PCSF was subsequently removed from the maintained training path. The report and
+compact outputs remain local; the historical scripts and bulky artifacts are
+recoverable from commit `61fbc74`.
 
 Tests cover center/spread arithmetic, both variance identities, zero/positive hinge behavior, restorative gradients, translation invariance, uniform scaling, exact identity lookup, streamed-versus-materialized loss/representation/parameter gradients, and endpoint-only forward parity. The complete local suite passed: `80 passed, 1 skipped`.
 
@@ -475,9 +487,10 @@ The following were removed from `src/`:
 - experimental gradient hooks unrelated to the four reported combination
   rules.
 
-Historical PCSF and projection scripts, reports, checkpoints, and artifacts
-remain available. The projection-head definition was moved to
-`scripts/historical_projection.py`; it is not imported by production code.
+Historical PCSF and projection source, checkpoints, and bulky artifacts are
+recoverable from commit `61fbc74`; their consolidated measurements remain in
+this report. At that commit, the inactive projection-head definition was in
+`scripts/historical_projection.py` and was not imported by production code.
 A case-insensitive active-path scan found no PCSF/projector/rho/reference-spread
 terms under `src/`.
 

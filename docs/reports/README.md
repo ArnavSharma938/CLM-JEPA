@@ -57,16 +57,20 @@ The generation-pathway audit additionally recorded:
 
 Read in this order:
 
-1. [Method and protocol fidelity](00_METHOD_AND_PROTOCOL_FIDELITY.md): exact objectives and evaluation semantics.
-2. [Endpoint objective development and official evaluation](02_ENDPOINT_OBJECTIVES_AND_OFFICIAL_EVALUATION.md): early cosine controls, MSE/MSE+SIGReg training, representation measurements, and the later 1,280-reaction official five-view endpoint. Its context table distinguishes the ChemFM experiments from the reduced DeepSeek/GSM8K reference.
-3. [Endpoint frozen mechanism audits](04_ENDPOINT_MECHANISM_AUDITS.md): four chronologically separated frozen phases—gradient/block swaps, SIGReg pair specificity, contraction/NTP directions, and the final generation-pathway/AdamW/chemistry audit. Each phase identifies its own checkpoints, parameter scope, panel size, and execution date relative to the trained interventions.
-4. [Endpoint trained intervention experiments](06_ENDPOINT_INTERVENTION_EXPERIMENTS.md): three separate later training programs—PCSF, projection-space MSE+SIGReg, and the gradient-interaction matrix. Its context table records that these are independent ChemFM-1B trajectories rather than sequential fine-tunes and identifies their different 256/512-reaction endpoints.
-5. [Dense causal V-JEPA 2.1-style experiment](12_DENSE_CAUSAL_VJEPA2_1_EXPERIMENT.md): separate architecture/state family with causal suffix/context prediction, deep supervision, EMA target, super-mini, pilot, and frozen evaluation.
+1. [00 — Method and protocol fidelity](00_METHOD_AND_PROTOCOL_FIDELITY.md): exact objectives and evaluation semantics.
+2. [01 — Endpoint objective development and official evaluation](01_ENDPOINT_OBJECTIVES_AND_OFFICIAL_EVALUATION.md): early cosine controls, MSE/MSE+SIGReg training, representation measurements, and the later 1,280-reaction official five-view endpoint. Its context table distinguishes the ChemFM experiments from the reduced DeepSeek/GSM8K reference.
+3. [02 — Endpoint frozen mechanism audits](02_ENDPOINT_MECHANISM_AUDITS.md): four chronologically separated frozen phases—gradient/block swaps, SIGReg pair specificity, contraction/NTP directions, and the final generation-pathway/AdamW/chemistry audit. Each phase identifies its own checkpoints, parameter scope, panel size, and execution date relative to the trained interventions.
+4. [03 — Endpoint trained intervention experiments](03_ENDPOINT_INTERVENTION_EXPERIMENTS.md): three separate later training programs—PCSF, projection-space MSE+SIGReg, and the gradient-interaction matrix. Its context table records that these are independent ChemFM-1B trajectories rather than sequential fine-tunes and identifies their different 256/512-reaction endpoints.
+5. [04 — Dense causal V-JEPA 2.1-style experiment](04_DENSE_CAUSAL_VJEPA2_1_EXPERIMENT.md): separate architecture/state family with causal suffix/context prediction, deep supervision, EMA target, super-mini, pilot, and frozen evaluation.
 
 Consolidation history:
 
-- former reports 01 and 03 are contained in report 02;
-- former reports 05, 07, and 11 are contained in report 04;
-- former reports 08, 09, and 10 are contained in report 06.
+- former reports 01 and 03 are contained in current report 01;
+- former reports 05, 07, and 11 are contained in current report 02;
+- former reports 08, 09, and 10 are contained in current report 03.
 
-No experiment artifacts, protocols, measurements, or limitations were deleted.
+No recorded protocol, measurement, limitation, or artifact provenance was
+deleted. Bulky reproducible intermediates were removed after consolidation as
+documented in reports 01–03; compact summaries and selected comparison
+checkpoints remain local, and the removed tracked files are recoverable from
+commit `61fbc74`.

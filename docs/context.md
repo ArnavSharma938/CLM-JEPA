@@ -93,21 +93,21 @@ The reduced two-epoch DeepSeek-1.5B run was not a successful behavioral control:
 
 The selected MSE+SIGReg endpoint's active auxiliary gradient was `0.212x` the LoRA NTP-gradient norm, cosine `-0.042`, and 99.82% orthogonal. The conflict was localized and SIGReg-dominated: layers 17-21 had active-auxiliary/early-NTP cosine `-0.107`. Swapping those cLM layers into native worsened CE by `+0.015607`; restoring native layers 17-21 in cLM removed 55.1% of the full CE gap. cLM layers 12-16 instead improved the native background by `-0.003447`.
 
-True and shuffled active auxiliary gradients had cosine `0.902`; the pair-specific residual was `0.096x` the NTP norm and nearly orthogonal to NTP. Source/target MSE decomposition measurements are reported in `docs/reports/04_ENDPOINT_MECHANISM_AUDITS.md`.
+True and shuffled active auxiliary gradients had cosine `0.902`; the pair-specific residual was `0.096x` the NTP norm and nearly orthogonal to NTP. Source/target MSE decomposition measurements are reported in `docs/reports/02_ENDPOINT_MECHANISM_AUDITS.md`.
 
 ### Frozen SIGReg pair-specificity audit
 
-Four disjoint batches of 16 reactions were evaluated at MSE+SIGReg epochs 1, 2, and 4 with four fresh SIGReg slice draws per batch. SIGReg increased correct-versus-deranged discrimination, cosine margin, center separation, and variance in all 48 cLM measurements. Applied SIGReg grew from `1.51x` to `4.06x` the applied MSE norm from epochs 1 to 4, while the pair-dependent fraction of the full auxiliary gradient fell from `0.468` to `0.398`. SIGReg/NTP cosine remained near `-0.05`. Full details are in Part II of `docs/reports/04_ENDPOINT_MECHANISM_AUDITS.md`.
+Four disjoint batches of 16 reactions were evaluated at MSE+SIGReg epochs 1, 2, and 4 with four fresh SIGReg slice draws per batch. SIGReg increased correct-versus-deranged discrimination, cosine margin, center separation, and variance in all 48 cLM measurements. Applied SIGReg grew from `1.51x` to `4.06x` the applied MSE norm from epochs 1 to 4, while the pair-dependent fraction of the full auxiliary gradient fell from `0.468` to `0.398`. SIGReg/NTP cosine remained near `-0.05`. Full details are in Part II of `docs/reports/02_ENDPOINT_MECHANISM_AUDITS.md`.
 
 ### Pair-Center Spread Floor experiment
 
-PCSF tested a reference-relative, one-sided standard-deviation floor on positive-pair centers with no covariance, rank, Gaussian, or whitening constraint. Frozen calibration fixed `rho=0.80` and `beta=4.2`; no coefficient sweep was run. The four-epoch condition produced pair-center sigma `0.535x` the matched-native reference. On the fixed 256 panel it scored 4/256 top-1 versus native 6/256 and had 2.49% higher target CE. Full details are in Part I of `docs/reports/06_ENDPOINT_INTERVENTION_EXPERIMENTS.md`.
+PCSF tested a reference-relative, one-sided standard-deviation floor on positive-pair centers with no covariance, rank, Gaussian, or whitening constraint. Frozen calibration fixed `rho=0.80` and `beta=4.2`; no coefficient sweep was run. The four-epoch condition produced pair-center sigma `0.535x` the matched-native reference. On the fixed 256 panel it scored 4/256 top-1 versus native 6/256 and had 2.49% higher target CE. Full details are in Part I of `docs/reports/03_ENDPOINT_INTERVENTION_EXPERIMENTS.md`.
 
 ### Projection-space MSE+SIGReg (historical condition)
 
 Both MSE and exact SIGReg were moved from raw ChemFM EOS states into one shared `2048->2048->2048->64` hidden-BN/ReLU projection head. BatchNorm saw the full 32-row source-plus-target logical JEPA batch. During this experiment PCSF and direct raw MSE+SIGReg were removed from its production path. The projector condition was later removed, and endpoint MSE+SIGReg was restored as a maintained endpoint condition.
 
-The four-epoch seed-533 run completed 320 updates in 32.33 minutes. Projected z effective rank was about three. The matched 256-reaction target-token CE was `0.256497`, versus direct MSE+SIGReg `0.248779` and native `0.240683`. On the first 512 reactions of the frozen official manifest, native/direct/projected exact top-1 was `18/15/4`; projected versus direct was `-2.148` pp, 95% CI `[-3.516,-0.781]`, McNemar `p=0.00342`. The 512 panel was budget-bounded during execution and is descriptive, not the original confirmatory 1,280 endpoint. Full details are in Part II of `docs/reports/06_ENDPOINT_INTERVENTION_EXPERIMENTS.md`.
+The four-epoch seed-533 run completed 320 updates in 32.33 minutes. Projected z effective rank was about three. The matched 256-reaction target-token CE was `0.256497`, versus direct MSE+SIGReg `0.248779` and native `0.240683`. On the first 512 reactions of the frozen official manifest, native/direct/projected exact top-1 was `18/15/4`; projected versus direct was `-2.148` pp, 95% CI `[-3.516,-0.781]`, McNemar `p=0.00342`. The 512 panel was budget-bounded during execution and is descriptive, not the original confirmatory 1,280 endpoint. Full details are in Part II of `docs/reports/03_ENDPOINT_INTERVENTION_EXPERIMENTS.md`.
 
 ### Dense causal V-JEPA 2.1
 
@@ -126,7 +126,7 @@ only 33.59% versus 45.31% native and 83.98% direct. Exact component VJPs showed
 the latent predictor receiving substantially larger dense-loss gradients than
 ChemFM. The selected epoch-4 checkpoint and all JSONs are preserved locally;
 the A6000 instance was deleted after SHA-256 verification. Full details are in
-`docs/reports/12_DENSE_CAUSAL_VJEPA2_1_EXPERIMENT.md`.
+`docs/reports/04_DENSE_CAUSAL_VJEPA2_1_EXPERIMENT.md`.
 
 ## Current measured state
 
@@ -139,4 +139,4 @@ global raw retrieval was `33.59%`, target-token CE `.253547`, top-1 `6/256`,
 and top-10 `39/256`. These measurements do not cover MetaTrans,
 retrosynthesis, additional seeds, or larger training exposure.
 
-The consolidated report index and artifact paths are in `docs/reports/README.md`. The dense causal implementation and measurements are in report 12.
+The consolidated report index and artifact paths are in `docs/reports/README.md`. The dense causal implementation and measurements are in report 04.
