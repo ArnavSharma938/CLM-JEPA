@@ -1,4 +1,17 @@
-# Endpoint cLM-JEPA objective experiments
+# Endpoint cLM-JEPA objective development and official evaluation
+
+This record combines the objective-development experiments and the later official endpoint evaluation. The sections retain their original protocols and artifact paths.
+
+## Chronology and experimental context
+
+| Part | Repository record date | Relative time | Model/checkpoint context | Method and data context | Execution type |
+|---|---|---|---|---|---|
+| I. Objective development | 2026-08-14, commit `78c169d` | Early controlled sequence, before the official endpoint | ChemFM-1B with seed-533 native, cosine, MSE, and MSE+SIGReg trajectories; reduced DeepSeek-1.5B/GSM8K appears only in the explicitly labeled reference subsection | USPTO-MIT panels ranged from 16-example gradient checks to 256/512/1,024-reaction diagnostics; readout changed from k=1 cosine precursors to k=0 MSE conditions | Multiple controlled training runs plus frozen diagnostics |
+| II. Official endpoint | 2026-08-14, commit `78c169d` | Conducted after the epoch-4 native and endpoint MSE+SIGReg checkpoints were fixed | Reused those two ChemFM-1B seed-533 epoch-4 checkpoints; no retraining or checkpoint selection occurred during evaluation | 1,280 prespecified unique USPTO-MIT reactions, five official R-SMILES views, beam 10 | Frozen generation evaluation |
+
+The dates above are the first repository commits containing the original reports, not inferred run-start timestamps. The reduced GSM8K subsection is not a ChemFM condition and is not pooled with the reaction results. The earlier cosine and later MSE conditions also differ in readout, SIGReg batch construction, and cadence as recorded in Part I.
+
+## Part I — Objective development
 
 ## Measured summary
 
@@ -162,7 +175,7 @@ SIGReg changed from `6.6591` at epoch 1 to `6.9992` at epoch 4. The frozen conti
 
 Top-1 paired outcomes were 4 both correct, 2 native-only, 2 MSE+SIGReg-only, and 248 neither. Correct-product rank improved/worsened/tied on 18/35/203 reactions. Mean rank improvement was `-0.137` with 95% CI `[-0.383,+0.105]`. Mean per-reaction `native CE - MSE+SIGReg CE` was `-0.00773`, 95% CI `[-0.01386,-0.00188]`; 44.5% improved, 55.5% worsened, Wilcoxon `p=0.0221`.
 
-The later mechanistic audit found that this historical aggregate denominator excludes the supervised `<prostart>` and `<eos>` labels: 10,642 raw-product tokens versus 11,154 model labels. Per-reaction CE and the native-vs-cLM direction were unaffected. The correctly label-normalized local reproduction was `0.229702` native and `0.237275` MSE+SIGReg (3.30% higher); see [report 04](04_MECHANISTIC_GRADIENT_AND_BLOCK_SWAP_AUDIT.md).
+The later mechanistic audit found that this historical aggregate denominator excludes the supervised `<prostart>` and `<eos>` labels: 10,642 raw-product tokens versus 11,154 model labels. Per-reaction CE and the native-vs-cLM direction were unaffected. The correctly label-normalized local reproduction was `0.229702` native and `0.237275` MSE+SIGReg (3.30% higher); see [the endpoint mechanism audits](04_ENDPOINT_MECHANISM_AUDITS.md).
 
 ### Geometry and interventions
 
@@ -205,3 +218,74 @@ Raw pair margin correlations with CE and rank change were `rho=0.028/-0.086`; re
 - Paired results: `runs/mse_ablation/evaluation/summary_epoch4.json`
 - Verified archive: `runs/thunder_sigreg_batch16_transfer/results/mse_ablation_artifacts.tar.gz`
 - Archive SHA-256: `4f04e4fb7979ef861a5dbc9cb37da7e3e1691271a936ee53537156c0298b9b0f`
+
+## Part II — Official five-view endpoint evaluation
+
+## Measured summary
+
+On 1,280 prespecified unique reactions, the fixed epoch-4 native endpoint had
+3.906% exact top-1 and the fixed epoch-4 MSE+SIGReg cLM-JEPA endpoint had
+3.125%: `-0.781` percentage points, 95% paired bootstrap CI
+`[-1.719,+0.156]`, exact McNemar `p=0.1433`.
+
+The prespecified 99% futility interval had upper bound `+0.458` pp, below the
+minimum effect of interest of `+1` pp. Under the frozen stopping rule,
+evaluation stopped at 1,280 rather than extending to 3,300.
+
+## Fixed comparison and official semantics
+
+No model was retrained. The endpoints were cadence-matched native NTP epoch 4 and the selected MSE+exact-SIGReg-16 cLM-JEPA epoch 4 from Part I of this report.
+
+Each unique reaction used all five official R-SMILES views, beam width 10, ten returned candidates per view, RDKit canonical product handling, and ChemFM reciprocal-rank aggregation across views. Accuracy was computed per unique reaction, not per augmented row. Exact top-1 was primary.
+
+## Inference parity and speed
+
+The selected A6000 path used four independent batch-1 model workers with one CPU thread each, left padding, SDPA, and exact CUDA-graph fast paths. Tokenization, candidate handling, and five-view aggregation were unchanged.
+
+On a fixed 24-reaction panel, every ordered raw, canonical, and aggregated candidate list and every exact-match flag matched the sequential reference; the complete digest was identical (`8ded7c06...`). Throughput increased from `0.01877` to `0.15496` complete five-view reactions/s, an `8.25x` speedup. The completed cLM-JEPA pass ran at `0.1752` reactions/s, 69.5% mean GPU utilization, 89% maximum utilization, and 16.4 GiB peak VRAM. Larger prompt batches were slower; five/six replicas either were slower or changed exact outputs, so neither candidate was used.
+
+## Prespecified sample and power
+
+The official test population contained 40,000 five-view reaction groups. Before inference, seed 533 froze a simple random sample and deterministic order of 3,300 unique reactions.
+
+- Paired two-sided exact McNemar test, alpha 0.05.
+- Minimum effect of interest: +1 pp exact top-1.
+- Required power: at least 80%.
+- Conservative discordance: 3.952%, the upper 95% Clopper-Pearson bound from the earlier 256-reaction panel.
+- Fixed-sample requirement: 3,253; 3,300 gave 80.62% estimated power.
+- Frozen interim: stop at 1,280 if the two-sided 99% Wald upper bound for cLM-JEPA minus native was below +1 pp.
+- Simulated sequential-design power: 80.46%; probability of an interim stop when the true benefit is +1 pp: 0.62%.
+
+## Results
+
+| Endpoint | Native | MSE+SIGReg cLM-JEPA | Difference |
+|---|---:|---:|---:|
+| Exact top-1 | 3.906% (50/1,280) | 3.125% (40/1,280) | -0.781 pp |
+| Top-3 | 17.891% | 16.172% | -1.719 pp |
+| Top-5 | 26.797% | 23.516% | -3.281 pp |
+| Top-10 | 37.656% | 35.625% | -2.031 pp |
+| Official per-view validity | 98.905% | 97.348% | -1.556 pp |
+| Aggregated-candidate validity | 99.969% | 99.977% | +0.008 pp |
+
+Top-1 paired counts were 26 both correct, 24 native-only, 14 cLM-JEPA-only, and 1,216 neither. The 99% Wald interval was `[-2.021,+0.458]` pp. Secondary exact McNemar p-values were 0.0448/0.000359/0.0369 for top-3/5/10. Holm-adjusted p-values were 0.0737/0.00108/0.0737; only top-5 remained significant, favoring native.
+
+## Measurement scope
+
+For these two seed-533 epoch-4 checkpoints, reduced pilot exposure, and the
+frozen official test sample, the cLM-JEPA-minus-native 99% interval upper bound
+was below the prespecified +1 pp threshold. Native point estimates were higher
+at every top-k cutoff.
+
+The evaluation does not estimate multi-seed training variability, test larger
+training exposure, cover MetaTrans or retrosynthesis, or measure untested JEPA
+objectives. Teacher-forced CE and representation geometry were not endpoint
+substitutes in this evaluation.
+
+## Evidence paths
+
+- Design metadata: `data/clm_jepa_uspto_mit_official_endpoint/sequential_design_metadata.json`
+- Frozen manifest: `data/clm_jepa_uspto_mit_official_endpoint/prespecified_stage1_1280.jsonl`
+- Paired statistics: `runs/official_five_view_endpoint/stage1_paired_summary.json`
+- Futility decision: `runs/official_five_view_endpoint/interim_1280.json`
+- Native candidates: `runs/official_five_view_endpoint/stage1_native/predictions.jsonl`
+- cLM-JEPA candidates: `runs/official_five_view_endpoint/stage1_clm/predictions.jsonl`

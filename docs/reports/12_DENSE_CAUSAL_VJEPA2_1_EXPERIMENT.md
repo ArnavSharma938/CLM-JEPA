@@ -11,6 +11,17 @@ This experiment is a mechanism change, not a gradient filter. Historical
 endpoint MSE/SIGReg, PCSF, projection heads, LLM-JEPA predictor tokens, PCGrad,
 CAGrad, and auxiliary-similarity gating are absent from the new objective.
 
+## Repository chronology and model context
+
+This report first appeared on 2026-08-25 in commit `8e059c2`, one repository
+day after the final endpoint generation-pathway audit and two days after the
+gradient-interaction implementation record. It remains separate because it is
+not another endpoint intervention: it adds a dense predictor, four-depth
+supervision, suffix/context masks, and an EMA ChemFM target. It uses the same
+ChemFM-1B base and seed-533 USPTO-MIT pilot manifest for comparison, but its
+training state and objective family are distinct from all parts of the endpoint
+intervention report.
+
 ## Primary-source lock
 
 The implementation was frozen only after reading the complete 37-page
@@ -178,8 +189,9 @@ ratios were `2.34x`, `3.01x`, `2.41x`, and `1.82x`.
 ### One-view autoregressive behavior
 
 All rows use the identical ordered 256-reaction panel and beam-10 evaluation.
-Native and direct MSE+SIGReg are the validated epoch-4 references from report
-09; dense V-JEPA is the new epoch-4 checkpoint.
+Native and direct MSE+SIGReg are the validated epoch-4 references recorded in
+Part III of [the trained-intervention report](06_ENDPOINT_INTERVENTION_EXPERIMENTS.md); dense
+V-JEPA is the new epoch-4 checkpoint.
 
 | Condition | Top-1 | Top-3 | Top-5 | Top-10 | Valid candidates |
 |---|---:|---:|---:|---:|---:|

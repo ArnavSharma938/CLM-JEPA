@@ -102,7 +102,7 @@ The cleanup removed the superseded batch-size benchmark, endpoint-forward
 probe, legacy parallel-beam wrapper, two profiler scripts, unused single-prompt
 generation wrapper, unused offline prediction-record helpers, an unused
 V-JEPA selected-layer wrapper, two unreferenced diagnostic helpers, and unused
-imports. Their retained measurements remain in the reports and machine
+imports. Their retained measurements remain in the consolidated reports and machine
 artifacts. PCSF and projection definitions remain explicitly historical because
 their reports and frozen diagnostics still depend on them; neither is imported
 by `src/`.

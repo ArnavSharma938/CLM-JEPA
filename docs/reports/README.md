@@ -58,16 +58,15 @@ The generation-pathway audit additionally recorded:
 Read in this order:
 
 1. [Method and protocol fidelity](00_METHOD_AND_PROTOCOL_FIDELITY.md): exact objectives and evaluation semantics.
-2. [Endpoint objective experiments](02_MSE_SIGREG_EXPERIMENT.md): cosine precursors, MSE, MSE+SIGReg, representation measurements, and endpoint comparisons.
-3. [Official five-view endpoint evaluation](03_OFFICIAL_ENDPOINT_EVALUATION.md): powered endpoint design, inference parity, statistics, and stopping rule.
-4. [Gradient and block-swap audit](04_MECHANISTIC_GRADIENT_AND_BLOCK_SWAP_AUDIT.md): gradient decomposition, token positions, and depth-block swaps.
-5. [SIGReg pair-specificity audit](05_SIGREG_PAIR_SPECIFICITY_AUDIT.md): true/shuffled and fresh-slice measurements at epochs 1, 2, and 4.
-6. [Pair-Center Spread Floor experiment](06_PCSF_EXPERIMENT.md): historical PCSF implementation, calibration, run, and evaluation.
-7. [Contraction and held-out NTP directional audit](07_CONTRACTION_AND_NTP_DIRECTIONAL_AUDIT.md): spread velocities and disjoint-batch NTP directions.
-8. [Projection-space MSE+SIGReg experiment](08_PROJECTION_SPACE_MSE_SIGREG_EXPERIMENT.md): historical projector design, training, two-space geometry, and evaluation.
-9. [JEPA–NTP gradient-interaction experiment](09_GRADIENT_INTERACTION_EXPERIMENT.md): weights, PCGrad, CAGrad, Du similarity, diagnostics, and evaluation. The former execution-handoff report is consolidated here.
-10. [Generation-pathway audit](11_GENERATION_PATHWAY_MECHANISM_AUDIT.md): layerwise comparisons, activation patching, AdamW counterfactuals, shortcut controls, and chemical similarity.
-11. [Dense causal V-JEPA 2.1-style experiment](12_DENSE_CAUSAL_VJEPA2_1_EXPERIMENT.md): source mapping, implementation, verification, super-mini, pilot, and frozen evaluation.
+2. [Endpoint objective development and official evaluation](02_ENDPOINT_OBJECTIVES_AND_OFFICIAL_EVALUATION.md): early cosine controls, MSE/MSE+SIGReg training, representation measurements, and the later 1,280-reaction official five-view endpoint. Its context table distinguishes the ChemFM experiments from the reduced DeepSeek/GSM8K reference.
+3. [Endpoint frozen mechanism audits](04_ENDPOINT_MECHANISM_AUDITS.md): four chronologically separated frozen phases—gradient/block swaps, SIGReg pair specificity, contraction/NTP directions, and the final generation-pathway/AdamW/chemistry audit. Each phase identifies its own checkpoints, parameter scope, panel size, and execution date relative to the trained interventions.
+4. [Endpoint trained intervention experiments](06_ENDPOINT_INTERVENTION_EXPERIMENTS.md): three separate later training programs—PCSF, projection-space MSE+SIGReg, and the gradient-interaction matrix. Its context table records that these are independent ChemFM-1B trajectories rather than sequential fine-tunes and identifies their different 256/512-reaction endpoints.
+5. [Dense causal V-JEPA 2.1-style experiment](12_DENSE_CAUSAL_VJEPA2_1_EXPERIMENT.md): separate architecture/state family with causal suffix/context prediction, deep supervision, EMA target, super-mini, pilot, and frozen evaluation.
 
-Reports 01 and 10 were removed after their unique content was merged into
-reports 02 and 09. No experiment artifacts or measurements were deleted.
+Consolidation history:
+
+- former reports 01 and 03 are contained in report 02;
+- former reports 05, 07, and 11 are contained in report 04;
+- former reports 08, 09, and 10 are contained in report 06.
+
+No experiment artifacts, protocols, measurements, or limitations were deleted.
