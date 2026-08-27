@@ -15,3 +15,7 @@ references/** -whitespace
 
 # The frozen panel hash includes its original CRLF byte serialization.
 data/clm_jepa_uspto_mit_validation_1024/*.csv -text -whitespace
+
+# Frozen official endpoint manifests are byte-identified in reports and must
+# not be rewritten by platform line-ending conversion.
+data/clm_jepa_uspto_mit_official_endpoint/*.jsonl -text -whitespace
