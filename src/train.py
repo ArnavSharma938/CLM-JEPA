@@ -41,6 +41,7 @@ from chemfm import (  # noqa: E402
 )
 from jepa import (  # noqa: E402
     CLMJEPA, add_predictor_tokens, extract_source_and_target,
+    matched_derangement,
 )
 from gradient_interaction import (  # noqa: E402
     CAGRAD_C, apply_combination, combine_gradients,
@@ -73,6 +74,7 @@ TASKS = {
     "non_uspto_retro": "retro",
 }
 SIGREG_TRADEOFF = 0.01
+PAIR_RESIDUAL_SHUFFLE_SEED = 1907
 
 NATIVE_CONDITION = "native"
 DENSE_VJEPA21_CONDITION = "clm_jepa_vjepa2_1"
@@ -82,6 +84,7 @@ ENDPOINT_JEPA_CONDITIONS = frozenset({
     "clm_jepa_target_sg",
     "clm_jepa_mse",
     "clm_jepa_mse_sigreg",
+    "clm_jepa_pair_residual",
     "shuffled",
     "jepa_only",
 })
@@ -288,6 +291,20 @@ def file_sha256(path: Path) -> str:
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
+    return digest.hexdigest()
+
+
+def trainable_parameter_sha256(model) -> str:
+    """Fingerprint the exact initialized trainable state before optimization."""
+    digest = hashlib.sha256()
+    for name, parameter in model.named_parameters():
+        if not parameter.requires_grad:
+            continue
+        value = parameter.detach().contiguous()
+        digest.update(name.encode("utf-8"))
+        digest.update(str(value.dtype).encode("ascii"))
+        digest.update(str(tuple(value.shape)).encode("ascii"))
+        digest.update(value.view(torch.uint8).cpu().numpy().tobytes())
     return digest.hexdigest()
 
 
@@ -847,6 +864,71 @@ def raw_auxiliary_vjp(
     }
 
 
+def raw_pair_residual_vjp(
+    source_states: torch.Tensor,
+    target_states: torch.Tensor,
+    permutation: Sequence[int],
+) -> dict[str, torch.Tensor | float]:
+    """Differentiate the audited pair-specific MSE gradient residual.
+
+    The intervention is a gradient contrast, not a replacement JEPA loss:
+    ``grad(MSE(source, true_target)) - grad(MSE(source, shuffled_target))``.
+    SIGReg is absent because its marginal statistic is invariant to target
+    permutation and therefore cancels from the exact true-minus-shuffled
+    auxiliary gradient.
+    """
+    if source_states.ndim != 2 or target_states.shape != source_states.shape:
+        raise ValueError("pair-residual JEPA expects matched 2D endpoint batches")
+    count = source_states.size(0)
+    if count < 2:
+        raise ValueError("pair-residual JEPA requires at least two pairs")
+    permutation = list(permutation)
+    if sorted(permutation) != list(range(count)):
+        raise ValueError("pair-residual shuffle must be a permutation")
+    if any(index == shuffled for index, shuffled in enumerate(permutation)):
+        raise ValueError("pair-residual shuffle must be a derangement")
+
+    sources = source_states.float().detach().requires_grad_(True)
+    targets = target_states.float().detach().requires_grad_(True)
+    true_mse = F.mse_loss(sources, targets)
+    shuffled_mse = F.mse_loss(sources, targets[permutation])
+    true_source, true_target = torch.autograd.grad(
+        true_mse, (sources, targets), retain_graph=True,
+    )
+    shuffled_source, shuffled_target = torch.autograd.grad(
+        shuffled_mse, (sources, targets),
+    )
+    residual_source = true_source - shuffled_source
+    residual_target = true_target - shuffled_target
+
+    true_flat = torch.cat((true_source.flatten(), true_target.flatten()))
+    shuffled_flat = torch.cat((shuffled_source.flatten(), shuffled_target.flatten()))
+    denominator = true_flat.norm() * shuffled_flat.norm()
+    cosine = (
+        float(torch.dot(true_flat, shuffled_flat) / denominator)
+        if float(denominator) > 0.0 else float("nan")
+    )
+    true_norm = float(true_flat.norm())
+    residual_norm = float(torch.cat(
+        (residual_source.flatten(), residual_target.flatten())
+    ).norm())
+    return {
+        "true_mse": true_mse.detach(),
+        "shuffled_mse": shuffled_mse.detach(),
+        "residual_objective": (true_mse - shuffled_mse).detach(),
+        "source_gradients": residual_source.detach(),
+        "target_gradients": residual_target.detach(),
+        "true_source_gradients": true_source.detach(),
+        "true_target_gradients": true_target.detach(),
+        "shuffled_source_gradients": shuffled_source.detach(),
+        "shuffled_target_gradients": shuffled_target.detach(),
+        "endpoint_true_shuffle_gradient_cosine": cosine,
+        "endpoint_residual_over_true_norm": (
+            residual_norm / true_norm if true_norm else float("nan")
+        ),
+    }
+
+
 def _accumulate_gradients(
     buffers: list[torch.Tensor | None],
     gradients: tuple[torch.Tensor | None, ...],
@@ -859,6 +941,104 @@ def _accumulate_gradients(
             buffers[index] = detached
         else:
             buffers[index].add_(detached)
+
+
+def adamw_residual_update_diagnostics(
+    optimizer: torch.optim.Optimizer,
+    parameters: Sequence[torch.nn.Parameter],
+    main_gradients: Sequence[torch.Tensor],
+    applied_residual_gradients: Sequence[torch.Tensor],
+    *, native_gradient_scale: float = 1.0,
+    combined_gradient_scale: float = 1.0,
+) -> dict[str, float]:
+    """Measure the residual's counterfactual effect after AdamW preconditioning.
+
+    This is read-only: it evaluates the next adaptive gradient update from the
+    current moments once with the native gradient and once with the combined
+    gradient. Decoupled weight decay cancels from their difference and is
+    intentionally excluded from both vectors.
+    """
+    if not parameters or not (
+        len(parameters) == len(main_gradients) == len(applied_residual_gradients)
+    ):
+        raise ValueError("AdamW diagnostic inputs must be nonempty and equal length")
+    groups = {
+        id(parameter): group
+        for group in optimizer.param_groups for parameter in group["params"]
+    }
+    device = parameters[0].device
+    main_squared = torch.zeros((), device=device, dtype=torch.float64)
+    effect_squared = torch.zeros_like(main_squared)
+    dot = torch.zeros_like(main_squared)
+    for parameter, main, residual in zip(
+        parameters, main_gradients, applied_residual_gradients
+    ):
+        group = groups.get(id(parameter))
+        if group is None:
+            raise ValueError("diagnosed parameter is absent from optimizer")
+        if group.get("amsgrad", False) or group.get("maximize", False):
+            raise ValueError("diagnostic supports the experiment's standard AdamW only")
+        beta1, beta2 = group["betas"]
+        epsilon = group["eps"]
+        learning_rate = group["lr"]
+        state = optimizer.state.get(parameter, {})
+        step_value = state.get("step", 0)
+        step = int(step_value.item()) if torch.is_tensor(step_value) else int(step_value)
+        next_step = step + 1
+        exp_avg = state.get("exp_avg")
+        exp_avg_sq = state.get("exp_avg_sq")
+        if exp_avg is None:
+            exp_avg_float = torch.zeros_like(parameter, dtype=torch.float32)
+            exp_avg_sq_float = torch.zeros_like(parameter, dtype=torch.float32)
+        else:
+            exp_avg_float = exp_avg.float()
+            exp_avg_sq_float = exp_avg_sq.float()
+
+        def adaptive_update(gradient: torch.Tensor) -> torch.Tensor:
+            gradient = gradient.float()
+            moment = beta1 * exp_avg_float + (1.0 - beta1) * gradient
+            variance = beta2 * exp_avg_sq_float + (1.0 - beta2) * gradient.square()
+            corrected_moment = moment / (1.0 - beta1 ** next_step)
+            corrected_variance = variance / (1.0 - beta2 ** next_step)
+            return learning_rate * corrected_moment / (
+                corrected_variance.sqrt() + epsilon
+            )
+
+        main_update = adaptive_update(main * native_gradient_scale)
+        combined_update = adaptive_update(
+            (main + residual) * combined_gradient_scale
+        )
+        effect = combined_update - main_update
+        main_squared += main_update.double().square().sum()
+        effect_squared += effect.double().square().sum()
+        dot += (main_update.double() * effect.double()).sum()
+    main_norm = main_squared.sqrt()
+    effect_norm = effect_squared.sqrt()
+    denominator = main_norm * effect_norm
+    main_value, effect_value, dot_value, denominator_value = torch.stack(
+        (main_norm, effect_norm, dot, denominator)
+    ).cpu().tolist()
+    return {
+        "native_adaptive_update_norm": main_value,
+        "residual_adaptive_update_effect_norm": effect_value,
+        "residual_to_native_adaptive_update_norm_ratio": (
+            effect_value / main_value if main_value else float("nan")
+        ),
+        "residual_effect_native_update_cosine": (
+            dot_value / denominator_value if denominator_value else float("nan")
+        ),
+    }
+
+
+def read_only_global_gradient_norm(model) -> float:
+    """Return the model-wide gradient norm without clipping or mutation."""
+    norms = [
+        parameter.grad.detach().float().norm()
+        for parameter in model.parameters() if parameter.grad is not None
+    ]
+    if not norms:
+        return 0.0
+    return float(torch.linalg.vector_norm(torch.stack(norms)))
 
 
 def train_mse_sigreg_gradient_epoch(
@@ -1128,6 +1308,291 @@ def train_mse_sigreg_gradient_epoch(
     return records, global_step
 
 
+def train_pair_residual_epoch(
+    *, model, method, loader, optimizer, scheduler, epoch: int,
+    logical_batch_size: int, physical_batch_size: int,
+    actual_lambda: float, native_weight: float,
+    jepa_ratio: float, non_embedding_parameters: int, pin_memory: bool,
+    tracker: WandbTracker, global_step: int,
+) -> tuple[list[dict[str, Any]], int]:
+    """Train NTP while adding only the audited true-minus-shuffled LoRA gradient."""
+    if logical_batch_size % physical_batch_size:
+        raise ValueError("pair-residual logical batch must divide into physical batches")
+    chunks_per_step = logical_batch_size // physical_batch_size
+    if len(loader) % chunks_per_step:
+        raise ValueError("training exposure must divide into complete residual batches")
+
+    named_lora = [
+        (name, parameter) for name, parameter in model.named_parameters()
+        if parameter.requires_grad and ("lora_A" in name or "lora_B" in name)
+    ]
+    if not named_lora:
+        raise RuntimeError("pair-residual JEPA requires trainable LoRA A/B parameters")
+    lora_parameters = [parameter for _, parameter in named_lora]
+    iterator = iter(loader)
+    records: list[dict[str, Any]] = []
+
+    for logical_index in range(len(loader) // chunks_per_step):
+        data_started = time.perf_counter()
+        raw_chunks = list(itertools.islice(iterator, chunks_per_step))
+        data_seconds = time.perf_counter() - data_started
+        if len(raw_chunks) != chunks_per_step:
+            raise RuntimeError("incomplete pair-residual logical batch")
+        active = method.sample_jepa_activity(jepa_ratio)
+
+        # This pass is intentionally identical to ordinary native training.
+        # Auxiliary computation later restores this post-NTP RNG snapshot so
+        # it cannot perturb future NTP dropout streams in the matched control.
+        native_started = time.perf_counter()
+        loss_records: list[dict[str, Any]] = []
+        batch_tokens = 0
+        for raw in raw_chunks:
+            raw_tokens = int(raw["attention_mask"].sum())
+            batch = {
+                name: value.to(model.device, non_blocking=pin_memory)
+                for name, value in raw.items() if torch.is_tensor(value)
+            }
+            output = method(
+                model, batch, k=0, jepa_weight=0.0,
+                native_weight=native_weight, force_jepa_active=False,
+            )
+            native_component = output.native_loss * native_weight / chunks_per_step
+            native_component.backward()
+            if not torch.isfinite(output.native_loss):
+                raise FloatingPointError(
+                    f"non-finite native loss in epoch {epoch}, residual group "
+                    f"{logical_index + 1}"
+                )
+            batch_tokens += raw_tokens
+            loss_records.append({
+                "native_loss": output.native_loss.detach(),
+                "jepa_loss": None,
+                "sigreg_loss": None,
+                "jepa_objective_loss": None,
+                "total_loss": output.native_loss.detach(),
+            })
+        native_seconds = time.perf_counter() - native_started
+        post_native_rng = _rng_snapshot()
+
+        interaction_metrics = None
+        true_mse = None
+        shuffled_mse = None
+        residual_objective = None
+        auxiliary_seconds = 0.0
+        derangement = None
+        target_length_cost = None
+        if active:
+            auxiliary_started = time.perf_counter()
+            all_targets: list[torch.Tensor] = []
+            for raw in raw_chunks:
+                _, chunk_targets = extract_source_and_target(raw)
+                all_targets.extend(chunk_targets)
+            shuffle_seed = PAIR_RESIDUAL_SHUFFLE_SEED + global_step
+            derangement = matched_derangement(all_targets, shuffle_seed)
+            target_length_cost = sum(
+                abs(len(all_targets[index]) - len(all_targets[shuffled]))
+                for index, shuffled in enumerate(derangement)
+            )
+
+            replay_states: list[tuple[torch.Tensor, list[torch.Tensor]]] = []
+            source_chunks: list[torch.Tensor] = []
+            target_chunks: list[torch.Tensor] = []
+            with torch.no_grad():
+                for raw in raw_chunks:
+                    replay_states.append(_rng_snapshot())
+                    batch = {
+                        name: value.to(model.device, non_blocking=pin_memory)
+                        for name, value in raw.items() if torch.is_tensor(value)
+                    }
+                    output = method(
+                        model, batch, k=0, jepa_weight=0.0,
+                        native_weight=native_weight, monitor_only=True,
+                        stop_gradient_target=False, jepa_loss_type="mse",
+                        sigreg_tradeoff=0.0, jepa_ratio=jepa_ratio,
+                        force_jepa_active=True, endpoint_only=True,
+                    )
+                    source_chunks.append(output.source_states.float())
+                    target_chunks.append(output.target_states.float())
+            raw_sources = torch.cat(source_chunks)
+            raw_targets = torch.cat(target_chunks)
+            if raw_sources.size(0) != logical_batch_size:
+                raise RuntimeError("residual did not receive the complete logical batch")
+            residual_result = raw_pair_residual_vjp(
+                raw_sources, raw_targets, derangement,
+            )
+            true_mse = residual_result["true_mse"]
+            shuffled_mse = residual_result["shuffled_mse"]
+            residual_objective = residual_result["residual_objective"]
+            source_gradients = residual_result["source_gradients"].split(
+                physical_batch_size
+            )
+            target_gradients = residual_result["target_gradients"].split(
+                physical_batch_size
+            )
+
+            residual_gradients: list[torch.Tensor | None] = [None] * len(lora_parameters)
+            for chunk_index, raw in enumerate(raw_chunks):
+                _restore_rng(replay_states[chunk_index])
+                batch = {
+                    name: value.to(model.device, non_blocking=pin_memory)
+                    for name, value in raw.items() if torch.is_tensor(value)
+                }
+                output = method(
+                    model, batch, k=0, jepa_weight=0.0,
+                    native_weight=native_weight, monitor_only=True,
+                    stop_gradient_target=False, jepa_loss_type="mse",
+                    sigreg_tradeoff=0.0, jepa_ratio=jepa_ratio,
+                    force_jepa_active=True, endpoint_only=True,
+                )
+                surrogate = (
+                    output.source_states
+                    * source_gradients[chunk_index].to(output.source_states.dtype)
+                ).sum() + (
+                    output.target_states
+                    * target_gradients[chunk_index].to(output.target_states.dtype)
+                ).sum()
+                gradients = torch.autograd.grad(
+                    surrogate, lora_parameters, allow_unused=True,
+                )
+                _accumulate_gradients(residual_gradients, gradients)
+
+            # Auxiliary dropout and replay must not move the native-control RNG
+            # trajectory. Only the added LoRA gradient is the independent variable.
+            _restore_rng(post_native_rng)
+            zero = lambda parameter: torch.zeros_like(parameter)
+            lora_main = [
+                parameter.grad.detach().clone()
+                if parameter.grad is not None else zero(parameter)
+                for parameter in lora_parameters
+            ]
+            lora_residual_raw = [
+                gradient if gradient is not None else zero(parameter)
+                for parameter, gradient in zip(lora_parameters, residual_gradients)
+            ]
+            lora_residual_applied = [
+                actual_lambda * gradient for gradient in lora_residual_raw
+            ]
+            raw_statistics = combine_gradients(
+                "weighted_sum", lora_main, lora_residual_raw,
+            )
+            combination = combine_gradients(
+                "weighted_sum", lora_main, lora_residual_applied,
+            )
+            native_preclip_norm = read_only_global_gradient_norm(model)
+            apply_combination(
+                lora_parameters, lora_main, lora_residual_applied, combination,
+            )
+            combined_preclip_norm = read_only_global_gradient_norm(model)
+            native_clip_coefficient = min(
+                1.0, 1.0 / (native_preclip_norm + 1e-6)
+            )
+            combined_clip_coefficient = min(
+                1.0, 1.0 / (combined_preclip_norm + 1e-6)
+            )
+            interaction_metrics = combination.as_dict()
+            interaction_metrics.update({
+                "scope": "LoRA A/B parameters only",
+                "parameter_tensors": len(lora_parameters),
+                "parameters": sum(parameter.numel() for parameter in lora_parameters),
+                "raw_auxiliary_to_main_norm_ratio": (
+                    raw_statistics.auxiliary_to_main_norm_ratio
+                ),
+                "active_auxiliary_coefficient": actual_lambda,
+                "true_mse": float(true_mse),
+                "shuffled_mse": float(shuffled_mse),
+                "residual_objective": float(residual_objective),
+                "endpoint_true_shuffle_gradient_cosine": residual_result[
+                    "endpoint_true_shuffle_gradient_cosine"
+                ],
+                "endpoint_residual_over_true_norm": residual_result[
+                    "endpoint_residual_over_true_norm"
+                ],
+                "shuffle_seed": shuffle_seed,
+                "target_length_assignment_cost": target_length_cost,
+                "native_preclip_global_gradient_norm": native_preclip_norm,
+                "combined_preclip_global_gradient_norm": combined_preclip_norm,
+                "native_global_clip_coefficient": native_clip_coefficient,
+                "combined_global_clip_coefficient": combined_clip_coefficient,
+            })
+            interaction_metrics.update(adamw_residual_update_diagnostics(
+                optimizer, lora_parameters, lora_main, lora_residual_applied,
+                native_gradient_scale=native_clip_coefficient,
+                combined_gradient_scale=combined_clip_coefficient,
+            ))
+            raw_gradient_ratio = interaction_metrics[
+                "auxiliary_to_main_norm_ratio"
+            ]
+            interaction_metrics["adamw_preconditioning_amplification"] = (
+                interaction_metrics[
+                    "residual_to_native_adaptive_update_norm_ratio"
+                ] / raw_gradient_ratio
+                if raw_gradient_ratio else float("nan")
+            )
+            auxiliary_seconds = time.perf_counter() - auxiliary_started
+
+        learning_rate = optimizer.param_groups[0]["lr"]
+        gradient_norm, largest_gradient = gradient_diagnostics(model)
+        optimizer.step()
+        scheduler.step()
+        optimizer.zero_grad(set_to_none=True)
+        global_step += 1
+
+        means = synchronized_loss_means(loss_records)
+        if active:
+            means["jepa_loss"] = float(true_mse)
+            means["jepa_objective_loss"] = float(residual_objective)
+            means["total_loss"] = (
+                means["native_loss"] + actual_lambda * means["jepa_objective_loss"]
+            )
+        record = {
+            "step": global_step,
+            "epoch": epoch,
+            **means,
+            "pair_residual_true_mse": None if true_mse is None else float(true_mse),
+            "pair_residual_shuffled_mse": (
+                None if shuffled_mse is None else float(shuffled_mse)
+            ),
+            "pair_residual_scalar": (
+                None if residual_objective is None else float(residual_objective)
+            ),
+            "pair_residual_derangement": derangement,
+            "pair_residual_target_length_cost": target_length_cost,
+            "jepa_active": active,
+            "jepa_active_microbatches": chunks_per_step if active else 0,
+            "sigreg_distribution_samples_per_view": 0,
+            "gradient_interaction": interaction_metrics,
+            "learning_rate": learning_rate,
+            "gradient_norm": gradient_norm,
+            "max_gradient_parameter": largest_gradient[0],
+            "max_parameter_gradient_norm": largest_gradient[1],
+            "batch_tokens": batch_tokens,
+            "effective_tokens": batch_tokens * (7 if active else 1),
+            "model_calls": chunks_per_step * (3 if active else 1),
+            "data_seconds": data_seconds,
+            "native_forward_backward_seconds": native_seconds,
+            "pair_residual_statistics_vjp_seconds": auxiliary_seconds,
+        }
+        record["estimated_flops"] = (
+            6.0 * record["effective_tokens"] * non_embedding_parameters
+        )
+        records.append(record)
+        tracker.log_training_step(
+            step=global_step, native_loss=record["native_loss"],
+            jepa_loss=record["jepa_loss"], sigreg_loss=None,
+            jepa_objective_loss=record["jepa_objective_loss"],
+            total_loss=record["total_loss"], gradient_norm=gradient_norm,
+            max_gradient_parameter=largest_gradient[0],
+            max_parameter_gradient_norm=largest_gradient[1],
+            learning_rate=learning_rate, jepa_active=active,
+            batch_tokens=batch_tokens, model_calls=record["model_calls"],
+            effective_tokens=record["effective_tokens"],
+            peak_vram_bytes=torch.cuda.max_memory_allocated(),
+            estimated_flops=record["estimated_flops"],
+            gradient_interaction=interaction_metrics,
+        )
+    return records, global_step
+
+
 def train(args):
     if not torch.cuda.is_available():
         raise EnvironmentError("Gate 4/5 ChemFM-1B fine-tuning requires CUDA")
@@ -1149,6 +1614,7 @@ def train(args):
         raise ValueError("training and validation manifests must both be nonempty")
     method_family = condition_family(args.condition)
     has_mse_sigreg = args.condition == "clm_jepa_mse_sigreg"
+    has_pair_residual = args.condition == "clm_jepa_pair_residual"
     has_dense_vjepa = method_family == "dense_vjepa2_1"
     tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
     chemfm_vocab_size = len(tokenizer)
@@ -1168,6 +1634,7 @@ def train(args):
         MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size,
         attn_implementation=args.attention_implementation,
     ).cuda()
+    initial_trainable_sha256 = trainable_parameter_sha256(model)
     if args.gradient_checkpointing:
         model.gradient_checkpointing_enable(
             gradient_checkpointing_kwargs={"use_reentrant": False}
@@ -1195,7 +1662,7 @@ def train(args):
         SIGREG_TRADEOFF
         if args.sigreg_tradeoff is None else args.sigreg_tradeoff
     )
-    streaming_sigreg = has_mse_sigreg
+    streaming_sigreg = has_mse_sigreg or has_pair_residual
     updates_per_epoch = (
         len(train_rows) // args.sigreg_batch_size
         if streaming_sigreg
@@ -1241,6 +1708,7 @@ def train(args):
         "dense_vjepa2_1" if has_dense_vjepa else
         "mse" if args.condition in {
             "clm_jepa_mse", "clm_jepa_mse_sigreg",
+            "clm_jepa_pair_residual",
         }
         else "cosine"
     )
@@ -1264,6 +1732,7 @@ def train(args):
         ),
         "k": None if has_dense_vjepa else args.k,
         "lambda_eff": args.lambda_eff, "actual_lambda": actual_lambda,
+        "initial_trainable_sha256": initial_trainable_sha256,
         "jepa_loss_dropout": (
             None if has_dense_vjepa else args.dropout if has_jepa else None
         ),
@@ -1288,8 +1757,30 @@ def train(args):
         "sigreg_distribution_batch_size_per_view": (
             args.sigreg_batch_size if has_sigreg else None
         ),
-        "sigreg_exact_chunk_recomputation": streaming_sigreg,
-        "raw_endpoint_auxiliary": has_mse_sigreg,
+        "sigreg_exact_chunk_recomputation": has_mse_sigreg,
+        "raw_endpoint_auxiliary": has_mse_sigreg or has_pair_residual,
+        "pair_specific_residual": has_pair_residual,
+        "pair_specific_residual_definition": (
+            "2*(grad MSE(source,true_target) - "
+            "grad MSE(source,matched_shuffled_target)) on active steps"
+            if has_pair_residual else None
+        ),
+        "pair_specific_residual_expected_coefficient": (
+            args.lambda_eff if has_pair_residual else None
+        ),
+        "pair_specific_residual_logical_batch_size": (
+            args.sigreg_batch_size if has_pair_residual else None
+        ),
+        "pair_specific_residual_shuffle_seed_rule": (
+            f"{PAIR_RESIDUAL_SHUFFLE_SEED} + zero_based_global_step"
+            if has_pair_residual else None
+        ),
+        "pair_specific_residual_ntp_rng_isolated": has_pair_residual,
+        "pair_specific_residual_sigreg_cancellation": (
+            "SIGReg omitted because its target-permutation-invariant gradient "
+            "cancels exactly in true-minus-shuffled contrast"
+            if has_pair_residual else None
+        ),
         "dense_vjepa2_1": has_dense_vjepa,
         "dense_vjepa2_1_paper": VJEPA21_PAPER if has_dense_vjepa else None,
         "dense_vjepa2_1_upstream_commit": (
@@ -1305,10 +1796,12 @@ def train(args):
         "dense_vjepa2_1_total_planned_steps": steps if has_dense_vjepa else None,
         "generation_vocabulary_unchanged": has_dense_vjepa,
         "gradient_interaction": (
+            "pair_specific_residual" if has_pair_residual else
             args.gradient_interaction if has_mse_sigreg else None
         ),
         "gradient_interaction_scope": (
-            "LoRA A/B parameters only" if has_mse_sigreg else None
+            "LoRA A/B parameters only"
+            if has_mse_sigreg or has_pair_residual else None
         ),
         "cagrad_c": (
             CAGRAD_C if has_mse_sigreg and args.gradient_interaction == "cagrad"
@@ -1388,10 +1881,27 @@ def train(args):
     try:
         for epoch_index in range(start_epoch, args.stop_after_epoch):
             model.train()
-            method.train()
+            if has_dense_vjepa:
+                method.train()
             torch.cuda.synchronize()
             epoch_training_started = time.perf_counter()
-            if has_mse_sigreg:
+            if has_pair_residual:
+                epoch_records, global_step = train_pair_residual_epoch(
+                    model=model, method=method, loader=loader,
+                    optimizer=optimizer, scheduler=scheduler,
+                    epoch=epoch_index + 1,
+                    logical_batch_size=args.sigreg_batch_size,
+                    physical_batch_size=args.batch_size,
+                    actual_lambda=actual_lambda,
+                    native_weight=native_weight,
+                    jepa_ratio=resolved_ratio,
+                    non_embedding_parameters=non_embedding_parameters,
+                    pin_memory=args.pin_memory, tracker=tracker,
+                    global_step=global_step,
+                )
+                curves.extend(epoch_records)
+                training_loader = ()
+            elif has_mse_sigreg:
                 profile_this_epoch = (
                     args.torch_profile_output is not None
                     and epoch_index == start_epoch
@@ -1820,8 +2330,8 @@ def main():
     parser.add_argument(
         "--sigreg-batch-size", type=int, default=2,
         help=(
-            "representations per view in each SIGReg distribution estimate; values "
-            "above the physical batch use exact sufficient-statistic recomputation"
+            "logical endpoint batch size for exact SIGReg or pair-residual "
+            "training; values above the physical batch use exact replay"
         ),
     )
     parser.add_argument(
@@ -1911,10 +2421,16 @@ def main():
     if args.sigreg_tradeoff is not None and not 0.0 <= args.sigreg_tradeoff < 1.0:
         raise ValueError("SIGReg trade-off must be in [0, 1)")
     sigreg_conditions = {"clm_jepa_mse_sigreg"}
+    logical_endpoint_conditions = sigreg_conditions | {"clm_jepa_pair_residual"}
     if args.condition not in sigreg_conditions and args.sigreg_tradeoff is not None:
         raise ValueError("--sigreg-tradeoff only applies to a SIGReg condition")
-    if args.condition not in sigreg_conditions and args.sigreg_batch_size != 2:
-        raise ValueError("--sigreg-batch-size only applies to a SIGReg condition")
+    if (
+        args.condition not in logical_endpoint_conditions
+        and args.sigreg_batch_size != 2
+    ):
+        raise ValueError(
+            "--sigreg-batch-size only applies to a logical-batch endpoint condition"
+        )
     if (
         args.condition == "clm_jepa_mse_sigreg"
         and args.sigreg_tradeoff is not None
@@ -1922,19 +2438,28 @@ def main():
     ):
         raise ValueError("MSE+SIGReg is frozen to sigreg-tradeoff=0.01")
     if (
-        args.condition == "clm_jepa_mse_sigreg"
+        args.condition in logical_endpoint_conditions
         and args.sigreg_batch_size
         != args.batch_size * args.gradient_accumulation_steps
     ):
         raise ValueError(
-            "MSE+SIGReg logical batch must equal physical batch times "
+            "logical endpoint batch must equal physical batch times "
             "accumulation to preserve the controlled cadence"
         )
-    if args.condition == "clm_jepa_mse_sigreg" and (
+    if args.condition in logical_endpoint_conditions and (
         args.k != 0 or args.dropout != 0.5
     ):
         raise ValueError(
-            "MSE+SIGReg is frozen to k=0 and dropout=0.5"
+            "logical endpoint conditions are frozen to k=0 and dropout=0.5"
+        )
+    if args.condition == "clm_jepa_pair_residual" and (
+        args.lambda_eff != 1.0
+        or args.gradient_interaction != "weighted_sum"
+        or args.optimized_jepa_forward
+    ):
+        raise ValueError(
+            "pair-residual JEPA is frozen to lambda-eff=1, direct weighted "
+            "addition, and its exact endpoint replay"
         )
     if (
         args.condition == "clm_jepa_mse_sigreg"

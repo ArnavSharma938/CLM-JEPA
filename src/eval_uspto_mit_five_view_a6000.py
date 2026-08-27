@@ -1611,9 +1611,13 @@ def topk_correct(row: dict, cutoff: int) -> bool:
     return row["target"] in row["ranked_candidates"][:cutoff]
 
 
-def paired_endpoint(left: list[dict], right: list[dict], cutoff: int) -> dict:
-    left_correct = np.asarray([topk_correct(row, cutoff) for row in left], dtype=bool)
-    right_correct = np.asarray([topk_correct(row, cutoff) for row in right], dtype=bool)
+def paired_binary_endpoint(
+    left_correct: np.ndarray, right_correct: np.ndarray,
+) -> dict:
+    left_correct = np.asarray(left_correct, dtype=bool)
+    right_correct = np.asarray(right_correct, dtype=bool)
+    if left_correct.shape != right_correct.shape or left_correct.ndim != 1:
+        raise ValueError("paired endpoint flags must be equal-length vectors")
     both = int(np.sum(left_correct & right_correct))
     left_only = int(np.sum(left_correct & ~right_correct))
     right_only = int(np.sum(~left_correct & right_correct))
@@ -1633,6 +1637,29 @@ def paired_endpoint(left: list[dict], right: list[dict], cutoff: int) -> dict:
         "discordant": discordant,
         "exact_mcnemar_two_sided_p": p_value,
     }
+
+
+def paired_endpoint(left: list[dict], right: list[dict], cutoff: int) -> dict:
+    return paired_binary_endpoint(
+        np.asarray([topk_correct(row, cutoff) for row in left], dtype=bool),
+        np.asarray([topk_correct(row, cutoff) for row in right], dtype=bool),
+    )
+
+
+def paired_bootstrap_interval(
+    differences: np.ndarray, *, seed: int, repetitions: int,
+) -> list[float]:
+    differences = np.asarray(differences, dtype=np.float64)
+    rng = np.random.default_rng(seed)
+    bootstrap = np.empty(repetitions, dtype=np.float64)
+    for start in range(0, repetitions, 1000):
+        size = min(1000, repetitions - start)
+        indices = rng.integers(0, len(differences), size=(size, len(differences)))
+        bootstrap[start:start + size] = differences[indices].mean(axis=1)
+    return [
+        float(np.quantile(bootstrap, 0.025)),
+        float(np.quantile(bootstrap, 0.975)),
+    ]
 
 
 def holm_adjust(p_values: dict[str, float]) -> dict[str, float]:
@@ -1659,20 +1686,32 @@ def summarize(args) -> None:
         int(topk_correct(right, 1)) - int(topk_correct(left, 1))
         for left, right in zip(native, clm)
     ], dtype=np.int8)
-    rng = np.random.default_rng(args.seed)
-    bootstrap = np.empty(args.bootstrap_repetitions, dtype=np.float64)
-    for start in range(0, args.bootstrap_repetitions, 1000):
-        size = min(1000, args.bootstrap_repetitions - start)
-        indices = rng.integers(0, len(differences), size=(size, len(differences)))
-        bootstrap[start:start + size] = differences[indices].mean(axis=1)
-    primary["paired_bootstrap_95_ci"] = [
-        float(np.quantile(bootstrap, 0.025)),
-        float(np.quantile(bootstrap, 0.975)),
-    ]
+    primary["paired_bootstrap_95_ci"] = paired_bootstrap_interval(
+        differences, seed=args.seed, repetitions=args.bootstrap_repetitions,
+    )
     secondary = {f"top{cutoff}": paired_endpoint(native, clm, cutoff) for cutoff in (3, 5, 10)}
     adjusted = holm_adjust({name: value["exact_mcnemar_two_sided_p"] for name, value in secondary.items()})
     for name in secondary:
         secondary[name]["holm_adjusted_p_across_secondary_cutoffs"] = adjusted[name]
+    view_breakdown = {}
+    for view_index in range(VIEWS):
+        native_flags = np.asarray([
+            bool(row["canonical_candidates_by_view"][view_index][0])
+            and row["canonical_candidates_by_view"][view_index][0] == row["target"]
+            for row in native
+        ], dtype=bool)
+        clm_flags = np.asarray([
+            bool(row["canonical_candidates_by_view"][view_index][0])
+            and row["canonical_candidates_by_view"][view_index][0] == row["target"]
+            for row in clm
+        ], dtype=bool)
+        comparison = paired_binary_endpoint(native_flags, clm_flags)
+        comparison["paired_bootstrap_95_ci"] = paired_bootstrap_interval(
+            clm_flags.astype(np.int8) - native_flags.astype(np.int8),
+            seed=args.seed + view_index + 1,
+            repetitions=args.bootstrap_repetitions,
+        )
+        view_breakdown[f"view_{view_index + 1}"] = comparison
     def validity(rows: list[dict]) -> dict:
         view_slots = len(rows) * VIEWS * BEAM_SIZE
         ranked_slots = len(rows) * BEAM_SIZE
@@ -1704,6 +1743,7 @@ def summarize(args) -> None:
         },
         "primary_top1": primary,
         "secondary": secondary,
+        "individual_view_exact_top1": view_breakdown,
         "validity": {"native": validity(native), "clm_jepa": validity(clm)},
         "artifacts": {
             "native_predictions": str(args.native_predictions.resolve()),

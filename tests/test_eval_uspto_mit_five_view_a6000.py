@@ -6,12 +6,15 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+import numpy as np
 
 from eval_uspto_mit_five_view_a6000 import (
     clopper_pearson_interval,
     exact_mcnemar_power,
     holm_adjust,
     official_rank,
+    paired_binary_endpoint,
+    paired_bootstrap_interval,
     required_sample_size,
 )
 
@@ -65,3 +68,16 @@ def test_prespecified_exact_mcnemar_power_calculation():
 def test_holm_adjustment_is_monotone_in_sorted_p_values():
     adjusted = holm_adjust({"a": 0.01, "b": 0.03, "c": 0.20})
     assert adjusted == pytest.approx({"a": 0.03, "b": 0.06, "c": 0.20})
+
+
+def test_paired_binary_endpoint_and_bootstrap_preserve_pairing():
+    left = np.asarray([True, True, False, False])
+    right = np.asarray([True, False, True, False])
+    result = paired_binary_endpoint(left, right)
+    assert result["both_correct"] == 1
+    assert result["native_only_correct"] == 1
+    assert result["clm_jepa_only_correct"] == 1
+    assert result["absolute_difference"] == 0.0
+    assert paired_bootstrap_interval(
+        right.astype(np.int8) - left.astype(np.int8), seed=11, repetitions=2000,
+    ) == pytest.approx([-0.75, 0.75])
