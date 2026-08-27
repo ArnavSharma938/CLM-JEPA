@@ -143,6 +143,38 @@ def trajectory_summary(curves: list[dict]) -> dict:
     return output
 
 
+def teacher_reaction_differences(
+    native_rows: list[dict], residual_rows: list[dict], field: str,
+) -> list[float]:
+    """Return residual-minus-native diagnostics clustered by reaction."""
+    identities = list(dict.fromkeys(row["reaction_identity"] for row in native_rows))
+    output = []
+    for identity in identities:
+        native = [row for row in native_rows if row["reaction_identity"] == identity]
+        residual = [row for row in residual_rows if row["reaction_identity"] == identity]
+        if len(native) != VIEWS or len(residual) != VIEWS:
+            raise ValueError(f"teacher diagnostic requires five views for {identity}")
+        if field == "ce":
+            native_value = sum(row["nll_sum"] for row in native) / sum(
+                row["target_tokens"] for row in native
+            )
+            residual_value = sum(row["nll_sum"] for row in residual) / sum(
+                row["target_tokens"] for row in residual
+            )
+        elif field == "correct_token_rate":
+            native_value = sum(row["correct_tokens"] for row in native) / sum(
+                row["target_tokens"] for row in native
+            )
+            residual_value = sum(row["correct_tokens"] for row in residual) / sum(
+                row["target_tokens"] for row in residual
+            )
+        else:
+            native_value = statistics.fmean(row[field] for row in native)
+            residual_value = statistics.fmean(row[field] for row in residual)
+        output.append(residual_value - native_value)
+    return output
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, required=True)
@@ -214,6 +246,7 @@ def main() -> None:
 
     teacher_ce_matrix = []
     teacher_margin_matrix = []
+    teacher_correct_matrix = []
     teacher_seed = {}
     for seed in SEEDS:
         native_rows = teacher[seed]["native"]["rows"]
@@ -222,14 +255,15 @@ def main() -> None:
         residual_keys = [(row["reaction_identity"], row["view_index"]) for row in residual_rows]
         if native_keys != residual_keys:
             raise ValueError(f"teacher-forced row mismatch for seed {seed}")
-        teacher_ce_matrix.append([
-            right["ce"] - left["ce"]
-            for left, right in zip(native_rows, residual_rows)
-        ])
-        teacher_margin_matrix.append([
-            right["correct_margin_mean"] - left["correct_margin_mean"]
-            for left, right in zip(native_rows, residual_rows)
-        ])
+        teacher_ce_matrix.append(teacher_reaction_differences(
+            native_rows, residual_rows, "ce",
+        ))
+        teacher_margin_matrix.append(teacher_reaction_differences(
+            native_rows, residual_rows, "correct_margin_mean",
+        ))
+        teacher_correct_matrix.append(teacher_reaction_differences(
+            native_rows, residual_rows, "correct_token_rate",
+        ))
         teacher_seed[str(seed)] = {
             "native": teacher[seed]["native"]["overall"],
             "residual": teacher[seed]["residual"]["overall"],
@@ -241,9 +275,14 @@ def main() -> None:
                 teacher[seed]["residual"]["overall"]["mean_correct_token_margin"]
                 - teacher[seed]["native"]["overall"]["mean_correct_token_margin"]
             ),
+            "correct_token_rate_delta": (
+                teacher[seed]["residual"]["overall"]["correct_token_rate"]
+                - teacher[seed]["native"]["overall"]["correct_token_rate"]
+            ),
         }
     teacher_ce_matrix = np.asarray(teacher_ce_matrix)
     teacher_margin_matrix = np.asarray(teacher_margin_matrix)
+    teacher_correct_matrix = np.asarray(teacher_correct_matrix)
 
     crossed = primary["crossed_seed_identity_bootstrap_95_ci"]
     if primary["positive_seeds"] >= 4 and primary["mean"] > 0 and crossed[0] > 0:
@@ -274,6 +313,11 @@ def main() -> None:
             "margin_residual_minus_native": seed_effect_summary(
                 teacher_margin_matrix.mean(axis=1).tolist(), teacher_margin_matrix,
                 seed=7309, repetitions=args.bootstrap_repetitions,
+            ),
+            "correct_token_rate_residual_minus_native": seed_effect_summary(
+                teacher_correct_matrix.mean(axis=1).tolist(),
+                teacher_correct_matrix, seed=7311,
+                repetitions=args.bootstrap_repetitions,
             ),
         },
         "trajectory": {

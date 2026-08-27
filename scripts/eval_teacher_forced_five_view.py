@@ -46,6 +46,9 @@ def token_decision_metrics(
         )
         rows.append({
             "target_tokens": int(selected_labels.numel()),
+            "correct_tokens": int(
+                selected_logits.argmax(dim=-1).eq(selected_labels).sum()
+            ),
             "nll_sum": float(-correct_log_probabilities.sum()),
             "ce": float(-correct_log_probabilities.mean()),
             "correct_margin_mean": float((correct_logits - best_other).mean()),
@@ -62,6 +65,7 @@ def summarize_rows(rows: list[dict]) -> dict:
         "rows": len(rows),
         "target_tokens": tokens,
         "token_weighted_ce": sum(row["nll_sum"] for row in rows) / tokens,
+        "correct_token_rate": sum(row["correct_tokens"] for row in rows) / tokens,
         "mean_per_row_ce": sum(row["ce"] for row in rows) / len(rows),
         "mean_correct_token_margin": sum(
             row["correct_margin_mean"] for row in rows
