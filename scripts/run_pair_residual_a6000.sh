@@ -87,16 +87,59 @@ case "$PHASE" in
     "$PYTHON" -m pip install --upgrade pip
     "$PYTHON" -m pip install -r requirements.txt
     "$PYTHON" - <<'PY'
+import hashlib
 import json
+import os
+import platform
+import shutil
+import subprocess
+from pathlib import Path
+
+import peft
 import torch
-print(json.dumps({
+import transformers
+
+def sha256(path):
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for block in iter(lambda: handle.read(8 * 1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else None
+payload = {
+    "implementation_commit": os.environ.get("IMPLEMENTATION_COMMIT"),
+    "deployment_archive_sha256": os.environ.get("DEPLOYMENT_ARCHIVE_SHA256"),
+    "platform": platform.platform(),
+    "python": platform.python_version(),
     "torch": torch.__version__,
+    "transformers": transformers.__version__,
+    "peft": peft.__version__,
     "cuda_runtime": torch.version.cuda,
     "cuda_available": torch.cuda.is_available(),
-    "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
-}))
-if not torch.cuda.is_available() or "A6000" not in torch.cuda.get_device_name(0):
+    "gpu": gpu,
+    "cpu_count": os.cpu_count(),
+    "disk_total_bytes": shutil.disk_usage(".").total,
+    "disk_free_bytes_after_setup": shutil.disk_usage(".").free,
+    "nvidia_smi": subprocess.check_output([
+        "nvidia-smi", "--query-gpu=name,driver_version,memory.total",
+        "--format=csv,noheader",
+    ], text=True).strip(),
+    "manifests": {
+        path: sha256(path) for path in (
+            "data/clm_jepa_uspto_mit_pilot_1280/uspto_mit_train.csv",
+            "data/clm_jepa_uspto_mit_validation_256/uspto_mit_validation_length_stratified_256.csv",
+            "data/clm_jepa_uspto_mit_official_endpoint/prespecified_stage1_256.jsonl",
+            "data/clm_jepa_uspto_mit_official_endpoint/equivalence_24.jsonl",
+        )
+    },
+}
+print(json.dumps(payload, sort_keys=True))
+if not torch.cuda.is_available() or "A6000" not in gpu:
     raise SystemExit("the locked experiment requires one NVIDIA A6000")
+root = Path("runs/pair_residual/a6000")
+root.mkdir(parents=True, exist_ok=True)
+(root / "environment.json").write_text(json.dumps(payload, indent=2) + "\n")
 PY
     "$PYTHON" -m pytest -q
     ;;
@@ -120,7 +163,7 @@ assert active and all(row["gradient_interaction"] is not None for row in active)
 for left, right in zip(native["curves"], residual["curves"]):
     if not right["jepa_active"]:
         assert left["native_loss"] == right["native_loss"]
-print(json.dumps({
+summary = {
     "initial_trainable_sha256": native["config"]["initial_trainable_sha256"],
     "updates": 16,
     "active_residual_updates": len(active),
@@ -130,7 +173,9 @@ print(json.dumps({
         row["native_forward_backward_seconds"] + row["pair_residual_statistics_vjp_seconds"]
         for row in active
     ) / len(active),
-}, sort_keys=True))
+}
+(root / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+print(json.dumps(summary, sort_keys=True))
 PY
     ;;
   beam-benchmark)
