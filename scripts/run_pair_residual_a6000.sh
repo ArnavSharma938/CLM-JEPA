@@ -161,8 +161,9 @@ assert native["compute"]["optimizer_steps"] == residual["compute"]["optimizer_st
 active = [row for row in residual["curves"] if row["jepa_active"]]
 assert active and all(row["gradient_interaction"] is not None for row in active)
 for left, right in zip(native["curves"], residual["curves"]):
-    if not right["jepa_active"]:
-        assert left["native_loss"] == right["native_loss"]
+    assert left["native_loss"] == right["native_loss"]
+    if right["jepa_active"]:
+        break
 summary = {
     "initial_trainable_sha256": native["config"]["initial_trainable_sha256"],
     "updates": 16,
