@@ -134,4 +134,100 @@ This amendment was made without inspecting any complete fixed-256 outcome.
 
 ## Results
 
-Pending execution.
+### Execution and provenance
+
+The final implementation was tested with `84 passed, 1 skipped` and executed
+on one NVIDIA RTX A6000 (48 GB), 6 vCPUs, PyTorch `2.3.0+cu121`, Transformers
+`4.45.2`, and PEFT `0.13.2`. All six runs completed 320 optimizer updates from
+paired initial trainable-state hashes. The official endpoint manifest hash was
+`5b87bce1e75ed1ebf1a2a9091e0367aedaa8600a5621bc960352cf45b18e1865`.
+The concurrency gate reproduced all 310 saved adapter tensors bit-for-bit in
+three replicas (maximum error zero) and improved aggregate training throughput
+3.28-fold. The four-worker beam evaluator reproduced every equivalence-panel
+raw beam and gave a 2.13-fold endpoint speedup. From the first full trajectory
+launch through the final diagnostic, the scientific execution took about 2 h
+55 min; the resumed production driver took 2 h 29 min.
+
+The reduced three-seed screen was also projected empirically on the local RTX
+4050 from the implementation smoke timings: 9.3 s for an NTP update and an
+expected 15.1 s per residual update at the locked 50% cadence, plus 190.6 s of
+active beam evaluation per 24 reactions. Those measurements imply about 6.5 h
+for six sequential trajectories, 3.4 h for six fixed-256 endpoints, and about
+0.5 h for diagnostics and loading: approximately 10.5 h locally. The A6000
+execution therefore cut the actual screen to under three hours without changing
+the logical batches or gradients.
+
+Raw predictions, teacher rows, final adapters, trajectory curves, representation
+statistics, environment metadata, and parity benchmarks are preserved under
+`runs/pair_residual/a6000/`. Optimizer-resume state and short benchmark adapter
+copies were removed after hash validation; all six final epoch-4 adapters remain.
+
+### Primary generated exact top-1
+
+Each cell is `native -> residual (residual - native)` in percentage points.
+
+| Seed | Five-view aggregate | View 1 | View 2 | View 3 | View 4 | View 5 |
+|---:|---:|---:|---:|---:|---:|---:|
+| 533 | 2.73 -> 3.12 (+0.39) | 2.34 -> 4.30 (+1.95) | 2.73 -> 2.73 (0.00) | 1.95 -> 3.12 (+1.17) | 1.56 -> 1.95 (+0.39) | 3.12 -> 2.34 (-0.78) |
+| 917 | 2.34 -> 1.95 (-0.39) | 4.30 -> 2.73 (-1.56) | 4.30 -> 2.73 (-1.56) | 1.95 -> 1.95 (0.00) | 1.17 -> 1.56 (+0.39) | 1.95 -> 3.91 (+1.95) |
+| 1301 | 5.08 -> 1.95 (-3.12) | 3.52 -> 2.73 (-0.78) | 3.12 -> 2.73 (-0.39) | 3.12 -> 2.34 (-0.78) | 2.73 -> 2.73 (0.00) | 3.52 -> 2.73 (-0.78) |
+| Seed mean | 3.39 -> 2.34 (-1.04) | 3.39 -> 3.26 (-0.13) | 3.39 -> 2.73 (-0.65) | 2.34 -> 2.47 (+0.13) | 1.82 -> 2.08 (+0.26) | 2.86 -> 2.99 (+0.13) |
+
+Native produced 26/768 exact aggregated top-1 predictions and residual-JEPA
+18/768. Seed effects were `+0.39, -0.39, -3.12` pp: one positive and two
+negative. The mean was `-1.04` pp, seed SD `1.85` pp, seed-level t 95% interval
+`[-5.63, +3.54]` pp, and crossed seed-by-reaction bootstrap 95% interval
+`[-3.52, +1.17]` pp. Thus the three-seed population uncertainty includes zero;
+no across-seed significance is claimed. Seed 1301 alone had paired bootstrap
+`[-5.86, -0.39]` pp and exact McNemar `p=0.0386`; the other two seed intervals
+included zero. Every individual-view crossed interval also included zero. The
+effect did not survive consistently across views.
+
+### Mechanism diagnostics
+
+The persistent residual did not retain the earlier favorable NTP effect.
+Five-view token-weighted CE worsened in all seeds by `+0.01332`, `+0.00659`,
+and `+0.00675`. With reactions as clusters, the mean CE change was `+0.01075`
+with crossed 95% interval `[+0.00586, +0.01646]`. Mean correct-token margin
+changed by `-0.0294` (`[-0.0741, +0.0385]`), and correct-token rate by
+`-0.0423` pp (`[-0.190, +0.117]` pp). There is no favorable-token-metric/
+generation disconnect here: both native token prediction and exact generation
+were worse on average.
+
+The trajectory logs directly locate the instability. Averaged across seeds,
+the residual/NTP cosine moved from approximately `-0.004` in epoch 1 to
+`-0.103` in epoch 4. The applied residual/NTP norm ratio grew from `0.34` to
+`1.79`; the residual's counterfactual AdamW update effect grew from `0.13` to
+`0.37` of the native update. Meanwhile true/shuffled endpoint-gradient cosine
+fell from `0.55` to `0.39`, and residual/true-gradient norm grew from `0.98` to
+`1.54`. AdamW preconditioning amplification fell from `0.56` to `0.26`, so the
+optimizer damped rather than amplified the raw residual. One of 489 active
+updates had an undefined adaptive-update cosine because of a zero norm; it is
+retained as a non-finite count and excluded only from that descriptive mean.
+
+Representation diagnostics confirm that the intervention was active and
+strongly pairing-specific. Mean correct-minus-matched-shuffle cosine increased
+from `0.0035` to `0.4321`, retrieval top-1 from `42.7%` to `80.9%`, and
+necessary-component replacement sensitivity from `0.0048` to `0.3201`.
+At the same time, mean source effective rank collapsed from `36.5` to `6.74`.
+Thus the residual repeatedly created reaction-pair-sensitive, low-rank endpoint
+geometry, but this substantial representational effect translated into worse
+native token decisions and no generated exact top-1 benefit.
+
+### Verdict
+
+**FAIL.** The preregistered failure rule is met: mean generated exact top-1 is
+nonpositive and only one of three seeds improves. This falsifies the hypothesis
+that repeatedly applying the exact historical pair-specific residual—at the
+locked coefficient, cadence, LoRA scope, data, and optimizer budget—improves
+ChemFM forward-reaction generation. More specifically, it shows that the
+previously favorable starting-point first-order direction does not integrate
+into a useful optimizer trajectory: its relative magnitude grows and its NTP
+alignment becomes negative as training progresses.
+
+This result does not falsify the previously measured local one-step effect, the
+existence of reaction-specific information, or the ability of the residual to
+reshape representations; the present experiment confirms the latter two. It
+also does not make claims about untested coefficients, optimizers, capacity, or
+architectures. Those are outside this falsification and were not tuned after the
+negative result.
