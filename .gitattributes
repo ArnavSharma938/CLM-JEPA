@@ -1,5 +1,6 @@
 *.safetensors filter=lfs diff=lfs merge=lfs -text
 *.pt filter=lfs diff=lfs merge=lfs -text
+*.sh text eol=lf
 
 # Released/full benchmark datasets are versioned, but stored through LFS.
 data/metatrans/** filter=lfs diff=lfs merge=lfs -text
