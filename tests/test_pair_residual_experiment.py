@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from analyze_pair_residual_results import (
-    crossed_bootstrap_interval, teacher_reaction_differences,
+    crossed_bootstrap_interval, teacher_reaction_differences, trajectory_summary,
 )
 from eval_teacher_forced_five_view import token_decision_metrics
 
@@ -62,3 +62,38 @@ def test_teacher_differences_cluster_five_views_by_reaction():
     assert teacher_reaction_differences(
         native, residual, "correct_margin_mean"
     ) == pytest.approx([0.2, 0.2])
+
+
+def test_trajectory_summary_records_zero_norm_nan_without_poisoning_summary():
+    interaction = {
+        "cosine": 0.2,
+        "raw_auxiliary_to_main_norm_ratio": 0.3,
+        "auxiliary_to_main_norm_ratio": 0.4,
+        "residual_to_native_adaptive_update_norm_ratio": 0.5,
+        "residual_effect_native_update_cosine": 0.6,
+        "adamw_preconditioning_amplification": 0.7,
+        "endpoint_true_shuffle_gradient_cosine": 0.8,
+        "endpoint_residual_over_true_norm": 0.9,
+    }
+    curves = []
+    for epoch in range(1, 5):
+        row_interaction = dict(interaction)
+        if epoch == 2:
+            row_interaction["residual_effect_native_update_cosine"] = float("nan")
+        curves.append({
+            "epoch": epoch,
+            "jepa_active": True,
+            "pair_residual_true_mse": 1.0,
+            "pair_residual_shuffled_mse": 1.1,
+            "pair_residual_scalar": -0.1,
+            "pair_residual_target_length_cost": 2.0,
+            "gradient_interaction": row_interaction,
+        })
+    summary = trajectory_summary(curves)
+    metric = summary["residual_adamw_effect_native_update_cosine"]
+    assert metric["mean"] == pytest.approx(0.6)
+    assert metric["finite_count"] == 3
+    assert metric["nonfinite_count"] == 1
+    assert summary["by_epoch"]["2"][
+        "residual_adamw_effect_native_update_cosine"
+    ] is None

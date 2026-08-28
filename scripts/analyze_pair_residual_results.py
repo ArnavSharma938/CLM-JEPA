@@ -100,12 +100,25 @@ def trajectory_summary(curves: list[dict]) -> dict:
     }
 
     def summarize(values: list[float]) -> dict:
+        finite = [value for value in values if math.isfinite(value)]
+        if not finite:
+            return {
+                "mean": None, "sample_sd": None, "minimum": None,
+                "maximum": None, "finite_count": 0,
+                "nonfinite_count": len(values),
+            }
         return {
-            "mean": statistics.fmean(values),
-            "sample_sd": statistics.stdev(values) if len(values) > 1 else 0.0,
-            "minimum": min(values),
-            "maximum": max(values),
+            "mean": statistics.fmean(finite),
+            "sample_sd": statistics.stdev(finite) if len(finite) > 1 else 0.0,
+            "minimum": min(finite),
+            "maximum": max(finite),
+            "finite_count": len(finite),
+            "nonfinite_count": len(values) - len(finite),
         }
+
+    def finite_mean(values: list[float]) -> float | None:
+        finite = [value for value in values if math.isfinite(value)]
+        return statistics.fmean(finite) if finite else None
 
     output = {
         "active_updates": len(active),
@@ -131,7 +144,7 @@ def trajectory_summary(curves: list[dict]) -> dict:
         output["by_epoch"][str(epoch)] = {
             "active_updates": len(selected),
             **{
-                name: statistics.fmean([
+                name: finite_mean([
                     row["gradient_interaction"][source] for row in selected
                 ])
                 for name, source in fields.items()
