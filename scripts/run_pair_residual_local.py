@@ -8,11 +8,12 @@ import os
 import shutil
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SEEDS = (533, 917, 1301, 2027, 4099)
+SEEDS = (533, 917, 1301)
 MANIFEST = ROOT / "data/clm_jepa_uspto_mit_official_endpoint/prespecified_stage1_256.jsonl"
 TRAIN_MANIFEST = ROOT / "data/clm_jepa_uspto_mit_pilot_1280/uspto_mit_train.csv"
 VALIDATION_MANIFEST = ROOT / "data/clm_jepa_uspto_mit_validation_256/uspto_mit_validation_length_stratified_256.csv"
@@ -142,12 +143,39 @@ def evaluate_condition(
         ])
 
 
+def evaluate_representations(
+    python: str, output_root: Path, payloads: dict[int, dict[str, dict]],
+    *, batch_size: int,
+) -> None:
+    output = output_root / "representation_256.json"
+    if output.exists():
+        return
+    command = [
+        python, "-u", "src/representation_eval.py",
+        "--dataset", "uspto_mit_synthesis",
+        "--validation-manifest", str(MANIFEST),
+        "--seed", "533", "--k", "0",
+        "--diagnostic-limit", "256",
+        "--diagnostic-batch-size", str(batch_size),
+        "--output", str(output),
+    ]
+    for seed in SEEDS:
+        for label in ("native", "residual"):
+            command.extend((
+                "--legacy-checkpoint", f"seed_{seed}_{label}",
+                str(payloads[seed][label]["selected_checkpoint"]),
+            ))
+    run(command)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-root", type=Path, default=ROOT / "runs/pair_residual")
     parser.add_argument("--workers", type=int, default=1)
     parser.add_argument("--threads-per-worker", type=int, default=1)
     parser.add_argument("--teacher-batch-size", type=int, default=4)
+    parser.add_argument("--representation-batch-size", type=int, default=4)
+    parser.add_argument("--training-concurrency", type=int, default=1)
     parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--gradient-accumulation-steps", type=int, default=8)
     parser.add_argument(
@@ -163,21 +191,30 @@ def main() -> None:
     args = parser.parse_args()
     if args.batch_size * args.gradient_accumulation_steps != 16:
         parser.error("physical batch * accumulation must equal the locked logical batch 16")
+    if args.training_concurrency < 1 or args.training_concurrency > 3:
+        parser.error("training concurrency must be between 1 and 3")
     output_root = args.output_root.resolve()
     python = sys.executable
 
     payloads: dict[int, dict[str, dict]] = {}
     if args.phase in {"all", "train"}:
-        for seed in SEEDS:
-            payloads[seed] = {}
-            for label in ("native", "residual"):
-                payloads[seed][label] = train_condition(
+        payloads = {seed: {} for seed in SEEDS}
+        jobs = [(seed, label) for seed in SEEDS for label in ("native", "residual")]
+        with ThreadPoolExecutor(max_workers=args.training_concurrency) as executor:
+            futures = {
+                executor.submit(
+                    train_condition,
                     python, output_root, seed, label,
                     batch_size=args.batch_size,
                     accumulation_steps=args.gradient_accumulation_steps,
                     gradient_checkpointing=args.gradient_checkpointing,
                     pin_memory=args.pin_memory,
-                )
+                ): (seed, label)
+                for seed, label in jobs
+            }
+            for future in as_completed(futures):
+                seed, label = futures[future]
+                payloads[seed][label] = future.result()
     if args.phase in {"all", "evaluate"}:
         for seed in SEEDS:
             payloads.setdefault(seed, {})
@@ -207,6 +244,10 @@ def main() -> None:
                     "--seed", str(seed),
                     "--output", str(paired_path),
                 ])
+        evaluate_representations(
+            python, output_root, payloads,
+            batch_size=args.representation_batch_size,
+        )
     if args.phase in {"all", "analyze"}:
         run([
             python, "-u", "scripts/analyze_pair_residual_results.py",

@@ -45,7 +45,7 @@ step`.
 | Conditions | ordinary native NTP; NTP plus pair-specific residual JEPA |
 | Model | ChemFM-1B revision `f99dc2e89726539bb9cf31b2e2b4360650bac6a8` |
 | Train / validation manifests | existing frozen USPTO-MIT 1,280-row pilot / first two rows of the frozen length-stratified 256 validation panel |
-| Seeds | `533, 917, 1301, 2027, 4099` |
+| Seeds | `533, 917, 1301` |
 | Epochs / updates | 4 / 320 |
 | Physical / accumulation / logical batch | 4 / 4 / 16 on one Thunder A6000 |
 | Optimizer | fused AdamW, LR `1e-4`, betas `(0.9,0.999)`, epsilon `1e-8`, weight decay `0.01` |
@@ -76,20 +76,22 @@ Mechanism diagnostics are limited to:
   trajectory;
 - true and shuffled MSE, residual scalar, endpoint true/shuffle gradient
   cosine, and derangement length cost.
+- maintained representation geometry/sensitivity statistics on the same fixed
+  256 canonical reaction pairs.
 
 Each seed receives a reaction-paired bootstrap interval and exact McNemar
 comparison. Across seeds, report every seed, the mean paired effect and sample
 SD, a seed-level t interval, and a crossed seed-by-reaction bootstrap interval.
 The latter resamples both seeds and reaction identities and is descriptive
-with only five seeds; pooled seed-reaction McNemar significance will not be
+with only three seeds; pooled seed-reaction McNemar significance will not be
 claimed.
 
 ### Verdict rule
 
-- **PASS:** positive aggregated exact top-1 effect in at least four of five
+- **PASS:** positive aggregated exact top-1 effect in all three
   seeds, positive mean effect, and the crossed paired 95% interval excludes
   zero.
-- **FAIL:** the mean exact top-1 effect is nonpositive and no more than two
+- **FAIL:** the mean exact top-1 effect is nonpositive and no more than one
   seeds improve. This falsifies persistent utility under this controlled
   ChemFM-LoRA trajectory, not the existence of the previously measured local
   first-order direction.
@@ -109,7 +111,7 @@ the repository's established A6000 setting of 4 with accumulation 4, keeping
 the logical batch, sample order, optimizer-step count, and all scientific
 settings unchanged. Gradient checkpointing was disabled, also matching that
 established A6000 setting. Both conditions use this amended setting for all
-five seeds; the earlier local smoke checkpoints are excluded from results.
+three seeds; the earlier local smoke checkpoints are excluded from results.
 
 Execution optimizations may be adopted only after a pre-endpoint parity gate.
 Training candidates must preserve the configured logical batch and match all
@@ -118,6 +120,17 @@ numerical parity tolerance. Generation candidates must exactly match every raw
 beam, canonical candidate, ranking, and exact flag against sequential batch-1
 decoding. Known non-equivalent candidates (larger physical batches, batched
 VJPs, and reduced endpoint paths) remain excluded even if faster.
+
+Before any completed 256-reaction endpoint was inspected, the user directed a
+second execution amendment to remove low-priority experiment sections and cut
+runtime substantially. Seeds `2027` and `4099`, broad retrieval re-audits,
+repeated standalone gradient audits, and exploratory ablations were removed.
+The three paired seeds, all six official five-view generation endpoints,
+paired uncertainty, native token diagnostics, trajectory interaction logs,
+and fixed-256 representation diagnostics remain. Three-way concurrent
+training is permitted only if the separate fixed short-trajectory benchmark
+reproduces every adapter tensor bit-for-bit against the sequential reference.
+This amendment was made without inspecting any complete fixed-256 outcome.
 
 ## Results
 

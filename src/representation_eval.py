@@ -39,7 +39,24 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
-    rows = read_rows(args.dataset, split="validation", path=args.validation_manifest.resolve())
+    manifest_path = args.validation_manifest.resolve()
+    if manifest_path.suffix == ".jsonl":
+        records = [
+            json.loads(line) for line in manifest_path.read_text(encoding="utf-8").splitlines()
+            if line
+        ]
+        rows = [
+            {
+                "source": row["canonical_source"],
+                "target": row["canonical_target"],
+                "src": row["canonical_source"],
+                "tgt": row["canonical_target"],
+                "reaction_identity": row["reaction_identity"],
+            }
+            for row in records
+        ]
+    else:
+        rows = read_rows(args.dataset, split="validation", path=manifest_path)
     task = TASKS[args.dataset]
     conditions = []
     if args.include_pretrained:
@@ -60,7 +77,7 @@ def main() -> None:
     output = {
         "dataset": args.dataset,
         "task": task,
-        "validation_manifest": str(args.validation_manifest.resolve()),
+        "validation_manifest": str(manifest_path),
         "seed": args.seed,
         "k": args.k,
         "conditions": {},

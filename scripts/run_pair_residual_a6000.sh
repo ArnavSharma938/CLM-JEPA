@@ -187,10 +187,21 @@ PY
       --configurations 1x1xleft-pad,3x1xleft-pad,4x1xleft-pad \
       --output-dir "$ROOT/beam_benchmark"
     ;;
+  concurrency-benchmark)
+    "$PYTHON" -u scripts/benchmark_pair_residual_concurrency.py \
+      --reference-result "$ROOT/preflight/residual/result.json" \
+      --output-root "$ROOT/concurrency_benchmark/w3" \
+      --processes 3
+    ;;
   run)
     exact_decode_environment
     benchmark="$ROOT/beam_benchmark/benchmark.json"
     test -f "$benchmark"
+    concurrency_benchmark="$ROOT/concurrency_benchmark/w3/benchmark.json"
+    test -f "$concurrency_benchmark"
+    "$PYTHON" -c \
+      'import json,sys; assert json.load(open(sys.argv[1]))["all_adapters_bit_exact"]' \
+      "$concurrency_benchmark"
     workers=$("$PYTHON" -c \
       'import json,sys; print(int(json.load(open(sys.argv[1]))["winning_configuration"].split("_")[0][1:]))' \
       "$benchmark")
@@ -199,6 +210,8 @@ PY
       --workers "$workers" \
       --threads-per-worker 1 \
       --teacher-batch-size 16 \
+      --representation-batch-size 16 \
+      --training-concurrency 3 \
       --batch-size 4 \
       --gradient-accumulation-steps 4 \
       --no-gradient-checkpointing \
@@ -206,7 +219,7 @@ PY
       --phase all
     ;;
   *)
-    echo "usage: $0 {setup|download-model|preflight|beam-benchmark|run}" >&2
+    echo "usage: $0 {setup|download-model|preflight|beam-benchmark|concurrency-benchmark|run}" >&2
     exit 2
     ;;
 esac

@@ -12,7 +12,7 @@ import numpy as np
 from scipy.stats import t
 
 
-SEEDS = (533, 917, 1301, 2027, 4099)
+SEEDS = (533, 917, 1301)
 CONDITIONS = ("native", "residual")
 VIEWS = 5
 
@@ -285,9 +285,9 @@ def main() -> None:
     teacher_correct_matrix = np.asarray(teacher_correct_matrix)
 
     crossed = primary["crossed_seed_identity_bootstrap_95_ci"]
-    if primary["positive_seeds"] >= 4 and primary["mean"] > 0 and crossed[0] > 0:
+    if primary["positive_seeds"] == 3 and primary["mean"] > 0 and crossed[0] > 0:
         verdict = "PASS"
-    elif primary["mean"] <= 0 and primary["positive_seeds"] <= 2:
+    elif primary["mean"] <= 0 and primary["positive_seeds"] <= 1:
         verdict = "FAIL"
     else:
         verdict = "INCONCLUSIVE"
@@ -324,6 +324,7 @@ def main() -> None:
             str(seed): trajectory_summary(training[seed]["residual"]["curves"])
             for seed in SEEDS
         },
+        "representation_256": read_json(args.root / "representation_256.json"),
         "training": {
             str(seed): {
                 condition: {
@@ -345,8 +346,8 @@ def main() -> None:
         },
         "verdict": verdict,
         "verdict_rule": (
-            "PASS requires >=4 positive seeds, positive mean, crossed CI >0; "
-            "FAIL requires nonpositive mean and <=2 positive seeds; otherwise INCONCLUSIVE"
+            "PASS requires 3/3 positive seeds, positive mean, crossed CI >0; "
+            "FAIL requires nonpositive mean and <=1 positive seed; otherwise INCONCLUSIVE"
         ),
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
