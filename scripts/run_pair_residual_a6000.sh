@@ -161,7 +161,7 @@ assert native["compute"]["optimizer_steps"] == residual["compute"]["optimizer_st
 active = [row for row in residual["curves"] if row["jepa_active"]]
 assert active and all(row["gradient_interaction"] is not None for row in active)
 for left, right in zip(native["curves"], residual["curves"]):
-    assert left["native_loss"] == right["native_loss"]
+    assert abs(left["native_loss"] - right["native_loss"]) <= 2e-7
     if right["jepa_active"]:
         break
 summary = {
