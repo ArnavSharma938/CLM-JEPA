@@ -58,7 +58,11 @@ def train_condition(
     training_root = output_root / f"seed_{seed}" / label / "training"
     result_path = training_root / "result.json"
     if result_path.exists():
-        return validate_training(result_path, condition, seed)
+        payload = validate_training(result_path, condition, seed)
+        prune_unselected_checkpoints(
+            training_root, Path(payload["selected_checkpoint"])
+        )
+        return payload
     command = [
         python, "-u", "src/train.py",
         "--gate", "5",
