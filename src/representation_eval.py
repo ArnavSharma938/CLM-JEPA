@@ -55,6 +55,11 @@ def main() -> None:
             }
             for row in records
         ]
+        identities = [row["reaction_identity"] for row in rows]
+        if len(rows) != 256 or len(set(identities)) != 256:
+            raise ValueError(
+                "JSONL representation endpoint must contain exactly 256 unique reactions"
+            )
     else:
         rows = read_rows(args.dataset, split="validation", path=manifest_path)
     task = TASKS[args.dataset]
