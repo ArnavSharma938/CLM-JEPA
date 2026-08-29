@@ -16,6 +16,7 @@ excluded.
 | Projection-space MSE+SIGReg | Projected rank `3.22/3.29`; raw rank `12.58/5.22`; CE `0.256497`; top-1 `4/512` |
 | Gradient-interaction methods | PCGrad/CAGrad/Du top-1 `3.91%/2.34%/3.91%` on 256; CE deltas `+6.82%/+22.67%/+1.33%` versus native |
 | Dense causal V-JEPA 2.1-style | Target-token CE `0.253547`; top-1 `6/256`; top-10 `39/256`; global raw retrieval `33.59%` |
+| Frozen ChemFM event geometry | Final-layer ring/motif local deltas `+0.051/+0.102`; semi-global deltas `+0.075/+0.036`; branch and inferred-center effects do not persist at long spans |
 
 The official native-versus-endpoint-MSE+SIGReg top-1 difference was `-0.781`
 percentage points, bootstrap 95% CI `[-1.719,+0.156]`, exact McNemar
@@ -62,6 +63,8 @@ Read in this order:
 3. [02 — Endpoint frozen mechanism audits](02_ENDPOINT_MECHANISM_AUDITS.md): four chronologically separated frozen phases—gradient/block swaps, SIGReg pair specificity, contraction/NTP directions, and the final generation-pathway/AdamW/chemistry audit. Each phase identifies its own checkpoints, parameter scope, panel size, and execution date relative to the trained interventions.
 4. [03 — Endpoint trained intervention experiments](03_ENDPOINT_INTERVENTION_EXPERIMENTS.md): three separate later training programs—PCSF, projection-space MSE+SIGReg, and the gradient-interaction matrix. Its context table records that these are independent ChemFM-1B trajectories rather than sequential fine-tunes and identifies their different 256/512-reaction endpoints.
 5. [04 — Dense causal V-JEPA 2.1-style experiment](04_DENSE_CAUSAL_VJEPA2_1_EXPERIMENT.md): separate architecture/state family with causal suffix/context prediction, deep supervision, EMA target, super-mini, pilot, and frozen evaluation.
+6. [05 — Persistent pair-specific residual trajectory](05_PAIR_RESIDUAL_TRAJECTORY_EXPERIMENT.md): matched native versus persistent residual-JEPA training and fixed five-view generation endpoint.
+7. [06 — Frozen ChemFM chemical-event trajectory geometry](06_FROZEN_CHEMFM_TRAJECTORY_GEOMETRY.md): no-training all-layer local-curvature and ordered-span STP-alignment assay with matched chemical-event controls.
 
 Consolidation history:
 

@@ -13,6 +13,7 @@ There is one ChemFM trainer for local and A6000 execution.
 | `src/gradient_interaction.py` | Published weighted-sum, PCGrad, CAGrad, and Du gradient-combination rules retained by the endpoint trainer |
 | `src/metrics.py` | Chemical candidate scoring and representation metrics |
 | `src/representation_eval.py` | Standard frozen endpoint-representation evaluation |
+| `src/frozen_geometry.py` | Frozen all-layer token-trajectory curvature, ordered-span STP alignment, chemical-event matching, inference, uncertainty, and plots |
 | `src/eval_uspto_mit_five_view_a6000.py` | Exact five-view beam-10 endpoint evaluation |
 
 A6000 runs call the same `src/train.py`; batch and checkpointing settings are execution parameters, not alternative scientific implementations.
