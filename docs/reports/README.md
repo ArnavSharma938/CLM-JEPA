@@ -17,7 +17,7 @@ excluded.
 | Gradient-interaction methods | PCGrad/CAGrad/Du top-1 `3.91%/2.34%/3.91%` on 256; CE deltas `+6.82%/+22.67%/+1.33%` versus native |
 | Dense causal V-JEPA 2.1-style | Target-token CE `0.253547`; top-1 `6/256`; top-10 `39/256`; global raw retrieval `33.59%` |
 | Frozen ChemFM event geometry | Final-layer ring/motif local deltas `+0.051/+0.102`; semi-global deltas `+0.075/+0.036`; branch and inferred-center effects do not persist at long spans |
-| Official executable STP | Preregistered; implementation parity complete, execution pending |
+| Official executable STP | Five-view top-1 `26/768 -> 30/768`; mean `+0.52` pp, crossed 95% CI `[-1.95,+3.12]`; **INCONCLUSIVE** |
 
 The official native-versus-endpoint-MSE+SIGReg top-1 difference was `-0.781`
 percentage points, bootstrap 95% CI `[-1.719,+0.156]`, exact McNemar
@@ -66,6 +66,7 @@ Read in this order:
 5. [04 — Dense causal V-JEPA 2.1-style experiment](04_DENSE_CAUSAL_VJEPA2_1_EXPERIMENT.md): separate architecture/state family with causal suffix/context prediction, deep supervision, EMA target, super-mini, pilot, and frozen evaluation.
 6. [05 — Persistent pair-specific residual trajectory](05_PAIR_RESIDUAL_TRAJECTORY_EXPERIMENT.md): matched native versus persistent residual-JEPA training and fixed five-view generation endpoint.
 7. [06 — Frozen ChemFM chemical-event trajectory geometry](06_FROZEN_CHEMFM_TRAJECTORY_GEOMETRY.md): no-training all-layer local-curvature and ordered-span STP-alignment assay with matched chemical-event controls.
+8. [07 — Official Semantic Tube Prediction on ChemFM](07_OFFICIAL_STP_EXPERIMENT.md): direct port of the pinned released random-span executable, matched three-seed ChemFM trajectories, fixed five-view generation, and teacher-forced mechanism diagnostics.
 
 Consolidation history:
 
