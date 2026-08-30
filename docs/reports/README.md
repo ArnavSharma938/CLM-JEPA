@@ -17,6 +17,7 @@ excluded.
 | Gradient-interaction methods | PCGrad/CAGrad/Du top-1 `3.91%/2.34%/3.91%` on 256; CE deltas `+6.82%/+22.67%/+1.33%` versus native |
 | Dense causal V-JEPA 2.1-style | Target-token CE `0.253547`; top-1 `6/256`; top-10 `39/256`; global raw retrieval `33.59%` |
 | Frozen ChemFM event geometry | Final-layer ring/motif local deltas `+0.051/+0.102`; semi-global deltas `+0.075/+0.036`; branch and inferred-center effects do not persist at long spans |
+| Official executable STP | Preregistered; implementation parity complete, execution pending |
 
 The official native-versus-endpoint-MSE+SIGReg top-1 difference was `-0.781`
 percentage points, bootstrap 95% CI `[-1.719,+0.156]`, exact McNemar

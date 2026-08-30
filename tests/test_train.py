@@ -28,6 +28,7 @@ class LengthTokenizer:
 
 def test_training_conditions_have_explicit_implementation_families():
     assert condition_family("native") == "native"
+    assert condition_family("stp") == "semantic_tube_prediction"
     assert condition_family("clm_jepa_mse_sigreg") == "endpoint_clm_jepa"
     assert condition_family("clm_jepa_pair_residual") == "endpoint_clm_jepa"
     assert condition_family("clm_jepa_vjepa2_1") == "dense_vjepa2_1"

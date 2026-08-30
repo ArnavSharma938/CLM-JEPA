@@ -54,6 +54,10 @@ from vjepa2_1 import (  # noqa: E402
     VJEPA21_PAPER, VJEPA21_UPSTREAM_COMMIT, DenseVJEPA21,
     DenseVJEPA21Config, component_gradient_norms, dense_trainable_parameters,
 )
+from stp import (  # noqa: E402
+    STP_PAPER, STP_UPSTREAM_COMMIT, STP_UPSTREAM_REPOSITORY,
+    SemanticTubePrediction,
+)
 
 
 ADAPTER_NAME = "USPTO-MIT-Synthesis"
@@ -77,6 +81,7 @@ SIGREG_TRADEOFF = 0.01
 PAIR_RESIDUAL_SHUFFLE_SEED = 1907
 
 NATIVE_CONDITION = "native"
+STP_CONDITION = "stp"
 DENSE_VJEPA21_CONDITION = "clm_jepa_vjepa2_1"
 ENDPOINT_JEPA_CONDITIONS = frozenset({
     "monitor",
@@ -90,6 +95,7 @@ ENDPOINT_JEPA_CONDITIONS = frozenset({
 })
 TRAINING_CONDITIONS = (
     NATIVE_CONDITION,
+    STP_CONDITION,
     *sorted(ENDPOINT_JEPA_CONDITIONS),
     DENSE_VJEPA21_CONDITION,
 )
@@ -99,6 +105,8 @@ def condition_family(condition: str) -> str:
     """Return the maintained implementation family for a CLI condition."""
     if condition == NATIVE_CONDITION:
         return "native"
+    if condition == STP_CONDITION:
+        return "semantic_tube_prediction"
     if condition in ENDPOINT_JEPA_CONDITIONS:
         return "endpoint_clm_jepa"
     if condition == DENSE_VJEPA21_CONDITION:
@@ -730,6 +738,8 @@ def save_training_checkpoint(
     }
     if isinstance(method, DenseVJEPA21):
         state["dense_vjepa2_1"] = method.checkpoint_state()
+    elif isinstance(method, SemanticTubePrediction):
+        state["stp_generator_state"] = method.generator_state()
     else:
         state["jepa_dropout_generator_state"] = method.jepa_dropout_generator.get_state()
         state["sigreg_global_step"] = method.sigreg.global_step
@@ -762,6 +772,10 @@ def restore_training_checkpoint(
         )
     if method is not None and "sigreg_global_step" in state:
         method.sigreg.global_step = state["sigreg_global_step"]
+    if isinstance(method, SemanticTubePrediction):
+        if "stp_generator_state" not in state:
+            raise ValueError("resume checkpoint is missing STP sampler state")
+        method.set_generator_state(state["stp_generator_state"], model.device)
     if isinstance(method, DenseVJEPA21):
         if "dense_vjepa2_1" not in state:
             raise ValueError("resume checkpoint is missing dense V-JEPA 2.1 state")
@@ -1616,6 +1630,7 @@ def train(args):
     has_mse_sigreg = args.condition == "clm_jepa_mse_sigreg"
     has_pair_residual = args.condition == "clm_jepa_pair_residual"
     has_dense_vjepa = method_family == "dense_vjepa2_1"
+    has_stp = method_family == "semantic_tube_prediction"
     tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
     chemfm_vocab_size = len(tokenizer)
     # Preserve the historical native/endpoint vocabulary for checkpoint and
@@ -1679,6 +1694,13 @@ def train(args):
             ignore_index=IGNORE_INDEX,
         ).to(device=model.device, dtype=model.dtype)
         method.initialize_ema(model)
+    elif has_stp:
+        method = SemanticTubePrediction(
+            seed=args.seed,
+            reactant_start_token_id=tokenizer.convert_tokens_to_ids("<rstart>"),
+            product_start_token_id=tokenizer.convert_tokens_to_ids("<prostart>"),
+            eos_token_id=tokenizer.eos_token_id,
+        )
     else:
         method = CLMJEPA(
             predictor_ids, tokenizer.eos_token_id, tokenizer.pad_token_id,
@@ -1715,9 +1737,13 @@ def train(args):
     # With two global views, LeJEPA's view-center prediction loss is exactly
     # raw pairwise MSE / 4. This scale retains coefficient one on raw MSE.
     sigreg_relative_scale = 4.0 if jepa_loss_type == "mse" else 1.0
-    ratio = 1.0 if has_dense_vjepa else 1.0 - args.dropout
+    ratio = 1.0 if has_dense_vjepa or has_stp else 1.0 - args.dropout
     resolved_ratio = ratio if has_jepa else -1.0
-    actual_lambda = args.lambda_eff / ratio if has_jepa else 0.0
+    actual_lambda = (
+        args.stp_lambda if has_stp else
+        args.lambda_eff / ratio if has_jepa else
+        0.0
+    )
     native_weight = 0.0 if args.condition == "jepa_only" else 1.0
     config = {
         "method_family": method_family,
@@ -1730,16 +1756,35 @@ def train(args):
             if streaming_sigreg
             else args.batch_size * args.gradient_accumulation_steps
         ),
-        "k": None if has_dense_vjepa else args.k,
+        "k": None if has_dense_vjepa or has_stp else args.k,
         "lambda_eff": args.lambda_eff, "actual_lambda": actual_lambda,
         "initial_trainable_sha256": initial_trainable_sha256,
         "jepa_loss_dropout": (
-            None if has_dense_vjepa else args.dropout if has_jepa else None
+            None if has_dense_vjepa or has_stp else args.dropout if has_jepa else None
         ),
         "jepa_ratio": resolved_ratio,
         "jepa_target_stop_gradient": has_dense_vjepa or stop_gradient_target,
         "jepa_target_encoder": "EMA ChemFM causal encoder" if has_dense_vjepa else None,
         "jepa_loss_type": jepa_loss_type if has_jepa else None,
+        "semantic_tube_prediction": has_stp,
+        "stp_paper": STP_PAPER if has_stp else None,
+        "stp_upstream_repository": STP_UPSTREAM_REPOSITORY if has_stp else None,
+        "stp_upstream_commit": STP_UPSTREAM_COMMIT if has_stp else None,
+        "stp_executable_mode": "--linear=random_span" if has_stp else None,
+        "stp_lambda": args.stp_lambda if has_stp else None,
+        "stp_hidden_layer": "final" if has_stp else None,
+        "stp_spans_per_example": 1 if has_stp else None,
+        "stp_span_sampler": (
+            "released default: start uniform, end uniform conditional on start, "
+            "reject only the full content span"
+            if has_stp else None
+        ),
+        "stp_content_regions": (
+            "reactant and product SMILES tokens; ChemFM framing excluded"
+            if has_stp else None
+        ),
+        "stp_gradient_flow": "symmetric/no stop-gradient" if has_stp else None,
+        "stp_loss_reduction_dtype": "float32" if has_stp else None,
         "sigreg": has_sigreg,
         "sigreg_formulation": (
             "LeJEPA Epps-Pulley, 17 knots on [0,3], 1024 random unit slices, "
@@ -1971,7 +2016,20 @@ def train(args):
                     args.gradient_accumulation_steps, len(loader) - window_start
                 )
                 microbatch_number = epoch_index * len(loader) + batch_index + 1
-                if has_dense_vjepa:
+                if has_stp:
+                    output = method(
+                        model, batch, stp_weight=actual_lambda,
+                    )
+                    dense_metrics = {
+                        "mean_sampled_span_fraction": sum(
+                            (end - start) / full
+                            for start, end, full in output.sampled_spans
+                        ) / len(output.sampled_spans),
+                    }
+                    jepa_active = True
+                    sigreg_value = None
+                    objective_value = float(output.jepa_loss.detach())
+                elif has_dense_vjepa:
                     output = method(
                         model, batch, jepa_weight=actual_lambda,
                         global_step=global_step,
@@ -2153,7 +2211,10 @@ def train(args):
                 }
                 if ema_coefficient is not None:
                     dense_record["ema_coefficient"] = ema_coefficient
-                record["dense_vjepa2_1"] = dense_record if dense_record else None
+                record["dense_vjepa2_1"] = (
+                    dense_record if has_dense_vjepa and dense_record else None
+                )
+                record["stp"] = dense_record if has_stp and dense_record else None
                 record["estimated_flops"] = (
                     6.0 * record["effective_tokens"] * non_embedding_parameters
                 )
@@ -2237,7 +2298,24 @@ def train(args):
     val_loss = selected["validation_native_loss"]
     metrics = selected["validation_metrics"]
     predictions = selected["predictions"]
-    if has_dense_vjepa:
+    if has_stp:
+        stp_rows = [row for row in curves if row["jepa_loss"] is not None]
+        diagnostics = {
+            "type": "official_stp_training_summary",
+            "upstream_commit": STP_UPSTREAM_COMMIT,
+            "first_epoch_mean_stp_loss": float(np.mean([
+                row["jepa_loss"] for row in stp_rows if row["epoch"] == 1
+            ])),
+            "final_epoch_mean_stp_loss": float(np.mean([
+                row["jepa_loss"]
+                for row in stp_rows if row["epoch"] == selected["epoch"]
+            ])),
+            "final_epoch_mean_sampled_span_fraction": float(np.mean([
+                row["stp"]["mean_sampled_span_fraction"]
+                for row in stp_rows if row["epoch"] == selected["epoch"]
+            ])),
+        }
+    elif has_dense_vjepa:
         diagnostics = {
             "type": "dense_vjepa2_1_training_summary",
             "supervised_depths": list(method.supervised_depths),
@@ -2301,6 +2379,10 @@ def main():
     )
     parser.add_argument("--seed", type=int, default=533)
     parser.add_argument("--learning-rate", type=float, default=1e-4)
+    parser.add_argument(
+        "--stp-lambda", type=float, default=0.02,
+        help="official released Llama-1B STP coefficient",
+    )
     parser.add_argument("--k", type=int, choices=(0, 1, 2, 3), default=0)
     parser.add_argument(
         "--lambda-eff", type=float, choices=(0.25, 0.5, 1.0, 2.0),
@@ -2420,6 +2502,8 @@ def main():
         raise ValueError("SIGReg batch size must be at least two")
     if args.sigreg_tradeoff is not None and not 0.0 <= args.sigreg_tradeoff < 1.0:
         raise ValueError("SIGReg trade-off must be in [0, 1)")
+    if args.stp_lambda <= 0.0:
+        raise ValueError("STP lambda must be positive")
     sigreg_conditions = {"clm_jepa_mse_sigreg"}
     logical_endpoint_conditions = sigreg_conditions | {"clm_jepa_pair_residual"}
     if args.condition not in sigreg_conditions and args.sigreg_tradeoff is not None:
@@ -2474,6 +2558,18 @@ def main():
         raise ValueError("--gradient-interaction only applies to MSE+SIGReg")
     if args.condition == NATIVE_CONDITION and (args.lambda_eff != 1.0 or args.dropout != 0.5):
         raise ValueError("native trials must leave irrelevant JEPA defaults unchanged")
+    if args.condition == STP_CONDITION and (
+        args.k != 0
+        or args.lambda_eff != 1.0
+        or args.dropout != 0.5
+        or args.gradient_interaction != "weighted_sum"
+        or args.optimized_jepa_forward
+        or args.stp_lambda != 0.02
+    ):
+        raise ValueError(
+            "STP is frozen to the released random-span mode with lambda=0.02, "
+            "one every-batch sample, and no endpoint-JEPA options"
+        )
     if args.condition == DENSE_VJEPA21_CONDITION and (
         args.k != 0
         or args.lambda_eff != 1.0
