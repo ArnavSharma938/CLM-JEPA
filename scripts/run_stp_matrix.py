@@ -9,8 +9,12 @@ import os
 import shutil
 import subprocess
 import sys
+import threading
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+
+import psutil
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -169,14 +173,73 @@ def train_one(
 
 
 def train_pair(output_root: Path, **kwargs) -> dict[int, Path]:
+    label = kwargs["label"]
+    resource_path = output_root / label / "training_resources.json"
+    already_complete = all(
+        (output_root / label / f"seed_{seed}/training/result.json").exists()
+        for seed in SEEDS
+    )
+    samples = []
+    stop = threading.Event()
+
+    def monitor():
+        psutil.cpu_percent(interval=None)
+        while not stop.wait(10.0):
+            sample = {"timestamp": time.time(), "cpu_utilization_percent": psutil.cpu_percent(interval=None)}
+            try:
+                result = subprocess.run([
+                    "nvidia-smi",
+                    "--query-gpu=utilization.gpu,memory.used,power.draw",
+                    "--format=csv,noheader,nounits",
+                ], check=True, capture_output=True, text=True)
+                gpu, memory, power = [float(value.strip()) for value in result.stdout.splitlines()[0].split(",")]
+                sample.update({
+                    "gpu_utilization_percent": gpu,
+                    "gpu_memory_mib": memory,
+                    "gpu_power_watts": power,
+                })
+            except Exception:
+                pass
+            samples.append(sample)
+
+    started = time.perf_counter()
+    monitor_thread = None
+    if not already_complete:
+        monitor_thread = threading.Thread(target=monitor, daemon=True)
+        monitor_thread.start()
     checkpoints = {}
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        futures = {
-            pool.submit(train_one, output_root, seed=seed, **kwargs): seed
-            for seed in SEEDS
-        }
-        for future in as_completed(futures):
-            checkpoints[futures[future]] = future.result()
+    try:
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures = {
+                pool.submit(train_one, output_root, seed=seed, **kwargs): seed
+                for seed in SEEDS
+            }
+            for future in as_completed(futures):
+                checkpoints[futures[future]] = future.result()
+    finally:
+        stop.set()
+        if monitor_thread is not None:
+            monitor_thread.join(timeout=2)
+    if not already_complete:
+        numeric = [sample for sample in samples if "gpu_utilization_percent" in sample]
+        write_json(resource_path, {
+            "condition_label": label,
+            "concurrent_seeds": list(SEEDS),
+            "wall_seconds": time.perf_counter() - started,
+            "sample_interval_seconds": 10.0,
+            "samples": samples,
+            "mean_cpu_utilization_percent": (
+                sum(sample["cpu_utilization_percent"] for sample in samples) / len(samples)
+                if samples else None
+            ),
+            "mean_gpu_utilization_percent": (
+                sum(sample["gpu_utilization_percent"] for sample in numeric) / len(numeric)
+                if numeric else None
+            ),
+            "peak_gpu_memory_mib": max(
+                (sample["gpu_memory_mib"] for sample in numeric), default=None
+            ),
+        })
     return checkpoints
 
 

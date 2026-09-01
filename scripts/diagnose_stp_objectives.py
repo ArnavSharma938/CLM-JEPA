@@ -61,6 +61,10 @@ def gradient_metrics(native, auxiliary) -> dict[str, float]:
         "native_gradient_norm": float(native_norm),
         "stp_gradient_norm": float(auxiliary_norm),
         "stp_to_native_norm_ratio": float(auxiliary_norm / native_norm.clamp_min(1e-30)),
+        "lambda_weighted_stp_gradient_norm": float(0.02 * auxiliary_norm),
+        "lambda_weighted_stp_to_native_norm_ratio": float(
+            0.02 * auxiliary_norm / native_norm.clamp_min(1e-30)
+        ),
         "stp_native_gradient_cosine": float(cosine),
     }
 
@@ -76,6 +80,8 @@ def summarize(rows: list[dict]) -> dict:
     for key in (
         "native_loss", "stp_loss", "native_gradient_norm", "stp_gradient_norm",
         "stp_to_native_norm_ratio", "stp_native_gradient_cosine", "mean_span_fraction",
+        "lambda_weighted_stp_gradient_norm",
+        "lambda_weighted_stp_to_native_norm_ratio",
     ):
         values = [row[key] for row in rows]
         output[key] = {
