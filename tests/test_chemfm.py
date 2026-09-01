@@ -13,7 +13,7 @@ from chemfm import (
     IGNORE_INDEX, TOKENIZER_DIR, ExactPreallocatedDynamicCache,
     ReactionCollator, canonicalize,
     generate_products_batch, load_reaction_tokenizer,
-    resize_chemfm_then_predictors,
+    resize_chemfm_then_predictors, load_lora_model,
 )
 from transformers.cache_utils import DynamicCache
 
@@ -68,6 +68,38 @@ def test_chemfm_and_predictor_tokens_use_respective_upstream_initializers():
     )
     assert not torch.equal(embeddings[22], embeddings[23])
     assert not torch.equal(embeddings[22], original_mean[0])
+
+
+def test_lora_rank_and_alpha_are_configurable(monkeypatch, tmp_path):
+    import chemfm
+
+    config = LlamaConfig(
+        vocab_size=20, hidden_size=32, intermediate_size=64,
+        num_hidden_layers=1, num_attention_heads=4, num_key_value_heads=2,
+        max_position_embeddings=64, pad_token_id=0,
+    )
+    monkeypatch.setattr(
+        chemfm.AutoConfig, "from_pretrained", lambda *args, **kwargs: config
+    )
+    monkeypatch.setattr(
+        chemfm.LlamaForCausalLM,
+        "from_pretrained",
+        lambda *args, **kwargs: LlamaForCausalLM(kwargs["config"]),
+    )
+
+    class Tokenizer:
+        pad_token_id = 0
+
+        def __len__(self):
+            return 20
+
+    model = load_lora_model(
+        tmp_path, Tokenizer(), lora_rank=128, lora_alpha=128
+    )
+    adapter = model.peft_config["USPTO-MIT-Synthesis"]
+    assert adapter.r == 128
+    assert adapter.lora_alpha == 128
+    assert adapter.lora_dropout == 0.1
 
 
 def test_source_labels_are_fully_masked():

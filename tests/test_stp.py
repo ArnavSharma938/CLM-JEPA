@@ -13,7 +13,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from chemfm import TOKENIZER_DIR, ReactionCollator, load_reaction_tokenizer
-from stp import STP_UPSTREAM_COMMIT, SemanticTubePrediction
+from stp import (
+    STP_UPSTREAM_COMMIT, PaperSemanticTubePrediction,
+    SemanticTubePrediction,
+)
 
 
 def setup_case():
@@ -200,3 +203,60 @@ def test_released_objective_is_patch_versus_complement_not_paper_three_point():
         (hidden[3] - hidden[1]).unsqueeze(0),
     )[0]
     assert not torch.isclose(released, paper_three_point)
+
+
+def test_paper_objective_matches_literal_three_point_equation():
+    model, tokenizer, _, batch = setup_case()
+    method = PaperSemanticTubePrediction(
+        seed=82,
+        reactant_start_token_id=tokenizer.convert_tokens_to_ids("<rstart>"),
+        product_start_token_id=tokenizer.convert_tokens_to_ids("<prostart>"),
+        eos_token_id=tokenizer.eos_token_id,
+    )
+    reference_model = copy.deepcopy(model)
+    observed = method(model, batch, stp_weight=0.02)
+
+    outputs = reference_model(**batch, output_hidden_states=True)
+    hidden = outputs.hidden_states[-1]
+    user, assistant = method.content_boundaries(batch)
+    reference_method = PaperSemanticTubePrediction(
+        seed=82,
+        reactant_start_token_id=method.reactant_start_token_id,
+        product_start_token_id=method.product_start_token_id,
+        eos_token_id=method.eos_token_id,
+    )
+    transitions = []
+    expected_spans = []
+    for index in range(hidden.shape[0]):
+        full = int(
+            user[index, 1] - user[index, 0]
+            + assistant[index, 1] - assistant[index, 0]
+        )
+        s, r, t = reference_method.get_s_r_t(full, device=hidden.device)
+        h_s = method.boundary_embedding(hidden[index], user[index], assistant[index], s)
+        h_r = method.boundary_embedding(hidden[index], user[index], assistant[index], r)
+        h_t = method.boundary_embedding(hidden[index], user[index], assistant[index], t)
+        transitions.append(((h_r - h_s).float(), (h_t - h_r).float()))
+        expected_spans.append((int(s), int(r), int(t), full))
+    expected = 1.0 - F.cosine_similarity(
+        torch.stack([value[0] for value in transitions]),
+        torch.stack([value[1] for value in transitions]),
+        dim=-1,
+    ).mean()
+    torch.testing.assert_close(observed.jepa_loss, expected, rtol=0.0, atol=0.0)
+    assert observed.sampled_spans == tuple(expected_spans)
+    assert all(s < r < t for s, r, t, _ in observed.sampled_spans)
+
+
+def test_released_and_paper_objectives_are_genuinely_distinct():
+    released_model, tokenizer, released, batch = setup_case()
+    paper_model = copy.deepcopy(released_model)
+    paper = PaperSemanticTubePrediction(
+        seed=82,
+        reactant_start_token_id=tokenizer.convert_tokens_to_ids("<rstart>"),
+        product_start_token_id=tokenizer.convert_tokens_to_ids("<prostart>"),
+        eos_token_id=tokenizer.eos_token_id,
+    )
+    released_value = released(released_model, batch, stp_weight=0.02).jepa_loss
+    paper_value = paper(paper_model, batch, stp_weight=0.02).jepa_loss
+    assert not torch.isclose(released_value, paper_value)

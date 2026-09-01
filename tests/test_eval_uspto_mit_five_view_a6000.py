@@ -15,6 +15,7 @@ from eval_uspto_mit_five_view_a6000 import (
     official_rank,
     paired_binary_endpoint,
     paired_bootstrap_interval,
+    read_adapter_architecture,
     required_sample_size,
 )
 
@@ -81,3 +82,24 @@ def test_paired_binary_endpoint_and_bootstrap_preserve_pairing():
     assert paired_bootstrap_interval(
         right.astype(np.int8) - left.astype(np.int8), seed=11, repetitions=2000,
     ) == pytest.approx([-0.75, 0.75])
+
+
+def test_adapter_architecture_is_reconstructed_and_legacy_rank8_survives(tmp_path):
+    legacy = read_adapter_architecture(tmp_path / "legacy")
+    assert (legacy["rank"], legacy["alpha"]) == (8, 8)
+
+    nested = tmp_path / "rank128" / "USPTO-MIT-Synthesis"
+    nested.mkdir(parents=True)
+    (nested / "adapter_config.json").write_text(
+        __import__("json").dumps({
+            "r": 128,
+            "lora_alpha": 128,
+            "lora_dropout": 0.1,
+            "modules_to_save": ["embed_tokens", "lm_head"],
+            "use_rslora": False,
+        }),
+        encoding="utf-8",
+    )
+    observed = read_adapter_architecture(tmp_path / "rank128")
+    assert (observed["rank"], observed["alpha"]) == (128, 128)
+    assert observed["weights_path"] == nested

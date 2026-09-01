@@ -254,7 +254,11 @@ def load_lora_model(
     model_path: Path, tokenizer, attention_dropout: float = 0.1,
     *, chemfm_vocab_size: int | None = None,
     attn_implementation: str | None = None,
+    lora_rank: int = 8,
+    lora_alpha: int = 8,
 ):
+    if lora_rank < 1 or lora_alpha < 1:
+        raise ValueError("LoRA rank and alpha must be positive")
     config = AutoConfig.from_pretrained(model_path, trust_remote_code=False)
     config.attention_dropout = attention_dropout
     load_kwargs = {
@@ -279,7 +283,7 @@ def load_lora_model(
     model.config.use_cache = False
     lora = LoraConfig(
         task_type="CAUSAL_LM",
-        r=8,
+        r=lora_rank,
         target_modules=[
             "q_proj",
             "v_proj",
@@ -291,7 +295,7 @@ def load_lora_model(
         ],
         modules_to_save=["embed_tokens", "lm_head"],
         inference_mode=False,
-        lora_alpha=8,
+        lora_alpha=lora_alpha,
         lora_dropout=0.1,
         use_rslora=False,
     )

@@ -56,7 +56,7 @@ from vjepa2_1 import (  # noqa: E402
 )
 from stp import (  # noqa: E402
     STP_PAPER, STP_UPSTREAM_COMMIT, STP_UPSTREAM_REPOSITORY,
-    SemanticTubePrediction,
+    PaperSemanticTubePrediction, SemanticTubePrediction,
 )
 
 
@@ -82,6 +82,8 @@ PAIR_RESIDUAL_SHUFFLE_SEED = 1907
 
 NATIVE_CONDITION = "native"
 STP_CONDITION = "stp"
+RELEASED_STP_CONDITION = "stp_released"
+PAPER_STP_CONDITION = "stp_paper"
 DENSE_VJEPA21_CONDITION = "clm_jepa_vjepa2_1"
 ENDPOINT_JEPA_CONDITIONS = frozenset({
     "monitor",
@@ -96,6 +98,8 @@ ENDPOINT_JEPA_CONDITIONS = frozenset({
 TRAINING_CONDITIONS = (
     NATIVE_CONDITION,
     STP_CONDITION,
+    RELEASED_STP_CONDITION,
+    PAPER_STP_CONDITION,
     *sorted(ENDPOINT_JEPA_CONDITIONS),
     DENSE_VJEPA21_CONDITION,
 )
@@ -105,8 +109,10 @@ def condition_family(condition: str) -> str:
     """Return the maintained implementation family for a CLI condition."""
     if condition == NATIVE_CONDITION:
         return "native"
-    if condition == STP_CONDITION:
-        return "semantic_tube_prediction"
+    if condition in {STP_CONDITION, RELEASED_STP_CONDITION}:
+        return "semantic_tube_prediction_released"
+    if condition == PAPER_STP_CONDITION:
+        return "semantic_tube_prediction_paper"
     if condition in ENDPOINT_JEPA_CONDITIONS:
         return "endpoint_clm_jepa"
     if condition == DENSE_VJEPA21_CONDITION:
@@ -1630,7 +1636,9 @@ def train(args):
     has_mse_sigreg = args.condition == "clm_jepa_mse_sigreg"
     has_pair_residual = args.condition == "clm_jepa_pair_residual"
     has_dense_vjepa = method_family == "dense_vjepa2_1"
-    has_stp = method_family == "semantic_tube_prediction"
+    has_released_stp = method_family == "semantic_tube_prediction_released"
+    has_paper_stp = method_family == "semantic_tube_prediction_paper"
+    has_stp = has_released_stp or has_paper_stp
     tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
     chemfm_vocab_size = len(tokenizer)
     # Preserve the historical native/endpoint vocabulary for checkpoint and
@@ -1648,6 +1656,7 @@ def train(args):
     model = load_lora_model(
         MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size,
         attn_implementation=args.attention_implementation,
+        lora_rank=args.lora_rank, lora_alpha=args.lora_alpha,
     ).cuda()
     initial_trainable_sha256 = trainable_parameter_sha256(model)
     if args.gradient_checkpointing:
@@ -1695,7 +1704,11 @@ def train(args):
         ).to(device=model.device, dtype=model.dtype)
         method.initialize_ema(model)
     elif has_stp:
-        method = SemanticTubePrediction(
+        stp_class = (
+            PaperSemanticTubePrediction if has_paper_stp
+            else SemanticTubePrediction
+        )
+        method = stp_class(
             seed=args.seed,
             reactant_start_token_id=tokenizer.convert_tokens_to_ids("<rstart>"),
             product_start_token_id=tokenizer.convert_tokens_to_ids("<prostart>"),
@@ -1759,6 +1772,16 @@ def train(args):
         "k": None if has_dense_vjepa or has_stp else args.k,
         "lambda_eff": args.lambda_eff, "actual_lambda": actual_lambda,
         "initial_trainable_sha256": initial_trainable_sha256,
+        "lora_rank": args.lora_rank,
+        "lora_alpha": args.lora_alpha,
+        "lora_scaling_alpha_over_rank": args.lora_alpha / args.lora_rank,
+        "lora_dropout": 0.1,
+        "lora_target_modules": [
+            "q_proj", "v_proj", "k_proj", "o_proj", "gate_proj",
+            "up_proj", "down_proj",
+        ],
+        "lora_modules_to_save": ["embed_tokens", "lm_head"],
+        "lora_use_rslora": False,
         "jepa_loss_dropout": (
             None if has_dense_vjepa or has_stp else args.dropout if has_jepa else None
         ),
@@ -1767,17 +1790,27 @@ def train(args):
         "jepa_target_encoder": "EMA ChemFM causal encoder" if has_dense_vjepa else None,
         "jepa_loss_type": jepa_loss_type if has_jepa else None,
         "semantic_tube_prediction": has_stp,
+        "stp_formulation": (
+            "paper_equation" if has_paper_stp
+            else "released_patch_vs_complement" if has_released_stp
+            else None
+        ),
         "stp_paper": STP_PAPER if has_stp else None,
         "stp_upstream_repository": STP_UPSTREAM_REPOSITORY if has_stp else None,
         "stp_upstream_commit": STP_UPSTREAM_COMMIT if has_stp else None,
-        "stp_executable_mode": "--linear=random_span" if has_stp else None,
+        "stp_executable_mode": (
+            "--linear=random_span" if has_released_stp else None
+        ),
         "stp_lambda": args.stp_lambda if has_stp else None,
         "stp_hidden_layer": "final" if has_stp else None,
         "stp_spans_per_example": 1 if has_stp else None,
         "stp_span_sampler": (
             "released default: start uniform, end uniform conditional on start, "
             "reject only the full content span"
-            if has_stp else None
+            if has_released_stp else
+            "released outer sampler; reject intervals without an interior; "
+            "sample r uniformly from the valid interior"
+            if has_paper_stp else None
         ),
         "stp_content_regions": (
             "reactant and product SMILES tokens; ChemFM framing excluded"
@@ -2022,8 +2055,10 @@ def train(args):
                     )
                     dense_metrics = {
                         "mean_sampled_span_fraction": sum(
-                            (end - start) / full
-                            for start, end, full in output.sampled_spans
+                            ((span[2] - span[0]) / span[3])
+                            if len(span) == 4 else
+                            ((span[1] - span[0]) / span[2])
+                            for span in output.sampled_spans
                         ) / len(output.sampled_spans),
                     }
                     jepa_active = True
@@ -2274,17 +2309,18 @@ def train(args):
                     step=global_step, split="validation", task_metrics=metrics,
                     validity=metrics["valid_rate"], native_loss=val_loss,
                 )
-            save_training_checkpoint(
-                checkpoint, model, tokenizer, optimizer, scheduler, generator,
-                method,
-                epoch=epoch_index + 1, global_step=global_step,
-                planned_epochs=args.epochs, curves=curves,
-                epoch_history=epoch_history, best_selector=best_selector,
-                best_checkpoint=best_checkpoint,
-                elapsed_wall_time_seconds=(
-                    previous_elapsed_seconds + time.perf_counter() - start
-                ),
-            )
+            if not args.final_checkpoint_only or epoch_index + 1 == args.stop_after_epoch:
+                save_training_checkpoint(
+                    checkpoint, model, tokenizer, optimizer, scheduler, generator,
+                    method,
+                    epoch=epoch_index + 1, global_step=global_step,
+                    planned_epochs=args.epochs, curves=curves,
+                    epoch_history=epoch_history, best_selector=best_selector,
+                    best_checkpoint=best_checkpoint,
+                    elapsed_wall_time_seconds=(
+                        previous_elapsed_seconds + time.perf_counter() - start
+                    ),
+                )
     except Exception:
         tracker.finish({"status": "failed"})
         raise
@@ -2379,6 +2415,8 @@ def main():
     )
     parser.add_argument("--seed", type=int, default=533)
     parser.add_argument("--learning-rate", type=float, default=1e-4)
+    parser.add_argument("--lora-rank", type=int, default=8)
+    parser.add_argument("--lora-alpha", type=int, default=8)
     parser.add_argument(
         "--stp-lambda", type=float, default=0.02,
         help="official released Llama-1B STP coefficient",
@@ -2436,6 +2474,14 @@ def main():
     )
     parser.add_argument(
         "--fused-adamw", action=argparse.BooleanOptionalAction, default=False,
+    )
+    parser.add_argument(
+        "--final-checkpoint-only", action=argparse.BooleanOptionalAction,
+        default=False,
+        help=(
+            "save only the final resource-budget checkpoint; requires evaluation "
+            "only at that epoch and intentionally disables intermediate resume"
+        ),
     )
     parser.add_argument(
         "--optimized-jepa-forward", action=argparse.BooleanOptionalAction,
@@ -2496,6 +2542,12 @@ def main():
         raise ValueError("prior wall time cannot be negative")
     if args.batch_size < 1 or args.gradient_accumulation_steps < 1:
         raise ValueError("batch size and gradient accumulation must be positive")
+    if args.lora_rank < 1 or args.lora_alpha < 1:
+        raise ValueError("LoRA rank and alpha must be positive")
+    if args.final_checkpoint_only and args.evaluation_epochs != [args.stop_after_epoch]:
+        raise ValueError(
+            "--final-checkpoint-only requires evaluation only at stop-after epoch"
+        )
     if args.dataloader_workers < 0 or args.dataloader_prefetch_factor < 1:
         raise ValueError("DataLoader workers must be nonnegative and prefetch positive")
     if args.sigreg_batch_size < 2:
@@ -2558,18 +2610,18 @@ def main():
         raise ValueError("--gradient-interaction only applies to MSE+SIGReg")
     if args.condition == NATIVE_CONDITION and (args.lambda_eff != 1.0 or args.dropout != 0.5):
         raise ValueError("native trials must leave irrelevant JEPA defaults unchanged")
-    if args.condition == STP_CONDITION and (
+    if args.condition in {STP_CONDITION, RELEASED_STP_CONDITION, PAPER_STP_CONDITION} and (
         args.k != 0
         or args.lambda_eff != 1.0
         or args.dropout != 0.5
         or args.gradient_interaction != "weighted_sum"
         or args.optimized_jepa_forward
-        or args.stp_lambda != 0.02
     ):
         raise ValueError(
-            "STP is frozen to the released random-span mode with lambda=0.02, "
-            "one every-batch sample, and no endpoint-JEPA options"
+            "STP uses one every-batch sample and no endpoint-JEPA options"
         )
+    if args.condition == STP_CONDITION and args.stp_lambda != 0.02:
+        raise ValueError("legacy --condition stp remains frozen to released lambda=0.02")
     if args.condition == DENSE_VJEPA21_CONDITION and (
         args.k != 0
         or args.lambda_eff != 1.0

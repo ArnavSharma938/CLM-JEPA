@@ -302,6 +302,36 @@ def official_rank(view_candidates: list[list[str]], n_best: int = BEAM_SIZE) -> 
     }
 
 
+def read_adapter_architecture(checkpoint: Path) -> dict:
+    """Resolve the saved LoRA architecture, with legacy rank-8 fallback."""
+    nested = checkpoint / ADAPTER_NAME
+    weights_path = nested if nested.exists() else checkpoint
+    adapter_config_path = weights_path / "adapter_config.json"
+    if adapter_config_path.exists():
+        adapter_config = json.loads(adapter_config_path.read_text(encoding="utf-8"))
+        expected_modules_to_save = {"embed_tokens", "lm_head"}
+        if set(adapter_config.get("modules_to_save") or ()) != expected_modules_to_save:
+            raise ValueError("checkpoint uses unsupported LoRA modules_to_save")
+        if float(adapter_config.get("lora_dropout", 0.1)) != 0.1:
+            raise ValueError("checkpoint uses unsupported LoRA dropout")
+        if bool(adapter_config.get("use_rslora", False)):
+            raise ValueError("checkpoint unexpectedly enables rsLoRA")
+        rank = int(adapter_config.get("r", 8))
+        alpha = int(adapter_config.get("lora_alpha", 8))
+        config_path = str(adapter_config_path)
+    else:
+        rank = 8
+        alpha = 8
+        config_path = None
+    return {
+        "weights_path": weights_path,
+        "rank": rank,
+        "alpha": alpha,
+        "dropout": 0.1,
+        "config_path": config_path,
+    }
+
+
 def load_endpoint(checkpoint: Path, *, predictor_tokens: bool = True):
     import torch
 
@@ -316,8 +346,10 @@ def load_endpoint(checkpoint: Path, *, predictor_tokens: bool = True):
     chemfm_vocab_size = len(tokenizer)
     if predictor_tokens:
         add_predictor_tokens(tokenizer)
+    adapter = read_adapter_architecture(checkpoint)
     model = load_lora_model(
-        MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size
+        MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size,
+        lora_rank=adapter["rank"], lora_alpha=adapter["alpha"],
     ).cuda().eval()
     attention_implementation = os.environ.get("CHEMFM_ATTENTION_IMPLEMENTATION")
     if attention_implementation:
@@ -325,9 +357,7 @@ def load_endpoint(checkpoint: Path, *, predictor_tokens: bool = True):
             model.set_attn_implementation(attention_implementation)
         else:
             model.config._attn_implementation = attention_implementation
-    nested = checkpoint / ADAPTER_NAME
-    weights_path = nested if nested.exists() else checkpoint
-    weights = load_peft_weights(str(weights_path), device=str(model.device))
+    weights = load_peft_weights(str(adapter["weights_path"]), device=str(model.device))
     result = set_peft_model_state_dict(model, weights, adapter_name=ADAPTER_NAME)
     if getattr(result, "unexpected_keys", None):
         raise RuntimeError(f"unexpected checkpoint keys: {result.unexpected_keys}")
@@ -1174,6 +1204,9 @@ def load_endpoint(checkpoint: Path, *, predictor_tokens: bool = True):
             return static_q_embed, static_k_embed
 
         llama_modeling.apply_rotary_pos_emb = graphed_apply_rotary_pos_emb
+    model._chemfm_adapter_metadata = {
+        key: value for key, value in adapter.items() if key != "weights_path"
+    }
     return model, tokenizer
 
 
@@ -1350,6 +1383,7 @@ def worker(args) -> None:
         "evaluation_seconds": evaluation_seconds,
         "reactions_per_second": len(new_records) / max(evaluation_seconds, 1e-12),
         "peak_cuda_bytes": int(torch.cuda.max_memory_allocated()),
+        "adapter": model._chemfm_adapter_metadata,
         "attention_implementation": getattr(model.config, "_attn_implementation", None),
         "sdpa_flash_enabled": bool(torch.backends.cuda.flash_sdp_enabled()),
         "sdpa_mem_efficient_enabled": bool(torch.backends.cuda.mem_efficient_sdp_enabled()),
@@ -1470,12 +1504,16 @@ def launch_configuration(
         for worker_index in range(workers)
     ]
     active_seconds = max((value["evaluation_seconds"] for value in worker_stats), default=0.0)
+    new_reactions = sum(value["new_reactions"] for value in worker_stats)
+    reused_reactions = len(groups) - new_reactions
     summary = {
         "checkpoint": str(checkpoint.resolve()),
         "checkpoint_adapter_sha256": file_sha256(checkpoint / ADAPTER_NAME / "adapter_model.safetensors"),
         "manifest": str(manifest.resolve()),
         "manifest_sha256": file_sha256(manifest),
         "reactions": len(groups),
+        "new_reactions": new_reactions,
+        "reused_reactions": reused_reactions,
         "views_per_reaction": VIEWS,
         "beam_size": BEAM_SIZE,
         "returned_candidates_per_view": BEAM_SIZE,
@@ -1485,9 +1523,18 @@ def launch_configuration(
         "threads_per_worker": threads_per_worker,
         "predictor_tokens": predictor_tokens,
         "wall_seconds_including_model_load": wall_seconds,
-        "end_to_end_reactions_per_second": len(groups) / max(wall_seconds, 1e-12),
+        "incremental_end_to_end_reactions_per_second": (
+            new_reactions / max(wall_seconds, 1e-12)
+        ),
         "active_evaluation_seconds": active_seconds,
-        "steady_state_reactions_per_second": len(groups) / max(active_seconds, 1e-12),
+        "incremental_steady_state_reactions_per_second": (
+            new_reactions / max(active_seconds, 1e-12)
+        ),
+        # Backward-compatible name: on a fresh run this is identical to the
+        # incremental rate; resumed panels intentionally report only work done.
+        "steady_state_reactions_per_second": (
+            new_reactions / max(active_seconds, 1e-12)
+        ),
         "worker_statistics": worker_stats,
         "gpu": {
             "samples": len(samples),

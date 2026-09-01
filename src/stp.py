@@ -12,6 +12,7 @@ boundaries is adapted from chat messages to ChemFM's
 from __future__ import annotations
 
 from dataclasses import dataclass
+from contextlib import contextmanager
 
 import torch
 import torch.nn.functional as F
@@ -33,7 +34,7 @@ class STPOutput:
     jepa_objective_loss: torch.Tensor
     logits: torch.Tensor
     jepa_active: bool
-    sampled_spans: tuple[tuple[int, int, int], ...]
+    sampled_spans: tuple[tuple[int, ...], ...]
 
 
 class SemanticTubePrediction:
@@ -210,15 +211,15 @@ class SemanticTubePrediction:
         *,
         stp_weight: float,
     ) -> STPOutput:
-        outputs = model(
-            **{
+        # The released experiment's default random_span_layer is -1.  Capture
+        # the exact post-final-RMSNorm tensor without asking Transformers to
+        # retain and return the embedding plus every decoder-layer state.
+        with capture_final_hidden_state(model) as captured:
+            outputs = model(**{
                 key: batch[key]
                 for key in ("input_ids", "attention_mask", "labels")
-            },
-            output_hidden_states=True,
-        )
-        # The released experiment's default random_span_layer is -1.
-        hidden_states = outputs.hidden_states[-1]
+            })
+        hidden_states = captured[0]
         user_start_end, assistant_start_end = self.content_boundaries(batch)
 
         # Upstream uses default-float (FP32) buffers even when model states are
@@ -256,6 +257,138 @@ class SemanticTubePrediction:
         total_loss = outputs.loss + float(stp_weight) * stp_loss
         return STPOutput(
             loss=total_loss,
+            native_loss=outputs.loss,
+            jepa_loss=stp_loss,
+            sigreg_loss=None,
+            jepa_objective_loss=stp_loss,
+            logits=outputs.logits,
+            jepa_active=True,
+            sampled_spans=tuple(sampled_spans),
+        )
+
+
+def _final_norm_module(model):
+    """Return ChemFM/Llama's post-decoder norm through optional PEFT wrappers."""
+    base = model.get_base_model() if hasattr(model, "get_base_model") else model
+    decoder = getattr(base, "model", None)
+    norm = getattr(decoder, "norm", None)
+    if norm is None:
+        raise TypeError(
+            "STP final-state capture requires a LlamaForCausalLM-compatible "
+            "model exposing model.norm"
+        )
+    return norm
+
+
+@contextmanager
+def capture_final_hidden_state(model):
+    """Capture exactly the tensor formerly returned as ``hidden_states[-1]``."""
+    captured: list[torch.Tensor] = []
+
+    def hook(_module, _inputs, output):
+        captured.append(output)
+
+    handle = _final_norm_module(model).register_forward_hook(hook)
+    try:
+        yield captured
+    finally:
+        handle.remove()
+    if len(captured) != 1:
+        raise RuntimeError(f"expected one final hidden-state capture, got {len(captured)}")
+
+
+class PaperSemanticTubePrediction(SemanticTubePrediction):
+    """Literal paper equation ``1-cos(h_r-h_s, h_t-h_r)`` for ``s<r<t``."""
+
+    def get_s_r_t(
+        self, full_length: int, *, device: torch.device
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        if full_length < 3:
+            raise ValueError("paper STP requires at least three content tokens")
+        while True:
+            span_start, span_end = self.get_s_t(full_length, device=device)
+            if span_end - span_start >= 2:
+                break
+        generator = self._generator(device)
+        interior = torch.randint(
+            span_start + 1,
+            span_end,
+            (),
+            generator=generator,
+            device=generator.device,
+        )
+        return span_start, interior, span_end
+
+    @staticmethod
+    def boundary_embedding(
+        hidden_states: torch.Tensor,
+        user_start_end: torch.Tensor,
+        assistant_start_end: torch.Tensor,
+        offset: int | torch.Tensor,
+    ) -> torch.Tensor:
+        """Map a concatenated-content boundary offset to its causal state."""
+        user_start = user_start_end[0] + 1
+        user_end = user_start_end[1] + 1
+        assistant_start = assistant_start_end[0] + 1
+        if offset + user_start <= user_end:
+            boundary = user_start + offset
+        else:
+            boundary = assistant_start + offset - (user_end - user_start)
+        return hidden_states[boundary - 1]
+
+    def __call__(
+        self,
+        model,
+        batch: dict[str, torch.Tensor],
+        *,
+        stp_weight: float,
+    ) -> STPOutput:
+        with capture_final_hidden_state(model) as captured:
+            outputs = model(**{
+                key: batch[key]
+                for key in ("input_ids", "attention_mask", "labels")
+            })
+        hidden_states = captured[0]
+        user_start_end, assistant_start_end = self.content_boundaries(batch)
+
+        first_transition = torch.zeros(
+            (hidden_states.shape[0], hidden_states.shape[-1]),
+            device=hidden_states.device,
+        )
+        second_transition = torch.zeros_like(first_transition)
+        sampled_spans = []
+        for index in range(hidden_states.shape[0]):
+            user_length = int(user_start_end[index, 1] - user_start_end[index, 0])
+            assistant_length = int(
+                assistant_start_end[index, 1] - assistant_start_end[index, 0]
+            )
+            full_length = user_length + assistant_length
+            span_start, interior, span_end = self.get_s_r_t(
+                full_length, device=hidden_states.device
+            )
+            h_s = self.boundary_embedding(
+                hidden_states[index], user_start_end[index],
+                assistant_start_end[index], span_start,
+            )
+            h_r = self.boundary_embedding(
+                hidden_states[index], user_start_end[index],
+                assistant_start_end[index], interior,
+            )
+            h_t = self.boundary_embedding(
+                hidden_states[index], user_start_end[index],
+                assistant_start_end[index], span_end,
+            )
+            first_transition[index] = h_r - h_s
+            second_transition[index] = h_t - h_r
+            sampled_spans.append(
+                (int(span_start), int(interior), int(span_end), full_length)
+            )
+
+        stp_loss = 1.0 - torch.mean(F.cosine_similarity(
+            first_transition, second_transition, dim=-1
+        ))
+        return STPOutput(
+            loss=outputs.loss + float(stp_weight) * stp_loss,
             native_loss=outputs.loss,
             jepa_loss=stp_loss,
             sigreg_loss=None,
