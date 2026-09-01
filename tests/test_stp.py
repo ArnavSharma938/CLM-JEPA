@@ -233,9 +233,23 @@ def test_paper_objective_matches_literal_three_point_equation():
             + assistant[index, 1] - assistant[index, 0]
         )
         s, r, t = reference_method.get_s_r_t(full, device=hidden.device)
-        h_s = method.boundary_embedding(hidden[index], user[index], assistant[index], s)
-        h_r = method.boundary_embedding(hidden[index], user[index], assistant[index], r)
-        h_t = method.boundary_embedding(hidden[index], user[index], assistant[index], t)
+        def semantic_state(offset):
+            user_start = user[index, 0] + 1
+            user_end = user[index, 1] + 1
+            assistant_start = assistant[index, 0] + 1
+            user_length = user_end - user_start
+            if offset <= user_length:
+                return hidden[index, user_start + offset - 1]
+            assistant_boundary = assistant_start + offset - user_length
+            return (
+                hidden[index, user_end - 1]
+                + hidden[index, assistant_boundary - 1]
+                - hidden[index, assistant_start - 1]
+            )
+
+        h_s = semantic_state(s)
+        h_r = semantic_state(r)
+        h_t = semantic_state(t)
         transitions.append(((h_r - h_s).float(), (h_t - h_r).float()))
         expected_spans.append((int(s), int(r), int(t), full))
     expected = 1.0 - F.cosine_similarity(
@@ -246,6 +260,26 @@ def test_paper_objective_matches_literal_three_point_equation():
     torch.testing.assert_close(observed.jepa_loss, expected, rtol=0.0, atol=0.0)
     assert observed.sampled_spans == tuple(expected_spans)
     assert all(s < r < t for s, r, t, _ in observed.sampled_spans)
+
+
+def test_paper_semantic_path_exactly_recovers_released_patch_transitions():
+    hidden = torch.randn(14, 7)
+    user = torch.tensor([0, 5])
+    assistant = torch.tensor([7, 12])
+    method = PaperSemanticTubePrediction
+    full = int(user[1] - user[0] + assistant[1] - assistant[0])
+    for start in range(full):
+        for end in range(start + 1, full + 1):
+            _, released_patch, _ = upstream_get_embeddings(
+                hidden, user, assistant, start, end
+            )
+            paper_transition = (
+                method.semantic_path_embedding(hidden, user, assistant, end)
+                - method.semantic_path_embedding(hidden, user, assistant, start)
+            )
+            torch.testing.assert_close(
+                paper_transition, released_patch, rtol=0.0, atol=1e-6
+            )
 
 
 def test_released_and_paper_objectives_are_genuinely_distinct():

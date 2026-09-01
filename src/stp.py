@@ -320,21 +320,27 @@ class PaperSemanticTubePrediction(SemanticTubePrediction):
         return span_start, interior, span_end
 
     @staticmethod
-    def boundary_embedding(
+    def semantic_path_embedding(
         hidden_states: torch.Tensor,
         user_start_end: torch.Tensor,
         assistant_start_end: torch.Tensor,
         offset: int | torch.Tensor,
     ) -> torch.Tensor:
-        """Map a concatenated-content boundary offset to its causal state."""
+        """Map an offset to the released code's framing-excluded semantic path."""
         user_start = user_start_end[0] + 1
         user_end = user_start_end[1] + 1
         assistant_start = assistant_start_end[0] + 1
-        if offset + user_start <= user_end:
-            boundary = user_start + offset
-        else:
-            boundary = assistant_start + offset - (user_end - user_start)
-        return hidden_states[boundary - 1]
+        user_length = user_end - user_start
+        if offset <= user_length:
+            return hidden_states[user_start + offset - 1]
+        # Continue the cumulative path from the user endpoint while removing
+        # the causal displacement introduced solely by <eos><prostart>.
+        assistant_boundary = assistant_start + offset - user_length
+        return (
+            hidden_states[user_end - 1]
+            + hidden_states[assistant_boundary - 1]
+            - hidden_states[assistant_start - 1]
+        )
 
     def __call__(
         self,
@@ -366,15 +372,15 @@ class PaperSemanticTubePrediction(SemanticTubePrediction):
             span_start, interior, span_end = self.get_s_r_t(
                 full_length, device=hidden_states.device
             )
-            h_s = self.boundary_embedding(
+            h_s = self.semantic_path_embedding(
                 hidden_states[index], user_start_end[index],
                 assistant_start_end[index], span_start,
             )
-            h_r = self.boundary_embedding(
+            h_r = self.semantic_path_embedding(
                 hidden_states[index], user_start_end[index],
                 assistant_start_end[index], interior,
             )
-            h_t = self.boundary_embedding(
+            h_t = self.semantic_path_embedding(
                 hidden_states[index], user_start_end[index],
                 assistant_start_end[index], span_end,
             )
