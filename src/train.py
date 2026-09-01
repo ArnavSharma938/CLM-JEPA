@@ -2302,6 +2302,8 @@ def train(args):
                 "selector": selector,
                 "checkpoint": str(checkpoint),
                 "training_seconds": epoch_training_seconds,
+                "checkpoint_saved": False,
+                "checkpoint_seconds": 0.0,
             }
             epoch_history.append(epoch_record)
             if evaluate_epoch:
@@ -2310,6 +2312,7 @@ def train(args):
                     validity=metrics["valid_rate"], native_loss=val_loss,
                 )
             if not args.final_checkpoint_only or epoch_index + 1 == args.stop_after_epoch:
+                checkpoint_started = time.perf_counter()
                 save_training_checkpoint(
                     checkpoint, model, tokenizer, optimizer, scheduler, generator,
                     method,
@@ -2320,6 +2323,10 @@ def train(args):
                     elapsed_wall_time_seconds=(
                         previous_elapsed_seconds + time.perf_counter() - start
                     ),
+                )
+                epoch_record["checkpoint_saved"] = True
+                epoch_record["checkpoint_seconds"] = (
+                    time.perf_counter() - checkpoint_started
                 )
     except Exception:
         tracker.finish({"status": "failed"})
