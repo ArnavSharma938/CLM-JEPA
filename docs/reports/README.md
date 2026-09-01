@@ -18,6 +18,7 @@ excluded.
 | Dense causal V-JEPA 2.1-style | Target-token CE `0.253547`; top-1 `6/256`; top-10 `39/256`; global raw retrieval `33.59%` |
 | Frozen ChemFM event geometry | Final-layer ring/motif local deltas `+0.051/+0.102`; semi-global deltas `+0.075/+0.036`; branch and inferred-center effects do not persist at long spans |
 | Official executable STP | Five-view top-1 `26/768 -> 30/768`; mean `+0.52` pp, crossed 95% CI `[-1.95,+3.12]`; **INCONCLUSIVE** |
+| STP capacity/formulation/lambda matrix | Rank-8 released STP `+0.65` pp over three seeds at 512 reactions, two-way CI `[-1.17,+2.54]`; rank 128 did not improve treatment; **INCONCLUSIVE** |
 
 The official native-versus-endpoint-MSE+SIGReg top-1 difference was `-0.781`
 percentage points, bootstrap 95% CI `[-1.719,+0.156]`, exact McNemar
@@ -67,6 +68,7 @@ Read in this order:
 6. [05 — Persistent pair-specific residual trajectory](05_PAIR_RESIDUAL_TRAJECTORY_EXPERIMENT.md): matched native versus persistent residual-JEPA training and fixed five-view generation endpoint.
 7. [06 — Frozen ChemFM chemical-event trajectory geometry](06_FROZEN_CHEMFM_TRAJECTORY_GEOMETRY.md): no-training all-layer local-curvature and ordered-span STP-alignment assay with matched chemical-event controls.
 8. [07 — Official Semantic Tube Prediction on ChemFM](07_OFFICIAL_STP_EXPERIMENT.md): direct port of the pinned released random-span executable, matched three-seed ChemFM trajectories, fixed five-view generation, and teacher-forced mechanism diagnostics.
+9. [08 — STP capacity, formulation, and coefficient matrix](08_STP_CAPACITY_FORMULATION_LAMBDA_EXPERIMENT.md): optimized final-state capture, rank-128 treatment test, released-versus-paper objective comparison, locked coefficient screen, and 512-reaction paired analysis.
 
 Consolidation history:
 
