@@ -77,9 +77,12 @@ def run(command: list[str], *, env: dict[str, str] | None = None) -> None:
 
 
 def locked_record(path: Path, payload: dict) -> None:
-    if path.exists() and read_json(path) != payload:
+    # Compare the on-disk JSON representation rather than Python container
+    # types (for example, tuples are necessarily decoded as lists).
+    normalized = json.loads(json.dumps(payload, sort_keys=True))
+    if path.exists() and read_json(path) != normalized:
         raise ValueError(f"locked stage record changed: {path}")
-    write_json(path, payload)
+    write_json(path, normalized)
 
 
 def evaluation_env() -> dict[str, str]:
