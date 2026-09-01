@@ -25,6 +25,7 @@ VALIDATION = ROOT / "data/clm_jepa_uspto_mit_validation_256/uspto_mit_validation
 ENDPOINT_ROOT = ROOT / "data/clm_jepa_uspto_mit_official_endpoint"
 SOURCE_PANEL = ENDPOINT_ROOT / "prespecified_stage1_1280.jsonl"
 PANEL = ENDPOINT_ROOT / "prespecified_stage1_512.jsonl"
+EQUIVALENCE_PANEL = ENDPOINT_ROOT / "stp_rank128_equivalence_24.jsonl"
 OLD_NATIVE = ROOT / "runs/pair_residual/a6000/results"
 OLD_RELEASED = ROOT / "runs/stp/a6000/results"
 DEFAULT_OUTPUT = ROOT / "runs/stp_matrix/a6000"
@@ -64,6 +65,10 @@ def freeze_panel() -> None:
     rows = read_jsonl(PANEL)
     if len(rows) != 512 or [row["panel_index"] for row in rows] != list(range(512)):
         raise ValueError("invalid 512-reaction endpoint")
+    equivalence = "".join(source_lines[:24])
+    if EQUIVALENCE_PANEL.exists() and EQUIVALENCE_PANEL.read_text(encoding="utf-8") != equivalence:
+        raise ValueError("existing rank-128 equivalence panel changed")
+    EQUIVALENCE_PANEL.write_text(equivalence, encoding="utf-8", newline="")
 
 
 def run(command: list[str], *, env: dict[str, str] | None = None) -> None:
@@ -139,6 +144,53 @@ def teacher(checkpoint: Path, output: Path) -> None:
         "--checkpoint", str(checkpoint), "--manifest", str(PANEL),
         "--batch-size", "16", "--output", str(output),
     ])
+
+
+def verify_rank128_evaluation_equivalence(root: Path, checkpoint: Path) -> None:
+    output = root / "stage_b/rank128_reference_equivalence"
+    reference_path = output / "predictions.jsonl"
+    if not reference_path.exists():
+        env = {
+            key: value for key, value in os.environ.items()
+            if not key.startswith("CHEMFM_")
+        }
+        env.update({
+            "PYTHONPATH": "src", "TOKENIZERS_PARALLELISM": "false",
+            "OMP_NUM_THREADS": "1", "MKL_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1", "NUMEXPR_NUM_THREADS": "1",
+            "RAYON_NUM_THREADS": "1",
+        })
+        run([
+            sys.executable, "-u", "src/eval_uspto_mit_five_view_a6000.py", "run",
+            "--checkpoint", str(checkpoint), "--manifest", str(EQUIVALENCE_PANEL),
+            "--workers", "4", "--threads-per-worker", "1",
+            "--prompt-batch-size", "1", "--batch-mode", "left-pad",
+            "--output-dir", str(output),
+        ], env=env)
+    reference = read_jsonl(reference_path)
+    optimized_path = root / "stage_b/released_r128_l0.02/seed_533/evaluation/predictions.jsonl"
+    optimized = read_jsonl(optimized_path)[:24]
+    fields = (
+        "reaction_identity", "raw_candidates_by_view",
+        "canonical_candidates_by_view", "ranked_candidates", "exact",
+    )
+    equality = {
+        field: [row[field] for row in reference] == [row[field] for row in optimized]
+        for field in fields
+    }
+    if len(reference) != 24 or not all(equality.values()):
+        raise ValueError(f"rank-128 optimized evaluation changed ordered predictions: {equality}")
+    locked_record(root / "stage_b/rank128_evaluation_equivalence.json", {
+        "reactions": 24,
+        "checkpoint": str(checkpoint.resolve()),
+        "reference_fast_paths": False,
+        "optimized_fast_paths": True,
+        "reference_predictions": str(reference_path.resolve()),
+        "reference_sha256": sha256(reference_path),
+        "optimized_full_panel_predictions": str(optimized_path.resolve()),
+        "optimized_full_panel_sha256": sha256(optimized_path),
+        "ordered_equality": equality,
+    })
 
 
 def train_one(
@@ -281,6 +333,7 @@ def stage_b(root: Path) -> None:
         "rank": 128, "alpha": 128, "lambda": 0.02,
         "conditions": ["native", "stp_released"], "optimizer_steps": 320,
         "primary": "released-minus-native within rank",
+        "evaluation_equivalence": "24 reactions, generic vs optimized ordered beams",
         "rank_selection_rule": "r128 iff mean effect exceeds r8 by >=0.005 and both r128 effects >=0",
     }
     locked_record(root / "stage_b/preregistration.json", payload)
@@ -293,6 +346,10 @@ def stage_b(root: Path) -> None:
             evaluation = root / f"stage_b/{label}/seed_{seed}/evaluation"
             evaluate(checkpoints[seed], evaluation)
             teacher(checkpoints[seed], evaluation / "teacher_forced.json")
+
+    verify_rank128_evaluation_equivalence(
+        root, root / "stage_b/released_r128_l0.02/seed_533/training/checkpoints/epoch_4"
+    )
 
     r8 = [treatment_effect(
         root / f"stage_a/r8_l0.02/native/seed_{seed}/evaluation/predictions.jsonl",
