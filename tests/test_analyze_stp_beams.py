@@ -47,6 +47,21 @@ def test_row_detail_accepts_official_empty_padding():
     assert detail["gold_rank"] == 1
 
 
+def test_view_rank_preserves_original_invalid_beam_slot():
+    views = [["", "gold"] + [""] * 8 for _ in range(5)]
+    ranked = stable_full_rank(views)
+    detail = row_detail({
+        "panel_index": 0,
+        "target": "gold",
+        "canonical_candidates_by_view": views,
+        "ranked_candidates": ["gold"] + [""] * 9,
+        "rank_scores": {"gold": ranked["scores"]["gold"]},
+    })
+    assert detail["view_ranks"] == [2] * 5
+    assert detail["view_top1"] == [""] * 5
+    assert detail["gold_rank"] == 1
+
+
 def test_native_only_failure_classes_are_distinct():
     native = [
         row(0, "g0", [["g0"], ["g0"], ["g0"], ["x"], ["x"]]),

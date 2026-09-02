@@ -65,9 +65,13 @@ def row_detail(row: dict) -> dict:
         aggregate["ranked"].index(target) + 1
         if target in aggregate["ranked"] else None
     )
+    # Per-view beam ranks retain the original ten ordered beam slots. Official
+    # cross-view aggregation separately removes invalids and duplicates before
+    # assigning reciprocal ranks; conflating those two notions can promote a
+    # beam-2 gold product to an apparent per-view top-1 after an invalid beam.
     view_ranks = [
         view.index(target) + 1 if target in view else None
-        for view in aggregate["unique_views"]
+        for view in row["canonical_candidates_by_view"]
     ]
     view_sets = [set(view) for view in aggregate["unique_views"]]
     jaccards = [
@@ -77,7 +81,9 @@ def row_detail(row: dict) -> dict:
         for left in range(len(view_sets))
         for right in range(left + 1, len(view_sets))
     ]
-    view_top1 = [view[0] if view else "" for view in aggregate["unique_views"]]
+    view_top1 = [
+        view[0] if view else "" for view in row["canonical_candidates_by_view"]
+    ]
     winner = aggregate["ranked"][0] if aggregate["ranked"] else ""
     return {
         **aggregate,
