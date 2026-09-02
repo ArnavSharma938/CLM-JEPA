@@ -1,6 +1,6 @@
 # Frozen ChemFM chemical-event trajectory geometry
 
-## Question and outcome
+## Question and measured summary
 
 This no-training diagnostic asks whether chemically meaningful SMILES events
 produce larger changes in the direction of a frozen ChemFM hidden-state
@@ -8,7 +8,8 @@ trajectory, and whether any change is only consecutive-token curvature or also
 persists under the ordered-span geometry used by Semantic Tube Prediction
 (STP).
 
-The answer is event-specific. At the final ChemFM layer:
+At the final ChemFM layer, under the event definitions and matching procedure
+in this report:
 
 - ring closures and functional-group/motif completions have greater local
   curvature **and** greater semi-global misalignment than matched ordinary
@@ -19,11 +20,9 @@ The answer is event-specific. At the final ChemFM layer:
 - stereochemical tokens have lower local curvature and lower semi-global
   misalignment than controls after contextualization.
 
-Thus the frozen model is not governed by one homogeneous local-collinearity
-regime. Ring and motif completion events are systematic counterexamples to a
-blanket STP-style alignment assumption, while branch and reaction-center
-effects are mainly transient and stereochemistry points in the opposite
-direction.
+These measurements show different event/control contrasts by category. They
+do not test an STP-trained model, generation quality, or whether penalizing the
+measured curvature would help or harm training.
 
 ## Locked assay
 
@@ -188,11 +187,10 @@ layer zero to layer 22, the paired event/control contrast changed by:
 | MCS reaction center | `+0.0206` (`-0.0183,+0.0594`) | `-0.0346` (`-0.0457,-0.0237`) |
 
 The ring semi-global contrast becomes positive by layer 8 and remains positive
-at the final layer. Motif semi-global disruption is positive at the embedding
-and final layers, but the negative depth-added contrast shows that contextual
-processing slightly reduces that pre-existing lexical difference. Therefore
-motif completion is a real final-state violation of alignment, but it cannot
-be attributed wholly to a newly created chemical-context bend.
+at the final layer. Motif semi-global difference is positive at the embedding
+and final layers, while its depth-added contrast is negative; the final motif
+difference therefore includes a token-identity/lexical baseline not removed by
+the matching design.
 
 Final-layer source/target segment signs were concordant for ring semi-global
 (`+0.047/+0.108`), motif semi-global (`+0.040/+0.033`), stereo local
@@ -200,31 +198,26 @@ Final-layer source/target segment signs were concordant for ring semi-global
 (`+0.066/+0.061`). Branch semi-global was slightly negative in source and
 positive in target (`-0.007/+0.019`), consistent with its near-zero aggregate.
 
-## Interpretation
+## Findings within the assay
 
-1. **Ring closure is the clearest challenge to homogeneous STP geometry.** Its
-   static embedding geometry starts in the opposite direction, contextual
-   layers create the bend, and elevated misalignment persists through long
-   spans and both reaction segments.
-2. **Motif completion also violates final-state alignment at all span scales,**
-   with the largest final local effect. Its semi-global effect is partly a
-   token-identity/lexical baseline rather than purely contextual chemistry.
-3. **Branches are transient.** They have clear local final-layer curvature,
-   but the effect decays monotonically with span and is indistinguishable from
-   zero in the long bin.
-4. **Inferred reaction centers are transient under this proxy.** They curve
-   locally in both source and product but do not disrupt semi-global alignment;
-   long-span alignment is slightly stronger than at controls. Exact atom-mapped
-   centers remain untested.
-5. **Stereochemistry does not support the proposed direction.** Its contextual
-   representation is consistently straighter than matched positions, locally
-   and semi-globally. This conclusion is confined to the separately sampled
-   USPTO-50K stereo stratum.
+1. Ring-closure differences were positive locally and in every reported span
+   bin; the long-span difference was `+.0719`.
+2. Motif-completion differences were positive locally and in every reported
+   span bin. Its semi-global contrast was already positive at the embedding
+   layer, so the assay does not identify the final contrast as wholly created
+   by contextual processing.
+3. Branch differences were positive locally. The long-span semi-global
+   interval included zero.
+4. MCS-inferred center differences were positive locally and negative in the
+   long-span semi-global estimate. This result applies to the disclosed proxy,
+   not atom-mapped reaction centers.
+5. Stereochemistry differences were negative locally and semi-globally in the
+   separately sampled USPTO-50K stratum.
 
-The assay therefore challenges a universal smooth-tube prior, not the use of
-STP everywhere. An objective that penalizes all event-conditioned curvature
-equally would directly oppose frozen ChemFM geometry at ring closures and motif
-completions, while the same claim is not supported for the other event types.
+The assay rejects equality of event and matched-control geometry for several
+prespecified contrasts. It does not by itself establish a training
+consequence, an architectural limitation, or a causal chemical interpretation
+of the hidden-state bends.
 
 ## Limitations
 

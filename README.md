@@ -78,4 +78,4 @@ python src/eval_uspto_mit_five_view_a6000.py --help
 
 W&B credentials belong only in environment variables. The tracker is called from the canonical training loop and records losses, gradient norm, learning rate, auxiliary activity, throughput, VRAM, validation metrics, seed, condition, and resolved configuration.
 
-For continuation, read [docs/context.md](docs/context.md), the research plan, [the consolidated result index](docs/reports/README.md), and [method/protocol fidelity](docs/reports/00_METHOD_AND_PROTOCOL_FIDELITY.md) in that order.
+For continuation, read [docs/context.md](docs/context.md), the research plan, [the consolidated result index](docs/reports/README.md), and [the pre-STP evidence record](docs/reports/00_PRE_STP_JEPA_CONSOLIDATED.md) in that order.

@@ -1,44 +1,47 @@
 # Semantic Tube Prediction on ChemFM: consolidated Reports 07--09
 
-## Executive conclusion
+## Executive measured summary
 
 This is the authoritative report for the complete Semantic Tube Prediction
 (STP) program formerly split across Reports 07, 08, and 09. It also contains
 the preregistered frozen representation study of every trained Native/STP
 checkpoint.
 
-The generation verdict remains **INCONCLUSIVE**. Rank-8 released STP at
+Under the preregistered decision rules, the generation verdict is
+**INCONCLUSIVE**. Rank-8 released STP at
 lambda=.02 changes official five-view exact top-1 by `+2.15`, `+0.98`, and
 `-1.17` percentage points across seeds 533/917/1301: mean `+0.65`, crossed
 95% interval `[-1.17,+2.54]`. Rank-8 paper STP changes top-1 by
 `+1.37/+1.37` points at .02, `+1.17/+2.15` at .08, and `+1.95/+0.98` at
-.12. The paper doses are unresolved, and paper versus released at their
+.12. The paper doses were not separated by the preregistered selection
+threshold, and paper versus released at their
 selected r8/.02 setting is unresolved (`-0.20` points paper-minus-released,
-`[-1.86,+1.37]`). Rank 128 does not improve either formulation's .02
-treatment effect on the two tested seeds.
+`[-1.86,+1.37]`). At `.02`, the mean same-rank treatment effect was lower at
+rank 128 than rank 8 for both formulations on the two tested seeds. No other
+paper-STP rank-128 lambda was tested.
 
-The new representation evidence supplies a stronger mechanistic conclusion.
-STP reliably changes the geometry it targets, but “more STP-like” is not
-monotonically “better generator”:
+Every treatment lowered its corresponding fixed-span objective relative to
+its matched Native checkpoint. Across the tested development checkpoints,
+larger objective reduction did not order generated top-1:
 
 * released r8/.08 lowers a fixed released objective by `.297`, versus `.105`
   at r8/.02, but does not have the larger generation effect;
 * released r128/.02 lowers it by `.255`, about 2.4 times the r8/.02 reduction,
   while its top-1 effect is only `+.49` points;
-* harmful released seed 1301 lowers it by `.090`, within the favorable seeds'
+* released seed 1301 lowers it by `.090`, within seeds 533/917's
   `.095--.129` range, and has final target CKA `.996` to Native;
 * across 17 treatment checkpoints, released-loss and paper-loss changes have
   Spearman rho `-.097` and `-.152` with top-1 effect.
 
-STP is active, Native ChemFM retains chemically structured bends, and there is
-no gross STP-induced rank collapse. But objective fit, geometric straightness,
-teacher-forced CE, and LoRA capacity do not determine exact free-running
-generation. Early autoregressive path selection and multi-view candidate
-ranking remain trajectory-noisy bottlenecks.
+The measured rank statistics do not show a large uniform rank reduction under
+STP. Native event/control curvature differences remain present in the trained
+checkpoints. Teacher-forced CE, fixed-span loss, path-efficiency, and final
+rank metrics did not reproduce the ordering of top-1 effects in this matrix.
+For seed 1301 specifically, the saved beams locate the lost Native successes
+in within-beam ranking and cross-view aggregation rather than beam entry.
 
-The 512-reaction panel is development data after repeated use. No finding here
-is confirmation. The justified continuation is a locked three-arm r8/.02
-confirmation on new seeds and an untouched panel—not another adaptive search.
+The 512-reaction panel is development data after repeated use. No untouched-
+panel confirmation was run.
 
 ## 1. Method fidelity and provenance
 
@@ -84,8 +87,8 @@ pair residual, or auxiliary dropout.
 | Representation implementation | `49143710a6aa83e4f292d4520d8c0d4060ce5704`; exact outer-span correction `2a20459322e930f46250b11b4417cad7b82fbb04`; final manifest analyzer `3325ddc` |
 
 ChemFM is pinned at revision
-`f99dc2e89726539bb9cf31b2e2b43606650bac6a8`, weight SHA-256
-`24686705d779db6876acc09c81d64d432262ef8b5dbfccc3852112587079ce419`.
+`f99dc2e89726539bb9cf31b2e2b4360650bac6a8`, weight SHA-256
+`24686705d779db6876acc09c81d64d432262ef8b5dbfccc385212587079ce419`.
 
 ## 2. Shared experimental system
 
@@ -202,9 +205,8 @@ capacity claims. At selected r8/.02, paper-minus-released effects are
 | Paper r128/.02 | 533/917 | +.59/-1.17 | -.00920/-.00690 | -.052/-.025 | -.194/-.095 |
 
 Released seed 1301 has its largest CE improvement but loses generation. Paper
-r128/917 improves CE by `.00690` and loses `1.17` points. Paper's per-seed CE
-ordering also fails to rank its lambdas. Teacher forcing verifies activity but
-does not select the free-running generator.
+r128/917 improves CE by `.00690` and loses `1.17` points. The per-seed CE
+ordering differs from the top-1 ordering across the paper lambdas.
 
 Frozen initial-batch pressure differed substantially:
 
@@ -216,8 +218,8 @@ Frozen initial-batch pressure differed substantially:
 Paper used about 5.8 times less weighted pressure. At trained paper checkpoints,
 weighted ratios were about `.041/.041` at r8/.02, `.136/.184` at .08,
 `.194/.182` at .12, and `.033/.020` at r128/.02. Pressure rose with lambda,
-but raw gradients shrank by .12; there is a flat noisy response, not a proven
-collapse threshold.
+while raw gradients were lower at `.12` than `.08`. No collapse threshold was
+tested.
 
 ## 6. Seed-1301 beam and aggregation mechanism
 
@@ -237,9 +239,9 @@ diversity, view Jaccard, invalid rate, and consensus change only slightly.
 
 Across the 35 view rows of the seven losses, teacher-forced correct-token rate
 is exactly unchanged, token top-1 gains/losses are 7/7, margin changes `+.0033`,
-and no correct-token rank changes by five. The directly observed failure is
-early free-running trajectory and cross-view ordering, not gold disappearance
-or systematic teacher-forced degradation.
+and no correct-token rank changes by five. The saved outputs locate the seven
+lost top-1 cases in free-running within-beam and cross-view ordering; gold does
+not disappear from the aggregate top 10 in these cases.
 
 ## 7. All-checkpoint frozen representation supplement
 
@@ -260,7 +262,7 @@ The model is frozen in inference mode; no optimizer/backward exists; pre/post
 parameter fingerprints match. Transformer states are BF16 and geometry is
 FP32. The final RTX 4050 run took 1,608.8 seconds (26.8 minutes), peaked at 3.10 GB
 allocated VRAM, and preserves 185.2 MB of compressed raw/derived output.
-Parity tests prove exact released and paper calculations for identical spans.
+Parity tests matched released and paper calculations for identical spans.
 
 Metrics include local curvature, literal semi-global alignment, both fixed STP
 losses, activation/transition norms, path efficiency (displacement/path
@@ -286,17 +288,17 @@ Final-layer Native event-minus-control means are:
 | 128 | motif | +.05721 | +.02548 |
 | 128 | inferred center | +.03997 | -.01605 |
 
-Ring and motif completions induce persistent bends; branch effects are mainly
-local; inferred centers are not persistently positive; stereo tokens are
-smoother than matched positions. The pattern survives fine-tuning, rank, and
-seed. Vanilla local collinearity is not an adequate description of chemical
-events.
+Ring and motif event/control differences are positive locally and
+semi-globally; branch differences are primarily local; inferred-center
+semi-global differences are negative; and stereo differences are negative.
+These signs recur across the evaluated Native ranks and seeds. The estimates
+are descriptive of the disclosed annotations and matching procedure.
 
 ### Objective response and trajectory geometry
 
-Final-layer entries are STP-minus-Native means. Negative fixed loss indicates
-successful fitting; positive efficiency indicates a straighter end-to-end
-path.
+Final-layer entries are STP-minus-Native means. Negative fixed loss means the
+treatment checkpoint has lower fixed-span loss; positive efficiency means a
+higher displacement-to-path-length ratio.
 
 | Condition | Top-1 pp | Released loss | Paper loss | Source curvature | Target curvature | Source/target efficiency |
 |---|---:|---:|---:|---:|---:|---:|
@@ -309,16 +311,16 @@ path.
 | Paper r8/.12 | +1.46 | -.1097 | -.0242 | +.00036 | -.00788 | +.00072/+.00187 |
 | Paper r128/.02 | -.29 | -.0259 | -.0091 | +.00072 | -.00015 | +.00079/+0.00000 |
 
-Both objectives learn their intended geometry. They cross-generalize: released
-training lowers paper loss and paper training lowers released loss. Released
-STP nevertheless raises immediate curvature while improving whole-path
-efficiency; its patch/complement constraint is not local token-by-token
-collinearity. Paper STP increasingly lowers target curvature, but this also
-does not rank its generation results.
+All treatment rows lower their corresponding fixed objective; released
+training also lowers the paper loss and paper training lowers the released
+loss in these final-layer measurements. Released STP rows have positive mean
+local-curvature changes and positive path-efficiency changes. Paper-STP target
+curvature becomes more negative as lambda rises from `.02` to `.12`. Neither
+set of geometry values orders the reported generation effects.
 
-Greater capacity clearly expresses the auxiliary geometry. Released r128/.02
-fits the released objective much more strongly than r8/.02. Thus the tested
-r128 failure cannot be attributed to inability to realize STP.
+Released r128/.02 lowers the fixed released loss by `.2554`, versus `.1046`
+for released r8/.02. This rules out zero objective response at r128/.02; it
+does not identify why its generation treatment effect was smaller.
 
 ### Non-monotonic depth
 
@@ -336,11 +338,11 @@ r128 failure cannot be attributed to inability to realize STP.
 | Released r128/.02 L16 | +.208 | +.001 | -.00090 | +.00510 | .97979 |
 | Released r128/.02 L22 | -.255 | -.038 | +.00337 | +.00539 | .98581 |
 
-Intermediate released geometry can worsen, then improve sharply at the exact
-final state where loss is applied. Final CKA can recover after larger early
-reorganization: r128/.02 minimum source CKA is about `.49` near layers 3--4,
-but final source CKA is `.970--.979`. STP induces distributed compensation,
-not a rigid all-layer rotation.
+The released fixed loss is positive at layer 21 and negative at layer 22 for
+the displayed released conditions; the training loss is applied at layer 22.
+For r128/.02, source CKA is about `.49` near layers 3--4 and `.970--.979` at
+the final layer. These depth profiles are non-monotonic; the assay does not
+assign a causal mechanism to them.
 
 ### Chemical events remain structured
 
@@ -357,18 +359,17 @@ Final treatment changes in event-minus-control effects, averaged by config:
 | Paper r8/.12 | local/semi | +.01204/-.00065 | +.00422/-.00276 | -.00232/-.00259 | +.00215/+.00736 | -.00501/+.00160 |
 | Paper r128/.02 | local/semi | -.00441/-.00488 | +.00414/-.00142 | -.01474/-.00202 | -.00025/-.00230 | -.01577/-.00225 |
 
-BH detects 2,916/3,910 changes at q<.05 because thousands of fixed pairs make
-small effects measurable. Magnitude and coherence matter more. Released STP
-often increases ring/motif semi-global disruption and high-lambda branch local
-curvature. Chemistry-conditioned bends coexist with more aligned whole paths;
-they are not erased.
+BH marks 2,916/3,910 changes at `q<.05`. The table reports magnitudes because
+many effects are small despite the adjusted result. Ring/motif semi-global
+differences remain nonzero in the final checkpoints while whole-path
+efficiency also changes; neither measurement is a generation endpoint.
 
 ### Spectrum, relational coding, and drift
 
-Native final pooled spaces are already anisotropic: r8 mean-direction energy
+Native final pooled spaces are anisotropic under these metrics: r8 mean-direction energy
 is about `.875--.877` for sources and `.830--.836` for targets; effective
-ranks are about 19--20 of at most 255 centered sample dimensions. STP does not
-cause gross new collapse:
+ranks are about 19--20 of at most 255 centered sample dimensions. The table
+reports the treatment-minus-Native changes:
 
 | Condition | Pooled rank S/T delta | Transition rank S/T delta | Pairing-gap delta | Retrieval top-1 delta |
 |---|---:|---:|---:|---:|
@@ -381,10 +382,9 @@ cause gross new collapse:
 | Paper r8/.12 | -.010/-.968 | +.065/+.157 | +.00108 | -.0527 |
 | Paper r128/.02 | -.408/-.215 | -.032/+.201 | -.00191 | -.0391 |
 
-No STP condition improves this pooled source-to-product retrieval probe.
-Released r128/.02 most clearly degrades pairing gap and increases target
-anisotropy while fitting STP strongly. STP is a trajectory-shape constraint,
-not a pair-discrimination objective.
+Every displayed pooled source-to-product retrieval delta is negative. Released
+r128/.02 has pairing-gap delta `-.00986` and target pooled-rank delta `+.505`;
+the table does not establish why those values changed.
 
 Final same-seed drift is substantial despite high CKA:
 
@@ -399,11 +399,11 @@ Final same-seed drift is substantial despite high CKA:
 | Paper r8/.12 | .99080/.99352 | .382/.449 |
 | Paper r128/.02 | .97916/.98493 | .448/.497 |
 
-Higher lambda/rank generally allows more movement, especially for released
-STP, without a larger generation benefit. The models are not capacity-starved
-for representational change.
+The largest displayed final displacements occur for released r8/.08 and
+released r128/.02. Those two conditions do not have the largest mean top-1
+treatment effects.
 
-### Geometry does not select generation
+### Association with generation in the development matrix
 
 | Final treatment metric | Pearson r | Spearman rho | Leave-one-config-out rho range |
 |---|---:|---:|---:|
@@ -418,7 +418,7 @@ These 17 points are dependent development results, so p-values are not causal
 evidence. Reaction-level win/loss analyses on the first 256 are sparse and
 reverse across seeds.
 
-Seed 1301 is the strongest controlled counterexample:
+Seed 1301 provides the following within-configuration contrast:
 
 | Seed | Top-1 | Released loss | Target efficiency | Target CKA | Target displacement |
 |---:|---:|---:|---:|---:|---:|
@@ -426,26 +426,26 @@ Seed 1301 is the strongest controlled counterexample:
 | 917 | +.98 | -.0949 | +.00239 | .99311 | .464 |
 | 1301 | -1.17 | -.0904 | +.00163 | .99598 | .389 |
 
-Its failure is not insufficient objective learning, excessive final drift,
-rank collapse, or gold-beam loss. The directly evidenced mechanism is changed
-early free-running choices and cross-view ranking.
+Its fixed-loss reduction, final CKA, and displacement overlap the ranges of the
+other two seeds, so those measurements do not distinguish its adverse top-1
+effect. Gold remained in the aggregate top 10 for all seven Native-only losses;
+the observed losses were three within-beam ranking and four cross-view
+aggregation changes.
 
-### First-principles interpretation
+### Descriptive synthesis
 
-1. Native ChemFM trajectories contain chemistry-specific bends; they are not
-   locally straight tubes.
-2. STP applies global final-state shape pressure. Released STP aligns a patch
-   with its complement; paper STP aligns two adjacent sub-displacements.
-3. The transformer realizes this through non-monotonic layer compensation.
-4. Global alignment and local chemical curvature coexist.
-5. Neither loss explicitly makes the correct source/product pair more
-   discriminative; retrieval does not improve.
-6. A few early autoregressive choices and cross-view candidate ranks determine
-   exactness. Small state changes can improve average CE while promoting a
-   wrong surviving sequence above gold.
-7. Objective fit demonstrates an active intervention, but is not the limiting
-   causal variable for generation. More pressure/capacity is not presumptively
-   beneficial.
+1. Native event/control geometry differs by chemical-event category under the
+   fixed annotation and matching assay.
+2. Released STP aligns a sampled patch displacement with its complement;
+   paper STP aligns adjacent sub-displacements for sampled `s<r<t`.
+3. Layer-wise fixed-loss and CKA profiles are non-monotonic.
+4. Fixed-span alignment changes and local event/control differences coexist in
+   the final states.
+5. Pooled retrieval deltas are negative for all displayed treatments.
+6. In seed 1301, all seven lost top-1 gold products survive in the aggregate
+   top 10; three lose within-view rank and four lose at aggregation.
+7. The reported development-matrix associations do not identify a scalar
+   representation diagnostic that predicts treatment effect.
 
 ## 8. Runtime and artifact accounting
 
@@ -467,52 +467,39 @@ hash/fingerprint metadata, spectra, relationships, and drift under
 `runs/stp_representation/frozen_all_checkpoints/`; derived JSON, CSV, and SVG
 artifacts are under `runs/stp_representation/analysis/`.
 
-## 9. What is established, falsified, and unresolved
+## 9. Measurements supported by the completed design
 
-Established:
+1. Released and paper STP implementations are numerically distinct and passed
+   their recorded upstream/equation parity tests.
+2. Every treatment lowers its matched fixed objective at the final layer.
+3. Most rank-8 seed effects are positive, but released r8/.02 has one negative
+   seed and its crossed interval includes zero.
+4. For both formulations at `.02`, the two-seed mean treatment effect is lower
+   at r128 than r8. Other paper r128 lambdas were not tested.
+5. The preregistered paper-lambda and formulation-comparison thresholds were
+   not met; the compared intervals do not separate those choices.
+6. CE, margin, fixed objective, path-efficiency, drift, and rank do not share a
+   monotonic ordering with the reported configuration means.
+7. The recorded event/control differences remain present after STP, and the
+   pooled-rank changes are small relative to their approximately 19--20 Native
+   effective ranks.
+8. Seed 1301's seven Native-only top-1 cases retain gold in the STP aggregate
+   top 10 and split into three within-beam and four aggregation losses.
 
-1. Released and paper STP are faithful, distinct interventions.
-2. Both persistently reshape the intended hidden geometry.
-3. Rank-8 development effects are mostly positive, but released r8/.02 is not
-   seed-uniform and neither formulation has confirmation.
-4. r128/.02 does not improve either tested formulation's treatment effect.
-5. Paper .02/.08/.12 and selected paper/released formulations remain
-   unresolved within noise.
-6. Better CE, margin, objective fit, path efficiency, or larger drift does not
-   reliably imply better generation.
-7. Native chemical bends survive STP; no gross representation collapse occurs.
-8. Seed 1301 is a within-beam/cross-view ranking failure with gold preserved.
+These data are inconsistent with a monotonic rule that more fixed-objective
+reduction or rank capacity necessarily gives a larger generation effect in
+this matrix. They do not estimate the effect on new training seeds and an
+untouched panel. Formulation superiority, paper-STP capacity away from `.02`,
+other budgets, natural-language tasks, and other architectures remain outside
+the completed design.
 
-Falsified is the simple monotonic mechanism: more successful STP straightening
-or more capacity to realize it should yield more accurate generation. Not
-falsified is a small positive expected rank-8 STP effect.
-
-Still unresolved are new-seed/untouched-panel efficacy, paper's apparent
-two-seed consistency, formulation superiority, capacity outside .02, and all
-claims about natural language, other budgets, full tuning, or architectures.
-
-## 10. Single justified continuation
-
-Run one locked confirmation:
-
-* Native r8, released r8/.02, and paper r8/.02;
-* at least four new paired seeds;
-* a new prespecified untouched 512-reaction panel from the remaining test set;
-* unchanged official five-view evaluation;
-* prespecified two Native contrasts and a multiplicity-aware direct
-  formulation contrast;
-* no selection after outcomes.
-
-If compute permits one STP arm, paper r8/.02 is most informative because it
-lacks an independent third seed. This constraint must be declared in advance.
-
-## 11. Reproducibility map
+## 10. Reproducibility map
 
 | Evidence | Path |
 |---|---|
-| Report 08 preregistration | `docs/reports/08_STP_CAPACITY_FORMULATION_LAMBDA_PREREGISTRATION.md` |
+| Report 08 preregistration | `runs/stp_matrix/a6000/preregistration.md`; `runs/stp_matrix/a6000/stage_*/preregistration.json` |
 | Report 08 analysis/archive | `runs/stp_matrix/a6000/analysis.json`; `runs/stp_matrix/stp_matrix_a6000_compact.tar.zst` |
-| Report 09 preregistration | `docs/reports/09_STP_COMPLETION_PREREGISTRATION.md` |
+| Report 09 preregistration | `runs/stp_completion/a6000/required/preregistration.json` |
 | Report 09 analysis/archive | `runs/stp_completion/a6000/analysis.json`; `runs/stp_completion/stp_completion_l40_compact.tar.zst` |
 | Seed-1301 beam/token diagnoses | `runs/stp_completion/a6000/existing_diagnostics/` |
 | Representation protocol | `docs/preregistrations/STP_REPRESENTATION_GEOMETRY_PROTOCOL.md` |
