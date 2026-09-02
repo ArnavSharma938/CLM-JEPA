@@ -1,6 +1,6 @@
 # CLM-JEPA scientific reports
 
-This directory contains three current evidence records. The reports separate
+This directory contains two current evidence records. The reports separate
 measured results from scope limits and do not use representation diagnostics as
 substitutes for generated exact match.
 
@@ -11,12 +11,10 @@ substitutes for generated exact match.
    official generation, frozen mechanism audits, PCSF, projection-space loss,
    gradient combiners, dense causal V-JEPA, and persistent pair-residual
    training.
-2. [Frozen ChemFM trajectory geometry](06_FROZEN_CHEMFM_TRAJECTORY_GEOMETRY.md)
-   is the no-training all-layer chemical-event/control assay.
-3. [Semantic Tube Prediction on ChemFM](07_STP_CONSOLIDATED_EXPERIMENT.md)
-   consolidates former Reports 07--09: released and paper STP, rank/lambda
-   comparisons, five-view generation, seed-1301 beam analysis, and the
-   all-checkpoint representation study.
+2. [STP and trajectory geometry](01_STP_AND_TRAJECTORY_GEOMETRY.md) combines
+   the frozen base-ChemFM chemical-event/control assay with the complete
+   released/paper STP program: rank/lambda comparisons, five-view generation,
+   seed-1301 beam analysis, and the all-checkpoint representation study.
 
 ## Endpoint summary
 

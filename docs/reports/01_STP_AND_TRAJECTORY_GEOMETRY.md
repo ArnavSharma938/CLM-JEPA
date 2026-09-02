@@ -1,10 +1,11 @@
-# Semantic Tube Prediction on ChemFM: consolidated Reports 07--09
+# Semantic Tube Prediction and trajectory geometry on ChemFM
 
 ## Executive measured summary
 
 This is the authoritative report for the complete Semantic Tube Prediction
 (STP) program formerly split across Reports 07, 08, and 09. It also contains
-the preregistered frozen representation study of every trained Native/STP
+the no-training frozen base-ChemFM chemical-event assay formerly in Report 06
+and the preregistered frozen representation study of every trained Native/STP
 checkpoint.
 
 Under the preregistered decision rules, the generation verdict is
@@ -243,7 +244,181 @@ and no correct-token rank changes by five. The saved outputs locate the seven
 lost top-1 cases in free-running within-beam and cross-view ordering; gold does
 not disappear from the aggregate top 10 in these cases.
 
-## 7. All-checkpoint frozen representation supplement
+## 7. Frozen base-ChemFM chemical-event geometry
+
+### 7.1 Frozen model, sample, and serialization
+
+This no-training assay asked whether chemically annotated SMILES positions
+have different consecutive-token curvature and ordered-span alignment from
+matched ordinary positions. ChemFM-1B revision
+`f99dc2e89726539bb9cf31b2e2b4360650bac6a8` was loaded through
+`src/chemfm.py`, put in evaluation mode, and frozen. No labels, loss, backward
+pass, optimizer, or update were constructed. A sampled parameter fingerprint
+was identical before and after inference:
+
+```text
+72e66b0397c1897a1ea1864e7420a6cb76f83cf7e25a7bc8e05d515054e2fc15
+```
+
+Every reaction used the maintained teacher-forced serialization:
+
+```text
+<rstart>{canonical source}<eos><prostart>{canonical product}<eos>
+```
+
+The main sample was the prespecified 256-reaction endpoint panel
+`prespecified_stage1_256.jsonl`, SHA-256
+`5b87bce1e75ed1ebf1a2a9091e0367aedaa8600a5621bc960352cf45b18e1865`.
+That panel contains no `@`, `/`, or backslash stereochemical tokens. The stereo
+stratum therefore used a separately fixed 64-reaction supplement: seed
+`20260829`, sampled without replacement from canonical view zero of each
+20-view reaction in the official USPTO-50K test file after restricting to
+reactions with a stereo token. Supplement reactions contribute only stereo
+pairs. The embedding output and every one of 22 transformer-block outputs were
+measured. Fast-tokenizer offsets were checked against the exact IDs emitted by
+the maintained `ReactionCollator`.
+
+### 7.2 Event definitions and matching
+
+- **Ring closure:** closing occurrence of a paired SMILES ring label.
+- **Branch:** opening and closing parentheses, with subtype retained.
+- **Stereochemistry:** `@`, `@@`, `/`, and backslash token positions.
+- **Motif completion:** token containing the last serialized atom in an RDKit
+  match to one of 14 disclosed SMARTS motifs: carbonyl, carboxyl, ester, amide,
+  amine, alcohol/phenol, ether, nitrile, nitro, sulfonyl, phosphoryl,
+  carbon-halogen, alkene, or alkyne.
+- **Reaction center:** an approximate graph-difference label because endpoint
+  strings have no atom maps. The source/target component pair with the largest
+  element- and bond-order-aware MCS was selected; atoms on an unmatched or
+  bond-order-changed frontier were marked. Median MCS coverage was `.769` of
+  the selected target component. These are MCS-inferred, not atom-mapped,
+  reaction centers.
+
+Categories can overlap. Controls had none of the five event labels. Each event
+was assignment-matched within reaction and source/product segment, prioritizing
+normalized position, branch depth, component, and token length. Atom events
+matched atom controls and syntax events matched syntax controls. All
+`11,173/11,173` pairs had the same token class. Median control reuse within a
+reaction/category/segment was one; maximum reuse was seven.
+
+| Event | Matched positions | Reactions | Source/target positions |
+|---|---:|---:|---:|
+| Ring closure | 1,616 | 256 | 906/710 |
+| Branch | 5,304 | 253 | 3,096/2,208 |
+| Stereochemistry | 306 | 64 | 145/161 |
+| Motif completion | 3,042 | 256 | 1,929/1,113 |
+| MCS-inferred reaction center | 905 | 256 | 437/468 |
+
+Branches comprise 2,652 opening and 2,652 closing parentheses. Stereo events
+comprise 264 `@`, 35 `/`, and 7 backslash labels.
+
+### 7.3 Geometry and inference
+
+At every valid center token `r` and layer, local curvature was
+
+```text
+1 - cos(h_r-h_{r-1}, h_{r+1}-h_r).
+```
+
+For semi-global alignment, 64 independent left/right offsets were drawn for
+every event/control pair, producing `s<r<t` and
+
+```text
+1 - cos(h_r-h_s, h_t-h_r).
+```
+
+The same offsets were applied to each event and its control. Spans were grouped
+as adjacent (`t-s=2`), short (`3--8`), medium (`9--24`), and long (`>=25`).
+Zero-norm increments were retained as missing. Layers 1--22 had all 11,173
+local pairs and 715,072 anchors valid; the embedding layer had 9,446 local
+pairs and 508,607 anchors valid.
+
+The inferential unit was a reaction. Pair differences were averaged within
+reaction and compared across reactions. Intervals use 5,000 reaction-cluster
+bootstrap draws; two-sided p-values use 20,000 reaction-level sign flips.
+Benjamini-Hochberg correction covers all 230 primary
+metric/category/layer tests. Paired Cohen's `dz` is the reaction-level mean
+difference divided by its reaction-level SD. Positive values mean the event is
+less aligned or more curved than its matched control.
+
+### 7.4 Final-layer distributions and effects
+
+| Event | Local difference (95% CI) | dz | q | Semi-global difference (95% CI) | dz | q |
+|---|---:|---:|---:|---:|---:|---:|
+| Ring closure | +.0513 (+.0378,+.0652) | +.462 | <.0001 | +.0746 (+.0679,+.0812) | +1.392 | <.0001 |
+| Branch | +.0387 (+.0271,+.0499) | +.424 | <.0001 | +.0030 (-.0001,+.0063) | +.116 | .0784 |
+| Stereochemistry | -.2053 (-.2516,-.1561) | -1.073 | <.0001 | -.0161 (-.0226,-.0096) | -.602 | <.0001 |
+| Motif completion | +.1018 (+.0869,+.1169) | +.832 | <.0001 | +.0362 (+.0319,+.0406) | +.975 | <.0001 |
+| MCS reaction center | +.0724 (+.0488,+.0961) | +.369 | <.0001 | -.0095 (-.0178,-.0018) | -.146 | .0233 |
+
+Final-layer event/control medians were respectively `1.503/1.411` local and
+`1.517/1.447` semi-global for rings; `1.472/1.396` and `1.463/1.464` for
+branches; `1.222/1.312` and `1.575/1.589` for stereo; `1.591/1.456` and
+`1.484/1.451` for motifs; and `1.461/1.388` and `1.448/1.455` for inferred
+centers. Full layer-wise means, SDs, quartiles, medians, reaction counts,
+effects, intervals, p-values, and q-values are retained in the CSV and JSON
+artifacts.
+
+Final-layer semi-global event-minus-control differences by span were:
+
+| Event | Adjacent | Short 3--8 | Medium 9--24 | Long >=25 (95% CI) |
+|---|---:|---:|---:|---:|
+| Ring closure | +.0736 | +.1069 | +.0813 | +.0719 (+.0647,+.0789) |
+| Branch | +.0678 | +.0132 | +.0038 | +.0033 (-.0003,+.0066) |
+| Stereochemistry | -.2004 | -.0602 | -.0253 | -.0145 (-.0221,-.0075) |
+| Motif completion | +.1388 | +.0919 | +.0470 | +.0330 (+.0283,+.0376) |
+| MCS reaction center | +.0631 | +.0132 | +.0004 | -.0107 (-.0187,-.0031) |
+
+Adjacent bins have fewer reaction clusters because an exactly adjacent draw is
+rare among the 64 sampled anchors; their intervals remain in `summary.json`.
+The long bin includes all 256 main reactions or all 64 stereo reactions.
+
+Layer zero is a lexical embedding baseline. From embedding to layer 22, the
+event/control contrast changed by:
+
+| Event | Depth-added local difference (95% CI) | Depth-added semi-global difference (95% CI) |
+|---|---:|---:|
+| Ring closure | +.4069 (+.3850,+.4270) | +.1821 (+.1728,+.1913) |
+| Branch | +.2911 (+.2741,+.3079) | +.1410 (+.1358,+.1467) |
+| Stereochemistry | -.5341 (-.6294,-.4278) | -.2580 (-.2836,-.2336) |
+| Motif completion | +.1090 (+.0902,+.1285) | -.0161 (-.0255,-.0076) |
+| MCS reaction center | +.0206 (-.0183,+.0594) | -.0346 (-.0457,-.0237) |
+
+Ring semi-global contrast becomes positive by layer 8 and remains positive at
+layer 22. Motif semi-global difference is positive at both embedding and final
+layers while the depth-added difference is negative, so matching does not
+remove its lexical baseline. Final source/target signs were concordant for
+ring semi-global (`+.047/+.108`), motif semi-global (`+.040/+.033`), stereo
+local (`-.213/-.211`), motif local (`+.110/+.088`), and center local
+(`+.066/+.061`). Branch semi-global was `-.007/+.019`.
+
+Within this assay, rings and motifs have positive local and long-span
+differences; branches have a positive local difference and a long-span
+interval containing zero; inferred centers have positive local and negative
+long-span differences; stereo differences are negative. These estimates do
+not establish a training consequence or a causal chemical interpretation.
+
+### 7.5 Limits, execution, and artifacts
+
+Controls match class and several positional properties, not exact token
+identity or the complete neighboring-token tuple. Events can overlap and
+controls can be reused. Ordered anchors may cross components or source/product
+markers. Reaction centers are an MCS-frontier proxy. Stereo comes from a
+separate enriched sample. Results do not extend beyond those estimands.
+
+The run used an RTX 4050 Laptop GPU, BF16 SDPA, batch 8, PyTorch
+`2.3.0+cu121`, Transformers `4.45.2`, RDKit `2024.09.1`, and SciPy `1.14.1`.
+Peak CUDA allocation was 2,695,863,296 bytes. Annotation took 6.4 seconds,
+inference 43.9 seconds, and the complete run 115.2 seconds.
+
+Artifacts are under `runs/diagnostics/frozen_chemfm_stp_geometry/`:
+`summary.json`, `layerwise_primary_tests.csv`, `pair_geometry.npz`,
+`matched_pairs.jsonl`, `layerwise_distributions.svg`, `paired_effects.svg`,
+`span_persistence.svg`, and `artifact_manifest.json`. The implementation is
+`src/frozen_geometry.py`; focused tests are in
+`tests/test_frozen_geometry.py`.
+
+## 8. All-checkpoint frozen representation supplement
 
 ### Protocol, scope, and integrity
 
@@ -252,7 +427,7 @@ implementation is `2a20459`; it evaluates all 22 final checkpoints: five
 Native controls and all 17 rank/formulation/lambda/seed treatments.
 
 It uses the canonical first-256 development prefix (SHA-256
-`250bc411...cef4fb32`) plus Report 06's fixed 64-reaction stereo supplement.
+`250bc411...cef4fb32`) plus Section 7's fixed 64-reaction stereo supplement.
 At all 23 representation depths it measures 320 reactions, 11,173 matched
 chemical-event/control pairs, 64 semi-global anchors per event, and 32 fixed
 spans per main reaction for each objective. Every checkpoint sees identical
@@ -447,7 +622,7 @@ aggregation changes.
 7. The reported development-matrix associations do not identify a scalar
    representation diagnostic that predicts treatment effect.
 
-## 8. Runtime and artifact accounting
+## 9. Runtime and artifact accounting
 
 Report 07's three released trajectories trained concurrently on one A6000 in
 about 26 minutes; each 256 endpoint took about 16 minutes. Report 08 paired
@@ -467,7 +642,7 @@ hash/fingerprint metadata, spectra, relationships, and drift under
 `runs/stp_representation/frozen_all_checkpoints/`; derived JSON, CSV, and SVG
 artifacts are under `runs/stp_representation/analysis/`.
 
-## 9. Measurements supported by the completed design
+## 10. Measurements supported by the completed design
 
 1. Released and paper STP implementations are numerically distinct and passed
    their recorded upstream/equation parity tests.
@@ -493,7 +668,7 @@ untouched panel. Formulation superiority, paper-STP capacity away from `.02`,
 other budgets, natural-language tasks, and other architectures remain outside
 the completed design.
 
-## 10. Reproducibility map
+## 11. Reproducibility map
 
 | Evidence | Path |
 |---|---|
