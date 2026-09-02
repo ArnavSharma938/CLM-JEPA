@@ -64,6 +64,11 @@ Disposable optimizer states and redundant worker shards are excluded. The
 Thunder instance was deleted only after the local hash, row counts, and six
 adapters were verified.
 
+The final billing audit also found an orphan A6000 allocation matching the
+earlier capacity watcher's request. It was created after that watcher had been
+cancelled, was not used by the experiment runner, and was deleted immediately.
+The final Thunder status contained no instances.
+
 ## Report 08 matrix audit before new training
 
 The distinction between formulation, coefficient, and rank is essential.
