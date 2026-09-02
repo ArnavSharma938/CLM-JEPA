@@ -53,7 +53,9 @@ def stable_full_rank(canonical_views: list[list[str]]) -> dict:
 
 def row_detail(row: dict) -> dict:
     aggregate = stable_full_rank(row["canonical_candidates_by_view"])
-    if aggregate["ranked"][:10] != row["ranked_candidates"]:
+    expected_stored_rank = aggregate["ranked"][:10]
+    expected_stored_rank += [""] * (10 - len(expected_stored_rank))
+    if expected_stored_rank != row["ranked_candidates"]:
         raise ValueError(f"stored official rank differs at panel {row['panel_index']}")
     for candidate, score in row["rank_scores"].items():
         if abs(aggregate["scores"][candidate] - score) > 1e-12:
