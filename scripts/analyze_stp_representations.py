@@ -286,7 +286,8 @@ def analyze(input_dir: Path, output_dir: Path) -> dict:
     write_plots(result, output_dir)
     manifest = []
     for path in sorted(output_dir.iterdir()):
-        if path.is_file():
+        # A manifest cannot truthfully hash the file that contains itself.
+        if path.is_file() and path.name != "artifact_manifest.json":
             manifest.append({"name": path.name, "bytes": path.stat().st_size, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
     (output_dir / "artifact_manifest.json").write_text(json.dumps({"artifacts": manifest}, indent=2) + "\n", encoding="utf-8")
     return result
