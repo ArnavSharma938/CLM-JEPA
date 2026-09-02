@@ -188,8 +188,13 @@ def fixed_spans(example: Example, count: int, seed: int) -> dict[str, np.ndarray
             continue
         released.append((start, end))
     while len(paper) < count:
-        start = int(rng.integers(0, full_length - 1))
-        end = int(rng.integers(start + 2, full_length + 1))
+        # Match PaperSemanticTubePrediction.get_s_r_t: draw an outer span
+        # through released get_s_t (including its full-span rejection), then
+        # reject outer spans with no valid interior point.
+        start = int(rng.integers(0, full_length))
+        end = int(rng.integers(start + 1, full_length + 1))
+        if (start == 0 and end == full_length) or end - start < 2:
+            continue
         interior = int(rng.integers(start + 1, end))
         paper.append((start, interior, end))
     return {

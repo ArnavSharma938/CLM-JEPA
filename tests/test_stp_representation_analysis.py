@@ -5,6 +5,7 @@ from frozen_geometry import Example, TokenInfo, one_minus_cosine
 from stp import PaperSemanticTubePrediction, SemanticTubePrediction
 from stp_representation_analysis import (
     checkpoint_specs,
+    fixed_spans,
     objective_values,
     semantic_path,
 )
@@ -67,3 +68,11 @@ def test_fixed_objectives_match_released_and_paper_definitions():
         )[0])
     torch.testing.assert_close(released, torch.stack(expected_released), atol=1e-6, rtol=0)
     torch.testing.assert_close(paper, torch.stack(expected_paper), atol=1e-6, rtol=0)
+
+
+def test_paper_diagnostic_spans_reuse_released_outer_constraints():
+    example = _example()
+    spans = fixed_spans(example, count=1000, seed=19)
+    length = int(spans["full_length"])
+    assert all(start < interior < end for start, interior, end in spans["paper"])
+    assert all(not (start == 0 and end == length) for start, _, end in spans["paper"])
