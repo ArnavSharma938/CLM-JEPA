@@ -81,7 +81,7 @@ pair residual, or auxiliary dropout.
 | Official-rank analysis fixes | `8f8f1810`, `aef24562` |
 | Report 09 completed repository | `717b076a183308127d279ca97d4faafdb23c499b` |
 | Representation preregistration | `e1c5011` |
-| Representation implementation | `49143710a6aa83e4f292d4520d8c0d4060ce5704`; exact outer-span correction `2a20459322e930f46250b11b4417cad7b82fbb04` |
+| Representation implementation | `49143710a6aa83e4f292d4520d8c0d4060ce5704`; exact outer-span correction `2a20459322e930f46250b11b4417cad7b82fbb04`; final manifest analyzer `3325ddc` |
 
 ChemFM is pinned at revision
 `f99dc2e89726539bb9cf31b2e2b43606650bac6a8`, weight SHA-256
