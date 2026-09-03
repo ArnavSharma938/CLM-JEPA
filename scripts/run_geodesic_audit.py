@@ -1408,12 +1408,67 @@ def analyze_intrinsic(args) -> None:
     })
 
 
+def analyze_final_operations(args) -> None:
+    """Isolate last-block and final-RMSNorm geometry on the fixed 64 rows."""
+    output = args.output.resolve()
+    writer = JsonlGzipWriter(output / "raw" / "final_operation_geometry.jsonl.gz")
+    started = time.perf_counter()
+    cache = output / "cache" / "gold_states"
+    for cache_path in sorted(cache.glob("*.pt")):
+        payload = torch.load(cache_path, map_location="cpu", weights_only=False)
+        key = cache_path.stem
+        for record in payload["records"][:64]:
+            paths = {
+                "layer_21": record["states"][3].float(),
+                "post_last_pre_norm": record["post_last_pre_norm"].float(),
+                "final_post_norm": record["states"][4].float(),
+            }
+            for layer, states in paths.items():
+                temporary = dict(record)
+                temporary["states"] = states.unsqueeze(0)
+                for segment in ("source", "product", "cross"):
+                    path, _ = trajectory_from_record(temporary, 0, segment, "cpu")
+                    acceleration = acceleration_decomposition(path)
+                    local = 1 - cosine(path[1:-1] - path[:-2], path[2:] - path[1:-1])
+                    scale = {row["span_length"]: row for row in tube_scale_space(path)}
+                    selected = {}
+                    for length in (2, 4, 8, 16, 32, 64):
+                        if length in scale:
+                            selected[str(length)] = {
+                                name: scale[length][name]
+                                for name in ("rms", "maximum", "p95", "monotonicity_violation")
+                            }
+                    writer.write({
+                        "checkpoint": key, "panel_index": record["panel_index"],
+                        "reaction_identity": record["reaction_identity"],
+                        "layer": layer, "segment": segment, "tokens": len(path),
+                        "local_curvature_mean": float(local.mean()),
+                        "local_curvature_median": float(local.median()),
+                        "speed": float(acceleration["speed"].mean()),
+                        "tangential_acceleration": float(acceleration["acceleration_parallel"].mean()),
+                        "normal_acceleration": float(acceleration["acceleration_normal"].mean()),
+                        "normalized_normal_acceleration": float(acceleration["normalized_normal"].mean()),
+                        "euclidean_path_efficiency": float(
+                            (path[-1] - path[0]).norm()
+                            / (path[1:] - path[:-1]).norm(dim=-1).sum().clamp_min(1e-12)
+                        ),
+                        "tube_selected": selected,
+                    })
+        print(json.dumps({"stage": "final_operation_checkpoint", "checkpoint": key, "rows": writer.count}), flush=True)
+        del payload
+    writer.close()
+    write_json(output / "final_operation_metadata.json", {
+        "git_commit": git_commit(), "rows": writer.count,
+        "seconds": time.perf_counter() - started, "fixed_prefix": 64,
+    })
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=(
         "extract-gold", "analyze-gold", "analyze-matched",
         "analyze-intrinsic", "analyze-candidates", "analyze-candidate-intrinsic",
-        "analyze-cones",
+        "analyze-cones", "analyze-final-operations",
     ))
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--panel", type=Path, default=DEFAULT_PANEL)
@@ -1441,5 +1496,7 @@ if __name__ == "__main__":
         analyze_candidates(arguments)
     elif arguments.command == "analyze-candidate-intrinsic":
         analyze_candidate_intrinsic(arguments)
+    elif arguments.command == "analyze-final-operations":
+        analyze_final_operations(arguments)
     else:
         analyze_cones(arguments)
