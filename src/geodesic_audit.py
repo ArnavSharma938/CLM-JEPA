@@ -57,13 +57,16 @@ def tube_scale_space(
     # from O(n^3 * hidden_size) to O(n^2 * hidden_size + n^3) without changing
     # the set of evaluated triples.
     centered = path - path[:1]
-    gram = centered @ centered.T
-    diagonal = gram.diag()
+    # The O(n^2*d) Gram multiplication stays on the input device.  Moving the
+    # tiny Gram matrix once to NumPy avoids hundreds of small CUDA kernels and
+    # synchronizations in the span-by-span scalar reductions.
+    gram = (centered @ centered.T).detach().cpu().numpy()
+    diagonal = np.diag(gram)
     out: list[dict[str, float]] = []
     for length in range(2, n):
-        starts = torch.arange(n - length, device=path.device)[:, None]
+        starts = np.arange(n - length)[:, None]
         ends = starts + length
-        interiors = starts + torch.arange(1, length, device=path.device)[None, :]
+        interiors = starts + np.arange(1, length)[None, :]
         chord_sq = (
             diagonal[ends] + diagonal[starts] - 2 * gram[starts, ends]
         )
@@ -74,29 +77,30 @@ def tube_scale_space(
             gram[interiors, ends] - gram[interiors, starts]
             - gram[starts, ends] + diagonal[starts]
         )
-        alpha = u_dot_chord / chord_sq.clamp_min(EPS)
-        q_sq = (u_sq - u_dot_chord.square() / chord_sq.clamp_min(EPS)).clamp_min(0)
-        rho = q_sq.sqrt() / chord_sq.sqrt().clamp_min(EPS)
+        safe_chord = np.maximum(chord_sq, EPS)
+        alpha = u_dot_chord / safe_chord
+        q_sq = np.maximum(u_sq - np.square(u_dot_chord) / safe_chord, 0)
+        rho = np.sqrt(q_sq) / np.maximum(np.sqrt(safe_chord), EPS)
         invalid_chords = chord_sq <= EPS
-        rho = rho.masked_fill(invalid_chords, torch.nan)
-        alpha = alpha.masked_fill(invalid_chords, torch.nan)
-        valid = torch.isfinite(rho)
-        valid_count = int(valid.sum().item())
+        rho = np.where(invalid_chords, np.nan, rho)
+        alpha = np.where(invalid_chords, np.nan, alpha)
+        valid = np.isfinite(rho)
+        valid_count = int(valid.sum())
         if valid_count == 0:
             continue
-        zero_chords = int(rho.numel() - valid_count)
+        zero_chords = int(rho.size - valid_count)
         rho = rho[valid]
         alpha = alpha[valid]
-        quantiles = torch.quantile(rho, torch.tensor([.5, .9, .95], device=rho.device))
-        statistics = torch.stack([
-            rho.mean(), rho.square().mean().sqrt(), rho.max(),
-            *quantiles,
-            ((alpha < 0) | (alpha > 1)).float().mean(),
-            *((rho > threshold).float().mean() for threshold in thresholds),
-        ]).detach().cpu().tolist()
+        quantiles = np.quantile(rho, [.5, .9, .95])
+        statistics = [
+            float(rho.mean()), float(np.sqrt(np.square(rho).mean())), float(rho.max()),
+            *map(float, quantiles),
+            float(((alpha < 0) | (alpha > 1)).mean()),
+            *(float((rho > threshold).mean()) for threshold in thresholds),
+        ]
         row: dict[str, float] = {
             "span_length": length,
-            "triples": int(rho.numel()),
+            "triples": int(rho.size),
             "zero_chords": zero_chords,
             "mean": statistics[0], "rms": statistics[1],
             "maximum": statistics[2], "p50": statistics[3],
