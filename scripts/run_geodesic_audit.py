@@ -518,7 +518,8 @@ def analyze_gold(args) -> None:
         spec = payload["spec"]
         key = spec["key"]
         weight = payload["lm_head"].float().to(args.device)
-        for record in payload["records"]:
+        analysis_records = payload["records"][:args.analysis_limit or None]
+        for record in analysis_records:
             for layer_index, label in enumerate(payload["depth_labels"]):
                 for segment in ("source", "product", "cross"):
                     path_states, positions = trajectory_from_record(record, layer_index, segment, args.device)
@@ -1122,6 +1123,7 @@ def parse_args():
     parser.add_argument("--keys", default="")
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--intrinsic-queries", type=int, default=256)
+    parser.add_argument("--analysis-limit", type=int, default=0)
     return parser.parse_args()
 
 
