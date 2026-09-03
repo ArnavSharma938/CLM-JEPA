@@ -66,6 +66,11 @@ OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv/bin/python scripts/run_geodesic_audit.
   analyze-cones --output "$main"
 printf '{"stage":"cones_complete","seconds":%d}\n' "$((SECONDS-started))"
 
+printf '{"stage":"final_operations_start"}\n'
+OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv/bin/python scripts/run_geodesic_audit.py \
+  analyze-final-operations --output "$main"
+printf '{"stage":"final_operations_complete","seconds":%d}\n' "$((SECONDS-started))"
+
 printf '{"stage":"summary_start"}\n'
 OMP_NUM_THREADS=6 MKL_NUM_THREADS=6 .venv/bin/python scripts/summarize_geodesic_audit.py --root "$main"
 printf '{"stage":"audit_sequence_complete","seconds":%d}\n' "$((SECONDS-started))"
