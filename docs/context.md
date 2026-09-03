@@ -143,3 +143,16 @@ The consolidated report index and artifact paths are in `docs/reports/README.md`
 The dense causal implementation and measurements are retained in
 `docs/reports/00_PRE_STP_JEPA_CONSOLIDATED.md`; the obsolete standalone Report
 04 was removed after consolidation.
+
+### STP and Geodesic Mechanism Audit
+
+The complete released/paper STP generation, capacity, lambda, beam, frozen-
+representation, and no-training geodesic evidence is consolidated in
+`docs/reports/01_STP_AND_TRAJECTORY_GEOMETRY.md`. The generation verdict
+remains INCONCLUSIVE on the repeatedly used 512-reaction development panel.
+The geodesic audit found no small-radius or positive-tangent-persistence regime
+in final ChemFM states, no consistent STP improvement in tube/Fisher/intrinsic
+geometry, and substantial gold-token sensitivity in the chord-perpendicular
+component. Canonical raw outputs are preserved in
+`runs/geodesic_mechanism_audit_a6000_compact.tar.zst` (SHA-256
+`6fe76210d7244c25fb3dcb0548b530633f6010b0e473477bfd2173e7bd30d3f0`).

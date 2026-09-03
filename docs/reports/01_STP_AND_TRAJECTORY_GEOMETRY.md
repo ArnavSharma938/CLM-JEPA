@@ -41,6 +41,30 @@ rank metrics did not reproduce the ordering of top-1 effects in this matrix.
 For seed 1301 specifically, the saved beams locate the lost Native successes
 in within-beam ranking and cross-view aggregation rather than beam entry.
 
+The subsequent preregistered, frozen Geodesic Mechanism Audit does not support
+the literal Euclidean-geodesic mechanism in ChemFM's final representation.
+Native final-layer RMS tube radius is `.95` at the shortest possible product
+span and remains about `.92--.98` through length 64; `80.6%` of the length-2
+interior points exceed normalized radius `.5`. Adjacent tangent correlation is
+negative (`C(1)=-.415`), so there is no observed short-scale ballistic regime.
+STP changes these quantities weakly and inconsistently across seed,
+formulation, and scale. More decisively, the supposedly perpendicular
+"noise" component is strongly used by the decoder: on Native product paths
+its absolute gold-token sensitivity is `1.4--1.9x` the chord-parallel
+component across span bins, and removing only 10% of it with hidden-norm
+restoration lowers the gold margin in about 63% of sampled decisions.
+
+Output-Fisher and local-manifold analyses do not rescue a single geometric
+account. Hidden and Fisher tube measurements correlate moderately
+(`r=.61--.69`), but Euclidean efficiency gains shrink sharply or reverse in
+Fisher geometry, intrinsic-violation changes are not stable across robustness
+settings, and correct versus wrong beam trajectories reverse ordering across
+plausible geodesicity metrics. The seven seed-1301 failures contain a small,
+exploratory intrinsic signal that STP favored the wrong path in 12 of 18 local-
+manifold settings, but the ambient and Fisher comparisons do not identify a
+general mechanism. The audit therefore weakens the literal theory while
+leaving the empirical generation question **INCONCLUSIVE**.
+
 The 512-reaction panel is development data after repeated use. No untouched-
 panel confirmation was run.
 
@@ -86,6 +110,8 @@ pair residual, or auxiliary dropout.
 | Report 09 completed repository | `717b076a183308127d279ca97d4faafdb23c499b` |
 | Representation preregistration | `e1c5011` |
 | Representation implementation | `49143710a6aa83e4f292d4520d8c0d4060ce5704`; exact outer-span correction `2a20459322e930f46250b11b4417cad7b82fbb04`; final manifest analyzer `3325ddc` |
+| Geodesic audit preregistration | `aa51db7` |
+| Geodesic exact candidate execution | `9765eaf1f88cb42b26d90cac180ceae72d4d7876` |
 
 ChemFM is pinned at revision
 `f99dc2e89726539bb9cf31b2e2b4360650bac6a8`, weight SHA-256
@@ -629,7 +655,8 @@ aggregation changes.
 This frozen, no-training audit tests the assumptions needed to interpret STP
 as geodesic straightening rather than adding more generic representation
 descriptors. The protocol was committed at `aa51db7` before state extraction.
-The exact candidate/final analysis execution source is `9784a1b`; earlier gold
+The definitive candidate/final analysis execution source is
+`9765eaf1f88cb42b26d90cac180ceae72d4d7876`; earlier gold
 state extraction and scale-space shards retain their launch commits in the
 artifact metadata and execution log.
 
@@ -739,7 +766,309 @@ candidate loss is separately checked against the exact framing-excluded
 source-plus-product construction rather than the earlier product-only proxy.
 Batched versus scalar local-PCA decompositions pass at `rtol=atol=2e-5`;
 functional geometry from precomputed logits is bitwise equal in the unit test.
-The focused audit suite passes 15 tests before execution.
+The final repository suite passes 130 tests with one intentional skip.
+
+Candidate batching changes the BF16 attention batch shape, so individual
+hidden-derived scalars are not bitwise invariant. This is recorded rather than
+described as exact equivalence. On all 11,475 overlapping Native-seed-533
+records, however, the decision-relevant wrong-minus-gold aggregates from the
+old and optimized paths were respectively: tube integral
+`.00853245/.00852914`, Euclidean inefficiency
+`-.04805432/-.04805728`, Fisher inefficiency
+`-.04712933/-.04712980`, Fisher curvature `.01072582/.01070770`, and
+normalized normal acceleration `.01540306/.01547705`. The conclusions are
+stable to this numerical perturbation. The canonical run uses the corrected
+full source-plus-product semantic path for both fixed objective diagnostics;
+the earlier product-only objective values are excluded rather than equated.
+
+### 9.4 Scale-space result: no observed small-radius local tube
+
+The theorem's condition is a uniform bound over every interior point. Native
+ChemFM does not show a small-radius regime under this normalization at the
+final layer:
+
+| Segment | L | RMS radius | mean maximum | p95 | fraction `rho>.5` | alpha outside `[0,1]` |
+|---|---:|---:|---:|---:|---:|---:|
+| source | 2 | 1.084 | 3.881 | 1.791 | .825 | .043 |
+| source | 8 | .988 | 3.707 | 1.624 | .853 | .034 |
+| source | 32 | .939 | 2.649 | 1.488 | .900 | .022 |
+| product | 2 | .950 | 2.545 | 1.603 | .806 | .039 |
+| product | 8 | .983 | 3.031 | 1.716 | .826 | .042 |
+| product | 32 | .971 | 2.408 | 1.691 | .882 | .027 |
+| cross | 2 | 1.050 | 4.060 | 1.763 | .816 | .041 |
+| cross | 8 | .976 | 4.120 | 1.600 | .830 | .041 |
+| cross | 32 | .851 | 2.900 | 1.324 | .831 | .045 |
+
+These are seed-533 r8 Native means over 256 reactions. The declining source
+and long crossing curves are not evidence of a local tube: the radius is
+already approximately one at `L=2`, and most interior states exceed `.5` at
+every displayed scale. Continuous two-line fits locate descriptive median
+curve breaks at source `23 [20,26]`, product `16.5 [15,19]`, and crossing
+`37 [29.5,43.5]` tokens. They identify a change in curve shape, not a theorem-
+satisfying `tau`. Earlier layers have later breaks (for example layer-6
+source/product/cross `62/31/102`) but likewise do not establish a small-radius
+regime.
+
+![Final-layer tube scale-space](../../runs/geodesic_mechanism_audit/plots/tube_scale_space_final.png)
+
+Tangent persistence gives the same answer more directly. Native final-layer
+`C(1)` is `-.436` on source, `-.415` on product, and `-.425` on crossing
+paths; all cross zero immediately. Paper seed 533 changes product `C(1)` to
+`-.409`, released to `-.412`. Multiscale product turning changes at scales
+1/2/4/8/16 are only `-.0043/-.0002/-.0023/-.0011/-.0008` for paper and
+`-.0010/-.0002/-.0020/-.0025/-.0037` for released. Seed 917 reverses the
+local sign for both formulations. Thus a piecewise-regression persistence
+scale exists descriptively, but a locally ballistic state trajectory does not.
+
+### 9.5 What STP changes across scale, seed, rank, and lambda
+
+Reaction-paired changes in final product RMS tube radius show why an average
+"STP straightens" statement is inadequate:
+
+| Treatment | L2 | L8 | L32 | L64 |
+|---|---:|---:|---:|---:|
+| paper r8/.02 s533 | -.0015 | +.0012 | -.0006 | -.0008 |
+| paper r8/.02 s917 | +.0152 | +.0105 | +.0044 | -.0065 |
+| released r8/.02 s533 | +.0074 | +.0073 | -.0067 | -.0182 |
+| released r8/.02 s917 | +.0286 | +.0205 | -.0008 | -.0143 |
+| released r8/.02 s1301 | +.0064 | -.0018 | -.0090 | -.0183 |
+
+For example, paper seed 917 increases local product deviation at `L=2` by
+`.0152`, reaction-bootstrap 95% interval `[.0124,.0180]`, paired
+`d_z=.666`; released seed 917 increases it by `.0286 [.0252,.0321]`,
+`d_z=1.033`. Released seed 1301 instead lowers the `L=64` value by
+`.0183 [-.0422,-.0009]`. These are exploratory, unadjusted intervals over
+many scales and are used to describe heterogeneity, not declare isolated
+discoveries.
+
+The all-checkpoint census reaches the same conclusion. Primary r8/.02 entries
+use all 256 reactions; other configurations use the fixed 64 subset. Each
+entry is `STP-Native` final product RMS radius; long `L=64` estimates have
+fewer eligible reactions and are correspondingly unstable.
+
+| Checkpoint | L2 | L8 | L32 | L64 |
+|---|---:|---:|---:|---:|
+| paper r128/.02 s533 | -.0057 | -.0147 | -.0277 | -.0347 |
+| paper r128/.02 s917 | -.0186 | +.0045 | -.0267 | -.0029 |
+| paper r8/.02 s533 | -.0015 | +.0012 | -.0006 | -.0008 |
+| paper r8/.02 s917 | +.0152 | +.0105 | +.0044 | -.0065 |
+| paper r8/.08 s533 | -.0092 | +.0031 | -.0090 | +.2076 |
+| paper r8/.08 s917 | +.0167 | +.0129 | -.0114 | +.1506 |
+| paper r8/.12 s533 | -.0065 | +.0072 | -.0087 | +.1887 |
+| paper r8/.12 s917 | +.0048 | +.0101 | -.0231 | +.1262 |
+| released r128/.02 s533 | +.0020 | -.0003 | -.0192 | -.0272 |
+| released r128/.02 s917 | +.0097 | +.0231 | -.0254 | +.0139 |
+| released r8/.005 s533 | +.0063 | +.0128 | +.0024 | +.1714 |
+| released r8/.005 s917 | +.0291 | +.0221 | +.0243 | +.1865 |
+| released r8/.02 s533 | +.0074 | +.0073 | -.0067 | -.0182 |
+| released r8/.02 s917 | +.0286 | +.0205 | -.0008 | -.0143 |
+| released r8/.02 s1301 | +.0064 | -.0018 | -.0090 | -.0183 |
+| released r8/.08 s533 | +.0175 | +.0151 | -.0117 | +.1741 |
+| released r8/.08 s917 | +.0361 | +.0237 | -.0040 | +.1921 |
+
+There is no monotonic response to lambda or rank and no consistent reduction
+at the short scales where the local-linearity claim is strongest.
+
+### 9.6 Speed, intrinsic geometry, and the decoder metric
+
+STP can improve one whole-path scalar while increasing directional
+acceleration. At r8/.02 seed 533:
+
+| Treatment/segment | delta speed | delta normal acceleration | delta normalized normal | delta Euclidean efficiency | delta Fisher efficiency |
+|---|---:|---:|---:|---:|---:|
+| paper source | +.1612 | +.0051 | -.1215 | +.00213 | +.00210 |
+| paper product | +.0171 | +.0276 | +.0052 | +.00199 | -.00035 |
+| paper cross | +.1080 | +.0192 | -.0728 | +.00088 | +.00018 |
+| released source | +.0811 | +.0523 | -.0542 | +.00261 | +.00084 |
+| released product | +.0067 | +.0136 | +.0040 | +.00575 | +.00037 |
+| released cross | +.0613 | +.0391 | -.0315 | +.00429 | +.00114 |
+
+The product normal-acceleration increases have reaction-bootstrap intervals
+`[.0169,.0375]` for paper and `[.0038,.0235]` for released. Paper's product
+Fisher-efficiency interval crosses zero `[-.00099,.00010]`; released's is
+small but positive `[.00018,.00062]`. At spans 3--8, the exact Fisher--Rao
+triangle excess is `2.4092` Native, `2.4125` paper, and `2.4133` released,
+while optimal-ray residual is `.8513/.8517/.8515`. Fixed-objective reduction
+therefore does not improve actual ray extrapolation or distribution-space
+geodesicity in this assay.
+
+Euclidean tube radius and Fisher triangle excess are related but not
+interchangeable: their token-level correlations are `.607` source and `.683`
+product for Native seed 533, with the primary checkpoints spanning roughly
+`.600--.620` and `.679--.692`. STP's Euclidean efficiency changes are
+systematically larger than its Fisher changes, and Fisher local-curvature
+changes vary in sign. Hidden straightness is partly functionally visible, but
+the trained change is not preserved as a single decoder-geometric effect.
+
+![Euclidean versus Fisher path-efficiency changes](../../runs/geodesic_mechanism_audit/plots/euclidean_vs_fisher_change.png)
+
+The local-manifold result is also heterogeneous. The table reports the mean
+STP-minus-Native intrinsic geodesic-violation change at the final layer and
+the fraction of 36 robustness settings in which it is negative:
+
+| Treatment | source delta / fraction negative | product delta / fraction negative |
+|---|---:|---:|
+| paper r8/.02 s533 | -.0285 / .69 | +.0710 / .22 |
+| released r8/.02 s533 | -.0260 / .58 | -.0097 / .58 |
+| released r8/.02 s1301 | +.0148 / .42 | +.0189 / .39 |
+| paper r128/.02 s533 | -.0546 / .69 | -.0529 / .81 |
+| released r128/.02 s533 | +.0129 / .50 | -.3079 / 1.00 |
+
+Changing neighbor count, tangent dimension, pooled versus same-segment
+references, or Euclidean versus whitened search can change the conclusion.
+The stable statements are narrower: intrinsic and ambient-normal acceleration
+are distinct, and neither formulation produces a seed/segment/rank-invariant
+drop in estimated covariant acceleration.
+
+The last block and RMSNorm materially reshape the displayed final geometry but
+do not uniquely create the STP effect. On Native seed-533 product paths, the
+last block changes local curvature by `-.0105`, RMS tube radius by `+.0180`
+at L2 and `+.0264` at L16; final RMSNorm changes them by `+.0022`, `+.0277`,
+and `+.0325`. Paper and released checkpoints show the same qualitative
+operation pattern. The final representation is therefore not a passive copy
+of layer 21, but STP's result cannot be assigned solely to normalization.
+
+### 9.7 The perpendicular component is predictive signal, not measured noise
+
+At Native seed-533 product positions, the reaction-clustered absolute gold-
+token sensitivity of the chord-perpendicular component divided by the
+parallel component is `1.42 [1.23,1.65]`, `1.80 [1.68,1.94]`,
+`1.86 [1.75,1.98]`, and `1.97 [1.77,2.20]` for span bins 2, 3--8, 9--24,
+and 25+. Mean absolute gradient/displacement cosine is
+`.390/.363/.368/.377`; the fraction above `.1` is
+`.859/.846/.871/.884`. Paper and released checkpoints
+remain in essentially the same range. Chemical events do not isolate a
+dispensable component: the ratio is `1.77` over all annotated product events,
+`1.94` at ordinary positions, `2.16` at branches, and `1.57` at reaction-
+center positions for Native seed 533.
+
+The intervention agrees with the analytic sensitivity. For the 9--24 span
+bin, removing 10% of the perpendicular displacement and restoring the
+original hidden norm gives reaction-clustered estimates:
+
+| Checkpoint | delta gold log p | delta gold margin | fraction log-p harmed | fraction margin harmed |
+|---|---:|---:|---:|---:|
+| Native r8 s533 | -.0043 | -.1751 | .625 | .614 |
+| paper r8/.02 s533 | -.0039 | -.1815 | .630 | .616 |
+| released r8/.02 s533 | -.0037 | -.1839 | .635 | .622 |
+
+The gold-margin intervals are respectively `[-.188,-.162]`,
+`[-.194,-.168]`, and `[-.197,-.171]`; gold-log-probability intervals also
+remain below zero. These future-informed interventions are diagnostic, not
+causal generation.
+They do directly reject the proposed representation decomposition for this
+model: perpendicular motion is neither decoder-orthogonal nor harmless to the
+gold decision.
+
+![Perpendicular sensitivity by chemical event](../../runs/geodesic_mechanism_audit/plots/perpendicular_signal_by_event.png)
+
+### 9.8 How released STP lowers its objective
+
+Released-objective reduction is not explained by complement cancellation.
+For released r8/.02 seed 533 at patch lengths 8/32/64, loss changes are
+`-.0959/-.1408/-.1774`; `cos(P,B)` rises
+`+.0537/+.0915/+.1297`, `cos(P,A)` rises
+`+.0482/+.0894/+.1205`, and `cos(B,A)` rises
+`+.0863/+.0669/+.0541`. The cancellation ratio itself rises only
+`+.0319/+.0249/+.0192`. Seed 917 has the same dominant patch-after alignment,
+although its long-span before-after cosine decreases slightly. The released
+loss is doing what its executable equation requests: broad patch/complement
+alignment. That operation is simply not equivalent to reducing every local
+tube radius.
+
+Nor does symmetric STP primarily project a middle point onto a fixed chord.
+For seed-533 product spans 8/16/32, Native-to-paper midpoint-correction cosine
+is `.017/.004/-.008` and endpoint-to-middle displacement ratio is
+`1.09/1.14/1.20`; released gives `.030/.018/.006` and
+`1.10/1.18/1.27`. Chord cosine remains about `.987--.989`, but endpoints move
+at least as much as interiors. Lower loss is produced by a distributed change
+of the trajectory and its endpoints, not the fixed-endpoint construction used
+in the Straightening Lemma.
+
+### 9.9 Correct versus wrong beam trajectories
+
+No tested metric supplies a metric-independent `G(gold)<G(wrong)` ordering.
+Values below are reaction-averaged wrong-minus-gold contrasts across views:
+
+| Checkpoint | tube integral | paper loss | Euclidean inefficiency | Fisher inefficiency |
+|---|---:|---:|---:|---:|
+| Native s533 | +.0078 | +.0189 | -.0481 | -.0471 |
+| Native s917 | +.0090 | +.0225 | -.0677 | -.0675 |
+| Native s1301 | +.0188 | +.0188 | -.0540 | -.0544 |
+| paper s533 | +.0123 | +.0193 | -.0513 | -.0504 |
+| paper s917 | +.0125 | +.0190 | -.0614 | -.0608 |
+| released s533 | +.0057 | +.0207 | -.0460 | -.0426 |
+| released s917 | +.0063 | +.0206 | -.0436 | -.0403 |
+| released s1301 | +.0078 | +.0229 | -.0525 | -.0499 |
+
+Paper-style loss says wrong paths are less aligned than gold; whole-path
+Euclidean and Fisher efficiency say wrong paths are *more* efficient. Tube
+integral weakly favors gold, with intervals crossing zero in several
+checkpoints. The fixed objective is evaluated on the released
+source-plus-product semantic path, whereas tube and efficiency describe the
+product trajectory; the comparison therefore tests competing operational
+definitions, not a coordinate-only metric swap on one identical path.
+Candidate length explains part but not all of the ordering. At
+Native seed 533, restricting to average absolute token-length difference at
+most two shrinks wrong-minus-gold inefficiency to `-.0041` Euclidean and
+`-.0035` Fisher (`n=24`); when the wrong candidate is not shorter, signs
+reverse to `+.0056/+.0061` (`n=46`). A linear equal-length adjustment still
+estimates `-.0185 [-.0270,-.0101]` Euclidean and
+`-.0171 [-.0256,-.0086]` Fisher; all eight primary checkpoints retain negative
+adjusted intercepts. Paper loss retains a positive equal-length intercept in
+all eight. The data therefore do not identify one operational geodesicity
+measure that separates correct and wrong trajectories.
+
+The central local-PCA candidate assay is unresolved: wrong-minus-gold
+intrinsic violation intervals cross zero for every checkpoint (about 68--70
+reactions each). In the seven fixed seed-1301 losses, ambient and Fisher
+changes likewise cross zero. The central intrinsic setting does show a
+released-STP shift of `-.134 [-.266,-.023]` in wrong-minus-gold violation and
+`-.0053 [-.0089,-.0007]` after acceleration normalization. Across all 18
+robustness settings, 12 shift violation toward a more-geodesic wrong path but
+only two have intervals wholly below zero; normalized violation shifts that
+way in 15/18 but only one interval excludes zero. This is a useful candidate-
+relative clue, not a seven-reaction mechanism claim.
+
+![Seed-1301 change in wrong-minus-gold geometry](../../runs/geodesic_mechanism_audit/plots/seed1301_natural_experiment.png)
+
+### 9.10 Inference cone and mechanistic verdict
+
+The bounded cone assay (`n=32` event and 32 ordinary prefixes) does not show a
+general narrowing. Paper seed 533 lowers event perpendicular variance only at
+horizon 1, then increases it at horizons 2--5; Fisher dispersion increases at
+all event horizons. Released seed 1301 lowers event variance through horizon
+3 but increases it at 4--5, while its mean-axis angle from gold worsens by
+`.010--.041` radians. Its ordinary-prefix gold angle improves by
+`.019--.047` radians. These small, selection-bounded results distinguish cone
+width from cone orientation and do not explain aggregate generation by one
+scalar.
+
+The falsification-oriented conclusions are:
+
+1. **Falsified in the measured representation:** a small-radius, locally
+   ballistic Euclidean tube at the ChemFM final layer; the claim that chord-
+   perpendicular motion is predominantly prediction-irrelevant noise; and a
+   uniform STP-induced improvement in local turning, ray extrapolation,
+   Fisher geodesicity, or inference-cone width.
+2. **Not supported as a general discriminator:** correct trajectories are not
+   more geodesic than wrong beams under all reasonable metrics. The ordering
+   reverses between paper loss and path efficiency, and intrinsic estimates
+   are unresolved.
+3. **Supported narrowly:** released STP genuinely aligns its patch with both
+   sides of the complement rather than exploiting cancellation; STP changes
+   ambient geometry; Euclidean and decoder geometry are moderately related;
+   and seed 1301 contains a small exploratory candidate-relative intrinsic
+   effect worth knowing when interpreting its failure.
+4. **Not falsified:** an intrinsic geodesic statement under some other
+   learned metric, a theorem about an unobserved optimal trajectory, effects
+   at untested training scales or architectures, or the empirical possibility
+   that STP improves generation on new seeds and an untouched panel.
+
+The audit therefore rejects a literal ambient-geodesic/noise explanation for
+the existing ChemFM effect. It does not change the endpoint verdict from
+**INCONCLUSIVE** and is not a license to select a new objective on this reused
+development panel.
 
 ## 10. Runtime and artifact accounting
 
@@ -761,6 +1090,29 @@ hash/fingerprint metadata, spectra, relationships, and drift under
 `runs/stp_representation/frozen_all_checkpoints/`; derived JSON, CSV, and SVG
 artifacts are under `runs/stp_representation/analysis/`.
 
+The Geodesic Mechanism Audit used one A6000, six vCPUs, and no training. Exact
+selected-depth extraction for all 22 checkpoints took 64.65 GPU seconds in
+aggregate (peak allocation 2,520,875,008 bytes) and wrote 8.34 GB of reusable
+temporary state caches. The compact archive excludes those reproducible
+caches and retains their derived raw measurements. The definitive post-
+extraction sequence took 11,080 seconds
+(`3:04:40`): parallel exact candidate geometry 2,627 seconds, matched all-
+checkpoint geometry 5,314 seconds, intrinsic geometry 845 seconds, candidate
+intrinsic geometry 349 seconds, cones 316 seconds, final-operation isolation
+578 seconds, and final reduction/plots 1,051 seconds. These stage differences
+are sequential elapsed deltas, not independent benchmarks. CUDA utilization
+time series were unavailable because `nvidia-smi dmon` was unsupported on the
+instance; reported performance therefore uses measured wall time, throughput,
+and peak memory rather than an invented utilization average.
+
+The canonical audit contains 13 gzip-validated raw streams, 41 manifest-
+tracked derived files, and 12 plots. Its local compact archive is
+`runs/geodesic_mechanism_audit_a6000_compact.tar.zst`, SHA-256
+`6fe76210d7244c25fb3dcb0548b530633f6010b0e473477bfd2173e7bd30d3f0`.
+Length-controlled candidate and reaction-clustered signal/intervention
+summaries were added as derived analyses beside the archive; they do not alter
+the canonical raw streams.
+
 ## 11. Measurements supported by the completed design
 
 1. Released and paper STP implementations are numerically distinct and passed
@@ -779,6 +1131,16 @@ artifacts are under `runs/stp_representation/analysis/`.
    effective ranks.
 8. Seed 1301's seven Native-only top-1 cases retain gold in the STP aggregate
    top 10 and split into three within-beam and four aggregation losses.
+9. Native final-layer trajectories do not exhibit a small-radius or positive-
+   tangent-persistence regime at any observed local scale.
+10. STP's fixed-objective reduction does not consistently reduce exact tube
+    radius, normal acceleration, ray residual, Fisher geodesic excess, or
+    inference-cone width.
+11. The chord-perpendicular component has substantial gold-token sensitivity;
+    its partial removal harms gold margins under the prespecified intervention.
+12. Gold/wrong ordering is metric dependent: fixed paper loss tends to favor
+    gold, whole-path Euclidean/Fisher efficiency tends to favor wrong, and the
+    intrinsic comparison is generally unresolved.
 
 These data are inconsistent with a monotonic rule that more fixed-objective
 reduction or rank capacity necessarily gives a larger generation effect in
@@ -786,6 +1148,16 @@ this matrix. They do not estimate the effect on new training seeds and an
 untouched panel. Formulation superiority, paper-STP capacity away from `.02`,
 other budgets, natural-language tasks, and other architectures remain outside
 the completed design.
+
+The single justified continuation is one preregistered three-arm confirmation:
+r8 Native, released STP `.02`, and paper STP `.02`, using new paired training
+seeds and a newly fixed 512-reaction panel from the remaining official test
+set. Exact five-view top-1 should remain primary, both STP-versus-Native
+comparisons should be reported with familywise control, and no formulation,
+rank, or lambda may be reselected after opening that panel. A single STP arm is
+not justified from the current development evidence because the direct paper-
+versus-released interval remains unresolved; running both is more transparent
+than choosing the numerically favorable formulation after repeated panel use.
 
 ## 12. Reproducibility map
 
@@ -802,6 +1174,13 @@ the completed design.
 | Derived analysis | `runs/stp_representation/analysis/analysis.json` |
 | Final table/event tests | `runs/stp_representation/analysis/configuration_final_layer.csv`; `event_treatment_effects.csv` |
 | Plots | `runs/stp_representation/analysis/*.svg` |
+| Geodesic audit preregistration | `docs/preregistrations/GEODESIC_MECHANISM_AUDIT_PROTOCOL.md` |
+| Geodesic implementation | `src/geodesic_audit.py`; `scripts/run_geodesic_audit.py`; `scripts/summarize_geodesic_audit.py` |
+| Geodesic canonical analysis | `runs/geodesic_mechanism_audit/analysis.json`; `runs/geodesic_mechanism_audit/analysis/` |
+| Post-canonical derived manifest | `runs/geodesic_mechanism_audit/derived_supplement_manifest.json` |
+| Geodesic plots | `runs/geodesic_mechanism_audit/plots/` |
+| Geodesic integrity manifest | `runs/geodesic_mechanism_audit/artifact_manifest.json` |
+| Geodesic compact raw archive | `runs/geodesic_mechanism_audit_a6000_compact.tar.zst` |
 
 All positive, null, and adverse results are retained. Representation probes
 remain mechanism diagnostics; generated exact top-1 remains the endpoint.

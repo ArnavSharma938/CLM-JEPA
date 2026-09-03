@@ -14,7 +14,10 @@ substitutes for generated exact match.
 2. [STP and trajectory geometry](01_STP_AND_TRAJECTORY_GEOMETRY.md) combines
    the frozen base-ChemFM chemical-event/control assay with the complete
    released/paper STP program: rank/lambda comparisons, five-view generation,
-   seed-1301 beam analysis, and the all-checkpoint representation study.
+   seed-1301 beam analysis, the all-checkpoint representation study, and the
+   frozen Geodesic Mechanism Audit of tube scale, intrinsic and decoder-Fisher
+   geometry, predictive perpendicular motion, beam trajectories, and inference
+   cones.
 
 ## Endpoint summary
 
@@ -25,6 +28,7 @@ substitutes for generated exact match.
 | Released STP r8/.02 | Seed effects `+2.15,+.98,-1.17` pp; mean `+.65`; crossed CI `[-1.17,+2.54]` |
 | Paper STP r8/.02 | Seed effects `+1.37,+1.37` pp; crossed CI `[+.39,+2.54]` on the repeatedly used development panel |
 | STP program | Preregistered development verdict **INCONCLUSIVE**; no untouched-panel confirmation was run |
+| Literal final-layer Euclidean geodesic mechanism | Not supported: no small-radius/positive-persistence local tube, no consistent STP straightening, and perpendicular motion remains predictively active |
 
 Former report text and historical implementation paths remain recoverable from
 Git history. Decision-relevant protocols, measurements, uncertainty, limits,

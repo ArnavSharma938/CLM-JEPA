@@ -1,0 +1,317 @@
+{
+  "type": "geodesic_mechanism_audit_manifest",
+  "repository_commit": "9765eaf1f88cb42b26d90cac180ceae72d4d7876",
+  "python": "3.12.13",
+  "torch": "2.12.1+cu130",
+  "cuda": "13.0",
+  "performance_validation": {
+    "selected_capture_reference_seconds": 0.2130007,
+    "selected_capture_optimized_seconds": 0.1209637,
+    "selected_capture_speedup": 1.7609,
+    "selected_capture_reference_peak_bytes": 2336975360,
+    "selected_capture_optimized_peak_bytes": 2185980416,
+    "candidate_reference_observed_seconds_approx": 5582.0,
+    "candidate_reference_rows": 15270,
+    "candidate_batched_seconds": 855.221,
+    "candidate_batched_rows": 11475,
+    "candidate_combined_speedup_approx": 6.526,
+    "candidate_per_record_speedup_approx": 4.906
+  },
+  "raw": [
+    {
+      "path": "runs/geodesic_mechanism_audit/raw/candidate_intrinsic_geometry.jsonl.gz",
+      "bytes": 3518318,
+      "sha256": "e55bcd320040b9adc71d798f0e2c7fe5cab76db169860aec8e3fd0ffce57a42e"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/raw/final_operation_geometry.jsonl.gz",
+      "bytes": 4251460,
+      "sha256": "166453a2d8225f70b75bc292f5106555b1aad56a67a4a81b914a8b8b96df16ad"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/raw/gold_wrong_candidate_geometry.jsonl.gz",
+      "bytes": 293399878,
+      "sha256": "5b520d9f6d88862f5f921c4fe2cb0be4e6c97185214950a6817afbbc5486a9d6"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/raw/inference_cones.jsonl.gz",
+      "bytes": 137289,
+      "sha256": "d90ea75362bdf1d90630b53e1f81ecabfa0282b9cfeb86f0600dc9834ec7d23e"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/raw/intrinsic_manifold_decomposition.jsonl.gz",
+      "bytes": 31942484,
+      "sha256": "88d3893cbea0b62fb2c430d34021ad29ededf0513cdb87a13574bc1ff1fe8ed0"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/raw/matched_native_stp_displacement.jsonl.gz",
+      "bytes": 596622064,
+      "sha256": "4fad6eb6989de1bf88e5f4a1035c49e87018b93005646387540a1e5b5680bec4"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/raw/multiscale_turning.jsonl.gz",
+      "bytes": 201046398,
+      "sha256": "dcaba00b5fd117b435074b6097f181a879038da00a23c887ef9178dbbf7c8cf1"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/raw/released_objective_anatomy.jsonl.gz",
+      "bytes": 137601283,
+      "sha256": "45ad84b38f3e15f9c53eb302125b0aff183edc9ce88d527888775202195c6382"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/raw/signal_noise_interventions.jsonl.gz",
+      "bytes": 927177490,
+      "sha256": "bc895224e29cc2ce64bfeca9195944d03f598d8d19c5e47c7ae0999dfa536f3b"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/raw/tangent_persistence.jsonl.gz",
+      "bytes": 35264550,
+      "sha256": "34078f7d454d4bb963b5b6553bb689b48ee520af44ddafce40cad2679220fe64"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/raw/trajectory_metrics.jsonl.gz",
+      "bytes": 2803856,
+      "sha256": "e5c23503ad67abe2403237fb56f493071988dc25856c5f0a357d9d4da8c09420"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/raw/tube_scale_space_aggregate.jsonl.gz",
+      "bytes": 11081776,
+      "sha256": "b357e25960a434cec256c12da63d0ad8e892355f986f445b37f354e842502a0f"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/raw/tube_scale_space_by_reaction.jsonl.gz",
+      "bytes": 332324400,
+      "sha256": "1b026a2c3571db885fb511e5ff87510be58eefeba6ab4d38f69772dec9cfdc8a"
+    }
+  ],
+  "derived": [
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/candidate_geometry_equivalence.json",
+      "bytes": 666,
+      "sha256": "d5d5295b67ffc23267a2e0ccd0819d40fd6a450135e299ab64d4b88ac92b06dd"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/candidate_intrinsic_checkpoint_summary.json",
+      "bytes": 12792,
+      "sha256": "774fd1a9dc7b56a6c234a38f026143d01be801c8f0c4e620ecec0cc43f561db4"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/candidate_intrinsic_seed1301_robustness.json",
+      "bytes": 20742,
+      "sha256": "de6d4a395849589f32c34fc56dc60caf0a9b1293837c7512c8d2c623dde9b1d9"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/cone_treatment_summary.json",
+      "bytes": 8225,
+      "sha256": "227c945c01e61458a4436324aa2b863fc87aaa015cb29501c9908dcac43a3051"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/cones.json",
+      "bytes": 31722,
+      "sha256": "aa89d7dfd3f1c88d4ab090e5b37541da04ddefa3ce5c760de2fd457f936cc579"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/event_signal_sensitivity.json",
+      "bytes": 178577,
+      "sha256": "9cf5f49dd56d55b66b0c547fbef182b87f47c866639142a7b8722dca2783e133"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/final_operation_effects.json",
+      "bytes": 620908,
+      "sha256": "f487ea21b7e1ce28ffc1a639f6aafb4801ece92401875ccd0536e5699c59fdf3"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/final_operation_geometry.json",
+      "bytes": 297966,
+      "sha256": "4e3276e5254c34b70db237e439e361f51c7ab286b558e0981957e98b961c1e54"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/gold_wrong.json",
+      "bytes": 7052021,
+      "sha256": "57107af3fbac403d0ae3b4e4c1ac7766656e4183fafe073ce2f7a9f48fe3cab6"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/gold_wrong_checkpoint_summary.json",
+      "bytes": 60800,
+      "sha256": "524ecc4f41fa74f5d6d137276e75b461cffd1f0fb7bdb33dcdf4bc08d9e3fce5"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/hidden_fisher_correlations.json",
+      "bytes": 6094,
+      "sha256": "3ff2985790e8173f41c0c63639a8786f0a5e138f18c36eb65ce15d95c0cfafa4"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/individual_persistence_scales.json",
+      "bytes": 98337,
+      "sha256": "d2a689e7f6353a36a676867013cc57477e90d2ff0f5195e1f2b19fb554fb3559"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/interventions.json",
+      "bytes": 164079,
+      "sha256": "6ddbf8a404552cbd25476bc3855409094ae5619b46ba9a677d88ac75da55af50"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/intrinsic.json",
+      "bytes": 2244235,
+      "sha256": "195e8657eee915a79db18627d33f0c37f6d462b23a1f99d8f3e7c7441d36d16a"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/intrinsic_treatment_summary.json",
+      "bytes": 59715,
+      "sha256": "59bd9792a366e4707ceecbe8640d1ac9f8e11a58ae0ce77b945ff8454d4c9d0e"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/matched_displacement.json",
+      "bytes": 29556720,
+      "sha256": "510376009b62eedf078a145da919275caee662c3539d4ae9f35597daa3306b72"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/multiscale_turning.json",
+      "bytes": 2236326,
+      "sha256": "2ce4639debe2751095025d7f2c1e6876064f1a1704e5a86376020f3c1bc9f753"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/multiscale_turning_treatment.json",
+      "bytes": 1616441,
+      "sha256": "90d54e4f64499fb7821067c05a2e2fe4c6861ad86b404a8f1ef2a039e1b6d150"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/released_anatomy.json",
+      "bytes": 3381462,
+      "sha256": "7ba6a8b0e8e8933a7440432fa9db6088e8575614ea35f08a0c69f0f7b1126e4a"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/released_anatomy_treatment.json",
+      "bytes": 1323346,
+      "sha256": "422d3817a795ed69575c71a9301832a281b2334357a92054755186b838ffece1"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/seed1301_change_summary.json",
+      "bytes": 2060,
+      "sha256": "fd66dc95d32fc64a924e77626f6a01501e09f34e20885d367cfa236a84922d55"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/seed1301_natural_experiment.json",
+      "bytes": 37682,
+      "sha256": "08a3c38358135bef44c6ff01e25c15c1494da3a70ded41e2bff3f74054cbe8fd"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/signal_sensitivity.json",
+      "bytes": 116577,
+      "sha256": "2fc9365e89fd51fa0d1d3fd4b28879b6a54825e93d866e97fc3910653c032e8c"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/tangent_persistence.json",
+      "bytes": 3316981,
+      "sha256": "fa553b69a8038e8790ded87c660108b634a632ad28b0ecccf5ec05bd2514e1a9"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/tangent_persistence_lengths.json",
+      "bytes": 61226,
+      "sha256": "e202948329d609665b7e1d3b8517c820aefb126603808673b25060b998b9b910"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/tangent_persistence_treatment.json",
+      "bytes": 1903436,
+      "sha256": "147b14e4056c8b33963aa89a1ae1fd5a2c5552a0cf74da051b990b6ee00d1994"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/trajectory_treatment_uncertainty.json",
+      "bytes": 313152,
+      "sha256": "7b97bce4c704a15e7177363402c802a61e4b3d146c58f4ec7c1f2352a3f8c13b"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/tube_reaction_uncertainty.json",
+      "bytes": 59957,
+      "sha256": "2a2e0ca496e59326567762703a725a53b5d806b2a944320a416b01b2daa80c37"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/analysis/tube_treatment_effects.json",
+      "bytes": 16370574,
+      "sha256": "a2868cd5baf47c920b5a170dfff5df7067a99b08c2b8af01eb8a3da5e9d2d4d5"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/plots/euclidean_vs_fisher_change.png",
+      "bytes": 67544,
+      "sha256": "189ca7633397731d1cf1abcbd9be007af57b7eb47a5e9eede8d4f2d10dd6d84d"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/plots/gold_wrong_fisher_separation.png",
+      "bytes": 59701,
+      "sha256": "6c7f4e1165b949468c283e8fcbdbf78541170a87e572e3750cac12c516be83c0"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/plots/inference_cone_changes.png",
+      "bytes": 150953,
+      "sha256": "ee3188dc453a9c9a2c9dcae6c122308c48cae630091f1895541c8107d5653a25"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/plots/intrinsic_robustness.png",
+      "bytes": 87542,
+      "sha256": "4307492a7bdbbd974be7e6aa3ab9bf8751ee2c6900180050808339b3f574cedf"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/plots/last_block_vs_rmsnorm.png",
+      "bytes": 136578,
+      "sha256": "ffeb9f70c38a302529a0d051f4ae9dc256442c7f37c32dd01cfadab529221ff5"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/plots/multiscale_turning_change.png",
+      "bytes": 179059,
+      "sha256": "18c3a69a3442236450b771f0c26e9cb1df0e4690ead605418dc24d8757197dda"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/plots/perpendicular_signal_by_event.png",
+      "bytes": 88067,
+      "sha256": "866a1c2e4da652ef10c5a5c3dd22aa2493387757293d8d90ef037fe22bdf6759"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/plots/released_objective_anatomy.png",
+      "bytes": 231114,
+      "sha256": "072324851d9085fb14f64130d4344c8cfbdcc7021d4b832b881f590f524d7362"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/plots/seed1301_natural_experiment.png",
+      "bytes": 74659,
+      "sha256": "d2305f80a077f9ed0b08213735bb0054c1b3e30db27bca25a53c84e35f08109f"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/plots/tangent_persistence_final_product.png",
+      "bytes": 70943,
+      "sha256": "a27fc29c0282e7bddc2e1917b617467bc703b58e287176bf5acee8647c9fdfbc"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/plots/tube_scale_space_final.png",
+      "bytes": 182304,
+      "sha256": "82d5b3a68f9986e67e6aceec75f136faaf9de31dc55202f661fafa35311fdb3b"
+    },
+    {
+      "path": "runs/geodesic_mechanism_audit/plots/tube_treatment_delta.png",
+      "bytes": 158423,
+      "sha256": "3909288fb7123acc067c9a318bd6f63153760dd26683b4b1cf8730f228fef475"
+    }
+  ],
+  "sources": [
+    {
+      "path": "src/geodesic_audit.py",
+      "sha256": "231b526bf0fdb63e737f3b41c6f8fa6620a52e71d9036123cdc7386907801ca0"
+    },
+    {
+      "path": "scripts/run_geodesic_audit.py",
+      "sha256": "c9871a493f821e71276e17dbfbec82e188f3eabe8449356335e5df20b5e223cc"
+    },
+    {
+      "path": "scripts/summarize_geodesic_audit.py",
+      "sha256": "d5028a4ab507db2b2f9772ffed983ebb80a132569984322fa35c803bfd652d4f"
+    },
+    {
+      "path": "docs/preregistrations/GEODESIC_MECHANISM_AUDIT_PROTOCOL.md",
+      "sha256": "8dbca0a25ace30a7642c5773e36c9b0f25271b9d156ec72430a71c329f055f49"
+    }
+  ],
+  "excluded_from_compact_archive": [
+    "BF16 gold-state caches (reconstructable)",
+    "superseded/interrupted raw streams",
+    "base model and existing checkpoints"
+  ]
+}

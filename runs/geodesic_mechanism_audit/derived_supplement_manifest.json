@@ -1,0 +1,13 @@
+{
+  "description": "Post-canonical derived analyses; canonical raw inputs are in the compact A6000 archive.",
+  "files": {
+    "analysis/candidate_geometry_equivalence.json": "196d220a8e6ebe818c7313d61742401cfa6dd2aeba6fe6430ff0f45b1823e1b2",
+    "analysis/candidate_length_controls.json": "c8dafbdff4ea59d87577d217a3f8a3c3d8f5463f8247a022cc152836d0cf9cbd",
+    "analysis/signal_uncertainty.json": "f106214c6be933eb7de5c3f554ad2c4a42392b6c303cf66671c886c871c7aa21"
+  },
+  "compact_archive": {
+    "path": "runs/geodesic_mechanism_audit_a6000_compact.tar.zst",
+    "bytes": 2592018489,
+    "sha256": "6fe76210d7244c25fb3dcb0548b530633f6010b0e473477bfd2173e7bd30d3f0"
+  }
+}
