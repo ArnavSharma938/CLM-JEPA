@@ -832,8 +832,10 @@ def _candidate_geometry(
     # Objective values are secondary candidate diagnostics.  Two deterministic
     # starts at every feasible span length preserve complete scale coverage;
     # the primary tube metric above remains exhaustive over every interior r.
-    for length in range(2, len(path)):
-        for s in deterministic_starts(len(path), length, 2, len(path)):
+    for length in range(2, len(released_semantic_path)):
+        for s in deterministic_starts(
+            len(released_semantic_path), length, 2, len(released_semantic_path),
+        ):
             t = s + length
             r = (s + t) // 2
             paper_spans.append((s, r, t))
@@ -847,8 +849,8 @@ def _candidate_geometry(
     released = torch.tensor(released_spans, device=path.device)
     paper_values = (
         1 - cosine(
-            path[paper[:, 1]] - path[paper[:, 0]],
-            path[paper[:, 2]] - path[paper[:, 1]],
+            released_semantic_path[paper[:, 1]] - released_semantic_path[paper[:, 0]],
+            released_semantic_path[paper[:, 2]] - released_semantic_path[paper[:, 1]],
         ) if len(paper) else path.new_empty(0)
     )
     total = released_semantic_path[-1] - released_semantic_path[0]
