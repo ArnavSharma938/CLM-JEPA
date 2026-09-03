@@ -128,9 +128,10 @@ def sensitivity_event_map():
 def summarize_sensitivity(path: Path):
     groups = defaultdict(lambda: defaultdict(float))
     event_groups = defaultdict(lambda: defaultdict(float))
+    correlation_groups = defaultdict(lambda: defaultdict(float))
     event_map = sensitivity_event_map()
 
-    def add(group, parallel, perpendicular, perp_cos):
+    def add(group, parallel, perpendicular, perp_cos, rho, ray, fisher):
         group["n"] += 1
         group["parallel_signed"] += parallel
         group["perpendicular_signed"] += perpendicular
@@ -139,6 +140,9 @@ def summarize_sensitivity(path: Path):
         group["perpendicular_cosine_absolute"] += abs(perp_cos)
         group["perpendicular_cosine_gt_.1"] += abs(perp_cos) > .1
         group["perpendicular_cosine_gt_.25"] += abs(perp_cos) > .25
+        group["tube_radius"] += rho
+        group["ray_residual"] += ray
+        group["fisher_triangle_excess"] += fisher
 
     for row in records(path):
         length = int(row["span_length"])
@@ -147,13 +151,19 @@ def summarize_sensitivity(path: Path):
         parallel = float(row["parallel_signed_sensitivity"])
         perpendicular = float(row["perpendicular_signed_sensitivity"])
         perp_cos = float(row["perpendicular_cosine_sensitivity"])
-        add(group, parallel, perpendicular, perp_cos)
+        rho = float(row["rho"]); ray = float(row["ray_residual"])
+        fisher = float(row["fisher_triangle_excess"])
+        add(group, parallel, perpendicular, perp_cos, rho, ray, fisher)
+        correlation = correlation_groups[(row["checkpoint"], row["segment"])]
+        correlation["n"] += 1; correlation["x"] += rho; correlation["y"] += fisher
+        correlation["xx"] += rho * rho; correlation["yy"] += fisher * fisher
+        correlation["xy"] += rho * fisher
         events = event_map.get((int(row["panel_index"]), row["segment"], int(row["r"])), [])
         labels = events or ["ordinary"]
         if events:
             labels = [*events, "any_event"]
         for label in labels:
-            add(event_groups[(row["checkpoint"], row["segment"], label)], parallel, perpendicular, perp_cos)
+            add(event_groups[(row["checkpoint"], row["segment"], label)], parallel, perpendicular, perp_cos, rho, ray, fisher)
 
     def finish(source, names):
         output = []
@@ -165,9 +175,20 @@ def summarize_sensitivity(path: Path):
             output.append(row)
         return output
 
+    correlations = []
+    for (checkpoint, segment), group in correlation_groups.items():
+        n = group["n"]
+        covariance = group["xy"] / n - (group["x"] / n) * (group["y"] / n)
+        variance_x = max(0.0, group["xx"] / n - (group["x"] / n) ** 2)
+        variance_y = max(0.0, group["yy"] / n - (group["y"] / n) ** 2)
+        correlations.append({
+            "checkpoint": checkpoint, "segment": segment, "n": int(n),
+            "pearson_tube_fisher": covariance / max(math.sqrt(variance_x * variance_y), 1e-12),
+        })
     return (
         finish(groups, ("checkpoint", "segment", "span_bin")),
         finish(event_groups, ("checkpoint", "segment", "event_category")),
+        correlations,
     )
 
 
@@ -672,7 +693,9 @@ def run(args):
     trajectory_uncertainty = trajectory_treatment_uncertainty(root)
     persistence_scales = individual_persistence_scales(root)
     intervention = summarize_interventions(root / "raw" / "signal_noise_interventions.jsonl.gz")
-    sensitivity, event_sensitivity = summarize_sensitivity(root / "raw" / "signal_noise_interventions.jsonl.gz")
+    sensitivity, event_sensitivity, hidden_fisher = summarize_sensitivity(
+        root / "raw" / "signal_noise_interventions.jsonl.gz"
+    )
     anatomy = grouped_stream(
         root / "raw" / "released_objective_anatomy.jsonl.gz",
         ("checkpoint", "span_length"),
@@ -713,6 +736,7 @@ def run(args):
         "individual_persistence_scales": persistence_scales,
         "interventions": intervention, "signal_sensitivity": sensitivity,
         "event_signal_sensitivity": event_sensitivity,
+        "hidden_fisher_correlations": hidden_fisher,
         "released_anatomy": anatomy, "released_anatomy_treatment": anatomy_treatment,
         "matched_displacement": matched, "intrinsic": intrinsic,
         "intrinsic_treatment_summary": intrinsic_treatment, "cones": cones,
@@ -734,6 +758,7 @@ def run(args):
         "individual_persistence_scales": persistence_scales,
         "interventions": intervention, "signal_sensitivity": sensitivity,
         "event_signal_sensitivity": event_sensitivity,
+        "hidden_fisher_correlations": hidden_fisher,
         "intrinsic": intrinsic, "intrinsic_treatment_summary": intrinsic_treatment,
         "cones": cones, "cone_treatment_summary": cone_treatment,
         "gold_wrong_checkpoint_summary": gold_wrong_summary,
