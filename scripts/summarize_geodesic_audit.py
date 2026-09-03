@@ -122,6 +122,41 @@ def paired_tube(root: Path):
     return frame, pd.DataFrame(rows)
 
 
+def tube_reaction_uncertainty(root: Path):
+    selected_lengths = {2, 4, 8, 16, 32, 64}
+    values = {}
+    keys = set()
+    for row in records(root / "raw" / "tube_scale_space_by_reaction.jsonl.gz"):
+        if row["checkpoint"] not in {
+            "native_r8_s533", "native_r8_s917", "native_r8_s1301",
+            "released_r8_l0.02_s533", "released_r8_l0.02_s917", "released_r8_l0.02_s1301",
+            "paper_r8_l0.02_s533", "paper_r8_l0.02_s917",
+        } or row["layer"] != "final_post_norm" or row["span_length"] not in selected_lengths:
+            continue
+        index = (row["checkpoint"], row["panel_index"], row["segment"], row["span_length"])
+        values[index] = (row["rms"], row["maximum"], row["p95"])
+        keys.add(row["checkpoint"])
+    output = []
+    for native, treatment in treatment_pairs(keys):
+        for segment in ("source", "product", "cross"):
+            for length in sorted(selected_lengths):
+                effects = []
+                for panel in range(256):
+                    n = values.get((native, panel, segment, length))
+                    t = values.get((treatment, panel, segment, length))
+                    if n is not None and t is not None:
+                        effects.append([t[i] - n[i] for i in range(3)])
+                if not effects:
+                    continue
+                effects = np.asarray(effects)
+                row = {"native": native, "treatment": treatment, "segment": segment, "span_length": length, "reactions": len(effects)}
+                for index, metric in enumerate(("rms", "maximum", "p95")):
+                    row[f"delta_{metric}"] = float(effects[:, index].mean())
+                    row[f"delta_{metric}_ci95"] = bootstrap_ci(effects[:, index])
+                output.append(row)
+    return output
+
+
 def summarize_candidates(root: Path):
     values = {}
     natural = []
@@ -162,6 +197,45 @@ def summarize_candidates(root: Path):
                 **{f"wrong_minus_gold_{metric}": wrong[metric] - gold[metric] for metric in wrong},
             })
     return pd.DataFrame(paired), pd.DataFrame(natural)
+
+
+def candidate_checkpoint_summary(frame: pd.DataFrame):
+    if frame.empty:
+        return []
+    metrics = [column for column in frame if column.startswith("wrong_minus_gold_")]
+    output = []
+    for checkpoint, group in frame.groupby("checkpoint"):
+        reaction = group.groupby("panel_index")[metrics].mean()
+        row = {"checkpoint": checkpoint, "reactions": len(reaction), **checkpoint_fields(checkpoint)}
+        for metric in metrics:
+            values = reaction[metric].to_numpy()
+            row[metric] = float(np.mean(values))
+            row[f"{metric}_ci95"] = bootstrap_ci(values)
+            row[f"{metric}_fraction_wrong_more_geodesic"] = float((values < 0).mean())
+        output.append(row)
+    return output
+
+
+def seed1301_change_summary(frame: pd.DataFrame):
+    if frame.empty:
+        return []
+    metrics = [column for column in frame if column.startswith("wrong_minus_gold_")]
+    native = frame[frame.checkpoint == "native_r8_s1301"].set_index(["panel_index", "view"])
+    released = frame[frame.checkpoint == "released_r8_l0.02_s1301"].set_index(["panel_index", "view"])
+    common = native.index.intersection(released.index)
+    output = []
+    for metric in metrics:
+        delta = released.loc[common, metric].to_numpy() - native.loc[common, metric].to_numpy()
+        reaction_values = pd.DataFrame({
+            "panel_index": [index[0] for index in common], "value": delta,
+        }).groupby("panel_index").value.mean().to_numpy()
+        output.append({
+            "metric": metric, "reaction_n": len(reaction_values),
+            "released_change_in_wrong_minus_gold": float(reaction_values.mean()),
+            "ci95": bootstrap_ci(reaction_values),
+            "fraction_shift_toward_wrong_more_geodesic": float((reaction_values < 0).mean()),
+        })
+    return output
 
 
 def make_plots(root: Path, tube: pd.DataFrame, tube_delta: pd.DataFrame, summaries: dict):
@@ -211,7 +285,16 @@ def make_plots(root: Path, tube: pd.DataFrame, tube_delta: pd.DataFrame, summari
 def run(args):
     root = args.root.resolve()
     tube, tube_delta = paired_tube(root)
+    tube_uncertainty = tube_reaction_uncertainty(root)
     intervention = summarize_interventions(root / "raw" / "signal_noise_interventions.jsonl.gz")
+    sensitivity = grouped_stream(
+        root / "raw" / "signal_noise_interventions.jsonl.gz",
+        ("checkpoint", "segment", "span_length"),
+        ("rho", "ray_residual", "fisher_triangle_excess",
+         "parallel_signed_sensitivity", "parallel_cosine_sensitivity",
+         "perpendicular_signed_sensitivity", "perpendicular_cosine_sensitivity",
+         "parallel_norm", "perpendicular_norm"),
+    )
     anatomy = grouped_stream(
         root / "raw" / "released_objective_anatomy.jsonl.gz",
         ("checkpoint", "span_length"),
@@ -233,21 +316,30 @@ def run(args):
         ("weighted_angle_from_mean", "weighted_angle_from_gold", "perpendicular_variance", "mean_axis_gold_cosine", "fisher_dispersion"),
     )
     gold_wrong, natural = summarize_candidates(root)
+    gold_wrong_summary = candidate_checkpoint_summary(gold_wrong)
+    natural_change = seed1301_change_summary(natural)
     summaries = {
         "tube_treatment_effects": tube_delta.to_dict("records"),
-        "interventions": intervention, "released_anatomy": anatomy,
+        "tube_reaction_uncertainty": tube_uncertainty,
+        "interventions": intervention, "signal_sensitivity": sensitivity,
+        "released_anatomy": anatomy,
         "matched_displacement": matched, "intrinsic": intrinsic, "cones": cones,
         "gold_wrong": gold_wrong.to_dict("records"),
+        "gold_wrong_checkpoint_summary": gold_wrong_summary,
         "seed1301_natural_experiment": natural.to_dict("records"),
+        "seed1301_change_summary": natural_change,
     }
     (root / "analysis").mkdir(parents=True, exist_ok=True)
     for name, value in summaries.items():
         (root / "analysis" / f"{name}.json").write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
     compact = {
         "tube_delta_final_product": tube_delta[(tube_delta.layer == "final_post_norm") & (tube_delta.segment == "product")].to_dict("records"),
-        "interventions": intervention, "intrinsic": intrinsic, "cones": cones,
-        "gold_wrong_means": gold_wrong.groupby("checkpoint").mean(numeric_only=True).reset_index().to_dict("records") if not gold_wrong.empty else [],
+        "tube_reaction_uncertainty": tube_uncertainty,
+        "interventions": intervention, "signal_sensitivity": sensitivity,
+        "intrinsic": intrinsic, "cones": cones,
+        "gold_wrong_checkpoint_summary": gold_wrong_summary,
         "seed1301_natural_means": natural.groupby("checkpoint").mean(numeric_only=True).reset_index().to_dict("records") if not natural.empty else [],
+        "seed1301_change_summary": natural_change,
     }
     (root / "analysis.json").write_text(json.dumps(compact, indent=2) + "\n", encoding="utf-8")
     make_plots(root, tube, tube_delta, summaries)
