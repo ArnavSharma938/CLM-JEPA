@@ -309,7 +309,7 @@ def summarize_candidates(root: Path):
     for row in records(root / "raw" / "gold_wrong_candidate_geometry.jsonl.gz"):
         if row["layer"] != "final_post_norm" or row["role"] not in {"gold", "highest_wrong", "seed1301_promoted_wrong"}:
             continue
-        tube_mean = float(np.mean([item["rms"] for item in row["tube_scale"]])) if row["tube_scale"] else math.nan
+        tube_mean = float(np.mean(row["tube_scale"]["rms"])) if row["tube_scale"]["rms"] else math.nan
         metrics = {
             "tube_rms_integral": tube_mean,
             "paper_loss": row["paper_loss"], "released_loss": row["released_loss"],

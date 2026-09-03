@@ -110,7 +110,7 @@ def write_jsonl_gz(path: Path, rows: Iterable[dict]) -> int:
 class JsonlGzipWriter:
     def __init__(self, path: Path):
         path.parent.mkdir(parents=True, exist_ok=True)
-        self.handle = gzip.open(path, "wt", encoding="utf-8", compresslevel=5)
+        self.handle = gzip.open(path, "wt", encoding="utf-8", compresslevel=1)
         self.count = 0
 
     def write(self, row: dict) -> None:
@@ -801,11 +801,20 @@ def _candidate_geometry(path: torch.Tensor, weight: torch.Tensor | None) -> dict
     total = path[-1] - path[0]
     patch = path[released[:, 1]] - path[released[:, 0]]
     released_values = 1 - cosine(patch, total[None] - patch)
+    tube_columns = {
+        name: [row[name] for row in tube]
+        for name in ("span_length", "triples", "zero_chords", "mean", "rms", "maximum", "p50", "p90", "p95", "monotonicity_violation", "fraction_gt_0.05", "fraction_gt_0.1", "fraction_gt_0.2", "fraction_gt_0.5")
+    }
+    persistence = tangent_autocorrelation(path)
+    persistence_columns = {
+        name: [row[name] for row in persistence]
+        for name in ("lag", "n", "mean", "median")
+    }
     result = {
-        "tokens": len(path), "tube_scale": tube, "tube_change_point": change,
+        "tokens": len(path), "tube_scale": tube_columns, "tube_change_point": change,
         "paper_loss": float(paper_values.mean()) if len(paper_values) else math.nan,
         "released_loss": float(released_values.mean()) if len(released_values) else math.nan,
-        "tangent_persistence": tangent_autocorrelation(path),
+        "tangent_persistence": persistence_columns,
         "speed": float(acceleration["speed"].mean()),
         "normal_acceleration": float(acceleration["acceleration_normal"].mean()),
         "normalized_normal_acceleration": float(acceleration["normalized_normal"].mean()),
@@ -817,7 +826,9 @@ def _candidate_geometry(path: torch.Tensor, weight: torch.Tensor | None) -> dict
         for scale in range(1, min(32, (len(path) - 1) // 2) + 1):
             values = optimal_ray_residual(path[:-2 * scale], path[scale:-scale], path[2 * scale:]).detach().cpu().numpy()
             ray.append({"horizon": scale, "mean": float(values.mean()), "median": float(np.median(values))})
-        result["ray_residual"] = ray
+        result["ray_residual"] = {
+            name: [row[name] for row in ray] for name in ("horizon", "mean", "median")
+        }
     return result
 
 
