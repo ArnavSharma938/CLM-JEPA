@@ -362,6 +362,17 @@ def functional_metrics(path: torch.Tensor, weight: torch.Tensor) -> dict:
     }
 
 
+def compact_multiscale_turning(path: torch.Tensor, max_scale: int = 32) -> list[dict]:
+    path = path.float()
+    output = []
+    for scale in range(1, min(max_scale, (len(path) - 1) // 2) + 1):
+        before = path[scale:-scale] - path[:-2 * scale]
+        after = path[2 * scale:] - path[scale:-scale]
+        angles = torch.acos(cosine(before, after).clamp(-1, 1))
+        output.append({"scale": scale, "start_position": scale, "angles": angles.cpu().tolist()})
+    return output
+
+
 def deterministic_starts(n: int, length: int, maximum: int, salt: int) -> list[int]:
     count = n - length
     if count <= maximum:
@@ -544,8 +555,11 @@ def analyze_gold(args) -> None:
                     # Full (position,scale) heatmaps are retained for the first 64
                     # reactions; other rows contribute to reduced summaries.
                     if record["panel_index"] < 64:
-                        for row in multiscale_turning(path_states):
-                            writers["turning_rows"].write({"checkpoint": key, "panel_index": record["panel_index"], "layer": label, "segment": segment, **row})
+                        writers["turning_rows"].write({
+                            "checkpoint": key, "panel_index": record["panel_index"],
+                            "layer": label, "segment": segment,
+                            "scales": compact_multiscale_turning(path_states),
+                        })
 
                     if label != "final_post_norm" or segment == "cross":
                         continue
