@@ -342,6 +342,16 @@ def fisher_inner(first: torch.Tensor, second: torch.Tensor, p: torch.Tensor) -> 
 
 def functional_metrics(path: torch.Tensor, weight: torch.Tensor) -> dict:
     logits = path @ weight.T
+    return functional_metrics_from_logits(path, logits)
+
+
+def functional_metrics_from_logits(path: torch.Tensor, logits: torch.Tensor) -> dict:
+    """Function-space geometry from precomputed FP32 logits.
+
+    Keeping this separate lets candidate analysis issue one dense batched LM-head
+    multiplication and then perform the many small reductions on CPU.  The
+    equations and FP32 evaluation are identical to ``functional_metrics``.
+    """
     probabilities = logits.softmax(-1)
     euclidean_efficiency = float((path[-1] - path[0]).norm() / (path[1:] - path[:-1]).norm(dim=-1).sum().clamp_min(1e-12))
     fr_efficiency = float(fisher_rao_path_efficiency(probabilities))
@@ -526,6 +536,9 @@ def write_anatomy_batch(writer: JsonlGzipWriter, checkpoint: str, record: dict, 
 def analyze_gold(args) -> None:
     output = args.output.resolve()
     cache_paths = sorted((output / "cache" / "gold_states").glob("*.pt"))
+    requested_keys = {value.strip() for value in args.keys.split(",") if value.strip()}
+    if requested_keys:
+        cache_paths = [path for path in cache_paths if path.stem in requested_keys]
     if not cache_paths:
         raise FileNotFoundError("no gold-state caches; run extract-gold first")
     raw = output / "raw"
@@ -748,11 +761,18 @@ def _candidate_workload(tokenizer, key: str) -> list[dict]:
             raw = row["raw_candidates_by_view"][view]
             canonical = row["canonical_candidates_by_view"][view]
             candidates = [(row["target"], row["target"], "gold", 0)]
+            # The full panel retains the behaviorally decisive gold, view top-1,
+            # and highest wrong path.  The first 64 reactions (and the seed-1301
+            # natural experiment) retain all top-five candidates as a robustness
+            # panel.  This avoids recomputing thousands of redundant additional
+            # paths while preserving every preregistered primary comparison.
+            retain_all = panel_index < 64 or panel_index in special
             for rank, (raw_value, canonical_value) in enumerate(zip(raw[:5], canonical[:5]), 1):
                 role = "view_top1" if rank == 1 else "additional"
                 if canonical_value and canonical_value != row["target"] and not any(c[2] == "highest_wrong" for c in candidates):
                     role = "highest_wrong"
-                candidates.append((raw_value, canonical_value, role, rank))
+                if retain_all or rank == 1 or role == "highest_wrong":
+                    candidates.append((raw_value, canonical_value, role, rank))
             if panel_index in special:
                 candidates.append((special[panel_index], special[panel_index], "seed1301_promoted_wrong", -1))
             seen = set()
@@ -777,7 +797,7 @@ def _candidate_workload(tokenizer, key: str) -> list[dict]:
     return workload
 
 
-def _candidate_geometry(path: torch.Tensor, weight: torch.Tensor | None) -> dict:
+def _candidate_geometry(path: torch.Tensor, logits: torch.Tensor | None) -> dict:
     tube = tube_scale_space(path)
     change = estimate_piecewise_change_point(tube)
     acceleration = acceleration_decomposition(path)
@@ -820,8 +840,8 @@ def _candidate_geometry(path: torch.Tensor, weight: torch.Tensor | None) -> dict
         "normal_acceleration": float(acceleration["acceleration_normal"].mean()),
         "normalized_normal_acceleration": float(acceleration["normalized_normal"].mean()),
     }
-    if weight is not None:
-        functional = functional_metrics(path, weight)
+    if logits is not None:
+        functional = functional_metrics_from_logits(path, logits)
         result.update({key: value for key, value in functional.items() if not torch.is_tensor(value)})
         ray = []
         for scale in range(1, min(32, (len(path) - 1) // 2) + 1):
@@ -840,6 +860,9 @@ def analyze_candidates(args) -> None:
     chemfm_vocab_size = len(tokenizer)
     add_predictor_tokens(tokenizer)
     specs = [spec for spec in checkpoint_specs() if spec.key in PRIMARY_KEYS]
+    requested_keys = {value.strip() for value in args.keys.split(",") if value.strip()}
+    if requested_keys:
+        specs = [spec for spec in specs if spec.key in requested_keys]
     started = time.perf_counter()
     model = load_lora_model(
         MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size,
@@ -873,17 +896,30 @@ def analyze_candidates(args) -> None:
                         if row["panel_index"] < 64 or row["role"] == "seed1301_promoted_wrong":
                             labels = list(DEPTH_LABELS)
                         for label in labels:
-                            states = capture.values[label][i, :len(row["input_ids"])].float()
-                            tasks.append((row, label, states[positions], weight if label == "final_post_norm" else None))
-                    metrics_rows = executor.map(lambda task: _candidate_geometry(task[2], task[3]), tasks)
-                    for (row, label, _, _), metrics in zip(tasks, metrics_rows):
+                            states = capture.values[label][i, positions].float()
+                            tasks.append((row, label, states, label == "final_post_norm"))
+                    final_tasks = [task for task in tasks if task[3]]
+                    final_logits = []
+                    if final_tasks:
+                        lengths = [len(task[2]) for task in final_tasks]
+                        joined = torch.cat([task[2] for task in final_tasks])
+                        joined_logits = joined @ weight.T
+                        final_logits = list(torch.split(joined_logits, lengths))
+                    final_index = 0
+                    cpu_tasks = []
+                    for row, label, states, is_final in tasks:
+                        logits = final_logits[final_index] if is_final else None
+                        final_index += int(is_final)
+                        cpu_tasks.append((row, label, states.cpu(), None if logits is None else logits.cpu()))
+                    metrics_rows = executor.map(lambda task: _candidate_geometry(task[2], task[3]), cpu_tasks)
+                    for (row, label, _, _), metrics in zip(cpu_tasks, metrics_rows):
                         writer.write({
                             **{k: v for k, v in row.items() if k not in {"input_ids", "target_positions"}},
                             "checkpoint": spec.key, "rank": spec.rank,
                             "formulation": spec.formulation, "lambda": spec.stp_lambda,
                             "seed": spec.seed, "layer": label, **metrics,
                         })
-                    del ids, mask, tasks
+                    del ids, mask, tasks, cpu_tasks, final_tasks, final_logits
             del weight, workload
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
@@ -894,6 +930,127 @@ def analyze_candidates(args) -> None:
     write_json(output / "candidate_analysis_metadata.json", {
         "git_commit": git_commit(), "rows": writer.count, "seconds": time.perf_counter() - started,
         "prediction_hashes": {spec.key: sha256(prediction_path_for_key(spec.key)) for spec in specs},
+    })
+
+
+def _seed1301_loss_panels() -> set[int]:
+    diagnostic = json.loads((
+        ROOT / "runs/stp_completion/a6000/existing_diagnostics/released_r8_l0.02_seed1301_beams.json"
+    ).read_text(encoding="utf-8"))
+    return {int(row["panel_index"]) for row in diagnostic["comparison"]["native_only_top1"]["rows"]}
+
+
+def analyze_candidate_intrinsic(args) -> None:
+    """Bounded intrinsic estimate for gold/wrong beam trajectories."""
+    output = args.output.resolve()
+    writer = JsonlGzipWriter(output / "raw" / "candidate_intrinsic_geometry.jsonl.gz")
+    tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
+    chemfm_vocab_size = len(tokenizer)
+    add_predictor_tokens(tokenizer)
+    natural_panels = _seed1301_loss_panels()
+    specs = [spec for spec in checkpoint_specs() if spec.key in PRIMARY_KEYS]
+    model = load_lora_model(
+        MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size,
+        attention_dropout=0.0, attn_implementation="sdpa", lora_rank=8, lora_alpha=8,
+    ).to(args.device).eval()
+    for parameter in model.parameters():
+        parameter.requires_grad_(False)
+    capture = SelectedStateCapture(model)
+    started = time.perf_counter()
+    for spec in specs:
+        payload = torch.load(
+            output / "cache" / "gold_states" / f"{spec.key}.pt",
+            map_location="cpu", weights_only=False,
+        )
+        reference_rows = []
+        for record in payload["records"]:
+            states = record["states"][-1].float()
+            for local, position in enumerate(record["target_indices"].long().tolist()):
+                reference_rows.append((
+                    _stable_priority("candidate-ref", spec.key, record["reaction_identity"], local),
+                    states[position], record["reaction_identity"],
+                ))
+        reference_rows.sort(key=lambda row: row[0])
+        reference_rows = reference_rows[:min(12_000, len(reference_rows))]
+        references = torch.stack([row[1] for row in reference_rows]).to(args.device)
+        reference_reactions = np.asarray([row[2] for row in reference_rows])
+        mean = references.mean(0)
+        centered = references - mean
+        whiten_rank = min(128, len(references) - 1, references.shape[1])
+        _, singular, principal = torch.pca_lowrank(centered, q=whiten_rank, center=False, niter=2)
+        scale = (singular / math.sqrt(max(1, len(references) - 1))).clamp_min(1e-5)
+        whitened_references = (centered @ principal) / scale
+
+        workload = [
+            row for row in _candidate_workload(tokenizer, spec.key)
+            if row["role"] in {"gold", "highest_wrong", "seed1301_promoted_wrong"}
+            and (row["panel_index"] < 64 or row["panel_index"] in natural_panels)
+        ]
+        workload.sort(key=lambda row: len(row["input_ids"]))
+        load_adapter_checkpoint(model, ROOT / spec.checkpoint)
+        with torch.inference_mode():
+            for batch_start in range(0, len(workload), args.batch_size):
+                batch = workload[batch_start:batch_start + args.batch_size]
+                maximum = max(len(row["input_ids"]) for row in batch)
+                ids = torch.zeros((len(batch), maximum), dtype=torch.long, device=args.device)
+                mask = torch.zeros_like(ids, dtype=torch.bool)
+                for index, row in enumerate(batch):
+                    ids[index, :len(row["input_ids"])] = torch.tensor(row["input_ids"], device=args.device)
+                    mask[index, :len(row["input_ids"])] = True
+                capture.clear()
+                model(input_ids=ids, attention_mask=mask, use_cache=False, return_dict=True)
+                for index, row in enumerate(batch):
+                    positions = [row["target_positions"][0] - 1, *row["target_positions"]]
+                    path = capture.values["final_post_norm"][index, positions].float()
+                    if len(path) < 3:
+                        continue
+                    possible = list(range(1, len(path) - 1))
+                    possible.sort(key=lambda position: _stable_priority(
+                        "candidate-query", spec.key, row["reaction_identity"], row["view"], row["role"], position,
+                    ))
+                    for position in possible[:3]:
+                        state = path[position]
+                        velocity = path[position] - path[position - 1]
+                        acceleration = path[position + 1] - 2 * path[position] + path[position - 1]
+                        eligible_np = reference_reactions != row["reaction_identity"]
+                        eligible = torch.from_numpy(eligible_np[None]).to(args.device)
+                        robust = row["panel_index"] in natural_panels and row["role"] in {"gold", "seed1301_promoted_wrong"}
+                        settings = [("euclidean", 64, (16,))]
+                        if robust:
+                            settings = [
+                                (metric, k, (8, 16, 32))
+                                for metric in ("euclidean", "pca_whitened_128")
+                                for k in (32, 64, 128)
+                            ]
+                        neighbor_cache = {}
+                        for metric, k, dimensions in settings:
+                            search_references = references if metric == "euclidean" else whitened_references
+                            search_query = state[None] if metric == "euclidean" else ((state - mean) @ principal / scale)[None]
+                            cache_key = (metric, k)
+                            if cache_key not in neighbor_cache:
+                                neighbor_cache[cache_key] = _topk_neighbors(
+                                    search_query, search_references, eligible, k,
+                                )[0]
+                            neighbors = references[neighbor_cache[cache_key]]
+                            for decomposition in _local_pca_decomposition(
+                                neighbors, velocity, acceleration, dimensions,
+                            ):
+                                writer.write({
+                                    **{name: value for name, value in row.items() if name not in {"input_ids", "target_positions"}},
+                                    "checkpoint": spec.key, "position": position,
+                                    "search_metric": metric, "neighbors": k,
+                                    **decomposition,
+                                })
+                del ids, mask
+        print(json.dumps({"stage": "candidate_intrinsic_checkpoint", "checkpoint": spec.key, "rows": writer.count}), flush=True)
+        del payload, references, whitened_references
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+    capture.close(); del capture, model
+    writer.close()
+    write_json(output / "candidate_intrinsic_metadata.json", {
+        "git_commit": git_commit(), "rows": writer.count,
+        "seconds": time.perf_counter() - started,
     })
 
 
@@ -1173,7 +1330,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=(
         "extract-gold", "analyze-gold", "analyze-matched",
-        "analyze-intrinsic", "analyze-candidates", "analyze-cones",
+        "analyze-intrinsic", "analyze-candidates", "analyze-candidate-intrinsic",
+        "analyze-cones",
     ))
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--panel", type=Path, default=DEFAULT_PANEL)
@@ -1199,5 +1357,7 @@ if __name__ == "__main__":
         analyze_intrinsic(arguments)
     elif arguments.command == "analyze-candidates":
         analyze_candidates(arguments)
+    elif arguments.command == "analyze-candidate-intrinsic":
+        analyze_candidate_intrinsic(arguments)
     else:
         analyze_cones(arguments)

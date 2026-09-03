@@ -19,6 +19,20 @@ from src.geodesic_audit import (
 )
 
 
+def test_precomputed_logits_functional_geometry_is_exact():
+    from scripts.run_geodesic_audit import functional_metrics, functional_metrics_from_logits
+
+    generator = torch.Generator().manual_seed(17)
+    path = torch.randn(11, 19, generator=generator, dtype=torch.float32)
+    weight = torch.randn(31, 19, generator=generator, dtype=torch.float32)
+    direct = functional_metrics(path, weight)
+    precomputed = functional_metrics_from_logits(path, path @ weight.T)
+    for key in ("euclidean_path_efficiency", "fisher_path_efficiency", "fisher_local_curvature"):
+        assert direct[key] == precomputed[key]
+    torch.testing.assert_close(direct["probabilities"], precomputed["probabilities"], rtol=0, atol=0)
+    torch.testing.assert_close(direct["logits"], precomputed["logits"], rtol=0, atol=0)
+
+
 def test_tube_radius_is_zero_for_nonuniformly_parameterized_line():
     path = torch.tensor([[0., 0.], [1., 0.], [3., 0.], [8., 0.]])
     rows = tube_scale_space(path)
