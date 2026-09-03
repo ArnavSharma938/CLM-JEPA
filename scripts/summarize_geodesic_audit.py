@@ -197,22 +197,26 @@ def intrinsic_treatment_summary(rows):
     if frame.empty:
         return []
     keys = frame.checkpoint.unique().tolist()
-    index_columns = ["layer", "search_metric", "same_segment", "neighbors", "tangent_dim"]
+    index_columns = ["layer", "segment", "search_metric", "same_segment", "neighbors", "tangent_dim"]
     output = []
     for native, treatment in treatment_pairs(keys):
         n = frame[frame.checkpoint == native].set_index(index_columns)
         t = frame[frame.checkpoint == treatment].set_index(index_columns)
         common = n.index.intersection(t.index)
         for layer in sorted({index[0] for index in common}):
-            layer_index = [index for index in common if index[0] == layer]
-            row = {"native": native, "treatment": treatment, "layer": layer, "robustness_settings": len(layer_index)}
-            for metric in ("geodesic_violation", "normal_acceleration", "geodesic_over_acceleration", "normal_over_acceleration"):
-                delta = t.loc[layer_index, metric].to_numpy() - n.loc[layer_index, metric].to_numpy()
-                row[f"delta_{metric}_mean"] = float(delta.mean())
-                row[f"delta_{metric}_min"] = float(delta.min())
-                row[f"delta_{metric}_max"] = float(delta.max())
-                row[f"delta_{metric}_fraction_negative"] = float((delta < 0).mean())
-            output.append(row)
+            for segment in sorted({index[1] for index in common if index[0] == layer}):
+                layer_index = [index for index in common if index[0] == layer and index[1] == segment]
+                row = {
+                    "native": native, "treatment": treatment, "layer": layer,
+                    "segment": segment, "robustness_settings": len(layer_index),
+                }
+                for metric in ("geodesic_violation", "normal_acceleration", "geodesic_over_acceleration", "normal_over_acceleration"):
+                    delta = t.loc[layer_index, metric].to_numpy() - n.loc[layer_index, metric].to_numpy()
+                    row[f"delta_{metric}_mean"] = float(delta.mean())
+                    row[f"delta_{metric}_min"] = float(delta.min())
+                    row[f"delta_{metric}_max"] = float(delta.max())
+                    row[f"delta_{metric}_fraction_negative"] = float((delta < 0).mean())
+                output.append(row)
     return output
 
 
@@ -718,16 +722,18 @@ def make_plots(root: Path, tube: pd.DataFrame, tube_delta: pd.DataFrame, summari
 
     intrinsic = pd.DataFrame(summaries["intrinsic_treatment_summary"])
     if not intrinsic.empty:
-        pivot = intrinsic.pivot_table(
-            index="treatment", columns="layer",
-            values="delta_geodesic_violation_fraction_negative", aggfunc="mean",
-        )
-        fig, axis = plt.subplots(figsize=(8.5, 4.5))
-        image = axis.imshow(pivot.to_numpy(), vmin=0, vmax=1, aspect="auto", cmap="coolwarm")
-        axis.set_xticks(range(len(pivot.columns)), pivot.columns, rotation=30, ha="right")
-        axis.set_yticks(range(len(pivot.index)), pivot.index, fontsize=7)
-        axis.set_title("Fraction of intrinsic-geometry settings with reduced violation")
-        fig.colorbar(image, ax=axis, label="fraction")
+        fig, axes = plt.subplots(1, 2, figsize=(13, 4.8), sharey=True)
+        image = None
+        for axis, segment in zip(axes, ("source", "product")):
+            pivot = intrinsic[intrinsic.segment == segment].pivot_table(
+                index="treatment", columns="layer",
+                values="delta_geodesic_violation_fraction_negative", aggfunc="mean",
+            )
+            image = axis.imshow(pivot.to_numpy(), vmin=0, vmax=1, aspect="auto", cmap="coolwarm")
+            axis.set_xticks(range(len(pivot.columns)), pivot.columns, rotation=30, ha="right")
+            axis.set_yticks(range(len(pivot.index)), pivot.index, fontsize=7)
+            axis.set_title(segment)
+        fig.colorbar(image, ax=axes, label="fraction of settings with reduced violation")
         fig.tight_layout(); fig.savefig(plot_dir / "intrinsic_robustness.png", dpi=180); plt.close(fig)
 
     anatomy = pd.DataFrame(summaries["released_anatomy_treatment"])
@@ -813,7 +819,7 @@ def run(args):
     )
     intrinsic = grouped_stream(
         root / "raw" / "intrinsic_manifold_decomposition.jsonl.gz",
-        ("checkpoint", "layer", "search_metric", "same_segment", "neighbors", "tangent_dim"),
+        ("checkpoint", "layer", "segment", "search_metric", "same_segment", "neighbors", "tangent_dim"),
         ("geodesic_violation", "normal_acceleration", "geodesic_over_acceleration", "normal_over_acceleration"),
     )
     intrinsic_treatment = intrinsic_treatment_summary(intrinsic)
