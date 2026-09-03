@@ -79,6 +79,27 @@ def grouped_stream(path: Path, keys: tuple[str, ...], metrics: tuple[str, ...]):
     return output
 
 
+def summarize_interventions(path: Path):
+    groups = defaultdict(list)
+    metrics = ("delta_gold_log_probability", "delta_gold_margin", "delta_gold_rank", "delta_entropy")
+    for row in records(path):
+        for effect in row["interventions"]:
+            key = (row["checkpoint"], row["segment"], effect["gamma"], effect["norm_restored"])
+            groups[key].append([float(effect[metric]) for metric in metrics])
+    output = []
+    for key, values in groups.items():
+        data = np.asarray(values)
+        row = dict(zip(("checkpoint", "segment", "gamma", "norm_restored"), key))
+        row["n"] = len(data)
+        for column, metric in enumerate(metrics):
+            row[metric] = float(data[:, column].mean())
+            row[f"sd_{metric}"] = float(data[:, column].std(ddof=1))
+        row["fraction_logprob_harmed"] = float((data[:, 0] < 0).mean())
+        row["fraction_margin_harmed"] = float((data[:, 1] < 0).mean())
+        output.append(row)
+    return output
+
+
 def paired_tube(root: Path):
     frame = pd.DataFrame(records(root / "raw" / "tube_scale_space_aggregate.jsonl.gz"))
     keys = frame.checkpoint.unique().tolist()
@@ -190,11 +211,7 @@ def make_plots(root: Path, tube: pd.DataFrame, tube_delta: pd.DataFrame, summari
 def run(args):
     root = args.root.resolve()
     tube, tube_delta = paired_tube(root)
-    intervention = grouped_stream(
-        root / "raw" / "signal_noise_interventions.jsonl.gz",
-        ("checkpoint", "segment", "gamma", "norm_restored"),
-        ("delta_gold_log_probability", "delta_gold_margin", "delta_gold_rank", "delta_entropy"),
-    )
+    intervention = summarize_interventions(root / "raw" / "signal_noise_interventions.jsonl.gz")
     anatomy = grouped_stream(
         root / "raw" / "released_objective_anatomy.jsonl.gz",
         ("checkpoint", "span_length"),

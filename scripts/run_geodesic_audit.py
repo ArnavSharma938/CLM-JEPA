@@ -370,6 +370,122 @@ def deterministic_starts(n: int, length: int, maximum: int, salt: int) -> list[i
     return sorted(rng.choice(count, maximum, replace=False).tolist())
 
 
+def write_intervention_batch(
+    writer: JsonlGzipWriter, *, checkpoint: str, record: dict,
+    segment: str, path_states: torch.Tensor, positions: list[int],
+    ids: torch.Tensor, weight: torch.Tensor,
+) -> None:
+    triples = []
+    for length in range(2, len(path_states)):
+        for s in deterministic_starts(len(path_states), length, 8, record["panel_index"]):
+            t = s + length
+            r = (s + t) // 2
+            if positions[r] + 1 < len(ids):
+                triples.append((length, s, r, t, positions[r] + 1))
+    if not triples:
+        return
+    index = torch.tensor([[row[1], row[2], row[3]] for row in triples], device=path_states.device)
+    h_s, h_r, h_t = (path_states[index[:, column]] for column in range(3))
+    alpha, q, rho = chord_coordinates(h_s, h_r, h_t)
+    parallel = alpha[:, None] * (h_t - h_s)
+    gold = ids[torch.tensor([row[4] for row in triples], device=ids.device)]
+    logits = h_r @ weight.T
+    probabilities = logits.softmax(-1)
+    gradient = weight[gold] - probabilities @ weight
+    para_signed = (gradient * parallel).sum(-1)
+    perp_signed = (gradient * q).sum(-1)
+    para_cosine = para_signed / (gradient.norm(dim=-1) * parallel.norm(dim=-1)).clamp_min(1e-12)
+    perp_cosine = perp_signed / (gradient.norm(dim=-1) * q.norm(dim=-1)).clamp_min(1e-12)
+    base_logp_all = logits.log_softmax(-1)
+    base_logp = base_logp_all.gather(1, gold[:, None]).squeeze(1)
+    base_rank = (logits > logits.gather(1, gold[:, None])).sum(1) + 1
+    masked = logits.clone()
+    masked.scatter_(1, gold[:, None], -torch.inf)
+    base_margin = logits.gather(1, gold[:, None]).squeeze(1) - masked.max(1).values
+    base_entropy = -(probabilities * base_logp_all).sum(-1)
+    base_topk = torch.topk(logits, min(10, logits.shape[1]), dim=1).indices
+    path_probabilities = (path_states @ weight.T).softmax(-1)
+    fr_excess = fisher_rao_triangle_excess(
+        path_probabilities[index[:, 0]], path_probabilities[index[:, 1]],
+        path_probabilities[index[:, 2]],
+    )
+    ray = optimal_ray_residual(h_s, h_r, h_t)
+
+    variants = []
+    variant_labels = []
+    for gamma in (.1, .25, .5):
+        changed = h_r - gamma * q
+        variants.append(changed)
+        variant_labels.append((gamma, False))
+        restored = changed * (h_r.norm(dim=-1) / changed.norm(dim=-1).clamp_min(1e-12))[:, None]
+        variants.append(restored)
+        variant_labels.append((gamma, True))
+    changed_states = torch.cat(variants, dim=0)
+    changed_logits = changed_states @ weight.T
+    n = len(triples)
+    changed_logits = changed_logits.reshape(len(variants), n, -1)
+    changed_logp_all = changed_logits.log_softmax(-1)
+    changed_probabilities = changed_logits.softmax(-1)
+    changed_gold_logits = changed_logits.gather(2, gold[None, :, None].expand(len(variants), -1, 1)).squeeze(2)
+    changed_gold_logp = changed_logp_all.gather(2, gold[None, :, None].expand(len(variants), -1, 1)).squeeze(2)
+    changed_rank = (changed_logits > changed_gold_logits[:, :, None]).sum(-1) + 1
+    changed_masked = changed_logits.clone()
+    changed_masked.scatter_(2, gold[None, :, None].expand(len(variants), -1, 1), -torch.inf)
+    changed_margin = changed_gold_logits - changed_masked.max(-1).values
+    changed_entropy = -(changed_probabilities * changed_logp_all).sum(-1)
+    changed_topk = torch.topk(changed_logits, min(10, logits.shape[1]), dim=-1).indices
+
+    for row_index, (length, s, r, t, _) in enumerate(triples):
+        effects = []
+        for variant, (gamma, restore) in enumerate(variant_labels):
+            effects.append({
+                "gamma": gamma, "norm_restored": restore,
+                "delta_gold_log_probability": float(changed_gold_logp[variant, row_index] - base_logp[row_index]),
+                "delta_gold_rank": int(changed_rank[variant, row_index] - base_rank[row_index]),
+                "delta_gold_margin": float(changed_margin[variant, row_index] - base_margin[row_index]),
+                "delta_entropy": float(changed_entropy[variant, row_index] - base_entropy[row_index]),
+                "topk_changed": bool((changed_topk[variant, row_index] != base_topk[row_index]).any()),
+            })
+        writer.write({
+            "checkpoint": checkpoint, "panel_index": record["panel_index"],
+            "reaction_identity": record["reaction_identity"], "segment": segment,
+            "span_length": length, "s": s, "r": r, "t": t,
+            "rho": float(rho[row_index]), "alpha": float(alpha[row_index]),
+            "ray_residual": float(ray[row_index]), "fisher_triangle_excess": float(fr_excess[row_index]),
+            "parallel_signed_sensitivity": float(para_signed[row_index]),
+            "parallel_cosine_sensitivity": float(para_cosine[row_index]),
+            "perpendicular_signed_sensitivity": float(perp_signed[row_index]),
+            "perpendicular_cosine_sensitivity": float(perp_cosine[row_index]),
+            "perpendicular_norm": float(q[row_index].norm()),
+            "parallel_norm": float(parallel[row_index].norm()),
+            "base_gold_log_probability": float(base_logp[row_index]),
+            "base_gold_rank": int(base_rank[row_index]),
+            "base_gold_margin": float(base_margin[row_index]),
+            "base_entropy": float(base_entropy[row_index]),
+            "interventions": effects,
+        })
+
+
+def write_anatomy_batch(writer: JsonlGzipWriter, checkpoint: str, record: dict, path: torch.Tensor) -> None:
+    spans = []
+    for length in range(1, len(path)):
+        for s in deterministic_starts(len(path), length, 8, record["panel_index"] + 17):
+            t = s + length
+            if s != 0 or t != len(path) - 1:
+                spans.append((length, s, t))
+    index = torch.tensor([[row[1], row[2]] for row in spans], device=path.device)
+    before = path[index[:, 0]] - path[0]
+    patch = path[index[:, 1]] - path[index[:, 0]]
+    after = path[-1] - path[index[:, 1]]
+    values = released_objective_anatomy(before, patch, after)
+    for row_index, (length, _, _) in enumerate(spans):
+        writer.write({
+            "checkpoint": checkpoint, "panel_index": record["panel_index"],
+            "span_length": length,
+            **{name: float(value[row_index]) for name, value in values.items()},
+        })
+
+
 def analyze_gold(args) -> None:
     output = args.output.resolve()
     cache_paths = sorted((output / "cache" / "gold_states").glob("*.pt"))
@@ -434,73 +550,16 @@ def analyze_gold(args) -> None:
                     if label != "final_post_norm" or segment == "cross":
                         continue
                     functional = functional_metrics(path_states, weight)
-                    probabilities = functional["probabilities"]
                     ids = record["input_ids"].long().to(args.device)
-                    maximum_length = len(path_states) - 1
-                    for length in range(2, maximum_length + 1):
-                        for s in deterministic_starts(len(path_states), length, 8, record["panel_index"]):
-                            t = s + length
-                            r = (s + t) // 2
-                            alpha, q, rho = chord_coordinates(path_states[s], path_states[r], path_states[t])
-                            u = path_states[r] - path_states[s]
-                            chord = path_states[t] - path_states[s]
-                            parallel = alpha * chord
-                            original_position = positions[r]
-                            if original_position + 1 >= len(ids):
-                                continue
-                            gold = int(ids[original_position + 1])
-                            gradient, logits, _ = gold_logprob_gradient(path_states[r], weight, gold)
-                            para_s = predictive_sensitivity(gradient, parallel)
-                            perp_s = predictive_sensitivity(gradient, q)
-                            base_topk = torch.topk(logits, min(10, logits.numel())).indices.tolist()
-                            base_logp = float(logits.log_softmax(-1)[gold])
-                            base_rank = int((logits > logits[gold]).sum()) + 1
-                            competitor = torch.cat((logits[:gold], logits[gold + 1:])).max()
-                            base_margin = float(logits[gold] - competitor)
-                            base_entropy = float(-(logits.softmax(-1) * logits.log_softmax(-1)).sum())
-                            fr_excess = float(fisher_rao_triangle_excess(probabilities[s], probabilities[r], probabilities[t]))
-                            ray = float(optimal_ray_residual(path_states[s], path_states[r], path_states[t]))
-                            common = {
-                                "checkpoint": key, "panel_index": record["panel_index"], "reaction_identity": record["reaction_identity"],
-                                "segment": segment, "span_length": length, "s": s, "r": r, "t": t,
-                                "rho": float(rho), "alpha": float(alpha), "ray_residual": ray,
-                                "fisher_triangle_excess": fr_excess,
-                                "parallel_signed_sensitivity": float(para_s["signed"]),
-                                "parallel_cosine_sensitivity": float(para_s["cosine"]),
-                                "perpendicular_signed_sensitivity": float(perp_s["signed"]),
-                                "perpendicular_cosine_sensitivity": float(perp_s["cosine"]),
-                                "perpendicular_norm": float(q.norm()), "parallel_norm": float(parallel.norm()),
-                                "base_gold_log_probability": base_logp, "base_gold_rank": base_rank,
-                                "base_gold_margin": base_margin, "base_entropy": base_entropy,
-                            }
-                            for gamma in (.1, .25, .5):
-                                for restore in (False, True):
-                                    changed = curvature_removal_intervention(path_states[r], q, weight, gold, gamma, restore)
-                                    writers["intervention_rows"].write({
-                                        **common, "gamma": gamma, "norm_restored": restore,
-                                        "delta_gold_log_probability": changed["gold_log_probability"] - base_logp,
-                                        "delta_gold_rank": changed["gold_rank"] - base_rank,
-                                        "delta_gold_margin": changed["gold_margin"] - base_margin,
-                                        "delta_entropy": changed["entropy"] - base_entropy,
-                                        "topk_changed": changed["topk"] != base_topk,
-                                    })
+                    write_intervention_batch(
+                        writers["intervention_rows"], checkpoint=key,
+                        record=record, segment=segment, path_states=path_states,
+                        positions=positions, ids=ids, weight=weight,
+                    )
                 # Released-objective anatomy uses the exact framing-excluded path.
                 if label == "final_post_norm":
                     cross, _ = trajectory_from_record(record, layer_index, "cross", args.device)
-                    total = cross[-1] - cross[0]
-                    for length in range(1, len(cross)):
-                        for s in deterministic_starts(len(cross), length, 8, record["panel_index"] + 17):
-                            t = s + length
-                            if s == 0 and t == len(cross) - 1:
-                                continue
-                            patch = cross[t] - cross[s]
-                            before = cross[s] - cross[0]
-                            after = cross[-1] - cross[t]
-                            values = released_objective_anatomy(before[None], patch[None], after[None])
-                            writers["anatomy_rows"].write({
-                                "checkpoint": key, "panel_index": record["panel_index"], "span_length": t - s,
-                                **{name: float(value[0]) for name, value in values.items()},
-                            })
+                    write_anatomy_batch(writers["anatomy_rows"], key, record, cross)
         print(json.dumps({"stage": "gold_analysis_checkpoint", "index": cache_index, "total": len(cache_paths), "key": key}), flush=True)
         del payload, weight
         if torch.cuda.is_available():
