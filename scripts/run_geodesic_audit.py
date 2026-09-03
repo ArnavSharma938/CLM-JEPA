@@ -747,25 +747,26 @@ def _candidate_workload(tokenizer, key: str) -> list[dict]:
         for view, source in enumerate(row["sources"]):
             raw = row["raw_candidates_by_view"][view]
             canonical = row["canonical_candidates_by_view"][view]
-            candidates = [(row["target"], "gold", 0)]
+            candidates = [(row["target"], row["target"], "gold", 0)]
             for rank, (raw_value, canonical_value) in enumerate(zip(raw[:5], canonical[:5]), 1):
                 role = "view_top1" if rank == 1 else "additional"
-                if canonical_value != row["target"] and not any(c[1] == "highest_wrong" for c in candidates):
+                if canonical_value and canonical_value != row["target"] and not any(c[2] == "highest_wrong" for c in candidates):
                     role = "highest_wrong"
-                candidates.append((raw_value, role, rank))
+                candidates.append((raw_value, canonical_value, role, rank))
             if panel_index in special:
-                candidates.append((special[panel_index], "seed1301_promoted_wrong", -1))
+                candidates.append((special[panel_index], special[panel_index], "seed1301_promoted_wrong", -1))
             seen = set()
-            for candidate, role, rank in candidates:
-                identity = (candidate, role)
-                if not candidate or identity in seen:
+            for candidate, canonical_candidate, role, rank in candidates:
+                if not candidate or (candidate in seen and role != "seed1301_promoted_wrong"):
                     continue
-                seen.add(identity)
+                seen.add(candidate)
                 input_ids, target_positions = _fast_reaction_tokenization(tokenizer, source, candidate)
                 workload.append({
                     "panel_index": panel_index, "reaction_identity": row["reaction_identity"],
                     "view": view, "source": source, "gold": row["target"],
                     "candidate": candidate, "role": role, "beam_rank": rank,
+                    "canonical_candidate": canonical_candidate,
+                    "valid_candidate": bool(canonical_candidate),
                     "input_ids": input_ids, "target_positions": target_positions,
                     "aggregate_rank": (
                         row["ranked_candidates"].index(row["target"]) + 1
