@@ -349,6 +349,8 @@ def tube_reaction_uncertainty(root: Path):
                 for index, metric in enumerate(("rms", "maximum", "p95")):
                     row[f"delta_{metric}"] = float(effects[:, index].mean())
                     row[f"delta_{metric}_ci95"] = bootstrap_ci(effects[:, index])
+                    sd = effects[:, index].std(ddof=1)
+                    row[f"paired_dz_{metric}"] = float(effects[:, index].mean() / sd) if sd > 0 else math.nan
                 output.append(row)
     return output
 
@@ -465,6 +467,8 @@ def candidate_checkpoint_summary(frame: pd.DataFrame):
                 values = reaction[metric].to_numpy()
                 row[metric] = float(np.mean(values))
                 row[f"{metric}_ci95"] = bootstrap_ci(values)
+                sd = values.std(ddof=1)
+                row[f"paired_dz_{metric}"] = float(values.mean() / sd) if len(values) > 1 and sd > 0 else math.nan
                 row[f"{metric}_fraction_wrong_more_geodesic"] = float((values < 0).mean())
             output.append(row)
     return output
