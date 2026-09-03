@@ -513,19 +513,6 @@ def summarize_candidate_intrinsic(root: Path):
     trajectory = defaultdict(lambda: {"n": 0, **{metric: 0.0 for metric in metrics}})
     for row in records(path):
         role = row["role"]
-        central = (
-            row["search_metric"] == "euclidean"
-            and int(row["neighbors"]) == 64 and int(row["tangent_dim"]) == 16
-        )
-        robust = role == "seed1301_promoted_wrong" or (
-            role == "gold" and int(row["panel_index"]) in {
-                # Natural-experiment gold rows are distinguishable later by
-                # the presence of their paired promoted candidate.
-                int(row["panel_index"])
-            }
-        )
-        if not central and not robust:
-            continue
         setting = (
             row["search_metric"], int(row["neighbors"]), int(row["tangent_dim"]),
         )
