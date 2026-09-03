@@ -363,13 +363,15 @@ def functional_metrics(path: torch.Tensor, weight: torch.Tensor) -> dict:
 
 
 def compact_multiscale_turning(path: torch.Tensor, max_scale: int = 32) -> list[dict]:
-    path = path.float()
+    path = path.float().detach().cpu().numpy()
     output = []
     for scale in range(1, min(max_scale, (len(path) - 1) // 2) + 1):
         before = path[scale:-scale] - path[:-2 * scale]
         after = path[2 * scale:] - path[scale:-scale]
-        angles = torch.acos(cosine(before, after).clamp(-1, 1))
-        output.append({"scale": scale, "start_position": scale, "angles": angles.cpu().tolist()})
+        numerator = np.sum(before * after, axis=-1)
+        denominator = np.linalg.norm(before, axis=-1) * np.linalg.norm(after, axis=-1)
+        angles = np.arccos(np.clip(numerator / np.maximum(denominator, 1e-8), -1, 1))
+        output.append({"scale": scale, "start_position": scale, "angles": angles.tolist()})
     return output
 
 

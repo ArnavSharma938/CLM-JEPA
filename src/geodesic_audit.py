@@ -142,13 +142,14 @@ def cosine(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
 
 
 def tangent_autocorrelation(path: torch.Tensor, max_lag: int = 32) -> list[dict]:
-    velocity = _fp32(path)[1:] - _fp32(path)[:-1]
+    velocity = (_fp32(path)[1:] - _fp32(path)[:-1]).detach().cpu().numpy()
+    velocity = velocity / np.maximum(np.linalg.norm(velocity, axis=-1, keepdims=True), 1e-8)
     out = []
     for lag in range(1, min(max_lag, len(velocity) - 1) + 1):
-        values = cosine(velocity[:-lag], velocity[lag:])
+        values = np.sum(velocity[:-lag] * velocity[lag:], axis=-1)
         out.append({
-            "lag": lag, "n": int(values.numel()), "mean": float(values.mean()),
-            "median": float(values.median()),
+            "lag": lag, "n": int(values.size), "mean": float(values.mean()),
+            "median": float(np.median(values)),
         })
     return out
 

@@ -14,6 +14,7 @@ from src.geodesic_audit import (
     local_tangent_acceleration,
     matched_geodesic_displacement,
     released_objective_anatomy,
+    tangent_autocorrelation,
     tube_scale_space,
 )
 
@@ -61,6 +62,18 @@ def test_acceleration_separates_speed_from_turning():
     assert a["acceleration_parallel"].item() == 1
     assert a["acceleration_normal"].item() == 0
     assert b["acceleration_normal"].item() > 0
+
+
+def test_tangent_autocorrelation_matches_direct_cosines():
+    torch.manual_seed(23)
+    path = torch.randn(15, 9)
+    rows = tangent_autocorrelation(path, 5)
+    velocity = path[1:] - path[:-1]
+    for row in rows:
+        lag = row["lag"]
+        direct = torch.nn.functional.cosine_similarity(velocity[:-lag], velocity[lag:], dim=-1)
+        assert abs(row["mean"] - float(direct.mean())) < 2e-6
+        assert abs(row["median"] - float(torch.quantile(direct, .5))) < 2e-6
 
 
 def test_categorical_fisher_matches_explicit_matrix():
