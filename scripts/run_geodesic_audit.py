@@ -8,6 +8,7 @@ then recomputable from compact BF16 state shards and FP32 LM-head weights.
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import gzip
 import hashlib
 import json
@@ -835,45 +836,46 @@ def analyze_candidates(args) -> None:
     for parameter in model.parameters():
         parameter.requires_grad_(False)
     capture = SelectedStateCapture(model)
-    for spec_index, spec in enumerate(specs, 1):
-        workload = _candidate_workload(tokenizer, spec.key)
-        workload.sort(key=lambda row: len(row["input_ids"]))
-        load_adapter_checkpoint(model, ROOT / spec.checkpoint)
-        weight = model.get_output_embeddings().weight.detach().float().to(args.device)
-        with torch.inference_mode():
-            for batch_start in range(0, len(workload), args.batch_size):
-                batch = workload[batch_start:batch_start + args.batch_size]
-                maximum = max(len(row["input_ids"]) for row in batch)
-                ids = torch.zeros((len(batch), maximum), dtype=torch.long, device=args.device)
-                mask = torch.zeros_like(ids, dtype=torch.bool)
-                for i, row in enumerate(batch):
-                    length = len(row["input_ids"])
-                    ids[i, :length] = torch.tensor(row["input_ids"], device=args.device)
-                    mask[i, :length] = True
-                capture.clear()
-                model(input_ids=ids, attention_mask=mask, use_cache=False, return_dict=True)
-                for i, row in enumerate(batch):
-                    positions = [row["target_positions"][0] - 1, *row["target_positions"]]
-                    labels = ["final_post_norm"]
-                    # Full-depth candidate geometry is fixed to the robustness
-                    # subset and the seed-1301 natural-experiment rows.
-                    if row["panel_index"] < 64 or row["role"] == "seed1301_promoted_wrong":
-                        labels = list(DEPTH_LABELS)
-                    for label in labels:
-                        states = capture.values[label][i, :len(row["input_ids"])].float()
-                        path = states[positions]
-                        metrics = _candidate_geometry(path, weight if label == "final_post_norm" else None)
+    with ThreadPoolExecutor(max_workers=args.analysis_workers) as executor:
+        for spec_index, spec in enumerate(specs, 1):
+            workload = _candidate_workload(tokenizer, spec.key)
+            workload.sort(key=lambda row: len(row["input_ids"]))
+            load_adapter_checkpoint(model, ROOT / spec.checkpoint)
+            weight = model.get_output_embeddings().weight.detach().float().to(args.device)
+            with torch.inference_mode():
+                for batch_start in range(0, len(workload), args.batch_size):
+                    batch = workload[batch_start:batch_start + args.batch_size]
+                    maximum = max(len(row["input_ids"]) for row in batch)
+                    ids = torch.zeros((len(batch), maximum), dtype=torch.long, device=args.device)
+                    mask = torch.zeros_like(ids, dtype=torch.bool)
+                    for i, row in enumerate(batch):
+                        length = len(row["input_ids"])
+                        ids[i, :length] = torch.tensor(row["input_ids"], device=args.device)
+                        mask[i, :length] = True
+                    capture.clear()
+                    model(input_ids=ids, attention_mask=mask, use_cache=False, return_dict=True)
+                    tasks = []
+                    for i, row in enumerate(batch):
+                        positions = [row["target_positions"][0] - 1, *row["target_positions"]]
+                        labels = ["final_post_norm"]
+                        if row["panel_index"] < 64 or row["role"] == "seed1301_promoted_wrong":
+                            labels = list(DEPTH_LABELS)
+                        for label in labels:
+                            states = capture.values[label][i, :len(row["input_ids"])].float()
+                            tasks.append((row, label, states[positions], weight if label == "final_post_norm" else None))
+                    metrics_rows = executor.map(lambda task: _candidate_geometry(task[2], task[3]), tasks)
+                    for (row, label, _, _), metrics in zip(tasks, metrics_rows):
                         writer.write({
                             **{k: v for k, v in row.items() if k not in {"input_ids", "target_positions"}},
                             "checkpoint": spec.key, "rank": spec.rank,
                             "formulation": spec.formulation, "lambda": spec.stp_lambda,
                             "seed": spec.seed, "layer": label, **metrics,
                         })
-                del ids, mask
-        del weight, workload
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-        print(json.dumps({"stage": "candidate_checkpoint_complete", "index": spec_index, "total": len(specs), "key": spec.key, "rows": writer.count}), flush=True)
+                    del ids, mask, tasks
+            del weight, workload
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            print(json.dumps({"stage": "candidate_checkpoint_complete", "index": spec_index, "total": len(specs), "key": spec.key, "rows": writer.count}), flush=True)
     capture.close()
     del model, capture
     writer.close()
@@ -1169,6 +1171,7 @@ def parse_args():
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--intrinsic-queries", type=int, default=256)
     parser.add_argument("--analysis-limit", type=int, default=0)
+    parser.add_argument("--analysis-workers", type=int, default=4)
     return parser.parse_args()
 
 

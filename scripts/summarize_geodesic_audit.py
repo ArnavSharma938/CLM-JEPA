@@ -9,14 +9,21 @@ import json
 import math
 from collections import defaultdict
 from pathlib import Path
+import sys
 
 import numpy as np
 import pandas as pd
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
 DEFAULT_ROOT = ROOT / "runs" / "geodesic_mechanism_audit"
 RNG_SEED = 20260902
+
+from src.chemfm import TOKENIZER_DIR, load_reaction_tokenizer
+from src.frozen_geometry import DEFAULT_PANEL
+from scripts.run_geodesic_audit import build_gold_examples
 
 
 def records(path: Path):
@@ -100,6 +107,107 @@ def summarize_interventions(path: Path):
     return output
 
 
+def sensitivity_event_map():
+    tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
+    result = {}
+    for example in build_gold_examples(tokenizer, DEFAULT_PANEL):
+        for segment in ("source", "target"):
+            tokens = [token for token in example.tokens if token.segment == segment]
+            for local, token in enumerate(tokens, start=1):
+                result[(example.panel_index, "product" if segment == "target" else segment, local)] = sorted(token.events)
+    return result
+
+
+def summarize_sensitivity(path: Path):
+    groups = defaultdict(lambda: defaultdict(float))
+    event_groups = defaultdict(lambda: defaultdict(float))
+    event_map = sensitivity_event_map()
+
+    def add(group, parallel, perpendicular, perp_cos):
+        group["n"] += 1
+        group["parallel_signed"] += parallel
+        group["perpendicular_signed"] += perpendicular
+        group["parallel_absolute"] += abs(parallel)
+        group["perpendicular_absolute"] += abs(perpendicular)
+        group["perpendicular_cosine_absolute"] += abs(perp_cos)
+        group["perpendicular_cosine_gt_.1"] += abs(perp_cos) > .1
+        group["perpendicular_cosine_gt_.25"] += abs(perp_cos) > .25
+
+    for row in records(path):
+        length = int(row["span_length"])
+        span_bin = "2" if length == 2 else "3_8" if length <= 8 else "9_24" if length <= 24 else "25_plus"
+        group = groups[(row["checkpoint"], row["segment"], span_bin)]
+        parallel = float(row["parallel_signed_sensitivity"])
+        perpendicular = float(row["perpendicular_signed_sensitivity"])
+        perp_cos = float(row["perpendicular_cosine_sensitivity"])
+        add(group, parallel, perpendicular, perp_cos)
+        events = event_map.get((int(row["panel_index"]), row["segment"], int(row["r"])), [])
+        labels = events or ["ordinary"]
+        if events:
+            labels = [*events, "any_event"]
+        for label in labels:
+            add(event_groups[(row["checkpoint"], row["segment"], label)], parallel, perpendicular, perp_cos)
+
+    def finish(source, names):
+        output = []
+        for key, group in source.items():
+            n = group.pop("n")
+            row = dict(zip(names, key)); row["n"] = int(n)
+            row.update({name: value / n for name, value in group.items()})
+            row["absolute_perpendicular_to_parallel_ratio"] = row["perpendicular_absolute"] / max(row["parallel_absolute"], 1e-12)
+            output.append(row)
+        return output
+
+    return (
+        finish(groups, ("checkpoint", "segment", "span_bin")),
+        finish(event_groups, ("checkpoint", "segment", "event_category")),
+    )
+
+
+def intrinsic_treatment_summary(rows):
+    frame = pd.DataFrame(rows)
+    if frame.empty:
+        return []
+    keys = frame.checkpoint.unique().tolist()
+    index_columns = ["layer", "search_metric", "same_segment", "neighbors", "tangent_dim"]
+    output = []
+    for native, treatment in treatment_pairs(keys):
+        n = frame[frame.checkpoint == native].set_index(index_columns)
+        t = frame[frame.checkpoint == treatment].set_index(index_columns)
+        common = n.index.intersection(t.index)
+        for layer in sorted({index[0] for index in common}):
+            layer_index = [index for index in common if index[0] == layer]
+            row = {"native": native, "treatment": treatment, "layer": layer, "robustness_settings": len(layer_index)}
+            for metric in ("geodesic_violation", "normal_acceleration", "geodesic_over_acceleration", "normal_over_acceleration"):
+                delta = t.loc[layer_index, metric].to_numpy() - n.loc[layer_index, metric].to_numpy()
+                row[f"delta_{metric}_mean"] = float(delta.mean())
+                row[f"delta_{metric}_min"] = float(delta.min())
+                row[f"delta_{metric}_max"] = float(delta.max())
+                row[f"delta_{metric}_fraction_negative"] = float((delta < 0).mean())
+            output.append(row)
+    return output
+
+
+def paired_reduced_summary(rows, index_columns, metrics):
+    frame = pd.DataFrame(rows)
+    if frame.empty:
+        return []
+    output = []
+    for native, treatment in treatment_pairs(frame.checkpoint.unique()):
+        n = frame[frame.checkpoint == native].set_index(index_columns)
+        t = frame[frame.checkpoint == treatment].set_index(index_columns)
+        for index in n.index.intersection(t.index):
+            nrow, trow = n.loc[index], t.loc[index]
+            if not isinstance(index, tuple):
+                index = (index,)
+            output.append({
+                "native": native, "treatment": treatment,
+                **dict(zip(index_columns, index)),
+                **{f"delta_{metric}": float(trow[metric] - nrow[metric]) for metric in metrics},
+            })
+    return output
+
+
 def paired_tube(root: Path):
     frame = pd.DataFrame(records(root / "raw" / "tube_scale_space_aggregate.jsonl.gz"))
     keys = frame.checkpoint.unique().tolist()
@@ -154,6 +262,44 @@ def tube_reaction_uncertainty(root: Path):
                     row[f"delta_{metric}"] = float(effects[:, index].mean())
                     row[f"delta_{metric}_ci95"] = bootstrap_ci(effects[:, index])
                 output.append(row)
+    return output
+
+
+def individual_persistence_scales(root: Path):
+    from src.geodesic_audit import estimate_piecewise_change_point
+
+    groups = defaultdict(list)
+    current_key = None
+    curve = []
+
+    def finish(key, values):
+        if key is not None:
+            estimate = estimate_piecewise_change_point(values)
+            if math.isfinite(estimate["breakpoint"]):
+                groups[key[:3]].append(estimate["breakpoint"])
+
+    for row in records(root / "raw" / "tube_scale_space_by_reaction.jsonl.gz"):
+        key = (row["checkpoint"], row["layer"], row["segment"], row["panel_index"])
+        if key != current_key:
+            finish(current_key, curve)
+            current_key, curve = key, []
+        curve.append(row)
+    finish(current_key, curve)
+    output = []
+    rng = np.random.default_rng(RNG_SEED)
+    for (checkpoint, layer, segment), values in groups.items():
+        values = np.asarray(values, dtype=float)
+        bootstrap = []
+        for start in range(0, 10_000, 250):
+            samples = rng.choice(values, size=(min(250, 10_000 - start), len(values)), replace=True)
+            bootstrap.extend(np.median(samples, axis=1).tolist())
+        output.append({
+            "checkpoint": checkpoint, "layer": layer, "segment": segment,
+            "reaction_n": len(values), "median_breakpoint": float(np.median(values)),
+            "mean_breakpoint": float(values.mean()),
+            "q25_q75": np.quantile(values, [.25, .75]).tolist(),
+            "median_bootstrap_ci95": np.quantile(bootstrap, [.025, .975]).tolist(),
+        })
     return output
 
 
@@ -286,19 +432,17 @@ def run(args):
     root = args.root.resolve()
     tube, tube_delta = paired_tube(root)
     tube_uncertainty = tube_reaction_uncertainty(root)
+    persistence_scales = individual_persistence_scales(root)
     intervention = summarize_interventions(root / "raw" / "signal_noise_interventions.jsonl.gz")
-    sensitivity = grouped_stream(
-        root / "raw" / "signal_noise_interventions.jsonl.gz",
-        ("checkpoint", "segment", "span_length"),
-        ("rho", "ray_residual", "fisher_triangle_excess",
-         "parallel_signed_sensitivity", "parallel_cosine_sensitivity",
-         "perpendicular_signed_sensitivity", "perpendicular_cosine_sensitivity",
-         "parallel_norm", "perpendicular_norm"),
-    )
+    sensitivity, event_sensitivity = summarize_sensitivity(root / "raw" / "signal_noise_interventions.jsonl.gz")
     anatomy = grouped_stream(
         root / "raw" / "released_objective_anatomy.jsonl.gz",
         ("checkpoint", "span_length"),
         ("loss", "cos_patch_before", "cos_patch_after", "cos_before_after", "cancellation_ratio"),
+    )
+    anatomy_treatment = paired_reduced_summary(
+        anatomy, ["span_length"],
+        ["loss", "cos_patch_before", "cos_patch_after", "cos_before_after", "cancellation_ratio"],
     )
     matched = grouped_stream(
         root / "raw" / "matched_native_stp_displacement.jsonl.gz",
@@ -310,10 +454,15 @@ def run(args):
         ("checkpoint", "layer", "search_metric", "same_segment", "neighbors", "tangent_dim"),
         ("geodesic_violation", "normal_acceleration", "geodesic_over_acceleration", "normal_over_acceleration"),
     )
+    intrinsic_treatment = intrinsic_treatment_summary(intrinsic)
     cones = grouped_stream(
         root / "raw" / "inference_cones.jsonl.gz",
         ("checkpoint", "kind", "horizon"),
         ("weighted_angle_from_mean", "weighted_angle_from_gold", "perpendicular_variance", "mean_axis_gold_cosine", "fisher_dispersion"),
+    )
+    cone_treatment = paired_reduced_summary(
+        cones, ["kind", "horizon"],
+        ["weighted_angle_from_mean", "weighted_angle_from_gold", "perpendicular_variance", "mean_axis_gold_cosine", "fisher_dispersion"],
     )
     gold_wrong, natural = summarize_candidates(root)
     gold_wrong_summary = candidate_checkpoint_summary(gold_wrong)
@@ -321,9 +470,13 @@ def run(args):
     summaries = {
         "tube_treatment_effects": tube_delta.to_dict("records"),
         "tube_reaction_uncertainty": tube_uncertainty,
+        "individual_persistence_scales": persistence_scales,
         "interventions": intervention, "signal_sensitivity": sensitivity,
-        "released_anatomy": anatomy,
-        "matched_displacement": matched, "intrinsic": intrinsic, "cones": cones,
+        "event_signal_sensitivity": event_sensitivity,
+        "released_anatomy": anatomy, "released_anatomy_treatment": anatomy_treatment,
+        "matched_displacement": matched, "intrinsic": intrinsic,
+        "intrinsic_treatment_summary": intrinsic_treatment, "cones": cones,
+        "cone_treatment_summary": cone_treatment,
         "gold_wrong": gold_wrong.to_dict("records"),
         "gold_wrong_checkpoint_summary": gold_wrong_summary,
         "seed1301_natural_experiment": natural.to_dict("records"),
@@ -335,8 +488,11 @@ def run(args):
     compact = {
         "tube_delta_final_product": tube_delta[(tube_delta.layer == "final_post_norm") & (tube_delta.segment == "product")].to_dict("records"),
         "tube_reaction_uncertainty": tube_uncertainty,
+        "individual_persistence_scales": persistence_scales,
         "interventions": intervention, "signal_sensitivity": sensitivity,
-        "intrinsic": intrinsic, "cones": cones,
+        "event_signal_sensitivity": event_sensitivity,
+        "intrinsic": intrinsic, "intrinsic_treatment_summary": intrinsic_treatment,
+        "cones": cones, "cone_treatment_summary": cone_treatment,
         "gold_wrong_checkpoint_summary": gold_wrong_summary,
         "seed1301_natural_means": natural.groupby("checkpoint").mean(numeric_only=True).reset_index().to_dict("records") if not natural.empty else [],
         "seed1301_change_summary": natural_change,
