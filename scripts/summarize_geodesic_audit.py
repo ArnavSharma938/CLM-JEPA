@@ -64,7 +64,11 @@ def bootstrap_ci(values, replicates=10000):
 
 
 def grouped_stream(path: Path, keys: tuple[str, ...], metrics: tuple[str, ...]):
-    groups = defaultdict(lambda: {"n": 0, **{metric: 0.0 for metric in metrics}, **{f"sq_{metric}": 0.0 for metric in metrics}})
+    groups = defaultdict(lambda: {
+        "n": 0, **{metric: 0.0 for metric in metrics},
+        **{f"sq_{metric}": 0.0 for metric in metrics},
+        **{f"n_{metric}": 0 for metric in metrics},
+    })
     for row in records(path):
         group = groups[tuple(row[key] for key in keys)]
         group["n"] += 1
@@ -73,15 +77,18 @@ def grouped_stream(path: Path, keys: tuple[str, ...], metrics: tuple[str, ...]):
             if math.isfinite(value):
                 group[metric] += value
                 group[f"sq_{metric}"] += value * value
+                group[f"n_{metric}"] += 1
     output = []
     for key, group in groups.items():
         row = dict(zip(keys, key))
         row["n"] = group["n"]
         for metric in metrics:
-            mean = group[metric] / max(1, group["n"])
-            variance = max(0.0, group[f"sq_{metric}"] / max(1, group["n"]) - mean * mean)
+            metric_n = group[f"n_{metric}"]
+            mean = group[metric] / max(1, metric_n)
+            variance = max(0.0, group[f"sq_{metric}"] / max(1, metric_n) - mean * mean)
             row[metric] = mean
             row[f"sd_{metric}"] = math.sqrt(variance)
+            row[f"n_{metric}"] = metric_n
         output.append(row)
     return output
 
@@ -384,6 +391,90 @@ def seed1301_change_summary(frame: pd.DataFrame):
     return output
 
 
+def summarize_candidate_intrinsic(root: Path):
+    path = root / "raw" / "candidate_intrinsic_geometry.jsonl.gz"
+    if not path.exists():
+        return [], []
+    metrics = (
+        "geodesic_violation", "normal_acceleration",
+        "geodesic_over_acceleration", "normal_over_acceleration",
+    )
+    # Average the three fixed query positions within each trajectory before
+    # comparing the wrong and gold paths for the same reaction/view.
+    trajectory = defaultdict(lambda: {"n": 0, **{metric: 0.0 for metric in metrics}})
+    for row in records(path):
+        role = row["role"]
+        central = (
+            row["search_metric"] == "euclidean"
+            and int(row["neighbors"]) == 64 and int(row["tangent_dim"]) == 16
+        )
+        robust = role == "seed1301_promoted_wrong" or (
+            role == "gold" and int(row["panel_index"]) in {
+                # Natural-experiment gold rows are distinguishable later by
+                # the presence of their paired promoted candidate.
+                int(row["panel_index"])
+            }
+        )
+        if not central and not robust:
+            continue
+        setting = (
+            row["search_metric"], int(row["neighbors"]), int(row["tangent_dim"]),
+        )
+        key = (
+            row["checkpoint"], int(row["panel_index"]), int(row["view"]),
+            role, setting,
+        )
+        group = trajectory[key]; group["n"] += 1
+        for metric in metrics:
+            group[metric] += float(row[metric])
+    averaged = {
+        key: {metric: group[metric] / group["n"] for metric in metrics}
+        for key, group in trajectory.items()
+    }
+    paired = []
+    for (checkpoint, panel, view, role, setting), wrong in averaged.items():
+        if role not in {"highest_wrong", "seed1301_promoted_wrong"}:
+            continue
+        gold = averaged.get((checkpoint, panel, view, "gold", setting))
+        if gold is None:
+            continue
+        paired.append({
+            "checkpoint": checkpoint, "panel_index": panel, "view": view,
+            "role": role, "search_metric": setting[0],
+            "neighbors": setting[1], "tangent_dim": setting[2],
+            **{
+                f"wrong_minus_gold_{metric}": wrong[metric] - gold[metric]
+                for metric in metrics
+            },
+        })
+    frame = pd.DataFrame(paired)
+    if frame.empty:
+        return [], []
+    central = frame[
+        (frame.role == "highest_wrong") & (frame.search_metric == "euclidean")
+        & (frame.neighbors == 64) & (frame.tangent_dim == 16)
+    ]
+    central_summary = candidate_checkpoint_summary(central)
+    natural = frame[frame.role == "seed1301_promoted_wrong"]
+    natural_summary = []
+    for setting, group in natural.groupby(["search_metric", "neighbors", "tangent_dim"]):
+        native = group[group.checkpoint == "native_r8_s1301"].set_index(["panel_index", "view"])
+        released = group[group.checkpoint == "released_r8_l0.02_s1301"].set_index(["panel_index", "view"])
+        common = native.index.intersection(released.index)
+        for metric in (column for column in group if column.startswith("wrong_minus_gold_")):
+            delta = released.loc[common, metric] - native.loc[common, metric]
+            reaction = pd.DataFrame({
+                "panel_index": [index[0] for index in common], "value": delta.to_numpy(),
+            }).groupby("panel_index").value.mean().to_numpy()
+            natural_summary.append({
+                "search_metric": setting[0], "neighbors": int(setting[1]),
+                "tangent_dim": int(setting[2]), "metric": metric,
+                "reaction_n": len(reaction), "released_change": float(reaction.mean()),
+                "ci95": bootstrap_ci(reaction),
+            })
+    return central_summary, natural_summary
+
+
 def make_plots(root: Path, tube: pd.DataFrame, tube_delta: pd.DataFrame, summaries: dict):
     import matplotlib.pyplot as plt
 
@@ -467,6 +558,7 @@ def run(args):
     gold_wrong, natural = summarize_candidates(root)
     gold_wrong_summary = candidate_checkpoint_summary(gold_wrong)
     natural_change = seed1301_change_summary(natural)
+    candidate_intrinsic, candidate_intrinsic_natural = summarize_candidate_intrinsic(root)
     summaries = {
         "tube_treatment_effects": tube_delta.to_dict("records"),
         "tube_reaction_uncertainty": tube_uncertainty,
@@ -479,6 +571,8 @@ def run(args):
         "cone_treatment_summary": cone_treatment,
         "gold_wrong": gold_wrong.to_dict("records"),
         "gold_wrong_checkpoint_summary": gold_wrong_summary,
+        "candidate_intrinsic_checkpoint_summary": candidate_intrinsic,
+        "candidate_intrinsic_seed1301_robustness": candidate_intrinsic_natural,
         "seed1301_natural_experiment": natural.to_dict("records"),
         "seed1301_change_summary": natural_change,
     }
@@ -494,6 +588,8 @@ def run(args):
         "intrinsic": intrinsic, "intrinsic_treatment_summary": intrinsic_treatment,
         "cones": cones, "cone_treatment_summary": cone_treatment,
         "gold_wrong_checkpoint_summary": gold_wrong_summary,
+        "candidate_intrinsic_checkpoint_summary": candidate_intrinsic,
+        "candidate_intrinsic_seed1301_robustness": candidate_intrinsic_natural,
         "seed1301_natural_means": natural.groupby("checkpoint").mean(numeric_only=True).reset_index().to_dict("records") if not natural.empty else [],
         "seed1301_change_summary": natural_change,
     }
