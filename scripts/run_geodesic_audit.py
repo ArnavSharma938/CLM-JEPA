@@ -829,14 +829,17 @@ def _candidate_geometry(
     change = estimate_piecewise_change_point(tube)
     acceleration = acceleration_decomposition(path)
     paper_spans, released_spans = [], []
+    # Objective values are secondary candidate diagnostics.  Two deterministic
+    # starts at every feasible span length preserve complete scale coverage;
+    # the primary tube metric above remains exhaustive over every interior r.
     for length in range(2, len(path)):
-        for s in deterministic_starts(len(path), length, 8, len(path)):
+        for s in deterministic_starts(len(path), length, 2, len(path)):
             t = s + length
             r = (s + t) // 2
             paper_spans.append((s, r, t))
     for length in range(1, len(released_semantic_path)):
         for s in deterministic_starts(
-            len(released_semantic_path), length, 8, len(released_semantic_path) + 31,
+            len(released_semantic_path), length, 2, len(released_semantic_path) + 31,
         ):
             t = s + length
             released_spans.append((s, t))
