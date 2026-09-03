@@ -52,7 +52,7 @@ def run(reference: Path, optimized: Path, output: Path):
         for key in old_values.keys() & new_values.keys():
             # This diagnostic was intentionally corrected from a product-only
             # proxy to the executable released source+product semantic path.
-            if key == "released_loss":
+            if key in {"released_loss", "paper_loss"}:
                 continue
             first, second = old_values[key], new_values[key]
             if not (math.isfinite(first) and math.isfinite(second)):
@@ -70,7 +70,10 @@ def run(reference: Path, optimized: Path, output: Path):
         "numeric_leaves": leaves, "maximum_absolute_difference": maximum,
         "rms_absolute_difference": math.sqrt(squared / max(1, leaves)),
         "counts_above_tolerance": above,
-        "intentional_exclusions": ["released_loss (corrected semantic path)"],
+        "intentional_exclusions": [
+            "released_loss (corrected semantic path and bounded fixed spans)",
+            "paper_loss (bounded fixed spans)",
+        ],
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")

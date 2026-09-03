@@ -5,16 +5,39 @@ cd "$(dirname "$0")/.."
 main="runs/geodesic_mechanism_audit"
 candidate_final="runs/geodesic_candidate_final"
 started=$SECONDS
-trap 'code=$?; printf "{\"stage\":\"post_gold_failed\",\"exit_code\":%d,\"seconds\":%d}\n" "$code" "$((SECONDS-started))"; exit "$code"' ERR
+fail() {
+  local code=$?
+  jobs -pr | xargs -r kill 2>/dev/null || true
+  wait 2>/dev/null || true
+  printf '{"stage":"post_gold_failed","exit_code":%d,"seconds":%d}\n' \
+    "$code" "$((SECONDS-started))"
+  exit "$code"
+}
+trap fail ERR
 
 printf '{"stage":"candidate_start"}\n'
 rm -rf "$candidate_final"
-OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv/bin/python scripts/run_geodesic_audit.py \
-  analyze-candidates --output "$candidate_final" --batch-size 32 --analysis-workers 6
-gzip -t "$candidate_final/raw/gold_wrong_candidate_geometry.jsonl.gz"
+mkdir -p "$candidate_final"
+run_candidate_group() {
+  local name="$1"
+  local keys="$2"
+  OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv/bin/python scripts/run_geodesic_audit.py \
+    analyze-candidates --output "$candidate_final/$name" --batch-size 32 \
+    --analysis-workers 2 --keys "$keys" > "$candidate_final/$name.log" 2>&1
+}
+run_candidate_group a "native_r8_s533,native_r8_s917,native_r8_s1301" & pid_a=$!
+run_candidate_group b "released_r8_l0.02_s533,released_r8_l0.02_s917,released_r8_l0.02_s1301" & pid_b=$!
+run_candidate_group c "paper_r8_l0.02_s533,paper_r8_l0.02_s917" & pid_c=$!
+wait "$pid_a"; wait "$pid_b"; wait "$pid_c"
+cp "$candidate_final/a/raw/gold_wrong_candidate_geometry.jsonl.gz" \
+  "$candidate_final/gold_wrong_candidate_geometry.jsonl.gz"
+cat "$candidate_final/b/raw/gold_wrong_candidate_geometry.jsonl.gz" \
+  "$candidate_final/c/raw/gold_wrong_candidate_geometry.jsonl.gz" >> \
+  "$candidate_final/gold_wrong_candidate_geometry.jsonl.gz"
+gzip -t "$candidate_final/gold_wrong_candidate_geometry.jsonl.gz"
 mv "$main/raw/gold_wrong_candidate_geometry.jsonl.gz" \
   "$main/raw/gold_wrong_candidate_geometry.jsonl.gz.pre_exact_semantic_path"
-cp "$candidate_final/raw/gold_wrong_candidate_geometry.jsonl.gz" \
+cp "$candidate_final/gold_wrong_candidate_geometry.jsonl.gz" \
   "$main/raw/gold_wrong_candidate_geometry.jsonl.gz"
 printf '{"stage":"candidate_complete","seconds":%d}\n' "$((SECONDS-started))"
 

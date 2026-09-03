@@ -622,7 +622,126 @@ aggregation changes.
 7. The reported development-matrix associations do not identify a scalar
    representation diagnostic that predicts treatment effect.
 
-## 9. Runtime and artifact accounting
+## 9. Geodesic Mechanism Audit
+
+### 9.1 Question, source definitions, and fixed scope
+
+This frozen, no-training audit tests the assumptions needed to interpret STP
+as geodesic straightening rather than adding more generic representation
+descriptors. The protocol was committed at `aa51db7` before state extraction.
+The exact candidate/final analysis execution source is `9784a1b`; earlier gold
+state extraction and scale-space shards retain their launch commits in the
+artifact metadata and execution log.
+
+The authoritative STP definition requires an existential locality scale
+`tau` and bounds the component of every interior displacement perpendicular to
+the endpoint chord for every `s<r<t` inside that scale. It is therefore not
+equivalent to low mean adjacent curvature or one sampled midpoint. The audit
+uses the paper's [Definition 3.1](https://arxiv.org/abs/2602.22617) and keeps
+separate the released executable's patch-versus-complement objective. The
+decoder-space analysis uses the categorical Fisher metric; Fisher--Rao distance
+uses the standard square-root-simplex construction
+[`p -> 2 sqrt(p)`](https://pmc.ncbi.nlm.nih.gov/articles/PMC2387279/). Linear-ray
+prediction is included because prior transformer straightening work motivates
+straightness through linear extrapolation
+([Hosseini et al.](https://arxiv.org/abs/2311.04930)). These sources define the
+measurements; none supplies a ChemFM result.
+
+The fixed scope is:
+
+* all 256 prespecified reactions for r8 Native/released `.02` seeds
+  533/917/1301 and Native/paper `.02` seeds 533/917;
+* the fixed first 64 reactions for every one of the 22 Native/STP checkpoints,
+  covering both ranks, every trained lambda, and every available seed;
+* exact archived ordered five-view beams for gold, view top-1, highest wrong,
+  and robustness candidates; no sequence is regenerated or rescored;
+* intrinsic-manifold robustness for r8 seed 533 Native/released/paper, r128
+  seed 533 Native/released/paper, and r8 seed 1301 Native/released;
+* the seven seed-1301 Native-only aggregate successes as a fixed natural
+  experiment; and
+* 64 hash-selected event/ordinary product prefixes for the bounded inference-
+  cone assay.
+
+All checkpoints are frozen and teacher forced. The primary depths are the
+embedding output, layers 6/16/21, and final post-RMSNorm. The fixed 64 subset
+also isolates layer 21, the last-block output before final RMSNorm, and the
+post-RMSNorm state. Existing Section 8 all-23-depth results remain the broad
+depth census.
+
+### 9.2 Measurements
+
+For every feasible contiguous outer interval and every interior point, the
+audit computes
+
+```text
+d = h_t - h_s
+alpha = (h_r-h_s)^T d / ||d||^2
+q = (h_r-h_s) - alpha d
+rho = ||q|| / ||d||.
+```
+
+It preserves per-reaction mean, RMS, maximum, p90/p95 tube radius, threshold
+exceedance, and `alpha` outside `[0,1]` for every integer span length. A
+continuous two-line fit to log RMS radius estimates a descriptive change point
+with reaction-bootstrap uncertainty; it is reported as an estimated
+persistence scale, not identified automatically with the theorem's unknown
+`tau`. Tangent autocorrelation `C(k)`, multiscale turning, optimal-ray residual,
+speed, tangential acceleration, and velocity-normal acceleration are measured
+separately for source, product, and boundary-crossing paths.
+
+Local manifold tangent spaces exclude every state from the query reaction.
+The robustness grid is exact Euclidean versus rank-128 globally whitened
+neighbor search, pooled versus same-segment references, `k=32/64/128`, and
+tangent dimensions `8/16/32`. Tangent acceleration perpendicular to projected
+velocity is the intrinsic geodesic-violation estimate; ambient-normal
+acceleration is reported separately. Query/reference identities and the
+randomized whitening sketch are paired exactly across Native/STP checkpoints.
+
+At the final layer the unchanged LM head supplies logits and probabilities.
+The audit measures categorical-Fisher displacement/turning, exact Fisher--Rao
+triangle excess and path efficiency, and hidden-versus-Fisher associations. It
+also decomposes each middle displacement into chord-parallel and perpendicular
+parts, evaluates the analytic gold-log-probability sensitivity to each, and
+intervenes with `h_r - gamma*q` for `gamma=.1,.25,.5`, with and without hidden-
+norm restoration. These interventions use future states and are explicitly
+noncausal representation tests, not inference procedures.
+
+Matched Native-to-STP state movement is decomposed relative to the Native
+chord, including midpoint correction cosine, endpoint/midpoint displacement,
+chord rotation, and chord-length change. Released-objective anatomy records
+`cos(P,B)`, `cos(P,A)`, `cos(B,A)`, and
+`||B+A||/(||B||+||A||)`. Gold/wrong candidate paths receive the same product
+tube, persistence, ray, Fisher, and intrinsic measurements. The seed-1301
+comparison asks whether STP changes `G(wrong)-G(gold)` in the seven already
+identified ranking/aggregation losses; geometry is not used to alter the
+official endpoint.
+
+### 9.3 Numerical and performance validation
+
+Selected-state hooks reproduce `output_hidden_states=True` exactly at all five
+retained depths (maximum absolute difference `0`). On an A6000, an 8-by-256
+capture microbenchmark fell from `.21300` to `.12096` seconds (`1.761x`) and
+peak allocation from `2,336,975,360` to `2,185,980,416` bytes. Exhaustive tube
+statistics use translation-centered Gram identities, reducing the hidden-
+dimension work from cubic to quadratic in path length while retaining every
+triple; direct enumeration agrees within `2e-6`.
+
+The initial candidate implementation exposed a measured bottleneck: one
+checkpoint required about 93 minutes for 15,270 records because thousands of
+small LM-head/Fisher calls contended on CUDA. One batched FP32 LM-head
+projection per inference batch plus CPU reductions completed 11,475 retained
+records in 855.2 seconds. The combined wall speedup is `6.53x`; normalized per
+record, batching is `4.91x`, while the remainder comes from omitting redundant
+additional candidates outside the fixed 64 robustness subset. Gold, view
+top-1, and highest-wrong paths remain on all 256 reactions. The optimized and
+reference equations are compared over their overlapping records; the released
+candidate loss is separately checked against the exact framing-excluded
+source-plus-product construction rather than the earlier product-only proxy.
+Batched versus scalar local-PCA decompositions pass at `rtol=atol=2e-5`;
+functional geometry from precomputed logits is bitwise equal in the unit test.
+The focused audit suite passes 15 tests before execution.
+
+## 10. Runtime and artifact accounting
 
 Report 07's three released trajectories trained concurrently on one A6000 in
 about 26 minutes; each 256 endpoint took about 16 minutes. Report 08 paired
@@ -642,7 +761,7 @@ hash/fingerprint metadata, spectra, relationships, and drift under
 `runs/stp_representation/frozen_all_checkpoints/`; derived JSON, CSV, and SVG
 artifacts are under `runs/stp_representation/analysis/`.
 
-## 10. Measurements supported by the completed design
+## 11. Measurements supported by the completed design
 
 1. Released and paper STP implementations are numerically distinct and passed
    their recorded upstream/equation parity tests.
@@ -668,7 +787,7 @@ untouched panel. Formulation superiority, paper-STP capacity away from `.02`,
 other budgets, natural-language tasks, and other architectures remain outside
 the completed design.
 
-## 11. Reproducibility map
+## 12. Reproducibility map
 
 | Evidence | Path |
 |---|---|
