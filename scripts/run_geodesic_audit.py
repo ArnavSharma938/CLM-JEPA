@@ -211,13 +211,31 @@ def extract_gold(args) -> None:
         "device": args.device, "torch": torch.__version__, "python": platform.python_version(),
         "depths": dict(zip(DEPTH_LABELS, DEPTHS)), "checkpoints": [],
     }
+    specs = sorted(specs, key=lambda item: (item.rank, item.key))
+    model = None
+    capture = None
+    current_rank = None
     for index, spec in enumerate(specs, 1):
         destination = cache / f"{spec.key}.pt"
         if destination.exists() and not args.overwrite:
             print(json.dumps({"stage": "cache_reused", "key": spec.key}), flush=True)
             continue
-        model = load_model_for_spec(spec, tokenizer, chemfm_vocab_size, args.device)
-        capture = SelectedStateCapture(model)
+        if current_rank != spec.rank:
+            if capture is not None:
+                capture.close()
+            del model, capture
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            model = load_lora_model(
+                MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size,
+                attention_dropout=0.0, attn_implementation="sdpa",
+                lora_rank=spec.rank, lora_alpha=spec.alpha,
+            ).to(args.device).eval()
+            for parameter in model.parameters():
+                parameter.requires_grad_(False)
+            capture = SelectedStateCapture(model)
+            current_rank = spec.rank
+        load_adapter_checkpoint(model, ROOT / spec.checkpoint)
         lm_weight = model.get_output_embeddings().weight.detach().float().cpu()
         records = []
         limit = spec_limit(spec)
@@ -274,10 +292,11 @@ def extract_gold(args) -> None:
         }
         metadata["checkpoints"].append(record)
         print(json.dumps({"stage": "checkpoint_complete", "index": index, "total": len(specs), **record}), flush=True)
-        capture.close()
-        del capture, model, lm_weight, records, payload
+        del lm_weight, records, payload
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
+    if capture is not None:
+        capture.close()
     write_json(output / "gold_extraction_metadata.json", metadata)
 
 
@@ -690,11 +709,17 @@ def analyze_candidates(args) -> None:
     add_predictor_tokens(tokenizer)
     specs = [spec for spec in checkpoint_specs() if spec.key in PRIMARY_KEYS]
     started = time.perf_counter()
+    model = load_lora_model(
+        MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size,
+        attention_dropout=0.0, attn_implementation="sdpa", lora_rank=8, lora_alpha=8,
+    ).to(args.device).eval()
+    for parameter in model.parameters():
+        parameter.requires_grad_(False)
+    capture = SelectedStateCapture(model)
     for spec_index, spec in enumerate(specs, 1):
         workload = _candidate_workload(tokenizer, spec.key)
         workload.sort(key=lambda row: len(row["input_ids"]))
-        model = load_model_for_spec(spec, tokenizer, chemfm_vocab_size, args.device)
-        capture = SelectedStateCapture(model)
+        load_adapter_checkpoint(model, ROOT / spec.checkpoint)
         weight = model.get_output_embeddings().weight.detach().float().to(args.device)
         with torch.inference_mode():
             for batch_start in range(0, len(workload), args.batch_size):
@@ -726,11 +751,12 @@ def analyze_candidates(args) -> None:
                             "seed": spec.seed, "layer": label, **metrics,
                         })
                 del ids, mask
-        capture.close()
-        del model, capture, weight, workload
+        del weight, workload
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
         print(json.dumps({"stage": "candidate_checkpoint_complete", "index": spec_index, "total": len(specs), "key": spec.key, "rows": writer.count}), flush=True)
+    capture.close()
+    del model, capture
     writer.close()
     write_json(output / "candidate_analysis_metadata.json", {
         "git_commit": git_commit(), "rows": writer.count, "seconds": time.perf_counter() - started,
@@ -817,9 +843,15 @@ def analyze_cones(args) -> None:
     prefixes = _cone_prefixes(tokenizer, args.panel.resolve())
     specs = [spec for spec in checkpoint_specs() if spec.key in CONE_KEYS]
     started = time.perf_counter()
+    model = load_lora_model(
+        MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab_size,
+        attention_dropout=0.0, attn_implementation="sdpa", lora_rank=8, lora_alpha=8,
+    ).to(args.device).eval()
+    for parameter in model.parameters():
+        parameter.requires_grad_(False)
+    capture = SelectedStateCapture(model)
     for spec in specs:
-        model = load_model_for_spec(spec, tokenizer, chemfm_vocab_size, args.device)
-        capture = SelectedStateCapture(model)
+        load_adapter_checkpoint(model, ROOT / spec.checkpoint)
         weight = model.get_output_embeddings().weight.detach().float().to(args.device)
         with torch.inference_mode():
             for item in prefixes:
@@ -846,11 +878,12 @@ def analyze_cones(args) -> None:
                         next_logits = branch_states @ weight.T
                         next_tokens = next_logits.argmax(-1).tolist()
                         branch_sequences = [sequence + [int(token)] for sequence, token in zip(branch_sequences, next_tokens)]
-        capture.close()
-        del model, capture, weight
+        del weight
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
         print(json.dumps({"stage": "cone_checkpoint_complete", "checkpoint": spec.key, "rows": writer.count}), flush=True)
+    capture.close()
+    del model, capture
     writer.close()
     write_json(output / "cone_analysis_metadata.json", {
         "git_commit": git_commit(), "rows": writer.count, "prefixes": len(prefixes),
