@@ -53,35 +53,58 @@ def tube_scale_space(
     """
     path = _fp32(path)
     n = int(path.shape[0])
+    # Translation-invariant Gram identities reduce the exhaustive computation
+    # from O(n^3 * hidden_size) to O(n^2 * hidden_size + n^3) without changing
+    # the set of evaluated triples.
+    centered = path - path[:1]
+    gram = centered @ centered.T
+    diagonal = gram.diag()
     out: list[dict[str, float]] = []
     for length in range(2, n):
-        # unfold returns [windows, hidden, points] for a 2-D tensor.
-        windows = path.unfold(0, length + 1, 1).transpose(1, 2)
-        h_s = windows[:, :1]
-        h_r = windows[:, 1:-1]
-        h_t = windows[:, -1:]
-        alpha, _, rho = chord_coordinates(h_s, h_r, h_t)
-        zero_chords = int(torch.isnan(rho).sum().item())
+        starts = torch.arange(n - length, device=path.device)[:, None]
+        ends = starts + length
+        interiors = starts + torch.arange(1, length, device=path.device)[None, :]
+        chord_sq = (
+            diagonal[ends] + diagonal[starts] - 2 * gram[starts, ends]
+        )
+        u_sq = (
+            diagonal[interiors] + diagonal[starts] - 2 * gram[interiors, starts]
+        )
+        u_dot_chord = (
+            gram[interiors, ends] - gram[interiors, starts]
+            - gram[starts, ends] + diagonal[starts]
+        )
+        alpha = u_dot_chord / chord_sq.clamp_min(EPS)
+        q_sq = (u_sq - u_dot_chord.square() / chord_sq.clamp_min(EPS)).clamp_min(0)
+        rho = q_sq.sqrt() / chord_sq.sqrt().clamp_min(EPS)
+        invalid_chords = chord_sq <= EPS
+        rho = rho.masked_fill(invalid_chords, torch.nan)
+        alpha = alpha.masked_fill(invalid_chords, torch.nan)
         valid = torch.isfinite(rho)
-        if not bool(valid.any()):
+        valid_count = int(valid.sum().item())
+        if valid_count == 0:
             continue
+        zero_chords = int(rho.numel() - valid_count)
         rho = rho[valid]
         alpha = alpha[valid]
         quantiles = torch.quantile(rho, torch.tensor([.5, .9, .95], device=rho.device))
+        statistics = torch.stack([
+            rho.mean(), rho.square().mean().sqrt(), rho.max(),
+            *quantiles,
+            ((alpha < 0) | (alpha > 1)).float().mean(),
+            *((rho > threshold).float().mean() for threshold in thresholds),
+        ]).detach().cpu().tolist()
         row: dict[str, float] = {
             "span_length": length,
             "triples": int(rho.numel()),
             "zero_chords": zero_chords,
-            "mean": float(rho.mean()),
-            "rms": float(rho.square().mean().sqrt()),
-            "maximum": float(rho.max()),
-            "p50": float(quantiles[0]),
-            "p90": float(quantiles[1]),
-            "p95": float(quantiles[2]),
-            "monotonicity_violation": float(((alpha < 0) | (alpha > 1)).float().mean()),
+            "mean": statistics[0], "rms": statistics[1],
+            "maximum": statistics[2], "p50": statistics[3],
+            "p90": statistics[4], "p95": statistics[5],
+            "monotonicity_violation": statistics[6],
         }
-        for threshold in thresholds:
-            row[f"fraction_gt_{threshold:g}"] = float((rho > threshold).float().mean())
+        for offset, threshold in enumerate(thresholds, start=7):
+            row[f"fraction_gt_{threshold:g}"] = statistics[offset]
         out.append(row)
     return out
 

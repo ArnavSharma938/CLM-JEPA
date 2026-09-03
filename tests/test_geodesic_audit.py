@@ -37,6 +37,22 @@ def test_tube_radius_and_alpha_match_definition():
     assert torch.allclose(rho, torch.tensor(.5))
 
 
+def test_gram_scale_space_matches_direct_triples():
+    torch.manual_seed(19)
+    path = torch.randn(9, 11)
+    rows = tube_scale_space(path)
+    for row in rows:
+        length = row["span_length"]
+        direct = []
+        for start in range(len(path) - length):
+            for middle in range(start + 1, start + length):
+                direct.append(float(chord_coordinates(path[start], path[middle], path[start + length])[2]))
+        values = torch.tensor(direct)
+        assert abs(row["mean"] - float(values.mean())) < 2e-6
+        assert abs(row["rms"] - float(values.square().mean().sqrt())) < 2e-6
+        assert abs(row["maximum"] - float(values.max())) < 2e-6
+
+
 def test_acceleration_separates_speed_from_turning():
     straight = torch.tensor([[0., 0.], [1., 0.], [3., 0.]])
     bent = torch.tensor([[0., 0.], [1., 0.], [1., 1.]])

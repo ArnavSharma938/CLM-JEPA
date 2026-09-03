@@ -446,33 +446,55 @@ def write_intervention_batch(
     changed_entropy = -(changed_probabilities * changed_logp_all).sum(-1)
     changed_topk = torch.topk(changed_logits, min(10, logits.shape[1]), dim=-1).indices
 
+    # One device synchronization for all scalar output avoids hundreds of
+    # thousands of per-value CUDA synchronizations in the JSON loop.
+    cpu = {
+        "rho": rho.detach().cpu().numpy(), "alpha": alpha.detach().cpu().numpy(),
+        "ray": ray.detach().cpu().numpy(), "fr": fr_excess.detach().cpu().numpy(),
+        "para_signed": para_signed.detach().cpu().numpy(),
+        "para_cosine": para_cosine.detach().cpu().numpy(),
+        "perp_signed": perp_signed.detach().cpu().numpy(),
+        "perp_cosine": perp_cosine.detach().cpu().numpy(),
+        "q_norm": q.norm(dim=-1).detach().cpu().numpy(),
+        "parallel_norm": parallel.norm(dim=-1).detach().cpu().numpy(),
+        "base_logp": base_logp.detach().cpu().numpy(),
+        "base_rank": base_rank.detach().cpu().numpy(),
+        "base_margin": base_margin.detach().cpu().numpy(),
+        "base_entropy": base_entropy.detach().cpu().numpy(),
+        "delta_logp": (changed_gold_logp - base_logp[None]).detach().cpu().numpy(),
+        "delta_rank": (changed_rank - base_rank[None]).detach().cpu().numpy(),
+        "delta_margin": (changed_margin - base_margin[None]).detach().cpu().numpy(),
+        "delta_entropy": (changed_entropy - base_entropy[None]).detach().cpu().numpy(),
+        "topk_changed": (changed_topk != base_topk[None]).any(-1).detach().cpu().numpy(),
+    }
+
     for row_index, (length, s, r, t, _) in enumerate(triples):
         effects = []
         for variant, (gamma, restore) in enumerate(variant_labels):
             effects.append({
                 "gamma": gamma, "norm_restored": restore,
-                "delta_gold_log_probability": float(changed_gold_logp[variant, row_index] - base_logp[row_index]),
-                "delta_gold_rank": int(changed_rank[variant, row_index] - base_rank[row_index]),
-                "delta_gold_margin": float(changed_margin[variant, row_index] - base_margin[row_index]),
-                "delta_entropy": float(changed_entropy[variant, row_index] - base_entropy[row_index]),
-                "topk_changed": bool((changed_topk[variant, row_index] != base_topk[row_index]).any()),
+                "delta_gold_log_probability": float(cpu["delta_logp"][variant, row_index]),
+                "delta_gold_rank": int(cpu["delta_rank"][variant, row_index]),
+                "delta_gold_margin": float(cpu["delta_margin"][variant, row_index]),
+                "delta_entropy": float(cpu["delta_entropy"][variant, row_index]),
+                "topk_changed": bool(cpu["topk_changed"][variant, row_index]),
             })
         writer.write({
             "checkpoint": checkpoint, "panel_index": record["panel_index"],
             "reaction_identity": record["reaction_identity"], "segment": segment,
             "span_length": length, "s": s, "r": r, "t": t,
-            "rho": float(rho[row_index]), "alpha": float(alpha[row_index]),
-            "ray_residual": float(ray[row_index]), "fisher_triangle_excess": float(fr_excess[row_index]),
-            "parallel_signed_sensitivity": float(para_signed[row_index]),
-            "parallel_cosine_sensitivity": float(para_cosine[row_index]),
-            "perpendicular_signed_sensitivity": float(perp_signed[row_index]),
-            "perpendicular_cosine_sensitivity": float(perp_cosine[row_index]),
-            "perpendicular_norm": float(q[row_index].norm()),
-            "parallel_norm": float(parallel[row_index].norm()),
-            "base_gold_log_probability": float(base_logp[row_index]),
-            "base_gold_rank": int(base_rank[row_index]),
-            "base_gold_margin": float(base_margin[row_index]),
-            "base_entropy": float(base_entropy[row_index]),
+            "rho": float(cpu["rho"][row_index]), "alpha": float(cpu["alpha"][row_index]),
+            "ray_residual": float(cpu["ray"][row_index]), "fisher_triangle_excess": float(cpu["fr"][row_index]),
+            "parallel_signed_sensitivity": float(cpu["para_signed"][row_index]),
+            "parallel_cosine_sensitivity": float(cpu["para_cosine"][row_index]),
+            "perpendicular_signed_sensitivity": float(cpu["perp_signed"][row_index]),
+            "perpendicular_cosine_sensitivity": float(cpu["perp_cosine"][row_index]),
+            "perpendicular_norm": float(cpu["q_norm"][row_index]),
+            "parallel_norm": float(cpu["parallel_norm"][row_index]),
+            "base_gold_log_probability": float(cpu["base_logp"][row_index]),
+            "base_gold_rank": int(cpu["base_rank"][row_index]),
+            "base_gold_margin": float(cpu["base_margin"][row_index]),
+            "base_entropy": float(cpu["base_entropy"][row_index]),
             "interventions": effects,
         })
 
@@ -489,6 +511,7 @@ def write_anatomy_batch(writer: JsonlGzipWriter, checkpoint: str, record: dict, 
     patch = path[index[:, 1]] - path[index[:, 0]]
     after = path[-1] - path[index[:, 1]]
     values = released_objective_anatomy(before, patch, after)
+    values = {name: value.detach().cpu().numpy() for name, value in values.items()}
     for row_index, (length, _, _) in enumerate(spans):
         writer.write({
             "checkpoint": checkpoint, "panel_index": record["panel_index"],
