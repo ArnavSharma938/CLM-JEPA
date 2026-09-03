@@ -556,6 +556,65 @@ def summarize_candidate_intrinsic(root: Path):
     return central_summary, natural_summary
 
 
+def summarize_final_operations(root: Path):
+    path = root / "raw" / "final_operation_geometry.jsonl.gz"
+    if not path.exists():
+        return [], []
+    scalar_metrics = (
+        "local_curvature_mean", "speed", "tangential_acceleration",
+        "normal_acceleration", "normalized_normal_acceleration",
+        "euclidean_path_efficiency",
+    )
+    rows = []
+    values = {}
+    for row in records(path):
+        flat = {metric: float(row[metric]) for metric in scalar_metrics}
+        for length, tube in row["tube_selected"].items():
+            for metric, value in tube.items():
+                flat[f"tube_{metric}_L{length}"] = float(value)
+        values[(row["checkpoint"], int(row["panel_index"]), row["segment"], row["layer"])] = flat
+    all_metrics = sorted({metric for value in values.values() for metric in value})
+    effects = []
+    for checkpoint in sorted({key[0] for key in values}):
+        for segment in ("source", "product", "cross"):
+            for first, second, operation in (
+                ("layer_21", "post_last_pre_norm", "last_block"),
+                ("post_last_pre_norm", "final_post_norm", "final_rmsnorm"),
+            ):
+                paired = []
+                for panel in range(64):
+                    left = values.get((checkpoint, panel, segment, first))
+                    right = values.get((checkpoint, panel, segment, second))
+                    if left is not None and right is not None:
+                        paired.append((left, right))
+                if not paired:
+                    continue
+                result = {
+                    "checkpoint": checkpoint, "segment": segment,
+                    "operation": operation, "reactions": len(paired),
+                }
+                for metric in all_metrics:
+                    delta = np.asarray([
+                        right[metric] - left[metric]
+                        for left, right in paired if metric in left and metric in right
+                    ])
+                    if len(delta):
+                        result[f"delta_{metric}"] = float(delta.mean())
+                        result[f"delta_{metric}_ci95"] = bootstrap_ci(delta)
+                effects.append(result)
+    grouped = defaultdict(list)
+    for (checkpoint, _, segment, layer), value in values.items():
+        grouped[(checkpoint, segment, layer)].append(value)
+    for (checkpoint, segment, layer), group in grouped.items():
+        row = {"checkpoint": checkpoint, "segment": segment, "layer": layer, "reactions": len(group)}
+        for metric in all_metrics:
+            data = [value[metric] for value in group if metric in value]
+            if data:
+                row[metric] = float(np.mean(data))
+        rows.append(row)
+    return rows, effects
+
+
 def make_plots(root: Path, tube: pd.DataFrame, tube_delta: pd.DataFrame, summaries: dict):
     import matplotlib.pyplot as plt
 
@@ -685,6 +744,24 @@ def make_plots(root: Path, tube: pd.DataFrame, tube_delta: pd.DataFrame, summari
         axis.tick_params(axis="x", labelsize=7)
         fig.tight_layout(); fig.savefig(plot_dir / "seed1301_natural_experiment.png", dpi=180); plt.close(fig)
 
+    operations = pd.DataFrame(summaries["final_operation_effects"])
+    if not operations.empty:
+        chosen = operations[
+            operations.checkpoint.isin(["native_r8_s533", "released_r8_l0.02_s533", "paper_r8_l0.02_s533"])
+            & (operations.segment == "product")
+        ]
+        if not chosen.empty:
+            labels = chosen.checkpoint + ":" + chosen.operation
+            fig, axes = plt.subplots(1, 2, figsize=(11, 4.5))
+            axes[0].bar(labels, chosen.delta_local_curvature_mean)
+            axes[1].bar(labels, chosen.delta_normalized_normal_acceleration)
+            axes[0].set_ylabel("operation-induced local-curvature change")
+            axes[1].set_ylabel("operation-induced normalized-normal-acceleration change")
+            for axis in axes:
+                axis.axhline(0, color="black", linewidth=.7)
+                axis.tick_params(axis="x", rotation=60, labelsize=7)
+            fig.tight_layout(); fig.savefig(plot_dir / "last_block_vs_rmsnorm.png", dpi=180); plt.close(fig)
+
 
 def run(args):
     root = args.root.resolve()
@@ -729,6 +806,7 @@ def run(args):
     gold_wrong_summary = candidate_checkpoint_summary(gold_wrong)
     natural_change = seed1301_change_summary(natural)
     candidate_intrinsic, candidate_intrinsic_natural = summarize_candidate_intrinsic(root)
+    final_operations, final_operation_effects = summarize_final_operations(root)
     summaries = {
         "tube_treatment_effects": tube_delta.to_dict("records"),
         "tube_reaction_uncertainty": tube_uncertainty,
@@ -745,6 +823,8 @@ def run(args):
         "gold_wrong_checkpoint_summary": gold_wrong_summary,
         "candidate_intrinsic_checkpoint_summary": candidate_intrinsic,
         "candidate_intrinsic_seed1301_robustness": candidate_intrinsic_natural,
+        "final_operation_geometry": final_operations,
+        "final_operation_effects": final_operation_effects,
         "seed1301_natural_experiment": natural.to_dict("records"),
         "seed1301_change_summary": natural_change,
     }
@@ -764,6 +844,7 @@ def run(args):
         "gold_wrong_checkpoint_summary": gold_wrong_summary,
         "candidate_intrinsic_checkpoint_summary": candidate_intrinsic,
         "candidate_intrinsic_seed1301_robustness": candidate_intrinsic_natural,
+        "final_operation_effects": final_operation_effects,
         "seed1301_natural_means": natural.groupby("checkpoint").mean(numeric_only=True).reset_index().to_dict("records") if not natural.empty else [],
         "seed1301_change_summary": natural_change,
     }
