@@ -114,6 +114,26 @@ def summarize_interventions(path: Path):
     return output
 
 
+def summarize_multiscale_turning(path: Path):
+    groups = defaultdict(lambda: {"n": 0, "sum": 0.0, "sq": 0.0})
+    for row in records(path):
+        for scale in row["scales"]:
+            values = np.asarray(scale["angles"], dtype=float)
+            values = values[np.isfinite(values)]
+            group = groups[(row["checkpoint"], row["layer"], row["segment"], int(scale["scale"]))]
+            group["n"] += len(values); group["sum"] += float(values.sum())
+            group["sq"] += float(values @ values)
+    output = []
+    for key, group in groups.items():
+        mean = group["sum"] / max(1, group["n"])
+        output.append({
+            **dict(zip(("checkpoint", "layer", "segment", "scale"), key)),
+            "n": group["n"], "mean_angle": mean,
+            "sd_mean_angle": math.sqrt(max(0.0, group["sq"] / max(1, group["n"]) - mean * mean)),
+        })
+    return output
+
+
 def sensitivity_event_map():
     tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
     result = {}
@@ -779,6 +799,34 @@ def make_plots(root: Path, tube: pd.DataFrame, tube_delta: pd.DataFrame, summari
                 axis.tick_params(axis="x", rotation=60, labelsize=7)
             fig.tight_layout(); fig.savefig(plot_dir / "last_block_vs_rmsnorm.png", dpi=180); plt.close(fig)
 
+    persistence = pd.DataFrame(summaries["tangent_persistence"])
+    if not persistence.empty:
+        chosen = persistence[
+            (persistence.layer == "final_post_norm") & (persistence.segment == "product")
+            & persistence.checkpoint.isin(["native_r8_s533", "released_r8_l0.02_s533", "paper_r8_l0.02_s533"])
+        ]
+        fig, axis = plt.subplots(figsize=(7.5, 4.5))
+        for checkpoint, group in chosen.groupby("checkpoint"):
+            axis.plot(group.lag, group["mean"], label=checkpoint)
+        axis.axhline(0, color="black", linewidth=.7)
+        axis.set(xlabel="transition lag k", ylabel="tangent autocorrelation C(k)")
+        axis.grid(alpha=.25); axis.legend(fontsize=7, frameon=False)
+        fig.tight_layout(); fig.savefig(plot_dir / "tangent_persistence_final_product.png", dpi=180); plt.close(fig)
+
+    turning = pd.DataFrame(summaries["multiscale_turning_treatment"])
+    if not turning.empty:
+        chosen = turning[
+            (turning.layer == "final_post_norm") & (turning.segment == "product")
+            & turning.treatment.str.contains("_r8_l0.02_")
+        ]
+        fig, axis = plt.subplots(figsize=(7.5, 4.5))
+        for treatment, group in chosen.groupby("treatment"):
+            axis.plot(group.scale, group.delta_mean_angle, label=treatment)
+        axis.axhline(0, color="black", linewidth=.7)
+        axis.set(xlabel="turning scale k", ylabel="STP - Native mean turning angle")
+        axis.grid(alpha=.25); axis.legend(fontsize=7, frameon=False)
+        fig.tight_layout(); fig.savefig(plot_dir / "multiscale_turning_change.png", dpi=180); plt.close(fig)
+
 
 def run(args):
     root = args.root.resolve()
@@ -786,6 +834,17 @@ def run(args):
     tube_uncertainty = tube_reaction_uncertainty(root)
     trajectory_uncertainty = trajectory_treatment_uncertainty(root)
     persistence_scales = individual_persistence_scales(root)
+    persistence = grouped_stream(
+        root / "raw" / "tangent_persistence.jsonl.gz",
+        ("checkpoint", "layer", "segment", "lag"), ("mean", "median"),
+    )
+    persistence_treatment = paired_reduced_summary(
+        persistence, ["layer", "segment", "lag"], ["mean", "median"],
+    )
+    turning = summarize_multiscale_turning(root / "raw" / "multiscale_turning.jsonl.gz")
+    turning_treatment = paired_reduced_summary(
+        turning, ["layer", "segment", "scale"], ["mean_angle"],
+    )
     intervention = summarize_interventions(root / "raw" / "signal_noise_interventions.jsonl.gz")
     sensitivity, event_sensitivity, hidden_fisher = summarize_sensitivity(
         root / "raw" / "signal_noise_interventions.jsonl.gz"
@@ -829,6 +888,10 @@ def run(args):
         "tube_reaction_uncertainty": tube_uncertainty,
         "trajectory_treatment_uncertainty": trajectory_uncertainty,
         "individual_persistence_scales": persistence_scales,
+        "tangent_persistence": persistence,
+        "tangent_persistence_treatment": persistence_treatment,
+        "multiscale_turning": turning,
+        "multiscale_turning_treatment": turning_treatment,
         "interventions": intervention, "signal_sensitivity": sensitivity,
         "event_signal_sensitivity": event_sensitivity,
         "hidden_fisher_correlations": hidden_fisher,
@@ -853,6 +916,8 @@ def run(args):
         "tube_reaction_uncertainty": tube_uncertainty,
         "trajectory_treatment_uncertainty": trajectory_uncertainty,
         "individual_persistence_scales": persistence_scales,
+        "tangent_persistence_treatment": persistence_treatment,
+        "multiscale_turning_treatment": turning_treatment,
         "interventions": intervention, "signal_sensitivity": sensitivity,
         "event_signal_sensitivity": event_sensitivity,
         "hidden_fisher_correlations": hidden_fisher,
