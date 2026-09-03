@@ -643,7 +643,8 @@ def paired_checkpoint_keys(specs: list[CheckpointSpec]) -> list[tuple[str, str]]
 def analyze_matched(args) -> None:
     cache = args.output.resolve() / "cache" / "gold_states"
     specs = checkpoint_specs()
-    rows = []
+    destination = args.output.resolve() / "raw" / "matched_native_stp_displacement.jsonl.gz"
+    writer = JsonlGzipWriter(destination)
     for native_key, treatment_key in paired_checkpoint_keys(specs):
         native_path, treatment_path = cache / f"{native_key}.pt", cache / f"{treatment_key}.pt"
         if not native_path.exists() or not treatment_path.exists():
@@ -660,23 +661,33 @@ def analyze_matched(args) -> None:
                     n_path, _ = trajectory_from_record(nr, layer_index, segment, args.device)
                     t_path, _ = trajectory_from_record(tr, layer_index, segment, args.device)
                     n = min(len(n_path), len(t_path))
+                    triples = []
                     for length in range(2, n):
                         for s in deterministic_starts(n, length, 8, nr["panel_index"]):
                             t = s + length
-                            r = (s + t) // 2
-                            result = matched_geodesic_displacement(
-                                (n_path[s], n_path[r], n_path[t]),
-                                (t_path[s], t_path[r], t_path[t]),
-                            )
-                            rows.append({
-                                "native": native_key, "treatment": treatment_key,
-                                "panel_index": nr["panel_index"], "reaction_identity": nr["reaction_identity"],
-                                "layer": label, "segment": segment, "span_length": length,
-                                **{name: float(value) for name, value in result.items()},
-                            })
+                            triples.append((length, s, (s + t) // 2, t))
+                    index = torch.tensor([[row[1], row[2], row[3]] for row in triples], device=args.device)
+                    result = matched_geodesic_displacement(
+                        (n_path[index[:, 0]], n_path[index[:, 1]], n_path[index[:, 2]]),
+                        (t_path[index[:, 0]], t_path[index[:, 1]], t_path[index[:, 2]]),
+                    )
+                    cpu = {name: value.detach().cpu().numpy() for name, value in result.items()}
+                    lengths = np.asarray([row[0] for row in triples])
+                    for length in np.unique(lengths):
+                        mask = lengths == length
+                        row = {
+                            "native": native_key, "treatment": treatment_key,
+                            "panel_index": nr["panel_index"], "reaction_identity": nr["reaction_identity"],
+                            "layer": label, "segment": segment, "span_length": int(length),
+                            "sampled_triples": int(mask.sum()),
+                        }
+                        for name, values in cpu.items():
+                            row[name] = float(np.nanmean(values[mask]))
+                            row[f"sd_{name}"] = float(np.nanstd(values[mask]))
+                        writer.write(row)
         print(json.dumps({"stage": "matched_pair_complete", "native": native_key, "treatment": treatment_key}), flush=True)
-    count = write_jsonl_gz(args.output.resolve() / "raw" / "matched_native_stp_displacement.jsonl.gz", rows)
-    write_json(args.output.resolve() / "matched_analysis_metadata.json", {"git_commit": git_commit(), "rows": count})
+    writer.close()
+    write_json(args.output.resolve() / "matched_analysis_metadata.json", {"git_commit": git_commit(), "rows": writer.count})
 
 
 INTRINSIC_KEYS = {
@@ -768,22 +779,31 @@ def _candidate_geometry(path: torch.Tensor, weight: torch.Tensor | None) -> dict
     tube = tube_scale_space(path)
     change = estimate_piecewise_change_point(tube)
     acceleration = acceleration_decomposition(path)
-    paper_values, released_values = [], []
+    paper_spans, released_spans = [], []
     for length in range(2, len(path)):
         for s in deterministic_starts(len(path), length, 8, len(path)):
             t = s + length
             r = (s + t) // 2
-            paper_values.append(float(1 - cosine(path[r] - path[s], path[t] - path[r])))
-    total = path[-1] - path[0]
+            paper_spans.append((s, r, t))
     for length in range(1, len(path)):
         for s in deterministic_starts(len(path), length, 8, len(path) + 31):
             t = s + length
-            patch = path[t] - path[s]
-            released_values.append(float(1 - cosine(patch, total - patch)))
+            released_spans.append((s, t))
+    paper = torch.tensor(paper_spans, device=path.device, dtype=torch.long).reshape(-1, 3)
+    released = torch.tensor(released_spans, device=path.device)
+    paper_values = (
+        1 - cosine(
+            path[paper[:, 1]] - path[paper[:, 0]],
+            path[paper[:, 2]] - path[paper[:, 1]],
+        ) if len(paper) else path.new_empty(0)
+    )
+    total = path[-1] - path[0]
+    patch = path[released[:, 1]] - path[released[:, 0]]
+    released_values = 1 - cosine(patch, total[None] - patch)
     result = {
         "tokens": len(path), "tube_scale": tube, "tube_change_point": change,
-        "paper_loss": float(np.mean(paper_values)) if paper_values else math.nan,
-        "released_loss": float(np.mean(released_values)) if released_values else math.nan,
+        "paper_loss": float(paper_values.mean()) if len(paper_values) else math.nan,
+        "released_loss": float(released_values.mean()) if len(released_values) else math.nan,
         "tangent_persistence": tangent_autocorrelation(path),
         "speed": float(acceleration["speed"].mean()),
         "normal_acceleration": float(acceleration["acceleration_normal"].mean()),
@@ -794,8 +814,8 @@ def _candidate_geometry(path: torch.Tensor, weight: torch.Tensor | None) -> dict
         result.update({key: value for key, value in functional.items() if not torch.is_tensor(value)})
         ray = []
         for scale in range(1, min(32, (len(path) - 1) // 2) + 1):
-            values = optimal_ray_residual(path[:-2 * scale], path[scale:-scale], path[2 * scale:])
-            ray.append({"horizon": scale, "mean": float(values.mean()), "median": float(values.median())})
+            values = optimal_ray_residual(path[:-2 * scale], path[scale:-scale], path[2 * scale:]).detach().cpu().numpy()
+            ray.append({"horizon": scale, "mean": float(values.mean()), "median": float(np.median(values))})
         result["ray_residual"] = ray
     return result
 
