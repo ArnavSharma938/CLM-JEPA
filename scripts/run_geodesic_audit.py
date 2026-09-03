@@ -967,7 +967,7 @@ def analyze_candidate_intrinsic(args) -> None:
             states = record["states"][-1].float()
             for local, position in enumerate(record["target_indices"].long().tolist()):
                 reference_rows.append((
-                    _stable_priority("candidate-ref", spec.key, record["reaction_identity"], local),
+                    _stable_priority("candidate-ref", record["reaction_identity"], local),
                     states[position], record["reaction_identity"],
                 ))
         reference_rows.sort(key=lambda row: row[0])
@@ -977,6 +977,7 @@ def analyze_candidate_intrinsic(args) -> None:
         mean = references.mean(0)
         centered = references - mean
         whiten_rank = min(128, len(references) - 1, references.shape[1])
+        torch.manual_seed(_stable_priority("candidate-whitening") % (2**63 - 1))
         _, singular, principal = torch.pca_lowrank(centered, q=whiten_rank, center=False, niter=2)
         scale = (singular / math.sqrt(max(1, len(references) - 1))).clamp_min(1e-5)
         whitened_references = (centered @ principal) / scale
@@ -1007,7 +1008,7 @@ def analyze_candidate_intrinsic(args) -> None:
                         continue
                     possible = list(range(1, len(path) - 1))
                     possible.sort(key=lambda position: _stable_priority(
-                        "candidate-query", spec.key, row["reaction_identity"], row["view"], row["role"], position,
+                        "candidate-query", row["reaction_identity"], row["view"], row["role"], position,
                     ))
                     for position in possible[:3]:
                         query_rows.append({
@@ -1324,7 +1325,7 @@ def analyze_intrinsic(args) -> None:
                     positions = indices.long().tolist()
                     for local, position in enumerate(positions):
                         reference_rows.append((
-                            _stable_priority(key, layer, record["reaction_identity"], segment, local),
+                            _stable_priority("intrinsic-reference", layer, record["reaction_identity"], segment, local),
                             states[position], record["reaction_identity"], segment,
                         ))
                     for local in range(1, len(positions) - 1):
@@ -1332,7 +1333,7 @@ def analyze_intrinsic(args) -> None:
                         velocity = states[p1] - states[p0]
                         acceleration = states[p2] - 2 * states[p1] + states[p0]
                         query_rows.append((
-                            _stable_priority("query", key, layer, record["reaction_identity"], segment, local),
+                            _stable_priority("intrinsic-query", layer, record["reaction_identity"], segment, local),
                             states[p1], velocity, acceleration, record["reaction_identity"], segment,
                             record["panel_index"], local,
                         ))
@@ -1355,6 +1356,7 @@ def analyze_intrinsic(args) -> None:
             whiten_rank = min(128, len(references) - 1, references.shape[1])
             # Low-rank covariance whitening retains the well-estimated global
             # directions and avoids an unstable 2048-D covariance inverse.
+            torch.manual_seed(_stable_priority("intrinsic-whitening", layer) % (2**63 - 1))
             _, singular, principal = torch.pca_lowrank(
                 centered, q=whiten_rank, center=False, niter=2,
             )
