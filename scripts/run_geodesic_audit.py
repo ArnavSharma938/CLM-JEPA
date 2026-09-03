@@ -988,6 +988,7 @@ def analyze_candidate_intrinsic(args) -> None:
         ]
         workload.sort(key=lambda row: len(row["input_ids"]))
         load_adapter_checkpoint(model, ROOT / spec.checkpoint)
+        query_rows = []
         with torch.inference_mode():
             for batch_start in range(0, len(workload), args.batch_size):
                 batch = workload[batch_start:batch_start + args.batch_size]
@@ -1009,41 +1010,65 @@ def analyze_candidate_intrinsic(args) -> None:
                         "candidate-query", spec.key, row["reaction_identity"], row["view"], row["role"], position,
                     ))
                     for position in possible[:3]:
-                        state = path[position]
-                        velocity = path[position] - path[position - 1]
-                        acceleration = path[position + 1] - 2 * path[position] + path[position - 1]
-                        eligible_np = reference_reactions != row["reaction_identity"]
-                        eligible = torch.from_numpy(eligible_np[None]).to(args.device)
-                        robust = row["panel_index"] in natural_panels and row["role"] in {"gold", "seed1301_promoted_wrong"}
-                        settings = [("euclidean", 64, (16,))]
-                        if robust:
-                            settings = [
-                                (metric, k, (8, 16, 32))
-                                for metric in ("euclidean", "pca_whitened_128")
-                                for k in (32, 64, 128)
-                            ]
-                        neighbor_cache = {}
-                        for metric, k, dimensions in settings:
-                            search_references = references if metric == "euclidean" else whitened_references
-                            search_query = state[None] if metric == "euclidean" else ((state - mean) @ principal / scale)[None]
-                            cache_key = (metric, k)
-                            if cache_key not in neighbor_cache:
-                                neighbor_cache[cache_key] = _topk_neighbors(
-                                    search_query, search_references, eligible, k,
-                                )[0]
-                            neighbors = references[neighbor_cache[cache_key]]
-                            for decomposition in _local_pca_decomposition(
-                                neighbors, velocity, acceleration, dimensions,
-                            ):
-                                writer.write({
-                                    **{name: value for name, value in row.items() if name not in {"input_ids", "target_positions"}},
-                                    "checkpoint": spec.key, "position": position,
-                                    "search_metric": metric, "neighbors": k,
-                                    **decomposition,
-                                })
+                        query_rows.append({
+                            **{name: value for name, value in row.items() if name not in {"input_ids", "target_positions"}},
+                            "position": position, "state": path[position].cpu(),
+                            "velocity": (path[position] - path[position - 1]).cpu(),
+                            "acceleration": (path[position + 1] - 2 * path[position] + path[position - 1]).cpu(),
+                            "robust": row["panel_index"] in natural_panels and row["role"] in {"gold", "seed1301_promoted_wrong"},
+                        })
                 del ids, mask
+
+        queries = torch.stack([row["state"] for row in query_rows]).to(args.device)
+        velocities = torch.stack([row["velocity"] for row in query_rows]).to(args.device)
+        accelerations = torch.stack([row["acceleration"] for row in query_rows]).to(args.device)
+        query_reactions = np.asarray([row["reaction_identity"] for row in query_rows])
+        whitened_queries = ((queries - mean) @ principal) / scale
+        central = np.arange(len(query_rows))
+        robust = np.asarray([index for index, row in enumerate(query_rows) if row["robust"]], dtype=np.int64)
+        settings = [(central, "euclidean", 64, (16,))]
+        for metric in ("euclidean", "pca_whitened_128"):
+            for k in (32, 64, 128):
+                dimensions = tuple(
+                    dimension for dimension in (8, 16, 32)
+                    if not (metric == "euclidean" and k == 64 and dimension == 16)
+                )
+                settings.append((robust, metric, k, dimensions))
+        for selected, metric, k, dimensions in settings:
+            if not len(selected) or not dimensions:
+                continue
+            selected_tensor = torch.as_tensor(selected, device=args.device, dtype=torch.long)
+            search_references = references if metric == "euclidean" else whitened_references
+            search_queries = queries[selected_tensor] if metric == "euclidean" else whitened_queries[selected_tensor]
+            eligible_np = query_reactions[selected, None] != reference_reactions[None, :]
+            eligible = torch.from_numpy(eligible_np).to(args.device)
+            neighbor_indices = _topk_neighbors(
+                search_queries, search_references, eligible, k, batch_size=32,
+            )
+            for batch_start in range(0, len(selected), 16):
+                batch_end = min(batch_start + 16, len(selected))
+                original_indices = selected[batch_start:batch_end]
+                original_tensor = torch.as_tensor(original_indices, device=args.device, dtype=torch.long)
+                neighbors = references[neighbor_indices[batch_start:batch_end]]
+                decompositions = _batched_local_pca_decomposition(
+                    neighbors, velocities[original_tensor], accelerations[original_tensor], dimensions,
+                )
+                cpu = {
+                    dimension: {name: values.detach().cpu().numpy() for name, values in metrics.items()}
+                    for dimension, metrics in decompositions.items()
+                }
+                for offset, original_index in enumerate(original_indices):
+                    row = query_rows[int(original_index)]
+                    for dimension in dimensions:
+                        writer.write({
+                            **{name: value for name, value in row.items() if name not in {"state", "velocity", "acceleration", "robust"}},
+                            "checkpoint": spec.key, "search_metric": metric,
+                            "neighbors": k, "tangent_dim": dimension,
+                            **{name: float(values[offset]) for name, values in cpu[dimension].items()},
+                        })
+            del eligible, neighbor_indices
         print(json.dumps({"stage": "candidate_intrinsic_checkpoint", "checkpoint": spec.key, "rows": writer.count}), flush=True)
-        del payload, references, whitened_references
+        del payload, references, whitened_references, queries, velocities, accelerations
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
     capture.close(); del capture, model
@@ -1234,6 +1259,52 @@ def _local_pca_decomposition(
     return result
 
 
+def _batched_local_pca_decomposition(
+    neighbors: torch.Tensor, velocities: torch.Tensor, accelerations: torch.Tensor,
+    dimensions: tuple[int, ...],
+) -> dict[int, dict[str, torch.Tensor]]:
+    """Exact local-PCA decomposition for a batch of query neighborhoods.
+
+    This is algebraically the same smaller-Gram construction as
+    ``_local_pca_decomposition`` but amortizes eigensolver and projection kernel
+    launches across queries.  No approximation or neighbor-order change is
+    introduced.
+    """
+    centered = neighbors.float() - neighbors.float().mean(1, keepdim=True)
+    gram = centered @ centered.transpose(1, 2)
+    eigenvalues, eigenvectors = torch.linalg.eigh(gram)
+    maximum = min(max(dimensions), neighbors.shape[1] - 1)
+    eigenvalues = eigenvalues[:, -maximum:].flip(1).clamp_min(1e-10)
+    eigenvectors = eigenvectors[:, :, -maximum:].flip(2)
+    basis = torch.einsum("bkm,bkd->bmd", eigenvectors, centered)
+    basis = basis / eigenvalues.sqrt().unsqueeze(2)
+    acceleration_coefficients = torch.einsum("bd,bmd->bm", accelerations.float(), basis)
+    velocity_coefficients = torch.einsum("bd,bmd->bm", velocities.float(), basis)
+    acceleration_squared = accelerations.float().square().sum(1)
+    output = {}
+    for requested_dimension in dimensions:
+        dimension = min(requested_dimension, neighbors.shape[1] - 1, maximum)
+        a_coeff = acceleration_coefficients[:, :dimension]
+        v_coeff = velocity_coefficients[:, :dimension]
+        tangent_a_squared = a_coeff.square().sum(1).clamp_min(0)
+        tangent_v_squared = v_coeff.square().sum(1).clamp_min(0)
+        av = (a_coeff * v_coeff).sum(1)
+        geodesic_squared = (
+            tangent_a_squared - av.square() / tangent_v_squared.clamp_min(1e-12)
+        ).clamp_min(0)
+        normal_squared = (acceleration_squared - tangent_a_squared).clamp_min(0)
+        acceleration_norm = acceleration_squared.sqrt().clamp_min(1e-12)
+        output[requested_dimension] = {
+            "tangent_acceleration": tangent_a_squared.sqrt(),
+            "normal_acceleration": normal_squared.sqrt(),
+            "geodesic_violation": geodesic_squared.sqrt(),
+            "projected_velocity": tangent_v_squared.sqrt(),
+            "geodesic_over_acceleration": geodesic_squared.sqrt() / acceleration_norm,
+            "normal_over_acceleration": normal_squared.sqrt() / acceleration_norm,
+        }
+    return output
+
+
 def analyze_intrinsic(args) -> None:
     output = args.output.resolve()
     cache = output / "cache" / "gold_states"
@@ -1299,20 +1370,29 @@ def analyze_intrinsic(args) -> None:
                         eligible_np &= query_segments[:, None] == reference_segments[None, :]
                     eligible = torch.from_numpy(eligible_np).to(args.device)
                     neighbor_indices = _topk_neighbors(search_queries, search_references, eligible, 128)
-                    for query_index, row in enumerate(query_rows):
-                        for k in (32, 64, 128):
-                            neighbors = references[neighbor_indices[query_index, :k]]
-                            decompositions = _local_pca_decomposition(
-                                neighbors, velocities[query_index], accelerations[query_index], (8, 16, 32),
+                    for k in (32, 64, 128):
+                        for batch_start in range(0, len(query_rows), 16):
+                            batch_end = min(batch_start + 16, len(query_rows))
+                            local_indices = neighbor_indices[batch_start:batch_end, :k]
+                            neighbors = references[local_indices]
+                            decompositions = _batched_local_pca_decomposition(
+                                neighbors, velocities[batch_start:batch_end],
+                                accelerations[batch_start:batch_end], (8, 16, 32),
                             )
-                            for values in decompositions:
-                                writer.write({
-                                    "checkpoint": key, "layer": layer,
-                                    "reaction_identity": row[4], "segment": row[5],
-                                    "panel_index": row[6], "position": row[7],
-                                    "search_metric": search_metric, "same_segment": same_segment,
-                                    "neighbors": k, **values,
-                                })
+                            cpu = {
+                                dimension: {name: values.detach().cpu().numpy() for name, values in metrics.items()}
+                                for dimension, metrics in decompositions.items()
+                            }
+                            for offset, row in enumerate(query_rows[batch_start:batch_end]):
+                                for dimension in (8, 16, 32):
+                                    writer.write({
+                                        "checkpoint": key, "layer": layer,
+                                        "reaction_identity": row[4], "segment": row[5],
+                                        "panel_index": row[6], "position": row[7],
+                                        "search_metric": search_metric, "same_segment": same_segment,
+                                        "neighbors": k, "tangent_dim": dimension,
+                                        **{name: float(values[offset]) for name, values in cpu[dimension].items()},
+                                    })
                     del eligible, neighbor_indices
             print(json.dumps({"stage": "intrinsic_layer_complete", "checkpoint": key, "layer": layer, "queries": len(query_rows), "references": len(reference_rows)}), flush=True)
             del references, queries, velocities, accelerations

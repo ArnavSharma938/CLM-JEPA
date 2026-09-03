@@ -33,6 +33,32 @@ def test_precomputed_logits_functional_geometry_is_exact():
     torch.testing.assert_close(direct["logits"], precomputed["logits"], rtol=0, atol=0)
 
 
+def test_batched_local_pca_matches_scalar_construction():
+    from scripts.run_geodesic_audit import (
+        _batched_local_pca_decomposition, _local_pca_decomposition,
+    )
+
+    generator = torch.Generator().manual_seed(23)
+    neighbors = torch.randn(3, 32, 41, generator=generator)
+    velocity = torch.randn(3, 41, generator=generator)
+    acceleration = torch.randn(3, 41, generator=generator)
+    batched = _batched_local_pca_decomposition(
+        neighbors, velocity, acceleration, (8, 16),
+    )
+    for batch in range(3):
+        scalar = _local_pca_decomposition(
+            neighbors[batch], velocity[batch], acceleration[batch], (8, 16),
+        )
+        for row in scalar:
+            dimension = row["tangent_dim"]
+            for name, value in row.items():
+                if name != "tangent_dim":
+                    torch.testing.assert_close(
+                        batched[dimension][name][batch], torch.tensor(value),
+                        rtol=2e-5, atol=2e-5,
+                    )
+
+
 def test_tube_radius_is_zero_for_nonuniformly_parameterized_line():
     path = torch.tensor([[0., 0.], [1., 0.], [3., 0.], [8., 0.]])
     rows = tube_scale_space(path)
