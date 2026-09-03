@@ -134,6 +134,24 @@ def summarize_multiscale_turning(path: Path):
     return output
 
 
+def tangent_persistence_lengths(rows):
+    groups = defaultdict(list)
+    for row in rows:
+        groups[(row["checkpoint"], row["layer"], row["segment"])].append(row)
+    output = []
+    for (checkpoint, layer, segment), curve in groups.items():
+        curve.sort(key=lambda row: row["lag"])
+        first = float(curve[0]["mean"])
+        zero = next((int(row["lag"]) for row in curve if row["mean"] <= 0), math.nan)
+        one_over_e = next((int(row["lag"]) for row in curve if row["mean"] <= first / math.e), math.nan)
+        output.append({
+            "checkpoint": checkpoint, "layer": layer, "segment": segment,
+            "lag_one_over_e": one_over_e, "lag_zero_crossing": zero,
+            "c1": first,
+        })
+    return output
+
+
 def sensitivity_event_map():
     tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
     result = {}
@@ -841,6 +859,7 @@ def run(args):
     persistence_treatment = paired_reduced_summary(
         persistence, ["layer", "segment", "lag"], ["mean", "median"],
     )
+    persistence_lengths = tangent_persistence_lengths(persistence)
     turning = summarize_multiscale_turning(root / "raw" / "multiscale_turning.jsonl.gz")
     turning_treatment = paired_reduced_summary(
         turning, ["layer", "segment", "scale"], ["mean_angle"],
@@ -890,6 +909,7 @@ def run(args):
         "individual_persistence_scales": persistence_scales,
         "tangent_persistence": persistence,
         "tangent_persistence_treatment": persistence_treatment,
+        "tangent_persistence_lengths": persistence_lengths,
         "multiscale_turning": turning,
         "multiscale_turning_treatment": turning_treatment,
         "interventions": intervention, "signal_sensitivity": sensitivity,
@@ -917,6 +937,7 @@ def run(args):
         "trajectory_treatment_uncertainty": trajectory_uncertainty,
         "individual_persistence_scales": persistence_scales,
         "tangent_persistence_treatment": persistence_treatment,
+        "tangent_persistence_lengths": persistence_lengths,
         "multiscale_turning_treatment": turning_treatment,
         "interventions": intervention, "signal_sensitivity": sensitivity,
         "event_signal_sensitivity": event_sensitivity,
