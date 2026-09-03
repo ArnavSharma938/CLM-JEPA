@@ -405,6 +405,8 @@ def summarize_candidates(root: Path):
             "fisher_inefficiency": 1 - row["fisher_path_efficiency"],
             "fisher_local_curvature": row["fisher_local_curvature"],
             "normal_acceleration": row["normalized_normal_acceleration"],
+            "_model_aggregate_correct": bool(row["model_aggregate_correct"]),
+            "_gold_aggregate_rank": row["aggregate_rank"],
         }
         index = (row["checkpoint"], row["panel_index"], row["view"], row["role"])
         values.setdefault(index, metrics)
@@ -418,7 +420,12 @@ def summarize_candidates(root: Path):
         paired.append({
             "checkpoint": checkpoint, "panel_index": panel, "view": view,
             **checkpoint_fields(checkpoint),
-            **{f"wrong_minus_gold_{metric}": wrong[metric] - gold[metric] for metric in wrong},
+            "model_aggregate_correct": wrong["_model_aggregate_correct"],
+            "gold_aggregate_rank": wrong["_gold_aggregate_rank"],
+            **{
+                f"wrong_minus_gold_{metric}": wrong[metric] - gold[metric]
+                for metric in wrong if not metric.startswith("_")
+            },
         })
     # The promoted wrong candidate is evaluated under both seed-1301 models.
     for (checkpoint, panel, view, role), wrong in values.items():
@@ -428,7 +435,10 @@ def summarize_candidates(root: Path):
         if gold:
             natural.append({
                 "checkpoint": checkpoint, "panel_index": panel, "view": view,
-                **{f"wrong_minus_gold_{metric}": wrong[metric] - gold[metric] for metric in wrong},
+                **{
+                    f"wrong_minus_gold_{metric}": wrong[metric] - gold[metric]
+                    for metric in wrong if not metric.startswith("_")
+                },
             })
     return pd.DataFrame(paired), pd.DataFrame(natural)
 
@@ -438,15 +448,25 @@ def candidate_checkpoint_summary(frame: pd.DataFrame):
         return []
     metrics = [column for column in frame if column.startswith("wrong_minus_gold_")]
     output = []
-    for checkpoint, group in frame.groupby("checkpoint"):
-        reaction = group.groupby("panel_index")[metrics].mean()
-        row = {"checkpoint": checkpoint, "reactions": len(reaction), **checkpoint_fields(checkpoint)}
-        for metric in metrics:
-            values = reaction[metric].to_numpy()
-            row[metric] = float(np.mean(values))
-            row[f"{metric}_ci95"] = bootstrap_ci(values)
-            row[f"{metric}_fraction_wrong_more_geodesic"] = float((values < 0).mean())
-        output.append(row)
+    strata = [("all", frame)]
+    if "model_aggregate_correct" in frame:
+        strata.extend([
+            ("model_correct", frame[frame.model_aggregate_correct]),
+            ("model_wrong", frame[~frame.model_aggregate_correct]),
+        ])
+    for stratum, stratum_frame in strata:
+        for checkpoint, group in stratum_frame.groupby("checkpoint"):
+            reaction = group.groupby("panel_index")[metrics].mean()
+            row = {
+                "checkpoint": checkpoint, "stratum": stratum,
+                "reactions": len(reaction), **checkpoint_fields(checkpoint),
+            }
+            for metric in metrics:
+                values = reaction[metric].to_numpy()
+                row[metric] = float(np.mean(values))
+                row[f"{metric}_ci95"] = bootstrap_ci(values)
+                row[f"{metric}_fraction_wrong_more_geodesic"] = float((values < 0).mean())
+            output.append(row)
     return output
 
 
