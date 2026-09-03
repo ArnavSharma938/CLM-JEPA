@@ -216,7 +216,22 @@ def paired_reduced_summary(rows, index_columns, metrics):
 
 
 def paired_tube(root: Path):
-    frame = pd.DataFrame(records(root / "raw" / "tube_scale_space_aggregate.jsonl.gz"))
+    aggregate_path = root / "raw" / "tube_scale_space_aggregate.jsonl.gz"
+    # A long analysis may be resumed in checkpoint shards, in which case the
+    # per-reaction stream is authoritative and a monolithic end-of-run aggregate
+    # may not exist.  Rebuild it deterministically rather than rerunning model or
+    # geometry computation.
+    aggregate = grouped_stream(
+        root / "raw" / "tube_scale_space_by_reaction.jsonl.gz",
+        ("checkpoint", "layer", "segment", "span_length"),
+        ("mean", "rms", "maximum", "p90", "p95", "monotonicity_violation",
+         "fraction_gt_0.05", "fraction_gt_0.1", "fraction_gt_0.2", "fraction_gt_0.5"),
+    )
+    aggregate_path.parent.mkdir(parents=True, exist_ok=True)
+    with gzip.open(aggregate_path, "wt", encoding="utf-8", compresslevel=6) as handle:
+        for row in aggregate:
+            handle.write(json.dumps(row, separators=(",", ":")) + "\n")
+    frame = pd.DataFrame(aggregate)
     keys = frame.checkpoint.unique().tolist()
     rows = []
     indexed = frame.set_index(["checkpoint", "layer", "segment", "span_length"])
@@ -235,6 +250,51 @@ def paired_tube(root: Path):
                 **{f"delta_{metric}": float(t[metric] - n[metric]) for metric in ("rms", "maximum", "p95", "monotonicity_violation")},
             })
     return frame, pd.DataFrame(rows)
+
+
+def trajectory_treatment_uncertainty(root: Path):
+    metrics = (
+        "speed", "tangential_acceleration", "normal_acceleration",
+        "normalized_normal_acceleration", "euclidean_path_efficiency",
+        "fisher_path_efficiency", "fisher_local_curvature",
+    )
+    values = {}
+    keys = set()
+    for row in records(root / "raw" / "trajectory_metrics.jsonl.gz"):
+        keys.add(row["checkpoint"])
+        values[(row["checkpoint"], int(row["panel_index"]), row["layer"], row["segment"])] = row
+    output = []
+    for native, treatment in treatment_pairs(keys):
+        fields = checkpoint_fields(treatment)
+        for layer in ("embedding", "layer_6", "layer_16", "layer_21", "final_post_norm"):
+            for segment in ("source", "product", "cross"):
+                matched = []
+                for panel in range(256):
+                    n = values.get((native, panel, layer, segment))
+                    t = values.get((treatment, panel, layer, segment))
+                    if n is not None and t is not None:
+                        matched.append((n, t))
+                if not matched:
+                    continue
+                row = {
+                    "native": native, "treatment": treatment, **fields,
+                    "layer": layer, "segment": segment, "reactions": len(matched),
+                }
+                for metric in metrics:
+                    differences = np.asarray([
+                        float(t.get(metric, math.nan)) - float(n.get(metric, math.nan))
+                        for n, t in matched
+                    ])
+                    differences = differences[np.isfinite(differences)]
+                    if not len(differences):
+                        continue
+                    row[f"delta_{metric}"] = float(differences.mean())
+                    row[f"delta_{metric}_ci95"] = bootstrap_ci(differences)
+                    row[f"paired_dz_{metric}"] = float(
+                        differences.mean() / differences.std(ddof=1)
+                    ) if len(differences) > 1 and differences.std(ddof=1) > 0 else math.nan
+                output.append(row)
+    return output
 
 
 def tube_reaction_uncertainty(root: Path):
@@ -518,11 +578,98 @@ def make_plots(root: Path, tube: pd.DataFrame, tube_delta: pd.DataFrame, summari
         axis.set_ylabel("wrong - gold Fisher inefficiency")
         fig.tight_layout(); fig.savefig(plot_dir / "gold_wrong_fisher_separation.png", dpi=180); plt.close(fig)
 
+    trajectory = pd.DataFrame(summaries["trajectory_treatment_uncertainty"])
+    required = {"delta_euclidean_path_efficiency", "delta_fisher_path_efficiency"}
+    if not trajectory.empty and required.issubset(trajectory.columns):
+        selected_trajectory = trajectory[
+            (trajectory.layer == "final_post_norm") & trajectory.treatment.str.contains("_r8_l0.02_")
+        ]
+        fig, axis = plt.subplots(figsize=(6.2, 5.2))
+        for treatment, group in selected_trajectory.groupby("treatment"):
+            axis.scatter(
+                group.delta_euclidean_path_efficiency,
+                group.delta_fisher_path_efficiency,
+                label=treatment, s=32,
+            )
+        axis.axhline(0, color="black", linewidth=.7); axis.axvline(0, color="black", linewidth=.7)
+        axis.set(xlabel="STP - Native Euclidean path efficiency",
+                 ylabel="STP - Native Fisher path efficiency")
+        axis.grid(alpha=.25); axis.legend(fontsize=7, frameon=False)
+        fig.tight_layout(); fig.savefig(plot_dir / "euclidean_vs_fisher_change.png", dpi=180); plt.close(fig)
+
+    event = pd.DataFrame(summaries["event_signal_sensitivity"])
+    if not event.empty:
+        chosen = event[
+            event.checkpoint.isin(["native_r8_s533", "released_r8_l0.02_s533", "paper_r8_l0.02_s533"])
+            & event.event_category.isin(["ordinary", "any_event", "ring_closure", "branch", "stereochemistry", "motif_completion"])
+            & (event.segment == "product")
+        ].copy()
+        if not chosen.empty:
+            chosen["label"] = chosen.checkpoint + ":" + chosen.event_category
+            fig, axis = plt.subplots(figsize=(10, 4.8))
+            chosen.set_index("label").absolute_perpendicular_to_parallel_ratio.plot.bar(ax=axis)
+            axis.set_ylabel("mean |perpendicular sensitivity| / |parallel sensitivity|")
+            axis.tick_params(axis="x", labelsize=7)
+            fig.tight_layout(); fig.savefig(plot_dir / "perpendicular_signal_by_event.png", dpi=180); plt.close(fig)
+
+    intrinsic = pd.DataFrame(summaries["intrinsic_treatment_summary"])
+    if not intrinsic.empty:
+        pivot = intrinsic.pivot_table(
+            index="treatment", columns="layer",
+            values="delta_geodesic_violation_fraction_negative", aggfunc="mean",
+        )
+        fig, axis = plt.subplots(figsize=(8.5, 4.5))
+        image = axis.imshow(pivot.to_numpy(), vmin=0, vmax=1, aspect="auto", cmap="coolwarm")
+        axis.set_xticks(range(len(pivot.columns)), pivot.columns, rotation=30, ha="right")
+        axis.set_yticks(range(len(pivot.index)), pivot.index, fontsize=7)
+        axis.set_title("Fraction of intrinsic-geometry settings with reduced violation")
+        fig.colorbar(image, ax=axis, label="fraction")
+        fig.tight_layout(); fig.savefig(plot_dir / "intrinsic_robustness.png", dpi=180); plt.close(fig)
+
+    anatomy = pd.DataFrame(summaries["released_anatomy_treatment"])
+    if not anatomy.empty:
+        chosen = anatomy[anatomy.treatment.str.contains("released_r8_l0.02")]
+        fig, axes = plt.subplots(1, 2, figsize=(11, 4.2))
+        for treatment, group in chosen.groupby("treatment"):
+            group = group.sort_values("span_length")
+            axes[0].plot(group.span_length, group.delta_loss, label=treatment)
+            axes[1].plot(group.span_length, group.delta_cancellation_ratio, label=treatment)
+        axes[0].set_ylabel("Released loss: STP - Native")
+        axes[1].set_ylabel("Complement cancellation ratio: STP - Native")
+        for axis in axes:
+            axis.set_xlabel("patch length"); axis.axhline(0, color="black", linewidth=.7); axis.grid(alpha=.25)
+        axes[1].legend(fontsize=7, frameon=False)
+        fig.tight_layout(); fig.savefig(plot_dir / "released_objective_anatomy.png", dpi=180); plt.close(fig)
+
+    cones = pd.DataFrame(summaries["cone_treatment_summary"])
+    if not cones.empty:
+        fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.2))
+        for treatment, group in cones.groupby("treatment"):
+            for kind, part in group.groupby("kind"):
+                axes[0].plot(part.horizon, part.delta_mean_axis_gold_cosine, label=f"{treatment}:{kind}")
+                axes[1].plot(part.horizon, part.delta_fisher_dispersion, label=f"{treatment}:{kind}")
+        axes[0].set_ylabel("STP - Native cone-axis/gold cosine")
+        axes[1].set_ylabel("STP - Native Fisher dispersion")
+        for axis in axes:
+            axis.set_xlabel("rollout horizon"); axis.axhline(0, color="black", linewidth=.7); axis.grid(alpha=.25)
+        axes[1].legend(fontsize=6, frameon=False)
+        fig.tight_layout(); fig.savefig(plot_dir / "inference_cone_changes.png", dpi=180); plt.close(fig)
+
+    natural = pd.DataFrame(summaries["seed1301_change_summary"])
+    if not natural.empty:
+        fig, axis = plt.subplots(figsize=(9, 4.5))
+        natural.set_index("metric").released_change_in_wrong_minus_gold.plot.bar(ax=axis)
+        axis.axhline(0, color="black", linewidth=.7)
+        axis.set_ylabel("Released STP change in wrong - gold geometry")
+        axis.tick_params(axis="x", labelsize=7)
+        fig.tight_layout(); fig.savefig(plot_dir / "seed1301_natural_experiment.png", dpi=180); plt.close(fig)
+
 
 def run(args):
     root = args.root.resolve()
     tube, tube_delta = paired_tube(root)
     tube_uncertainty = tube_reaction_uncertainty(root)
+    trajectory_uncertainty = trajectory_treatment_uncertainty(root)
     persistence_scales = individual_persistence_scales(root)
     intervention = summarize_interventions(root / "raw" / "signal_noise_interventions.jsonl.gz")
     sensitivity, event_sensitivity = summarize_sensitivity(root / "raw" / "signal_noise_interventions.jsonl.gz")
@@ -562,6 +709,7 @@ def run(args):
     summaries = {
         "tube_treatment_effects": tube_delta.to_dict("records"),
         "tube_reaction_uncertainty": tube_uncertainty,
+        "trajectory_treatment_uncertainty": trajectory_uncertainty,
         "individual_persistence_scales": persistence_scales,
         "interventions": intervention, "signal_sensitivity": sensitivity,
         "event_signal_sensitivity": event_sensitivity,
@@ -582,6 +730,7 @@ def run(args):
     compact = {
         "tube_delta_final_product": tube_delta[(tube_delta.layer == "final_post_norm") & (tube_delta.segment == "product")].to_dict("records"),
         "tube_reaction_uncertainty": tube_uncertainty,
+        "trajectory_treatment_uncertainty": trajectory_uncertainty,
         "individual_persistence_scales": persistence_scales,
         "interventions": intervention, "signal_sensitivity": sensitivity,
         "event_signal_sensitivity": event_sensitivity,
