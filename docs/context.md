@@ -139,4 +139,7 @@ global raw retrieval was `33.59%`, target-token CE `.253547`, top-1 `6/256`,
 and top-10 `39/256`. These measurements do not cover MetaTrans,
 retrosynthesis, additional seeds, or larger training exposure.
 
-The consolidated report index and artifact paths are in `docs/reports/README.md`. The dense causal implementation and measurements are in report 04.
+The consolidated report index and artifact paths are in `docs/reports/README.md`.
+The dense causal implementation and measurements are retained in
+`docs/reports/00_PRE_STP_JEPA_CONSOLIDATED.md`; the obsolete standalone Report
+04 was removed after consolidation.
