@@ -28,8 +28,12 @@ import torch.nn.functional as F
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
 
-from src.chemfm import MODEL_DIR, TOKENIZER_DIR, load_lora_model, load_reaction_tokenizer
+from src.chemfm import (
+    END, MODEL_DIR, PRODUCT_START, REACTANT_START, TOKENIZER_DIR,
+    load_lora_model, load_reaction_tokenizer,
+)
 from src.frozen_geometry import DEFAULT_PANEL, annotate_example, read_panel
 from src.geodesic_audit import (
     acceleration_decomposition,
@@ -557,15 +561,461 @@ def analyze_matched(args) -> None:
     write_json(args.output.resolve() / "matched_analysis_metadata.json", {"git_commit": git_commit(), "rows": count})
 
 
+INTRINSIC_KEYS = {
+    "native_r8_s533", "released_r8_l0.02_s533", "paper_r8_l0.02_s533",
+    "native_r128_s533", "released_r128_l0.02_s533", "paper_r128_l0.02_s533",
+    "native_r8_s1301", "released_r8_l0.02_s1301",
+}
+
+
+def prediction_path_for_key(key: str) -> Path:
+    parts = key.split("_")
+    seed = int(parts[-1][1:])
+    if key.startswith("native_r8_"):
+        return ROOT / f"runs/stp_matrix/a6000/stage_a/r8_l0.02/native/seed_{seed}/evaluation/predictions.jsonl"
+    if key.startswith("released_r8_l0.02_"):
+        return ROOT / f"runs/stp_matrix/a6000/stage_a/r8_l0.02/released/seed_{seed}/evaluation/predictions.jsonl"
+    if key.startswith("paper_r8_l0.02_"):
+        return ROOT / f"runs/stp_matrix/a6000/stage_c/paper_r8_l0.02/seed_{seed}/evaluation/predictions.jsonl"
+    raise KeyError(key)
+
+
+def read_jsonl(path: Path) -> list[dict]:
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
+
+
+def _fast_reaction_tokenization(tokenizer, source: str, target: str) -> tuple[list[int], list[int]]:
+    """Tokenize exact serialization and locate target content without RDKit."""
+    text = f"{REACTANT_START}{source}{END}{PRODUCT_START}{target}{END}"
+    encoded = tokenizer(text, add_special_tokens=False, return_offsets_mapping=True)
+    target_start = len(REACTANT_START) + len(source) + len(END) + len(PRODUCT_START)
+    target_end = target_start + len(target)
+    target_positions = [
+        index for index, (start, end) in enumerate(encoded["offset_mapping"])
+        if start >= target_start and end <= target_end
+    ]
+    if not target_positions:
+        raise ValueError("candidate serialization produced no target content tokens")
+    return encoded["input_ids"], target_positions
+
+
+def _candidate_workload(tokenizer, key: str) -> list[dict]:
+    """Build the locked per-view gold/wrong workload from archived beams."""
+    rows = read_jsonl(prediction_path_for_key(key))
+    special = {}
+    if key in {"native_r8_s1301", "released_r8_l0.02_s1301"}:
+        diagnostic = json.loads((
+            ROOT / "runs/stp_completion/a6000/existing_diagnostics/released_r8_l0.02_seed1301_beams.json"
+        ).read_text(encoding="utf-8"))
+        losses = diagnostic["comparison"]["native_only_top1"]["rows"]
+        special = {int(row["panel_index"]): row["treatment_winner"] for row in losses}
+    workload = []
+    for row in rows:
+        panel_index = int(row["panel_index"])
+        if panel_index >= 256 and panel_index not in special:
+            continue
+        for view, source in enumerate(row["sources"]):
+            raw = row["raw_candidates_by_view"][view]
+            canonical = row["canonical_candidates_by_view"][view]
+            candidates = [(row["target"], "gold", 0)]
+            for rank, (raw_value, canonical_value) in enumerate(zip(raw[:5], canonical[:5]), 1):
+                role = "view_top1" if rank == 1 else "additional"
+                if canonical_value != row["target"] and not any(c[1] == "highest_wrong" for c in candidates):
+                    role = "highest_wrong"
+                candidates.append((raw_value, role, rank))
+            if panel_index in special:
+                candidates.append((special[panel_index], "seed1301_promoted_wrong", -1))
+            seen = set()
+            for candidate, role, rank in candidates:
+                identity = (candidate, role)
+                if not candidate or identity in seen:
+                    continue
+                seen.add(identity)
+                input_ids, target_positions = _fast_reaction_tokenization(tokenizer, source, candidate)
+                workload.append({
+                    "panel_index": panel_index, "reaction_identity": row["reaction_identity"],
+                    "view": view, "source": source, "gold": row["target"],
+                    "candidate": candidate, "role": role, "beam_rank": rank,
+                    "input_ids": input_ids, "target_positions": target_positions,
+                    "aggregate_rank": (
+                        row["ranked_candidates"].index(row["target"]) + 1
+                        if row["target"] in row["ranked_candidates"] else None
+                    ),
+                    "model_aggregate_correct": bool(row["ranked_candidates"] and row["ranked_candidates"][0] == row["target"]),
+                })
+    return workload
+
+
+def _candidate_geometry(path: torch.Tensor, weight: torch.Tensor | None) -> dict:
+    tube = tube_scale_space(path)
+    change = estimate_piecewise_change_point(tube)
+    acceleration = acceleration_decomposition(path)
+    paper_values, released_values = [], []
+    for length in range(2, len(path)):
+        for s in deterministic_starts(len(path), length, 8, len(path)):
+            t = s + length
+            r = (s + t) // 2
+            paper_values.append(float(1 - cosine(path[r] - path[s], path[t] - path[r])))
+    total = path[-1] - path[0]
+    for length in range(1, len(path)):
+        for s in deterministic_starts(len(path), length, 8, len(path) + 31):
+            t = s + length
+            patch = path[t] - path[s]
+            released_values.append(float(1 - cosine(patch, total - patch)))
+    result = {
+        "tokens": len(path), "tube_scale": tube, "tube_change_point": change,
+        "paper_loss": float(np.mean(paper_values)) if paper_values else math.nan,
+        "released_loss": float(np.mean(released_values)) if released_values else math.nan,
+        "tangent_persistence": tangent_autocorrelation(path),
+        "speed": float(acceleration["speed"].mean()),
+        "normal_acceleration": float(acceleration["acceleration_normal"].mean()),
+        "normalized_normal_acceleration": float(acceleration["normalized_normal"].mean()),
+    }
+    if weight is not None:
+        functional = functional_metrics(path, weight)
+        result.update({key: value for key, value in functional.items() if not torch.is_tensor(value)})
+        ray = []
+        for scale in range(1, min(32, (len(path) - 1) // 2) + 1):
+            values = optimal_ray_residual(path[:-2 * scale], path[scale:-scale], path[2 * scale:])
+            ray.append({"horizon": scale, "mean": float(values.mean()), "median": float(values.median())})
+        result["ray_residual"] = ray
+    return result
+
+
+def analyze_candidates(args) -> None:
+    output = args.output.resolve()
+    writer = JsonlGzipWriter(output / "raw" / "gold_wrong_candidate_geometry.jsonl.gz")
+    tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
+    chemfm_vocab_size = len(tokenizer)
+    add_predictor_tokens(tokenizer)
+    specs = [spec for spec in checkpoint_specs() if spec.key in PRIMARY_KEYS]
+    started = time.perf_counter()
+    for spec_index, spec in enumerate(specs, 1):
+        workload = _candidate_workload(tokenizer, spec.key)
+        workload.sort(key=lambda row: len(row["input_ids"]))
+        model = load_model_for_spec(spec, tokenizer, chemfm_vocab_size, args.device)
+        capture = SelectedStateCapture(model)
+        weight = model.get_output_embeddings().weight.detach().float().to(args.device)
+        with torch.inference_mode():
+            for batch_start in range(0, len(workload), args.batch_size):
+                batch = workload[batch_start:batch_start + args.batch_size]
+                maximum = max(len(row["input_ids"]) for row in batch)
+                ids = torch.zeros((len(batch), maximum), dtype=torch.long, device=args.device)
+                mask = torch.zeros_like(ids, dtype=torch.bool)
+                for i, row in enumerate(batch):
+                    length = len(row["input_ids"])
+                    ids[i, :length] = torch.tensor(row["input_ids"], device=args.device)
+                    mask[i, :length] = True
+                capture.clear()
+                model(input_ids=ids, attention_mask=mask, use_cache=False, return_dict=True)
+                for i, row in enumerate(batch):
+                    positions = [row["target_positions"][0] - 1, *row["target_positions"]]
+                    labels = ["final_post_norm"]
+                    # Full-depth candidate geometry is fixed to the robustness
+                    # subset and the seed-1301 natural-experiment rows.
+                    if row["panel_index"] < 64 or row["role"] == "seed1301_promoted_wrong":
+                        labels = list(DEPTH_LABELS)
+                    for label in labels:
+                        states = capture.values[label][i, :len(row["input_ids"])].float()
+                        path = states[positions]
+                        metrics = _candidate_geometry(path, weight if label == "final_post_norm" else None)
+                        writer.write({
+                            **{k: v for k, v in row.items() if k not in {"input_ids", "target_positions"}},
+                            "checkpoint": spec.key, "rank": spec.rank,
+                            "formulation": spec.formulation, "lambda": spec.stp_lambda,
+                            "seed": spec.seed, "layer": label, **metrics,
+                        })
+                del ids, mask
+        capture.close()
+        del model, capture, weight, workload
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        print(json.dumps({"stage": "candidate_checkpoint_complete", "index": spec_index, "total": len(specs), "key": spec.key, "rows": writer.count}), flush=True)
+    writer.close()
+    write_json(output / "candidate_analysis_metadata.json", {
+        "git_commit": git_commit(), "rows": writer.count, "seconds": time.perf_counter() - started,
+        "prediction_hashes": {spec.key: sha256(prediction_path_for_key(spec.key)) for spec in specs},
+    })
+
+
+CONE_KEYS = {
+    "native_r8_s1301", "released_r8_l0.02_s1301",
+    "native_r8_s533", "paper_r8_l0.02_s533",
+}
+
+
+def _cone_prefixes(tokenizer, panel: Path) -> list[dict]:
+    candidates = {"event": [], "ordinary": []}
+    for example in build_gold_examples(tokenizer, panel):
+        targets = [token for token in example.tokens if token.segment == "target"]
+        for local, token in enumerate(targets[:-5]):
+            kind = "event" if token.events else "ordinary"
+            candidates[kind].append((
+                _stable_priority("cone", example.reaction_identity, local),
+                {
+                    "panel_index": example.panel_index,
+                    "reaction_identity": example.reaction_identity,
+                    "position": token.index, "target_local_position": local,
+                    "kind": kind, "events": sorted(token.events),
+                    "input_ids": example.input_ids,
+                },
+            ))
+    selected = []
+    for kind in ("event", "ordinary"):
+        candidates[kind].sort(key=lambda x: x[0])
+        selected.extend(row for _, row in candidates[kind][:32])
+    return sorted(selected, key=lambda row: (row["panel_index"], row["position"]))
+
+
+def _forward_final_states(model, capture, sequences: list[list[int]], device: str):
+    maximum = max(map(len, sequences))
+    ids = torch.zeros((len(sequences), maximum), dtype=torch.long, device=device)
+    mask = torch.zeros_like(ids, dtype=torch.bool)
+    lengths = []
+    for row, sequence in enumerate(sequences):
+        lengths.append(len(sequence))
+        ids[row, :len(sequence)] = torch.tensor(sequence, dtype=torch.long, device=device)
+        mask[row, :len(sequence)] = True
+    capture.clear()
+    model(input_ids=ids, attention_mask=mask, use_cache=False, return_dict=True)
+    states = torch.stack([capture.values["final_post_norm"][row, length - 1].float() for row, length in enumerate(lengths)])
+    return states
+
+
+def _weighted_cone_metrics(
+    base: torch.Tensor, branches: torch.Tensor, gold: torch.Tensor,
+    probabilities: torch.Tensor, weight: torch.Tensor,
+) -> dict:
+    directions = branches - base
+    gold_direction = gold - base
+    probabilities = probabilities / probabilities.sum().clamp_min(1e-12)
+    mean_direction = (probabilities[:, None] * directions).sum(0)
+    cos_mean = cosine(directions, mean_direction.expand_as(directions))
+    cos_gold = cosine(directions, gold_direction.expand_as(directions))
+    coefficient = (directions * mean_direction).sum(-1) / mean_direction.square().sum().clamp_min(1e-12)
+    perpendicular = directions - coefficient[:, None] * mean_direction
+    branch_output = (branches @ weight.T).softmax(-1)
+    mixture = (probabilities[:, None] * branch_output).sum(0)
+    fr_dispersion = (probabilities * fisher_rao_distance(branch_output, mixture[None])).sum()
+    return {
+        "weighted_angle_from_mean": float((probabilities * torch.acos(cos_mean.clamp(-1, 1))).sum()),
+        "weighted_angle_from_gold": float((probabilities * torch.acos(cos_gold.clamp(-1, 1))).sum()),
+        "perpendicular_variance": float((probabilities * perpendicular.square().sum(-1)).sum()),
+        "mean_axis_gold_cosine": float(cosine(mean_direction, gold_direction)),
+        "fisher_dispersion": float(fr_dispersion),
+        "mean_direction_norm": float(mean_direction.norm()),
+        "gold_direction_norm": float(gold_direction.norm()),
+    }
+
+
+def analyze_cones(args) -> None:
+    output = args.output.resolve()
+    writer = JsonlGzipWriter(output / "raw" / "inference_cones.jsonl.gz")
+    tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
+    chemfm_vocab_size = len(tokenizer)
+    add_predictor_tokens(tokenizer)
+    prefixes = _cone_prefixes(tokenizer, args.panel.resolve())
+    specs = [spec for spec in checkpoint_specs() if spec.key in CONE_KEYS]
+    started = time.perf_counter()
+    for spec in specs:
+        model = load_model_for_spec(spec, tokenizer, chemfm_vocab_size, args.device)
+        capture = SelectedStateCapture(model)
+        weight = model.get_output_embeddings().weight.detach().float().to(args.device)
+        with torch.inference_mode():
+            for item in prefixes:
+                full = item["input_ids"]
+                prefix = full[:item["position"] + 1]
+                base = _forward_final_states(model, capture, [prefix], args.device)[0]
+                base_logits = base @ weight.T
+                top = torch.topk(base_logits, 10)
+                branch_probabilities = top.values.softmax(-1)
+                branch_sequences = [prefix + [int(token)] for token in top.indices]
+                for horizon in range(1, 6):
+                    branch_states = _forward_final_states(model, capture, branch_sequences, args.device)
+                    gold_sequence = full[:item["position"] + 1 + horizon]
+                    gold_state = _forward_final_states(model, capture, [gold_sequence], args.device)[0]
+                    metrics = _weighted_cone_metrics(base, branch_states, gold_state, branch_probabilities, weight)
+                    writer.write({
+                        "checkpoint": spec.key, "seed": spec.seed,
+                        "formulation": spec.formulation, "panel_index": item["panel_index"],
+                        "reaction_identity": item["reaction_identity"], "position": item["position"],
+                        "target_local_position": item["target_local_position"], "kind": item["kind"],
+                        "events": item["events"], "horizon": horizon, **metrics,
+                    })
+                    if horizon < 5:
+                        next_logits = branch_states @ weight.T
+                        next_tokens = next_logits.argmax(-1).tolist()
+                        branch_sequences = [sequence + [int(token)] for sequence, token in zip(branch_sequences, next_tokens)]
+        capture.close()
+        del model, capture, weight
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        print(json.dumps({"stage": "cone_checkpoint_complete", "checkpoint": spec.key, "rows": writer.count}), flush=True)
+    writer.close()
+    write_json(output / "cone_analysis_metadata.json", {
+        "git_commit": git_commit(), "rows": writer.count, "prefixes": len(prefixes),
+        "seconds": time.perf_counter() - started,
+    })
+
+
+def _stable_priority(*values) -> int:
+    text = "|".join(map(str, values)).encode()
+    return int.from_bytes(hashlib.sha256(text).digest()[:8], "little")
+
+
+def _topk_neighbors(
+    queries: torch.Tensor, references: torch.Tensor, eligible: torch.Tensor,
+    k: int, batch_size: int = 32,
+) -> torch.Tensor:
+    """Exact squared-Euclidean top-k with per-query eligibility masks."""
+    result = []
+    reference_norm = references.square().sum(-1)
+    for start in range(0, len(queries), batch_size):
+        q = queries[start:start + batch_size]
+        distances = q.square().sum(-1, keepdim=True) + reference_norm - 2 * q @ references.T
+        distances.masked_fill_(~eligible[start:start + batch_size], float("inf"))
+        result.append(torch.topk(distances, k, dim=1, largest=False).indices)
+    return torch.cat(result)
+
+
+def _local_pca_decomposition(
+    neighbors: torch.Tensor, velocity: torch.Tensor, acceleration: torch.Tensor,
+    dimensions: tuple[int, ...],
+) -> list[dict]:
+    """Local PCA through the smaller neighbor Gram matrix."""
+    centered = neighbors.float() - neighbors.float().mean(0, keepdim=True)
+    gram = centered @ centered.T
+    eigenvalues, eigenvectors = torch.linalg.eigh(gram)
+    order = torch.argsort(eigenvalues, descending=True)
+    eigenvalues = eigenvalues[order].clamp_min(1e-10)
+    eigenvectors = eigenvectors[:, order]
+    result = []
+    for dimension in dimensions:
+        dim = min(dimension, len(neighbors) - 1)
+        # V = U^T X / singular_value, stored as rows.
+        basis = (eigenvectors[:, :dim].T @ centered) / eigenvalues[:dim].sqrt().unsqueeze(1)
+        tangent_a = (acceleration @ basis.T) @ basis
+        normal_a = acceleration - tangent_a
+        tangent_v = (velocity @ basis.T) @ basis
+        coefficient = (tangent_a * tangent_v).sum() / tangent_v.square().sum().clamp_min(1e-12)
+        geo = tangent_a - coefficient * tangent_v
+        result.append({
+            "tangent_dim": dimension,
+            "tangent_acceleration": float(tangent_a.norm()),
+            "normal_acceleration": float(normal_a.norm()),
+            "geodesic_violation": float(geo.norm()),
+            "projected_velocity": float(tangent_v.norm()),
+            "geodesic_over_acceleration": float(geo.norm() / acceleration.norm().clamp_min(1e-12)),
+            "normal_over_acceleration": float(normal_a.norm() / acceleration.norm().clamp_min(1e-12)),
+        })
+    return result
+
+
+def analyze_intrinsic(args) -> None:
+    output = args.output.resolve()
+    cache = output / "cache" / "gold_states"
+    writer = JsonlGzipWriter(output / "raw" / "intrinsic_manifold_decomposition.jsonl.gz")
+    started = time.perf_counter()
+    for cache_path in sorted(cache.glob("*.pt")):
+        key = cache_path.stem
+        if key not in INTRINSIC_KEYS:
+            continue
+        payload = torch.load(cache_path, map_location="cpu", weights_only=False)
+        for layer_index, layer in enumerate(payload["depth_labels"]):
+            reference_rows = []
+            query_rows = []
+            for record in payload["records"]:
+                states = record["states"][layer_index].float()
+                for segment, indices in (("source", record["source_indices"]), ("product", record["target_indices"])):
+                    positions = indices.long().tolist()
+                    for local, position in enumerate(positions):
+                        reference_rows.append((
+                            _stable_priority(key, layer, record["reaction_identity"], segment, local),
+                            states[position], record["reaction_identity"], segment,
+                        ))
+                    for local in range(1, len(positions) - 1):
+                        p0, p1, p2 = positions[local - 1:local + 2]
+                        velocity = states[p1] - states[p0]
+                        acceleration = states[p2] - 2 * states[p1] + states[p0]
+                        query_rows.append((
+                            _stable_priority("query", key, layer, record["reaction_identity"], segment, local),
+                            states[p1], velocity, acceleration, record["reaction_identity"], segment,
+                            record["panel_index"], local,
+                        ))
+            reference_rows.sort(key=lambda item: item[0])
+            query_rows.sort(key=lambda item: item[0])
+            # Fixed hash subsamples bound exact neighbor search and are independent
+            # of all geometry/performance values.
+            reference_rows = reference_rows[: min(12_000, len(reference_rows))]
+            query_rows = query_rows[: min(args.intrinsic_queries, len(query_rows))]
+            references = torch.stack([row[1] for row in reference_rows]).to(args.device)
+            reference_reactions = np.asarray([row[2] for row in reference_rows])
+            reference_segments = np.asarray([row[3] for row in reference_rows])
+            queries = torch.stack([row[1] for row in query_rows]).to(args.device)
+            velocities = torch.stack([row[2] for row in query_rows]).to(args.device)
+            accelerations = torch.stack([row[3] for row in query_rows]).to(args.device)
+            query_reactions = np.asarray([row[4] for row in query_rows])
+            query_segments = np.asarray([row[5] for row in query_rows])
+            mean = references.mean(0)
+            centered = references - mean
+            whiten_rank = min(128, len(references) - 1, references.shape[1])
+            # Low-rank covariance whitening retains the well-estimated global
+            # directions and avoids an unstable 2048-D covariance inverse.
+            _, singular, principal = torch.pca_lowrank(
+                centered, q=whiten_rank, center=False, niter=2,
+            )
+            scale = (singular / math.sqrt(max(1, len(references) - 1))).clamp_min(1e-5)
+            whitened_references = (centered @ principal) / scale
+            whitened_queries = ((queries - mean) @ principal) / scale
+            for search_metric in ("euclidean", "pca_whitened_128"):
+                search_references = references if search_metric == "euclidean" else whitened_references
+                search_queries = queries if search_metric == "euclidean" else whitened_queries
+                for same_segment in (False, True):
+                    eligible_np = query_reactions[:, None] != reference_reactions[None, :]
+                    if same_segment:
+                        eligible_np &= query_segments[:, None] == reference_segments[None, :]
+                    eligible = torch.from_numpy(eligible_np).to(args.device)
+                    neighbor_indices = _topk_neighbors(search_queries, search_references, eligible, 128)
+                    for query_index, row in enumerate(query_rows):
+                        for k in (32, 64, 128):
+                            neighbors = references[neighbor_indices[query_index, :k]]
+                            decompositions = _local_pca_decomposition(
+                                neighbors, velocities[query_index], accelerations[query_index], (8, 16, 32),
+                            )
+                            for values in decompositions:
+                                writer.write({
+                                    "checkpoint": key, "layer": layer,
+                                    "reaction_identity": row[4], "segment": row[5],
+                                    "panel_index": row[6], "position": row[7],
+                                    "search_metric": search_metric, "same_segment": same_segment,
+                                    "neighbors": k, **values,
+                                })
+                    del eligible, neighbor_indices
+            print(json.dumps({"stage": "intrinsic_layer_complete", "checkpoint": key, "layer": layer, "queries": len(query_rows), "references": len(reference_rows)}), flush=True)
+            del references, queries, velocities, accelerations
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+        del payload
+    writer.close()
+    write_json(output / "intrinsic_analysis_metadata.json", {
+        "git_commit": git_commit(), "rows": writer.count,
+        "seconds": time.perf_counter() - started, "query_cap": args.intrinsic_queries,
+    })
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=("extract-gold", "analyze-gold", "analyze-matched"))
+    parser.add_argument("command", choices=(
+        "extract-gold", "analyze-gold", "analyze-matched",
+        "analyze-intrinsic", "analyze-candidates", "analyze-cones",
+    ))
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--panel", type=Path, default=DEFAULT_PANEL)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--keys", default="")
     parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument("--intrinsic-queries", type=int, default=256)
     return parser.parse_args()
 
 
@@ -575,5 +1025,11 @@ if __name__ == "__main__":
         extract_gold(arguments)
     elif arguments.command == "analyze-gold":
         analyze_gold(arguments)
-    else:
+    elif arguments.command == "analyze-matched":
         analyze_matched(arguments)
+    elif arguments.command == "analyze-intrinsic":
+        analyze_intrinsic(arguments)
+    elif arguments.command == "analyze-candidates":
+        analyze_candidates(arguments)
+    else:
+        analyze_cones(arguments)
