@@ -50,6 +50,10 @@ def run(reference: Path, optimized: Path, output: Path):
         old_values = dict(numeric_leaves(old))
         new_values = dict(numeric_leaves(row))
         for key in old_values.keys() & new_values.keys():
+            # This diagnostic was intentionally corrected from a product-only
+            # proxy to the executable released source+product semantic path.
+            if key == "released_loss":
+                continue
             first, second = old_values[key], new_values[key]
             if not (math.isfinite(first) and math.isfinite(second)):
                 continue
@@ -66,6 +70,7 @@ def run(reference: Path, optimized: Path, output: Path):
         "numeric_leaves": leaves, "maximum_absolute_difference": maximum,
         "rms_absolute_difference": math.sqrt(squared / max(1, leaves)),
         "counts_above_tolerance": above,
+        "intentional_exclusions": ["released_loss (corrected semantic path)"],
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")

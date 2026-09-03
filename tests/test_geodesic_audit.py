@@ -59,6 +59,19 @@ def test_batched_local_pca_matches_scalar_construction():
                     )
 
 
+def test_candidate_semantic_path_matches_released_content_mapping():
+    from scripts.run_geodesic_audit import _candidate_semantic_path
+
+    states = torch.arange(30, dtype=torch.float32).reshape(10, 3)
+    path = _candidate_semantic_path(states, [1, 2, 3], [6, 7])
+    expected = torch.stack([
+        states[0], states[1], states[2], states[3],
+        states[3] + states[6] - states[5],
+        states[3] + states[7] - states[5],
+    ])
+    torch.testing.assert_close(path, expected, rtol=0, atol=0)
+
+
 def test_tube_radius_is_zero_for_nonuniformly_parameterized_line():
     path = torch.tensor([[0., 0.], [1., 0.], [3., 0.], [8., 0.]])
     rows = tube_scale_space(path)

@@ -727,19 +727,27 @@ def read_jsonl(path: Path) -> list[dict]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
 
 
-def _fast_reaction_tokenization(tokenizer, source: str, target: str) -> tuple[list[int], list[int]]:
+def _fast_reaction_tokenization(
+    tokenizer, source: str, target: str,
+) -> tuple[list[int], list[int], list[int]]:
     """Tokenize exact serialization and locate target content without RDKit."""
     text = f"{REACTANT_START}{source}{END}{PRODUCT_START}{target}{END}"
     encoded = tokenizer(text, add_special_tokens=False, return_offsets_mapping=True)
+    source_start = len(REACTANT_START)
+    source_end = source_start + len(source)
     target_start = len(REACTANT_START) + len(source) + len(END) + len(PRODUCT_START)
     target_end = target_start + len(target)
+    source_positions = [
+        index for index, (start, end) in enumerate(encoded["offset_mapping"])
+        if start >= source_start and end <= source_end
+    ]
     target_positions = [
         index for index, (start, end) in enumerate(encoded["offset_mapping"])
         if start >= target_start and end <= target_end
     ]
-    if not target_positions:
-        raise ValueError("candidate serialization produced no target content tokens")
-    return encoded["input_ids"], target_positions
+    if not source_positions or not target_positions:
+        raise ValueError("candidate serialization produced an empty content segment")
+    return encoded["input_ids"], source_positions, target_positions
 
 
 def _candidate_workload(tokenizer, key: str) -> list[dict]:
@@ -780,14 +788,17 @@ def _candidate_workload(tokenizer, key: str) -> list[dict]:
                 if not candidate or (candidate in seen and role != "seed1301_promoted_wrong"):
                     continue
                 seen.add(candidate)
-                input_ids, target_positions = _fast_reaction_tokenization(tokenizer, source, candidate)
+                input_ids, source_positions, target_positions = _fast_reaction_tokenization(
+                    tokenizer, source, candidate,
+                )
                 workload.append({
                     "panel_index": panel_index, "reaction_identity": row["reaction_identity"],
                     "view": view, "source": source, "gold": row["target"],
                     "candidate": candidate, "role": role, "beam_rank": rank,
                     "canonical_candidate": canonical_candidate,
                     "valid_candidate": bool(canonical_candidate),
-                    "input_ids": input_ids, "target_positions": target_positions,
+                    "input_ids": input_ids, "source_positions": source_positions,
+                    "target_positions": target_positions,
                     "aggregate_rank": (
                         row["ranked_candidates"].index(row["target"]) + 1
                         if row["target"] in row["ranked_candidates"] else None
@@ -797,7 +808,23 @@ def _candidate_workload(tokenizer, key: str) -> list[dict]:
     return workload
 
 
-def _candidate_geometry(path: torch.Tensor, logits: torch.Tensor | None) -> dict:
+def _candidate_semantic_path(
+    states: torch.Tensor, source_positions: list[int], target_positions: list[int],
+) -> torch.Tensor:
+    """Released framing-excluded cumulative source+product path."""
+    source_path = states[[source_positions[0] - 1, *source_positions]]
+    translated_target = (
+        states[target_positions]
+        - states[target_positions[0] - 1]
+        + states[source_positions[-1]]
+    )
+    return torch.cat((source_path, translated_target))
+
+
+def _candidate_geometry(
+    path: torch.Tensor, logits: torch.Tensor | None,
+    released_semantic_path: torch.Tensor,
+) -> dict:
     tube = tube_scale_space(path)
     change = estimate_piecewise_change_point(tube)
     acceleration = acceleration_decomposition(path)
@@ -807,8 +834,10 @@ def _candidate_geometry(path: torch.Tensor, logits: torch.Tensor | None) -> dict
             t = s + length
             r = (s + t) // 2
             paper_spans.append((s, r, t))
-    for length in range(1, len(path)):
-        for s in deterministic_starts(len(path), length, 8, len(path) + 31):
+    for length in range(1, len(released_semantic_path)):
+        for s in deterministic_starts(
+            len(released_semantic_path), length, 8, len(released_semantic_path) + 31,
+        ):
             t = s + length
             released_spans.append((s, t))
     paper = torch.tensor(paper_spans, device=path.device, dtype=torch.long).reshape(-1, 3)
@@ -819,8 +848,8 @@ def _candidate_geometry(path: torch.Tensor, logits: torch.Tensor | None) -> dict
             path[paper[:, 2]] - path[paper[:, 1]],
         ) if len(paper) else path.new_empty(0)
     )
-    total = path[-1] - path[0]
-    patch = path[released[:, 1]] - path[released[:, 0]]
+    total = released_semantic_path[-1] - released_semantic_path[0]
+    patch = released_semantic_path[released[:, 1]] - released_semantic_path[released[:, 0]]
     released_values = 1 - cosine(patch, total[None] - patch)
     tube_columns = {
         name: [row[name] for row in tube]
@@ -891,14 +920,18 @@ def analyze_candidates(args) -> None:
                     model(input_ids=ids, attention_mask=mask, use_cache=False, return_dict=True)
                     tasks = []
                     for i, row in enumerate(batch):
-                        positions = [row["target_positions"][0] - 1, *row["target_positions"]]
+                        target_positions = [row["target_positions"][0] - 1, *row["target_positions"]]
                         labels = ["final_post_norm"]
                         if row["panel_index"] < 64 or row["role"] == "seed1301_promoted_wrong":
                             labels = list(DEPTH_LABELS)
                         for label in labels:
-                            states = capture.values[label][i, positions].float()
-                            tasks.append((row, label, states, label == "final_post_norm"))
-                    final_tasks = [task for task in tasks if task[3]]
+                            all_states = capture.values[label][i, :len(row["input_ids"])].float()
+                            states = all_states[target_positions]
+                            semantic_path = _candidate_semantic_path(
+                                all_states, row["source_positions"], row["target_positions"],
+                            )
+                            tasks.append((row, label, states, semantic_path, label == "final_post_norm"))
+                    final_tasks = [task for task in tasks if task[4]]
                     final_logits = []
                     if final_tasks:
                         lengths = [len(task[2]) for task in final_tasks]
@@ -907,14 +940,22 @@ def analyze_candidates(args) -> None:
                         final_logits = list(torch.split(joined_logits, lengths))
                     final_index = 0
                     cpu_tasks = []
-                    for row, label, states, is_final in tasks:
+                    for row, label, states, semantic_path, is_final in tasks:
                         logits = final_logits[final_index] if is_final else None
                         final_index += int(is_final)
-                        cpu_tasks.append((row, label, states.cpu(), None if logits is None else logits.cpu()))
-                    metrics_rows = executor.map(lambda task: _candidate_geometry(task[2], task[3]), cpu_tasks)
-                    for (row, label, _, _), metrics in zip(cpu_tasks, metrics_rows):
+                        cpu_tasks.append((
+                            row, label, states.cpu(), None if logits is None else logits.cpu(),
+                            semantic_path.cpu(),
+                        ))
+                    metrics_rows = executor.map(
+                        lambda task: _candidate_geometry(task[2], task[3], task[4]), cpu_tasks,
+                    )
+                    for (row, label, _, _, _), metrics in zip(cpu_tasks, metrics_rows):
                         writer.write({
-                            **{k: v for k, v in row.items() if k not in {"input_ids", "target_positions"}},
+                            **{
+                                k: v for k, v in row.items()
+                                if k not in {"input_ids", "source_positions", "target_positions"}
+                            },
                             "checkpoint": spec.key, "rank": spec.rank,
                             "formulation": spec.formulation, "lambda": spec.stp_lambda,
                             "seed": spec.seed, "layer": label, **metrics,
@@ -1012,7 +1053,10 @@ def analyze_candidate_intrinsic(args) -> None:
                     ))
                     for position in possible[:3]:
                         query_rows.append({
-                            **{name: value for name, value in row.items() if name not in {"input_ids", "target_positions"}},
+                            **{
+                                name: value for name, value in row.items()
+                                if name not in {"input_ids", "source_positions", "target_positions"}
+                            },
                             "position": position, "state": path[position].cpu(),
                             "velocity": (path[position] - path[position - 1]).cpu(),
                             "acceleration": (path[position + 1] - 2 * path[position] + path[position - 1]).cpu(),
