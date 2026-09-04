@@ -17,7 +17,7 @@ All 3,300 reactions ever frozen for the prior official endpoint, the separate
 24-reaction equivalence panel, the 256 training reaction identities, and the
 1,024/256 validation and probe identities were excluded by canonical directed
 source-product pair.  The exclusion-ledger SHA-256 is
-`c750fd70e9c3db0f3bbe831f84b63784467ebe56a7fd40f2b2b0fd4ffe17d228`.
+`85a945af68e02a5970227ae21726e3af5ef2c1c5632962daded9cedef6231fb8`.
 The panel has 1,280 distinct official groups, 1,280 distinct chemical pairs,
 6,400 distinct example IDs, and zero overlap with either exclusion namespace.
 

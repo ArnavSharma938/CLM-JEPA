@@ -189,9 +189,8 @@ def build_untouched_panel(
         "inputs": inputs,
     }
     exclusion_output.parent.mkdir(parents=True, exist_ok=True)
-    exclusion_output.write_text(
-        json.dumps(exclusion, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    with exclusion_output.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(json.dumps(exclusion, indent=2, sort_keys=True) + "\n")
     metadata = {
         "schema_version": 1,
         "created_before_checkpoint_inference": True,
@@ -216,9 +215,8 @@ def build_untouched_panel(
         "exclusion_ledger_sha256": file_sha256(exclusion_output),
     }
     metadata_output.parent.mkdir(parents=True, exist_ok=True)
-    metadata_output.write_text(
-        json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    with metadata_output.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(json.dumps(metadata, indent=2, sort_keys=True) + "\n")
     return metadata
 
 

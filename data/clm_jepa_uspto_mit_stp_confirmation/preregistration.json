@@ -4,7 +4,7 @@
   "created_before_checkpoint_training_or_inference": true,
   "panel": "data/clm_jepa_uspto_mit_stp_confirmation/untouched_1280.jsonl",
   "panel_sha256": "17aba3335a60985580b77cb9e89947f1d26e2d7164bf4a9115817e9212477ac7",
-  "exclusion_ledger_sha256": "c750fd70e9c3db0f3bbe831f84b63784467ebe56a7fd40f2b2b0fd4ffe17d228",
+  "exclusion_ledger_sha256": "85a945af68e02a5970227ae21726e3af5ef2c1c5632962daded9cedef6231fb8",
   "official_test_sha256": "c2f4a3b731c4ed0a35b1c38fbff9563aee0e61064bcedeca555f335f69964945",
   "arms": {
     "native": {"condition": "native", "rank": 8, "alpha": 8, "stp_lambda": 0.02},
