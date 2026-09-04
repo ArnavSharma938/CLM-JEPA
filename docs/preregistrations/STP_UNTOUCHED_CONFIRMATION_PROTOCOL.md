@@ -5,10 +5,20 @@ repository state immediately before this protocol was `57bdcd1`.  The JSON
 protocol in `data/clm_jepa_uspto_mit_stp_confirmation/preregistration.json` is
 the machine-readable authority.
 
+**Outcome-blind size amendment:** after the six primary-seed trajectories had
+trained but before any confirmation-panel inference or outcome inspection, the
+user reduced the endpoint from 1,280 to 640 reactions. The retained panel is
+exactly rows 0--639 of the original panel's already-locked salted SHA-256
+selection order; checkpoint behavior played no role. The original panel and
+hash remain retained for provenance. No inference had begun when this
+amendment was committed.
+
 ## Panel and independence
 
-The endpoint contains 1,280 unique official USPTO-MIT test reactions and five
+The amended endpoint contains 640 unique official USPTO-MIT test reactions and five
 official R-SMILES views per reaction.  Its SHA-256 is
+`3655e58404c3509c04b15cd4ffcdf15723f9be62e76c48c676ccb7decf9e2945`.
+It is an exact prefix of the original 1,280-reaction manifest at SHA-256
 `17aba3335a60985580b77cb9e89947f1d26e2d7164bf4a9115817e9212477ac7`.
 Selection was outcome-blind from the hydrated official test object at SHA-256
 `c2f4a3b731c4ed0a35b1c38fbff9563aee0e61064bcedeca555f335f69964945`.
@@ -18,8 +28,8 @@ All 3,300 reactions ever frozen for the prior official endpoint, the separate
 1,024/256 validation and probe identities were excluded by canonical directed
 source-product pair.  The exclusion-ledger SHA-256 is
 `85a945af68e02a5970227ae21726e3af5ef2c1c5632962daded9cedef6231fb8`.
-The panel has 1,280 distinct official groups, 1,280 distinct chemical pairs,
-6,400 distinct example IDs, and zero overlap with either exclusion namespace.
+The panel has 640 distinct official groups, 640 distinct chemical pairs,
+3,200 distinct example IDs, and zero overlap with either exclusion namespace.
 
 The frozen Latent Predictability audit uses validation and already-developed
 beam data only.  Its splits and code are locked before confirmation outcomes

@@ -32,7 +32,7 @@ ARMS = {
     "paper": "stp_paper",
 }
 PANEL_ROOT = ROOT / "data/clm_jepa_uspto_mit_stp_confirmation"
-PANEL = PANEL_ROOT / "untouched_1280.jsonl"
+PANEL = PANEL_ROOT / "untouched_640.jsonl"
 TRAIN = ROOT / "data/clm_jepa_uspto_mit_pilot_1280/uspto_mit_train.csv"
 VALIDATION = ROOT / "data/clm_jepa_uspto_mit_validation_256/uspto_mit_validation_length_stratified_256.csv"
 DEFAULT_OUTPUT = ROOT / "runs/stp_confirmation/a6000"
@@ -103,7 +103,10 @@ def train_one(root: Path, seed: int, arm: str) -> Path:
         or payload["selected_epoch"] != 4
         or config["lora_rank"] != 8
         or config["lora_alpha"] != 8
-        or float(config["stp_lambda"]) != 0.02
+        or (
+            arm != "native"
+            and float(config["stp_lambda"]) != 0.02
+        )
     ):
         raise ValueError(f"trajectory identity/config mismatch: {result}")
     return checkpoint(root, seed, arm)
@@ -191,7 +194,8 @@ def assignment_mode(root: Path) -> str:
 def evaluate_one(root: Path, seed: int, arm: str) -> None:
     output = evaluation(root, seed, arm)
     predictions = output / "predictions.jsonl"
-    if predictions.exists() and len(read_jsonl(predictions)) == 1280:
+    expected = len(read_jsonl(PANEL))
+    if predictions.exists() and len(read_jsonl(predictions)) == expected:
         return
     run([
         sys.executable, "-u", "src/eval_uspto_mit_five_view_a6000.py", "run",
@@ -200,7 +204,7 @@ def evaluate_one(root: Path, seed: int, arm: str) -> None:
         "--batch-mode", "left-pad", "--assignment-mode", assignment_mode(root),
         "--output-dir", str(output),
     ], env=evaluation_env())
-    if len(read_jsonl(predictions)) != 1280:
+    if len(read_jsonl(predictions)) != expected:
         raise ValueError(f"incomplete endpoint: {predictions}")
     print(json.dumps({"event": "evaluation_complete", "seed": seed, "arm": arm}), flush=True)
 
@@ -371,7 +375,8 @@ def futility(root: Path) -> bool:
 
 def prereg_guard(root: Path) -> None:
     validate_panel(
-        PANEL, PANEL_ROOT / "untouched_1280.metadata.json", PANEL_ROOT / "exclusion_ledger.json"
+        PANEL, PANEL_ROOT / "untouched_640.metadata.json",
+        PANEL_ROOT / "exclusion_ledger.json", expected_reactions=640,
     )
     prereg = ROOT / "docs/preregistrations/STP_UNTOUCHED_CONFIRMATION_PROTOCOL.md"
     expected = json.loads((PANEL_ROOT / "preregistration.json").read_text(encoding="utf-8"))

@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from confirmation_design import chemical_pair_id, stable_selection_key, validate_panel
@@ -23,3 +24,13 @@ def test_repository_confirmation_panel_validates_when_present():
             panel, root / "untouched_1280.metadata.json", root / "exclusion_ledger.json"
         )
         assert checks["pair_overlap"] == 0
+    amended = root / "untouched_640.jsonl"
+    if amended.exists():
+        checks = validate_panel(
+            amended, root / "untouched_640.metadata.json",
+            root / "exclusion_ledger.json", expected_reactions=640,
+        )
+        assert checks["pair_overlap"] == 0
+        original_rows = [json.loads(line) for line in panel.read_text(encoding="utf-8").splitlines()]
+        amended_rows = [json.loads(line) for line in amended.read_text(encoding="utf-8").splitlines()]
+        assert amended_rows == original_rows[:640]

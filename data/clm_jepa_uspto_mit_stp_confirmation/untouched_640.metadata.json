@@ -1,0 +1,70 @@
+{
+  "amended_after_training_before_any_confirmation_inference": true,
+  "amendment": "first 640 rows in the already-locked outcome-blind salted selection order",
+  "created_before_checkpoint_inference": true,
+  "duplicate_eligible_chemical_pairs": 36,
+  "eligible_unique_reactions": 36624,
+  "excluded_by_chemical_pair": 10,
+  "excluded_by_official_group": 3324,
+  "excluded_historical_official_groups": 3324,
+  "excluded_known_chemical_pairs": 4604,
+  "exclusion_ledger": "data/clm_jepa_uspto_mit_stp_confirmation/exclusion_ledger.json",
+  "exclusion_ledger_sha256": "85a945af68e02a5970227ae21726e3af5ef2c1c5632962daded9cedef6231fb8",
+  "inputs": [
+    {
+      "chemical_pairs": 3300,
+      "kind": "historical_official_manifest",
+      "official_groups": 3300,
+      "path": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\data\\clm_jepa_uspto_mit_official_endpoint\\prespecified_3300.jsonl",
+      "sha256": "c4963f3e9279f13219e5d9fccf1457afa21d6b3052b5df7a627b5fcfe704883b"
+    },
+    {
+      "chemical_pairs": 24,
+      "kind": "historical_official_manifest",
+      "official_groups": 24,
+      "path": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\data\\clm_jepa_uspto_mit_official_endpoint\\equivalence_24.jsonl",
+      "sha256": "15130e3dea38cbdbd550e757aaf969f13680804ab8d54b9b5aa78d97a7163f64"
+    },
+    {
+      "chemical_pairs": 256,
+      "kind": "train_or_probe_csv",
+      "path": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\data\\clm_jepa_uspto_mit_pilot_1280\\uspto_mit_train.csv",
+      "sha256": "b5900bc7e4f1a858ecf3fdf3732da63e08fc0f955f1cb9ccf90534e2273c8dba"
+    },
+    {
+      "chemical_pairs": 1024,
+      "kind": "train_or_probe_csv",
+      "path": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\data\\clm_jepa_uspto_mit_validation_1024\\uspto_mit_validation_1024.csv",
+      "sha256": "abc9654a2d5a854266807ab1975557f80ea38c3a93ff226f76dd640071f89b41"
+    },
+    {
+      "chemical_pairs": 256,
+      "kind": "train_or_probe_csv",
+      "path": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\data\\clm_jepa_uspto_mit_validation_256\\uspto_mit_validation_length_stratified_256.csv",
+      "sha256": "41db8068aa3c4b6faf7149ce8ee5645e5ce3794f64d52c0e56552456721e5013"
+    }
+  ],
+  "integrity_checks": {
+    "example_ids": 3200,
+    "excluded_chemical_pair_overlap": 0,
+    "five_views_each": true,
+    "historical_group_overlap": 0,
+    "panel_indices_exact": true,
+    "reactions": 640,
+    "unique_chemical_pairs": 640,
+    "unique_example_ids": 3200,
+    "unique_official_groups": 640
+  },
+  "invalid_or_inconsistent_official_groups": 6,
+  "manifest": "data/clm_jepa_uspto_mit_stp_confirmation/untouched_640.jsonl",
+  "manifest_sha256": "3655e58404c3509c04b15cd4ffcdf15723f9be62e76c48c676ccb7decf9e2945",
+  "official_test": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\data\\uspto_mit_synthesis\\test_r_smiles.csv",
+  "official_test_sha256": "c2f4a3b731c4ed0a35b1c38fbff9563aee0e61064bcedeca555f335f69964945",
+  "parent_manifest": "data/clm_jepa_uspto_mit_stp_confirmation/untouched_1280.jsonl",
+  "parent_manifest_sha256": "17aba3335a60985580b77cb9e89947f1d26e2d7164bf4a9115817e9212477ac7",
+  "requested_reactions": 640,
+  "schema_version": 2,
+  "selection": "lowest outcome-blind salted SHA-256 key after exclusions",
+  "selection_salt": "clm-jepa-stp-confirmation-v1|20260904",
+  "selection_uses_model_outputs": false
+}
