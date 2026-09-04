@@ -75,3 +75,13 @@ only if median end-to-end wall speedup is at least 3% and every raw/canonical
 ordered beam, aggregate rank/score, validity count, and exact flag is identical.
 Otherwise use the established four-worker round-robin evaluator.  The
 confirmation panel is forbidden for this benchmark.
+
+The gate rejected length-balanced assignment: its three-checkpoint median
+speedup was `1.0195x`, below the locked `1.03x` threshold, despite exact
+ordered-output equality. A second outcome-blind worker-scaling check then
+compared five and six processes with the four-worker reference. On the Native
+screen, five workers gave `1.0128x` and six gave `.9833x`; both were exactly
+equivalent, but neither cleared the `1.05x` continuation gate. Four workers
+therefore remain locked. STP adds no inference-time module, so Released and
+Paper use precisely this same generation computation; there is no separate
+STP inference fast path to approximate.
