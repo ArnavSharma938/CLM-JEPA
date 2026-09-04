@@ -453,15 +453,21 @@ def invariance_metrics(values: torch.Tensor) -> dict[str, float]:
         for right in range(left + 1, view_n):
             x = values[:, left] - values[:, left].mean(0)
             y = values[:, right] - values[:, right].mean(0)
-            # Linear CKA can be evaluated in identity-Gram space.  Chemical
-            # objects per reaction are far fewer than the 2,048 hidden
-            # dimensions, so this is exactly the same statistic without three
-            # dense 2048x2048 products for every view pair.
-            xx, yy = x @ x.T, y @ y.T
-            numerator = (xx * yy).sum()
-            denominator = (
-                torch.linalg.norm(xx) * torch.linalg.norm(yy)
-            ).clamp_min(1e-30)
+            # Evaluate exact linear CKA in the smaller of identity-Gram or
+            # feature-covariance space. Per-reaction chemical object sets are
+            # usually tiny; the pooled census can be wider than hidden size.
+            if x.shape[0] <= x.shape[1]:
+                xx, yy = x @ x.T, y @ y.T
+                numerator = (xx * yy).sum()
+                denominator = (
+                    torch.linalg.norm(xx) * torch.linalg.norm(yy)
+                ).clamp_min(1e-30)
+            else:
+                cross = x.T @ y
+                numerator = cross.square().sum()
+                denominator = (
+                    torch.linalg.norm(x.T @ x) * torch.linalg.norm(y.T @ y)
+                ).clamp_min(1e-30)
             cka_values.append((numerator / denominator).clamp(0, 1))
         if left:
             similarities = normalized[:, left] @ normalized[:, 0].T
