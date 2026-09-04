@@ -298,6 +298,21 @@ def support_flags(metadata: list[dict]) -> dict[str, np.ndarray]:
     }
 
 
+def reaction_metric_map(target, prediction, training_mean, metadata, mask_np=None):
+    if mask_np is None:
+        mask_np = np.ones(len(metadata), dtype=bool)
+    grouped = {}
+    for index in np.flatnonzero(mask_np):
+        grouped.setdefault(metadata[index]["reaction_identity"], []).append(int(index))
+    return {
+        reaction: latent_metrics(
+            target[torch.tensor(indices, dtype=torch.long)],
+            prediction[torch.tensor(indices, dtype=torch.long)], training_mean,
+        )
+        for reaction, indices in sorted(grouped.items())
+    }
+
+
 def fit_probes(args) -> None:
     assert_disjoint_confirmation(
         [row["chemical_pair_id"] for row in load_split_manifest(args.split_manifest)["records"]],
@@ -337,7 +352,7 @@ def fit_probes(args) -> None:
                         tx, ty, tm = matrices["train"]
                         chosen = reaction_balanced_indices(tm, args.train_positions, args.probe_seed)
                         tx, ty = tx[chosen], ty[chosen]
-                        vx, vy, _ = matrices["validation"]
+                        vx, vy, vm = matrices["validation"]
                         ex, ey, em = matrices["test"]
                         standardizer = Standardizer.fit(tx)
                         txs, vxs, exs = standardizer(tx), standardizer(vx), standardizer(ex)
@@ -383,6 +398,11 @@ def fit_probes(args) -> None:
                                 del replicate, replicate_prediction
                         constant = basis.mean.expand_as(ey)
                         predictions = {"constant": constant, "ridge": ridge_prediction, "residual_mlp": mlp_prediction}
+                        validation_predictions = {
+                            "constant": basis.mean.expand_as(vy),
+                            "ridge": basis.decode(predict_batches(ridge, vxs, device, args.probe_batch_size)),
+                            "residual_mlp": basis.decode(predict_batches(mlp, vxs, device, args.probe_batch_size)),
+                        }
                         flags = support_flags(em)
                         shuffled_y, shuffled_donors = shuffled_reaction_targets(
                             ey, em, args.probe_seed + horizon,
@@ -400,16 +420,9 @@ def fit_probes(args) -> None:
                                     metrics[name][support] = latent_metrics(
                                         ey[mask], prediction[mask], basis.mean, chosen_ids
                                     )
-                                    grouped_indices = {}
-                                    for index in support_indices:
-                                        grouped_indices.setdefault(em[index]["reaction_identity"], []).append(int(index))
-                                    per_reaction = {}
-                                    for reaction_identity, indices in sorted(grouped_indices.items()):
-                                        local = torch.tensor(indices, dtype=torch.long)
-                                        per_reaction[reaction_identity] = latent_metrics(
-                                            ey[local], prediction[local], basis.mean
-                                        )
-                                    reaction_metrics[name][support] = per_reaction
+                                    reaction_metrics[name][support] = reaction_metric_map(
+                                        ey, prediction, basis.mean, em, mask_np
+                                    )
                             metrics[name]["shuffled_reaction"] = latent_metrics(
                                 shuffled_y, prediction, basis.mean,
                             )
@@ -432,6 +445,10 @@ def fit_probes(args) -> None:
                             "train_positions": len(tx), "validation_positions": len(vx), "test_positions": len(ex),
                             "ridge_fit": ridge_fit, "mlp_fit": mlp_fit, "metrics": metrics,
                             "reaction_metrics": reaction_metrics,
+                            "validation_reaction_metrics": {
+                                name: reaction_metric_map(vy, prediction, basis.mean, vm)
+                                for name, prediction in validation_predictions.items()
+                            },
                             "mlp_seed_robustness": mlp_seed_robustness,
                             "shuffled_self_matches": int(sum(
                                 em[i]["reaction_identity"] == em[int(donor)]["reaction_identity"]
@@ -471,7 +488,7 @@ def extract_views(args) -> None:
         [row["chemical_pair_id"] for row in split_manifest["records"]],
         args.confirmation_manifest,
     )
-    rows = [row for row in read_rows(args.panel) if assignment[row["reaction_identity"]] == "test"]
+    rows = [row for row in read_rows(args.panel) if assignment[row["reaction_identity"]] in {"validation", "test"}]
     tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
     chemfm_vocab = len(tokenizer)
     add_predictor_tokens(tokenizer)
@@ -482,7 +499,7 @@ def extract_views(args) -> None:
         for view, (source, target) in enumerate(zip(sources, targets)):
             adapted = {"reaction_identity": row["reaction_identity"], "canonical_source": source, "canonical_target": target}
             example = annotate_example(tokenizer, adapted, panel_index * 5 + view, "latent_cross_view")
-            expanded.append((example, "test", panel_index, view, row["source_identity"], row["target_identity"]))
+            expanded.append((example, assignment[row["reaction_identity"]], panel_index, view, row["source_identity"], row["target_identity"]))
     specs = selected_specs(args.keys)
     model = load_lora_model(MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab, attention_dropout=0.0, attn_implementation="sdpa", lora_rank=8, lora_alpha=8).to(args.device).eval()
     for parameter in model.parameters(): parameter.requires_grad_(False)
@@ -540,8 +557,9 @@ def analyze_views(args) -> None:
     """Reduce graph-aligned atom states into within/between invariance metrics."""
     recheck_confirmation(args)
     output_path = args.output / "raw/invariance.jsonl"
+    reaction_path = args.output / "raw/invariance_reaction.jsonl"
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", encoding="utf-8") as handle:
+    with output_path.open("w", encoding="utf-8", newline="\n") as handle, reaction_path.open("w", encoding="utf-8", newline="\n") as reaction_handle:
         for spec in selected_specs(args.keys):
             payload = torch.load(args.output / "cache/views" / f"{spec.key}.pt", map_location="cpu", weights_only=False)
             records = payload["records"]
@@ -551,6 +569,10 @@ def analyze_views(args) -> None:
                     canonical_key = "canonical_source" if segment == "source" else "canonical_product"
                     for object_type in ("atom", "motif", "component"):
                         objects: dict[tuple, dict[int, list[torch.Tensor]]] = {}
+                        identity_metadata = {
+                            record["identity_index"]: (record["reaction_identity"], record["split"])
+                            for record in records
+                        }
                         for record in records:
                             states = record["states"][layer].float()
                             token_atoms = {int(key): set(map(int, atoms)) for key, atoms in record[map_key].items()}
@@ -571,19 +593,33 @@ def analyze_views(args) -> None:
                                 if state_rows:
                                     key = (record["identity_index"], *support[:-1])
                                     objects.setdefault(key, {}).setdefault(record["view"], []).append(torch.stack(state_rows).mean(0))
-                        aligned = [
-                            torch.stack([torch.stack(views[view]).mean(0) for view in range(5)])
-                            for views in objects.values() if set(views) == set(range(5))
-                        ]
-                        if not aligned:
-                            continue
-                        values = torch.stack(aligned)
-                        result = {
-                            "checkpoint": spec.key, "layer": layer, "segment": segment,
-                            "object": object_type, **invariance_metrics(values),
-                        }
-                        handle.write(json.dumps(result) + "\n")
-                        print(json.dumps({"stage":"invariance_complete", "checkpoint":spec.key, "layer":layer, "segment":segment, "object":object_type}), flush=True)
+                        for split in ("validation", "test"):
+                            aligned_items = [
+                                (key, torch.stack([torch.stack(views[view]).mean(0) for view in range(5)]))
+                                for key, views in objects.items()
+                                if set(views) == set(range(5)) and identity_metadata[key[0]][1] == split
+                            ]
+                            if not aligned_items:
+                                continue
+                            values = torch.stack([value for _, value in aligned_items])
+                            result = {
+                                "checkpoint": spec.key, "layer": layer, "segment": segment,
+                                "object": object_type, "split": split, **invariance_metrics(values),
+                            }
+                            handle.write(json.dumps(result) + "\n")
+                            by_reaction = {}
+                            for key, value in aligned_items:
+                                by_reaction.setdefault(identity_metadata[key[0]][0], []).append(value)
+                            for reaction_identity, reaction_values in sorted(by_reaction.items()):
+                                if len(reaction_values) < 2:
+                                    continue
+                                reaction_handle.write(json.dumps({
+                                    "checkpoint": spec.key, "layer": layer, "segment": segment,
+                                    "object": object_type, "split": split,
+                                    "reaction_identity": reaction_identity,
+                                    **invariance_metrics(torch.stack(reaction_values)),
+                                }) + "\n")
+                            print(json.dumps({"stage":"invariance_complete", "checkpoint":spec.key, "layer":layer, "segment":segment, "object":object_type, "split":split}), flush=True)
 
 
 def beam_covariates(row: dict) -> dict:
