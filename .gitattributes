@@ -22,3 +22,4 @@ data/clm_jepa_uspto_mit_validation_1024/*.csv -text -whitespace
 data/clm_jepa_uspto_mit_official_endpoint/*.jsonl -text -whitespace
 data/clm_jepa_uspto_mit_stp_confirmation/*.json -text -whitespace
 data/clm_jepa_uspto_mit_stp_confirmation/*.jsonl -text -whitespace
+data/clm_jepa_uspto_mit_latent_audit/*.json -text -whitespace
