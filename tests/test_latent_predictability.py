@@ -72,6 +72,18 @@ def test_invariance_ratio_is_zero_for_identical_views():
     assert result["matched_view_cosine"] == pytest.approx(1.0)
 
 
+def test_identity_gram_cka_matches_feature_space_definition():
+    generator = torch.Generator().manual_seed(9)
+    values = torch.randn(7, 2, 19, generator=generator)
+    result = invariance_metrics(values)
+    x = values[:, 0] - values[:, 0].mean(0)
+    y = values[:, 1] - values[:, 1].mean(0)
+    direct = (x.T @ y).square().sum() / (
+        torch.linalg.norm(x.T @ x) * torch.linalg.norm(y.T @ y)
+    )
+    assert result["centered_linear_cka"] == pytest.approx(float(direct), abs=1e-6)
+
+
 def test_graph_correspondence_is_complete_under_serialization_change():
     mapping = canonical_atom_correspondence("CCO", "OCC")
     assert sorted(mapping) == [0, 1, 2]
