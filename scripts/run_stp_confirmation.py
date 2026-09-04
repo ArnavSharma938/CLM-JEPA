@@ -191,16 +191,27 @@ def assignment_mode(root: Path) -> str:
     return mode
 
 
+def evaluation_workers(root: Path) -> int:
+    decision = root / "performance/worker_scaling/decision.json"
+    if not decision.exists():
+        return 4
+    workers = int(json.loads(decision.read_text(encoding="utf-8"))["selected_workers"])
+    if workers not in (4, 5, 6):
+        raise ValueError("invalid locked evaluator worker decision")
+    return workers
+
+
 def evaluate_one(root: Path, seed: int, arm: str) -> None:
     output = evaluation(root, seed, arm)
     predictions = output / "predictions.jsonl"
     expected = len(read_jsonl(PANEL))
     if predictions.exists() and len(read_jsonl(predictions)) == expected:
         return
+    workers = evaluation_workers(root)
     run([
         sys.executable, "-u", "src/eval_uspto_mit_five_view_a6000.py", "run",
         "--checkpoint", str(checkpoint(root, seed, arm)), "--manifest", str(PANEL),
-        "--workers", "4", "--threads-per-worker", "1", "--prompt-batch-size", "1",
+        "--workers", str(workers), "--threads-per-worker", "1", "--prompt-batch-size", "1",
         "--batch-mode", "left-pad", "--assignment-mode", assignment_mode(root),
         "--output-dir", str(output),
     ], env=evaluation_env())
