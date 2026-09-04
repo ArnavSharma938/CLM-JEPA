@@ -440,14 +440,33 @@ def invariance_metrics(values: torch.Tensor) -> dict[str, float]:
     grand = centroids.mean(0)
     between = (centroids - grand).square().sum(-1).mean().clamp_min(1e-30)
     normalized = F.normalize(values, dim=-1)
+    normalized_centroids = normalized.mean(1)
+    normalized_within = (
+        normalized - normalized_centroids[:, None]
+    ).square().sum(-1).mean()
     cosine = torch.einsum("ivd,iwd->ivw", normalized, normalized)
     view_n = values.shape[1]
     off_diagonal = ~torch.eye(view_n, dtype=torch.bool, device=values.device)
+    cka_values = []
+    retrieval = []
+    for left in range(view_n):
+        for right in range(left + 1, view_n):
+            x = values[:, left] - values[:, left].mean(0)
+            y = values[:, right] - values[:, right].mean(0)
+            cross = x.T @ y
+            denominator = (torch.linalg.norm(x.T @ x) * torch.linalg.norm(y.T @ y)).clamp_min(1e-30)
+            cka_values.append((cross.square().sum() / denominator).clamp(0, 1))
+        if left:
+            similarities = normalized[:, left] @ normalized[:, 0].T
+            retrieval.append(float(similarities.argmax(-1).eq(torch.arange(len(values), device=values.device)).float().mean()))
     return {
         "within_variability": float(within),
         "between_variability": float(between),
         "within_between_ratio": float(within / between),
+        "unit_normalized_within_variability": float(normalized_within),
         "matched_view_cosine": float(cosine[:, off_diagonal].mean()),
+        "centered_linear_cka": float(torch.stack(cka_values).mean()) if cka_values else float("nan"),
+        "cross_view_identity_retrieval": float(np.mean(retrieval)) if retrieval else float("nan"),
         "identities": int(values.shape[0]),
         "views": int(view_n),
     }
@@ -490,12 +509,67 @@ def canonical_atom_correspondence(canonical_smiles: str, view_smiles: str) -> di
     return {int(view_atom): int(canonical_atom) for canonical_atom, view_atom in enumerate(match)}
 
 
-def clone_cropped_cache(cache: DynamicCache, length: int) -> DynamicCache:
+def clone_cropped_cache(cache: DynamicCache, length: int, batch_size: int = 1) -> DynamicCache:
     result = DynamicCache()
-    result.key_cache = [([] if isinstance(value, list) else value[..., :length, :].clone()) for value in cache.key_cache]
-    result.value_cache = [([] if isinstance(value, list) else value[..., :length, :].clone()) for value in cache.value_cache]
+    def expand(value):
+        if isinstance(value, list):
+            return []
+        cropped = value[..., :length, :]
+        if cropped.shape[0] == batch_size:
+            return cropped.clone()
+        if cropped.shape[0] != 1:
+            raise ValueError("cached prefix batch cannot be expanded")
+        return cropped.expand(batch_size, *cropped.shape[1:]).clone()
+    result.key_cache = [expand(value) for value in cache.key_cache]
+    result.value_cache = [expand(value) for value in cache.value_cache]
     result._seen_tokens = length
     return result
+
+
+@torch.inference_mode()
+def build_suffix_cache(llama, layer_index: int, layer_input: torch.Tensor) -> tuple[DynamicCache, torch.Tensor]:
+    """Build all remaining-block prefix K/V once for one frozen sequence."""
+    if layer_input.shape[0] != 1:
+        raise ValueError("suffix cache construction expects one sequence")
+    sequence = layer_input.shape[1]
+    device = layer_input.device
+    causal = torch.full(
+        (1, 1, sequence, sequence), torch.finfo(layer_input.dtype).min,
+        device=device, dtype=layer_input.dtype,
+    )
+    causal = torch.triu(causal, diagonal=1)
+    positions = torch.arange(sequence, device=device)
+    cache = DynamicCache()
+    hidden = layer_input
+    for block in llama.layers[layer_index:]:
+        hidden = block(
+            hidden, attention_mask=causal, position_ids=positions.unsqueeze(0),
+            past_key_value=cache, use_cache=True, cache_position=positions,
+        )[0]
+    return cache, llama.norm(hidden)
+
+
+@torch.inference_mode()
+def replay_suffix_from_cache(
+    llama, layer_index: int, cache: DynamicCache,
+    predicted_state: torch.Tensor, position: int,
+) -> torch.Tensor:
+    """Batch alternatives at one position through cached remaining blocks."""
+    alternatives = predicted_state.reshape(-1, 1, predicted_state.shape[-1])
+    batch = alternatives.shape[0]
+    device, dtype = alternatives.device, alternatives.dtype
+    local_cache = clone_cropped_cache(cache, position, batch)
+    mask = torch.zeros((batch, 1, 1, position + 1), device=device, dtype=dtype)
+    position_ids = torch.full((batch, 1), position, device=device, dtype=torch.long)
+    cache_position = torch.tensor([position], device=device)
+    hidden = alternatives
+    for block in llama.layers[layer_index:]:
+        hidden = block(
+            hidden, attention_mask=mask, position_ids=position_ids,
+            past_key_value=local_cache, use_cache=True,
+            cache_position=cache_position,
+        )[0]
+    return llama.norm(hidden)[:, 0]
 
 
 @torch.inference_mode()
@@ -512,32 +586,7 @@ def suffix_replay_one_position(
     """
     if layer_input.shape[0] != 1:
         raise ValueError("baseline cache construction currently expects batch size one")
-    sequence = layer_input.shape[1]
-    device = layer_input.device
-    causal = torch.full((1, 1, sequence, sequence), torch.finfo(layer_input.dtype).min, device=device, dtype=layer_input.dtype)
-    causal = torch.triu(causal, diagonal=1)
-    position_ids = torch.arange(sequence, device=device).unsqueeze(0)
-    cache = DynamicCache()
-    hidden = layer_input
-    for block in llama.layers[layer_index:]:
-        hidden = block(
-            hidden, attention_mask=causal, position_ids=position_ids,
-            past_key_value=cache, use_cache=True,
-            cache_position=torch.arange(sequence, device=device),
-        )[0]
-    alternatives = predicted_state.reshape(-1, 1, predicted_state.shape[-1])
-    outputs = []
-    one_mask = torch.zeros((1, 1, 1, position + 1), device=device, dtype=layer_input.dtype)
-    one_position = torch.tensor([[position]], device=device)
-    cache_position = torch.tensor([position], device=device)
-    for alternative in alternatives:
-        local_cache = clone_cropped_cache(cache, position)
-        hidden = alternative.unsqueeze(0) if alternative.ndim == 2 else alternative
-        for block in llama.layers[layer_index:]:
-            hidden = block(
-                hidden, attention_mask=one_mask, position_ids=one_position,
-                past_key_value=local_cache, use_cache=True,
-                cache_position=cache_position,
-            )[0]
-        outputs.append(llama.norm(hidden)[:, 0])
-    return torch.cat(outputs, dim=0)
+    cache, _ = build_suffix_cache(llama, layer_index, layer_input)
+    return replay_suffix_from_cache(
+        llama, layer_index, cache, predicted_state, position,
+    )

@@ -16,6 +16,8 @@ from latent_predictability import (
     locked_reaction_split,
     shuffled_reaction_targets,
     suffix_replay_one_position,
+    build_suffix_cache,
+    replay_suffix_from_cache,
 )
 
 
@@ -101,3 +103,9 @@ def test_true_state_suffix_replay_matches_full_causal_forward():
         model, 1, output.hidden_states[1], output.hidden_states[1][0, 3], 3,
     )
     assert torch.allclose(replay[0], output.last_hidden_state[0, 3], atol=1e-6, rtol=1e-6)
+    cache, final = build_suffix_cache(model, 1, output.hidden_states[1])
+    alternatives = torch.stack((output.hidden_states[1][0, 3], output.hidden_states[1][0, 3] + 0.01))
+    batched = replay_suffix_from_cache(model, 1, cache, alternatives, 3)
+    scalar = replay_suffix_from_cache(model, 1, cache, alternatives[:1], 3)
+    assert torch.allclose(final[0, 3], output.last_hidden_state[0, 3], atol=1e-6, rtol=1e-6)
+    assert torch.allclose(batched[0], scalar[0], atol=1e-6, rtol=1e-6)

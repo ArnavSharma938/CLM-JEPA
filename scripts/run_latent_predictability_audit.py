@@ -30,6 +30,7 @@ from jepa import add_predictor_tokens  # noqa: E402
 from latent_predictability import (  # noqa: E402
     HORIZONS, LAYERS, ResidualMLPProbe, RidgeProbe, Standardizer, TargetBasis,
     assert_disjoint_confirmation, canonical_atom_correspondence,
+    build_suffix_cache, replay_suffix_from_cache,
     chemical_pair_id,
     decoder_distribution_metrics, deterministic_random_smiles, fit_probe,
     forecast_matrices, invariance_metrics, latent_metrics, locked_reaction_split,
@@ -40,7 +41,9 @@ from stp_representation_analysis import checkpoint_specs  # noqa: E402
 from train import load_adapter_checkpoint  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "scripts"))
-from run_geodesic_audit import SelectedStateCapture, _candidate_workload, find_llama  # noqa: E402
+from run_geodesic_audit import (  # noqa: E402
+    SelectedStateCapture, _candidate_workload, find_llama, prediction_path_for_key,
+)
 
 
 DEFAULT_PANEL = ROOT / "data/clm_jepa_uspto_mit_validation_1024/uspto_mit_validation_1024.csv"
@@ -52,6 +55,7 @@ PRIMARY_KEYS = {
     *(f"paper_r8_l0.02_s{seed}" for seed in (533, 917)),
 }
 VIEW_SEEDS = (202609041, 202609042, 202609043, 202609044)
+DEVELOPMENT_PANEL = ROOT / "data/clm_jepa_uspto_mit_official_endpoint/prespecified_stage1_512.jsonl"
 
 
 def write_json(path: Path, value: object) -> None:
@@ -384,17 +388,28 @@ def fit_probes(args) -> None:
                             ey, em, args.probe_seed + horizon,
                         )
                         metrics = {}
+                        reaction_metrics = {}
                         for name, prediction in predictions.items():
                             metrics[name] = {}
+                            reaction_metrics[name] = {}
                             for support, mask_np in flags.items():
                                 mask = torch.from_numpy(mask_np)
                                 if mask.any():
-                                    chosen_ids = [
-                                        em[index]["reaction_identity"] for index in np.flatnonzero(mask_np)
-                                    ]
+                                    support_indices = np.flatnonzero(mask_np)
+                                    chosen_ids = [em[index]["reaction_identity"] for index in support_indices]
                                     metrics[name][support] = latent_metrics(
                                         ey[mask], prediction[mask], basis.mean, chosen_ids
                                     )
+                                    grouped_indices = {}
+                                    for index in support_indices:
+                                        grouped_indices.setdefault(em[index]["reaction_identity"], []).append(int(index))
+                                    per_reaction = {}
+                                    for reaction_identity, indices in sorted(grouped_indices.items()):
+                                        local = torch.tensor(indices, dtype=torch.long)
+                                        per_reaction[reaction_identity] = latent_metrics(
+                                            ey[local], prediction[local], basis.mean
+                                        )
+                                    reaction_metrics[name][support] = per_reaction
                             metrics[name]["shuffled_reaction"] = latent_metrics(
                                 shuffled_y, prediction, basis.mean,
                             )
@@ -416,6 +431,7 @@ def fit_probes(args) -> None:
                             "horizon": horizon, "mode": mode, "pca_variance_coverage": basis.variance_coverage,
                             "train_positions": len(tx), "validation_positions": len(vx), "test_positions": len(ex),
                             "ridge_fit": ridge_fit, "mlp_fit": mlp_fit, "metrics": metrics,
+                            "reaction_metrics": reaction_metrics,
                             "mlp_seed_robustness": mlp_seed_robustness,
                             "shuffled_self_matches": int(sum(
                                 em[i]["reaction_identity"] == em[int(donor)]["reaction_identity"]
@@ -511,6 +527,7 @@ def extract_candidates(args) -> None:
         load_adapter_checkpoint(model, ROOT / spec.checkpoint)
         records = extract_records(model, capture, examples, args.device, args.batch_size)
         for record, beam in zip(records, workload):
+            record["states"] = {"final_post_norm": record["states"]["final_post_norm"]}
             record["beam_metadata"] = {key:value for key,value in beam.items() if key not in {"input_ids","source_positions","target_positions"}}
         destination = args.output / "cache/candidates" / f"{spec.key}.pt"
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -569,6 +586,126 @@ def analyze_views(args) -> None:
                         print(json.dumps({"stage":"invariance_complete", "checkpoint":spec.key, "layer":layer, "segment":segment, "object":object_type}), flush=True)
 
 
+def beam_covariates(row: dict) -> dict:
+    candidate_sets = [set(value for value in view if value) for view in row["canonical_candidates_by_view"]]
+    jaccard = []
+    for left in range(5):
+        for right in range(left + 1, 5):
+            union = candidate_sets[left] | candidate_sets[right]
+            jaccard.append(len(candidate_sets[left] & candidate_sets[right]) / len(union) if union else 1.0)
+    gold_ranks = []
+    for view in row["canonical_candidates_by_view"]:
+        gold_ranks.append(view.index(row["target"]) + 1 if row["target"] in view else None)
+    aggregate_correct = bool(row["ranked_candidates"][0] == row["target"])
+    view_gold_top1 = [rank == 1 for rank in gold_ranks]
+    return {
+        "candidate_jaccard": float(np.mean(jaccard)),
+        "per_view_gold_rank": gold_ranks,
+        "views_gold_top1": int(sum(view_gold_top1)),
+        "aggregate_gold_rank": row["ranked_candidates"].index(row["target"]) + 1 if row["target"] in row["ranked_candidates"] else None,
+        "aggregate_gold_score": float(row["rank_scores"].get(row["target"], 0.0)),
+        "aggregate_correct": aggregate_correct,
+        "cross_view_aggregation_failure": bool(any(view_gold_top1) and not aggregate_correct),
+        "within_view_ranking_failure": bool(not any(view_gold_top1) and not aggregate_correct),
+    }
+
+
+def _pooled_graph_states(record: dict, example, layer: str, segment: str, canonical_smiles: str) -> torch.Tensor:
+    mapping = graph_token_atoms(example, segment, canonical_smiles)
+    states = record["states"][layer].float()
+    molecule = Chem.MolFromSmiles(canonical_smiles)
+    rows = []
+    for atom in range(molecule.GetNumAtoms()):
+        tokens = [token for token, atoms in mapping.items() if atom in atoms]
+        if not tokens:
+            raise ValueError("graph atom has no aligned token state")
+        rows.append(states[tokens].mean(0))
+    return torch.stack(rows)
+
+
+def extract_development_view_invariance(args) -> None:
+    """Join graph-aligned five-view states to the archived generation endpoint."""
+    groups = [json.loads(line) for line in DEVELOPMENT_PANEL.read_text(encoding="utf-8").splitlines() if line]
+    valid_groups = [row for row in groups if row.get("canonical_source")]
+    assert_disjoint_confirmation(
+        [chemical_pair_id(row["canonical_source"], row["canonical_target"]) for row in valid_groups],
+        args.confirmation_manifest,
+        [row["reaction_identity"] for row in valid_groups],
+    )
+    tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
+    chemfm_vocab = len(tokenizer); add_predictor_tokens(tokenizer)
+    expanded = []
+    for group_index, row in enumerate(valid_groups):
+        for view in range(5):
+            adapted = {
+                "reaction_identity": row["reaction_identity"],
+                "canonical_source": row["sources"][view],
+                "canonical_target": row["targets"][view],
+            }
+            example = annotate_example(
+                tokenizer, adapted, group_index * 5 + view,
+                "archived_five_view", infer_reaction_center=False,
+            )
+            expanded.append((example, "dev", group_index, view, row))
+    model = load_lora_model(
+        MODEL_DIR, tokenizer, chemfm_vocab_size=chemfm_vocab,
+        attention_dropout=0.0, attn_implementation="sdpa", lora_rank=8, lora_alpha=8,
+    ).to(args.device).eval()
+    for parameter in model.parameters(): parameter.requires_grad_(False)
+    capture = SelectedStateCapture(model)
+    for spec in selected_specs(args.keys):
+        destination = args.output / "raw/development_invariance" / f"{spec.key}.jsonl"
+        if destination.exists():
+            print(json.dumps({"stage":"development_invariance_reused", "key":spec.key}), flush=True)
+            continue
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        predictions = {row["reaction_identity"]: row for row in [json.loads(line) for line in prediction_path_for_key(spec.key).read_text(encoding="utf-8").splitlines() if line]}
+        load_adapter_checkpoint(model, ROOT / spec.checkpoint)
+        with destination.open("w", encoding="utf-8", newline="\n") as handle:
+            for start in range(0, len(expanded), args.batch_size * 5):
+                chunk = expanded[start:start + args.batch_size * 5]
+                records = extract_records(
+                    model, capture, [(item[0], item[1]) for item in chunk],
+                    args.device, args.batch_size,
+                )
+                by_index = {record["panel_index"]: record for record in records}
+                for offset in range(0, len(chunk), 5):
+                    views = chunk[offset:offset + 5]
+                    if len(views) != 5: continue
+                    group = views[0][4]
+                    beam = beam_covariates(predictions[group["reaction_identity"]])
+                    for layer in LAYERS:
+                        for segment, canonical_key in (("source", "canonical_source"), ("product", "canonical_target")):
+                            canonical_smiles = group[canonical_key]
+                            atom_views = []
+                            for example, _, _, _, _ in views:
+                                atom_views.append(_pooled_graph_states(
+                                    by_index[example.panel_index], example, layer, segment, canonical_smiles
+                                ))
+                            atom_values = torch.stack(atom_views, dim=1)
+                            molecule = Chem.MolFromSmiles(canonical_smiles)
+                            supports = {
+                                "atom": [{atom} for atom in range(molecule.GetNumAtoms())],
+                                "motif": [set(match) for query in MOTIF_QUERIES.values() for match in molecule.GetSubstructMatches(query, uniquify=True)],
+                                "component": [set(fragment) for fragment in Chem.GetMolFrags(molecule)],
+                            }
+                            for object_type, atom_sets in supports.items():
+                                if not atom_sets: continue
+                                values = torch.stack([atom_values[sorted(atom_set)].mean(0) for atom_set in atom_sets])
+                                output = {
+                                    "checkpoint": spec.key, "seed": spec.seed,
+                                    "reaction_identity": group["reaction_identity"],
+                                    "panel_index": int(group["panel_index"]),
+                                    "layer": layer, "segment": segment, "object": object_type,
+                                    **invariance_metrics(values), **beam,
+                                }
+                                handle.write(json.dumps(output) + "\n")
+                handle.flush()
+                del records, by_index
+        print(json.dumps({"stage":"development_invariance_complete", "key":spec.key}), flush=True)
+    capture.close()
+
+
 def score_decoder(args) -> None:
     """Score decoder preservation, using exact one-token suffix replay below final."""
     recheck_confirmation(args)
@@ -594,36 +731,78 @@ def score_decoder(args) -> None:
                         for mode in ("current", "history"):
                             x, y, metadata = forecast_matrices(test_records, layer, segment, horizon, mode)
                             if not len(x): continue
-                            sample = reaction_balanced_indices(metadata, args.decoder_positions, args.probe_seed)
-                            x, y = x[sample], y[sample]
-                            metadata = [metadata[index] for index in sample.tolist()]
+                            if layer != "final_post_norm":
+                                cap = args.decoder_positions if segment == "product" else max(1, args.decoder_positions // 2)
+                                sample = reaction_balanced_indices(metadata, cap, args.probe_seed)
+                                x, y = x[sample], y[sample]
+                                metadata = [metadata[index] for index in sample.tolist()]
                             gold = torch.tensor([row["gold_id"] for row in metadata], device=args.device)
-                            for kind in ("constant", "ridge", "residual_mlp"):
-                                key = f"{spec.key}__{layer}__{segment}__k{horizon}__{mode}"
-                                prediction, _ = load_probe_predictions(args.output / "probes" / f"{key}.pt", x, kind, args.device, args.probe_batch_size)
-                                if layer == "final_post_norm":
-                                    true_final = y.to(args.device)
-                                    predicted_final = prediction.to(args.device)
-                                else:
-                                    true_rows, predicted_rows = [], []
-                                    for truth, predicted, meta in zip(y, prediction, metadata):
-                                        record = record_map[meta["reaction_identity"]]
+                            key = f"{spec.key}__{layer}__{segment}__k{horizon}__{mode}"
+                            predictions = {
+                                kind: load_probe_predictions(
+                                    args.output / "probes" / f"{key}.pt", x, kind,
+                                    args.device, args.probe_batch_size,
+                                )[0]
+                                for kind in ("constant", "ridge", "residual_mlp")
+                            }
+                            if layer == "final_post_norm":
+                                true_final = y.to(args.device)
+                                predicted_final = {kind: value.to(args.device) for kind, value in predictions.items()}
+                            else:
+                                true_rows = []
+                                predicted_rows = {kind: [] for kind in predictions}
+                                order = sorted(
+                                    range(len(metadata)),
+                                    key=lambda index: (metadata[index]["reaction_identity"], metadata[index]["future_index"]),
+                                )
+                                current_identity, cache = None, None
+                                for index in order:
+                                    meta = metadata[index]
+                                    record = record_map[meta["reaction_identity"]]
+                                    if current_identity != meta["reaction_identity"]:
                                         layer_input = record["states"][layer].to(args.device).unsqueeze(0)
-                                        replayed = suffix_replay_one_position(
-                                            llama, layer_numbers[layer], layer_input,
-                                            torch.stack((truth, predicted)).to(args.device), int(meta["future_index"]),
+                                        cache, _ = build_suffix_cache(
+                                            llama, layer_numbers[layer], layer_input
                                         )
-                                        reference = record["states"]["final_post_norm"][int(meta["future_index"])].float().to(args.device)
-                                        if not torch.allclose(replayed[0].float(), reference, rtol=2e-2, atol=2e-2):
-                                            raise RuntimeError("true-state suffix replay failed full-forward parity")
-                                        true_rows.append(replayed[0]); predicted_rows.append(replayed[1])
-                                    true_final, predicted_final = torch.stack(true_rows), torch.stack(predicted_rows)
-                                weight = model.get_output_embeddings().weight
-                                metrics = decoder_distribution_metrics(true_final @ weight.T, predicted_final @ weight.T, gold)
+                                        current_identity = meta["reaction_identity"]
+                                    alternatives = torch.stack([
+                                        y[index], *(predictions[kind][index] for kind in predictions)
+                                    ]).to(device=args.device, dtype=layer_input.dtype)
+                                    replayed = replay_suffix_from_cache(
+                                        llama, layer_numbers[layer], cache, alternatives,
+                                        int(meta["future_index"]),
+                                    )
+                                    reference = record["states"]["final_post_norm"][int(meta["future_index"])].float().to(args.device)
+                                    if not torch.allclose(replayed[0].float(), reference, rtol=2e-2, atol=2e-2):
+                                        raise RuntimeError("true-state suffix replay failed full-forward parity")
+                                    true_rows.append((index, replayed[0]))
+                                    for offset, kind in enumerate(predictions, 1):
+                                        predicted_rows[kind].append((index, replayed[offset]))
+                                true_final = torch.stack([value for _, value in sorted(true_rows)])
+                                predicted_final = {
+                                    kind: torch.stack([value for _, value in sorted(values)])
+                                    for kind, values in predicted_rows.items()
+                                }
+                            weight = model.get_output_embeddings().weight
+                            true_logits = true_final.to(weight.dtype) @ weight.T
+                            for kind in ("constant", "ridge", "residual_mlp"):
+                                prediction_logits = predicted_final[kind].to(weight.dtype) @ weight.T
+                                metrics = decoder_distribution_metrics(true_logits, prediction_logits, gold)
+                                grouped = {}
+                                for index, meta in enumerate(metadata):
+                                    grouped.setdefault(meta["reaction_identity"], []).append(index)
+                                reaction_metrics = {
+                                    reaction: {
+                                        name: float(values[torch.tensor(indices, device=values.device)].float().mean())
+                                        for name, values in metrics.items()
+                                    }
+                                    for reaction, indices in sorted(grouped.items())
+                                }
                                 record = {
                                     "checkpoint":spec.key, "layer":layer, "segment":segment,
                                     "horizon":horizon, "mode":mode, "probe":kind, "n":len(x),
                                     **{name:float(value.float().mean()) for name,value in metrics.items()},
+                                    "reaction_metrics": reaction_metrics,
                                 }
                                 handle.write(json.dumps(record) + "\n"); handle.flush()
                                 print(json.dumps({"stage":"decoder_complete", "key":key, "probe":kind}), flush=True)
@@ -655,7 +834,11 @@ def score_candidates(args) -> None:
                             latent = latent_metrics(y, prediction, artifact["basis"].mean)
                             weight = model.get_output_embeddings().weight
                             gold = torch.tensor([row["gold_id"] for row in metadata], device=args.device)
-                            functional = decoder_distribution_metrics(y.to(args.device) @ weight.T, prediction.to(args.device) @ weight.T, gold)
+                            functional = decoder_distribution_metrics(
+                                y.to(device=args.device, dtype=weight.dtype) @ weight.T,
+                                prediction.to(device=args.device, dtype=weight.dtype) @ weight.T,
+                                gold,
+                            )
                             row = {
                                 "checkpoint":spec.key, "reaction_identity":record["reaction_identity"],
                                 "panel_index":beam["panel_index"], "view":beam["view"], "role":beam["role"],
@@ -734,6 +917,7 @@ def parser() -> argparse.ArgumentParser:
     p = sub.add_parser("extract-views", parents=[common]); p.set_defaults(function=extract_views)
     p = sub.add_parser("extract-candidates", parents=[common]); p.set_defaults(function=extract_candidates)
     p = sub.add_parser("analyze-views", parents=[common]); p.set_defaults(function=analyze_views)
+    p = sub.add_parser("extract-development-views", parents=[common]); p.set_defaults(function=extract_development_view_invariance)
     p = sub.add_parser("fit-probes", parents=[common])
     p.add_argument("--pca-rank", type=int, default=256)
     p.add_argument("--train-positions", type=int, default=16384)
