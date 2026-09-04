@@ -109,3 +109,19 @@ def test_true_state_suffix_replay_matches_full_causal_forward():
     scalar = replay_suffix_from_cache(model, 1, cache, alternatives[:1], 3)
     assert torch.allclose(final[0, 3], output.last_hidden_state[0, 3], atol=1e-6, rtol=1e-6)
     assert torch.allclose(batched[0], scalar[0], atol=1e-6, rtol=1e-6)
+
+
+def test_future_token_changes_cannot_change_causal_probe_input():
+    config = LlamaConfig(
+        vocab_size=20, hidden_size=16, intermediate_size=32,
+        num_hidden_layers=3, num_attention_heads=4, num_key_value_heads=2,
+        max_position_embeddings=32,
+    )
+    model = LlamaModel(config).eval()
+    original = torch.tensor([[1, 2, 3, 4, 5, 6]])
+    changed = original.clone()
+    changed[:, 4:] = torch.tensor([[12, 13]])
+    first = model(original, output_hidden_states=True, use_cache=False)
+    second = model(changed, output_hidden_states=True, use_cache=False)
+    for layer in (1, 2, 3):
+        assert torch.equal(first.hidden_states[layer][:, :4], second.hidden_states[layer][:, :4])
