@@ -743,7 +743,14 @@ def extract_development_view_invariance(args) -> None:
 
 
 def score_decoder(args) -> None:
-    """Score decoder preservation, using exact one-token suffix replay below final."""
+    """Score decoder preservation with one suffix-cache build per reaction/layer.
+
+    A reference implementation rebuilt the identical frozen prefix cache for
+    every segment/horizon/history cell.  Here all preregistered cells are
+    materialized first and replayed while that reaction's exact cache is live.
+    Probe predictions, sampled positions, BF16 states, and replay mathematics
+    are unchanged; only invariant cache construction is hoisted.
+    """
     recheck_confirmation(args)
     output_path = args.output / "raw/decoder_metrics.jsonl"
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -762,17 +769,34 @@ def score_decoder(args) -> None:
             for layer in LAYERS:
                 if args.layers and layer not in args.layers.split(","):
                     continue
+                cells = {}
                 for segment in ("source", "product"):
                     for horizon in HORIZONS:
                         for mode in ("current", "history"):
-                            x, y, metadata = forecast_matrices(test_records, layer, segment, horizon, mode)
-                            if not len(x): continue
+                            x, y, metadata = forecast_matrices(
+                                test_records, layer, segment, horizon, mode
+                            )
+                            if not len(x):
+                                continue
                             if layer != "final_post_norm":
-                                cap = args.decoder_positions if segment == "product" else max(1, args.decoder_positions // 2)
-                                sample = reaction_balanced_indices(metadata, cap, args.probe_seed)
+                                cap = (
+                                    args.decoder_positions if segment == "product"
+                                    else max(1, args.decoder_positions // 2)
+                                )
+                                sample = reaction_balanced_indices(
+                                    metadata, cap, args.probe_seed
+                                )
+                                rare = support_flags(metadata)
+                                rare_indices = np.flatnonzero(
+                                    rare["event_to_next_event"]
+                                    | rare["component_boundary"]
+                                    | rare["reaction_center_window"]
+                                ).tolist()
+                                sample = torch.tensor(sorted(
+                                    set(sample.tolist()) | set(rare_indices)
+                                ), dtype=torch.long)
                                 x, y = x[sample], y[sample]
                                 metadata = [metadata[index] for index in sample.tolist()]
-                            gold = torch.tensor([row["gold_id"] for row in metadata], device=args.device)
                             key = f"{spec.key}__{layer}__{segment}__k{horizon}__{mode}"
                             predictions = {
                                 kind: load_probe_predictions(
@@ -781,67 +805,148 @@ def score_decoder(args) -> None:
                                 )[0]
                                 for kind in ("constant", "ridge", "residual_mlp")
                             }
-                            if layer == "final_post_norm":
-                                true_final = y.to(args.device)
-                                predicted_final = {kind: value.to(args.device) for kind, value in predictions.items()}
-                            else:
-                                true_rows = []
-                                predicted_rows = {kind: [] for kind in predictions}
-                                order = sorted(
-                                    range(len(metadata)),
-                                    key=lambda index: (metadata[index]["reaction_identity"], metadata[index]["future_index"]),
+                            cells[(segment, horizon, mode)] = {
+                                "key": key, "x": x, "y": y, "metadata": metadata,
+                                "predictions": predictions,
+                            }
+
+                if layer == "final_post_norm":
+                    for cell in cells.values():
+                        cell["true_final"] = cell["y"].to(args.device)
+                        cell["predicted_final"] = {
+                            kind: value.to(args.device)
+                            for kind, value in cell["predictions"].items()
+                        }
+                else:
+                    # Index every requested replay by reaction, then build the
+                    # invariant remaining-block cache once for that reaction.
+                    work = defaultdict(list)
+                    for cell_key, cell in cells.items():
+                        cell["true_rows"] = []
+                        cell["predicted_rows"] = {
+                            kind: [] for kind in cell["predictions"]
+                        }
+                        for index, meta in enumerate(cell["metadata"]):
+                            work[meta["reaction_identity"]].append((cell_key, index))
+                    for reaction_identity in sorted(work):
+                        record = record_map[reaction_identity]
+                        layer_input = record["states"][layer].to(args.device).unsqueeze(0)
+                        cache, _ = build_suffix_cache(
+                            llama, layer_numbers[layer], layer_input
+                        )
+                        by_position = defaultdict(list)
+                        for cell_key, index in work[reaction_identity]:
+                            by_position[int(cells[cell_key]["metadata"][index]["future_index"])].append(
+                                (cell_key, index)
+                            )
+                        # The same future position occurs across current/history
+                        # and often across horizons. Replay its true state once
+                        # and batch every probe alternative in the same exact
+                        # causal cache. This changes neither inputs nor outputs.
+                        for future_index, requests in sorted(by_position.items()):
+                            requests = sorted(requests, key=lambda item: (item[0], item[1]))
+                            first_cell, first_index = requests[0]
+                            true_state = cells[first_cell]["y"][first_index]
+                            alternatives = [true_state]
+                            for cell_key, index in requests:
+                                cell = cells[cell_key]
+                                if not torch.equal(cell["y"][index], true_state):
+                                    raise RuntimeError("shared future position has inconsistent target state")
+                                alternatives.extend(
+                                    cell["predictions"][kind][index]
+                                    for kind in cell["predictions"]
                                 )
-                                current_identity, cache = None, None
-                                for index in order:
-                                    meta = metadata[index]
-                                    record = record_map[meta["reaction_identity"]]
-                                    if current_identity != meta["reaction_identity"]:
-                                        layer_input = record["states"][layer].to(args.device).unsqueeze(0)
-                                        cache, _ = build_suffix_cache(
-                                            llama, layer_numbers[layer], layer_input
-                                        )
-                                        current_identity = meta["reaction_identity"]
-                                    alternatives = torch.stack([
-                                        y[index], *(predictions[kind][index] for kind in predictions)
-                                    ]).to(device=args.device, dtype=layer_input.dtype)
-                                    replayed = replay_suffix_from_cache(
-                                        llama, layer_numbers[layer], cache, alternatives,
-                                        int(meta["future_index"]),
+                            alternatives = torch.stack(alternatives).to(
+                                device=args.device, dtype=layer_input.dtype
+                            )
+                            replayed = replay_suffix_from_cache(
+                                llama, layer_numbers[layer], cache, alternatives,
+                                future_index,
+                            )
+                            reference = record["states"]["final_post_norm"][
+                                future_index
+                            ].float().to(args.device)
+                            if not torch.allclose(
+                                replayed[0].float(), reference, rtol=2e-2, atol=2e-2
+                            ):
+                                raise RuntimeError(
+                                    "true-state suffix replay failed full-forward parity"
+                                )
+                            offset = 1
+                            for cell_key, index in requests:
+                                cell = cells[cell_key]
+                                cell["true_rows"].append((index, replayed[0]))
+                                for kind in cell["predictions"]:
+                                    cell["predicted_rows"][kind].append(
+                                        (index, replayed[offset])
                                     )
-                                    reference = record["states"]["final_post_norm"][int(meta["future_index"])].float().to(args.device)
-                                    if not torch.allclose(replayed[0].float(), reference, rtol=2e-2, atol=2e-2):
-                                        raise RuntimeError("true-state suffix replay failed full-forward parity")
-                                    true_rows.append((index, replayed[0]))
-                                    for offset, kind in enumerate(predictions, 1):
-                                        predicted_rows[kind].append((index, replayed[offset]))
-                                true_final = torch.stack([value for _, value in sorted(true_rows)])
-                                predicted_final = {
-                                    kind: torch.stack([value for _, value in sorted(values)])
-                                    for kind, values in predicted_rows.items()
+                                    offset += 1
+                        del cache, layer_input
+                    for cell in cells.values():
+                        cell["true_final"] = torch.stack([
+                            value for _, value in sorted(cell.pop("true_rows"))
+                        ])
+                        cell["predicted_final"] = {
+                            kind: torch.stack([
+                                value for _, value in sorted(values)
+                            ])
+                            for kind, values in cell.pop("predicted_rows").items()
+                        }
+
+                for (segment, horizon, mode), cell in cells.items():
+                    metadata = cell["metadata"]
+                    gold = torch.tensor(
+                        [row["gold_id"] for row in metadata], device=args.device
+                    )
+                    true_final = cell["true_final"]
+                    predicted_final = cell["predicted_final"]
+                    weight = model.get_output_embeddings().weight
+                    true_logits = true_final.to(weight.dtype) @ weight.T
+                    flags = support_flags(metadata)
+                    for kind in ("constant", "ridge", "residual_mlp"):
+                        prediction_logits = predicted_final[kind].to(weight.dtype) @ weight.T
+                        metrics = decoder_distribution_metrics(
+                            true_logits, prediction_logits, gold
+                        )
+                        support_metrics = {}
+                        reaction_metrics = {}
+                        for support, mask_np in flags.items():
+                            selected = np.flatnonzero(mask_np)
+                            if not len(selected):
+                                continue
+                            support_metrics[support] = {
+                                name: float(values[
+                                    torch.tensor(selected, device=values.device)
+                                ].float().mean())
+                                for name, values in metrics.items()
+                            }
+                            grouped = {}
+                            for index in selected:
+                                grouped.setdefault(
+                                    metadata[int(index)]["reaction_identity"], []
+                                ).append(int(index))
+                            reaction_metrics[support] = {
+                                reaction: {
+                                    name: float(values[
+                                        torch.tensor(indices, device=values.device)
+                                    ].float().mean())
+                                    for name, values in metrics.items()
                                 }
-                            weight = model.get_output_embeddings().weight
-                            true_logits = true_final.to(weight.dtype) @ weight.T
-                            for kind in ("constant", "ridge", "residual_mlp"):
-                                prediction_logits = predicted_final[kind].to(weight.dtype) @ weight.T
-                                metrics = decoder_distribution_metrics(true_logits, prediction_logits, gold)
-                                grouped = {}
-                                for index, meta in enumerate(metadata):
-                                    grouped.setdefault(meta["reaction_identity"], []).append(index)
-                                reaction_metrics = {
-                                    reaction: {
-                                        name: float(values[torch.tensor(indices, device=values.device)].float().mean())
-                                        for name, values in metrics.items()
-                                    }
-                                    for reaction, indices in sorted(grouped.items())
-                                }
-                                record = {
-                                    "checkpoint":spec.key, "layer":layer, "segment":segment,
-                                    "horizon":horizon, "mode":mode, "probe":kind, "n":len(x),
-                                    **{name:float(value.float().mean()) for name,value in metrics.items()},
-                                    "reaction_metrics": reaction_metrics,
-                                }
-                                handle.write(json.dumps(record) + "\n"); handle.flush()
-                                print(json.dumps({"stage":"decoder_complete", "key":key, "probe":kind}), flush=True)
+                                for reaction, indices in sorted(grouped.items())
+                            }
+                        record = {
+                            "checkpoint":spec.key, "layer":layer, "segment":segment,
+                            "horizon":horizon, "mode":mode, "probe":kind,
+                            "n":len(cell["x"]),
+                            **{name:float(value.float().mean()) for name,value in metrics.items()},
+                            "supports": support_metrics,
+                            "reaction_metrics": reaction_metrics,
+                        }
+                        handle.write(json.dumps(record) + "\n"); handle.flush()
+                        print(json.dumps({
+                            "stage":"decoder_complete", "key":cell["key"],
+                            "probe":kind,
+                        }), flush=True)
 
 
 def score_candidates(args) -> None:
