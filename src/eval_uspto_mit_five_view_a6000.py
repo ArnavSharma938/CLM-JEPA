@@ -1216,6 +1216,47 @@ def prompts_for_group(group: dict) -> list[str]:
     return [f"{REACTANT_START}{source}{END}{PRODUCT_START}" for source in group["sources"]]
 
 
+def _generation_cost_proxy(group: dict) -> int:
+    """Estimate causal decode work for scheduling, without changing inference."""
+    source_lengths = group.get("source_character_lengths") or [
+        len(value) for value in group["sources"]
+    ]
+    target_lengths = [len(value) for value in group["targets"]]
+    return sum(
+        max(1, target_length) * max(1, source_length + target_length)
+        for source_length, target_length in zip(source_lengths, target_lengths)
+    )
+
+
+def assign_groups(groups: list[dict], workers: int, mode: str) -> list[list[dict]]:
+    """Deterministically assign complete reactions to independent workers."""
+    if workers < 1:
+        raise ValueError("workers must be positive")
+    assignments: list[list[dict]] = [[] for _ in range(workers)]
+    if mode == "round-robin":
+        for position, group in enumerate(groups):
+            assignments[position % workers].append(group)
+        return assignments
+    if mode != "length-balanced":
+        raise ValueError("assignment mode must be round-robin or length-balanced")
+    loads = [0] * workers
+    ordered = sorted(
+        groups,
+        key=lambda group: (
+            -_generation_cost_proxy(group),
+            int(group["panel_index"]),
+            group["reaction_identity"],
+        ),
+    )
+    for group in ordered:
+        worker_index = min(range(workers), key=lambda index: (loads[index], index))
+        assignments[worker_index].append(group)
+        loads[worker_index] += _generation_cost_proxy(group)
+    for assignment in assignments:
+        assignment.sort(key=lambda group: int(group["panel_index"]))
+    return assignments
+
+
 def _evaluate_assigned_groups(
     model, tokenizer, groups: list[dict], prompt_batch_size: int, batch_mode: str
 ) -> list[dict]:
@@ -1294,10 +1335,7 @@ def worker(args) -> None:
     import torch
 
     manifest = read_jsonl(args.manifest)
-    assigned = [
-        group for position, group in enumerate(manifest)
-        if position % args.workers == args.worker_index
-    ]
+    assigned = assign_groups(manifest, args.workers, args.assignment_mode)[args.worker_index]
     existing = read_jsonl(args.output)
     completed = {row["reaction_identity"] for row in existing}
     assigned = [group for group in assigned if group["reaction_identity"] not in completed]
@@ -1374,6 +1412,7 @@ def worker(args) -> None:
     statistics_path.write_text(json.dumps({
         "worker_index": args.worker_index,
         "workers": args.workers,
+        "assignment_mode": args.assignment_mode,
         "prompt_batch_size": args.prompt_batch_size,
         "threads_per_worker": args.threads_per_worker,
         "batch_mode": args.batch_mode,
@@ -1446,6 +1485,7 @@ def launch_configuration(
     *, checkpoint: Path, manifest: Path, output_dir: Path,
     workers: int, prompt_batch_size: int, batch_mode: str,
     threads_per_worker: int = 1, predictor_tokens: bool = True,
+    assignment_mode: str = "round-robin",
 ) -> dict:
     groups = read_jsonl(manifest)
     workers = min(workers, len(groups))
@@ -1464,6 +1504,7 @@ def launch_configuration(
             "--prompt-batch-size", str(prompt_batch_size),
             "--batch-mode", batch_mode,
             "--threads-per-worker", str(threads_per_worker),
+            "--assignment-mode", assignment_mode,
             "--output", str(output),
         ])
         if not predictor_tokens:
@@ -1521,6 +1562,7 @@ def launch_configuration(
         "prompt_batch_size": prompt_batch_size,
         "batch_mode": batch_mode,
         "threads_per_worker": threads_per_worker,
+        "assignment_mode": assignment_mode,
         "predictor_tokens": predictor_tokens,
         "wall_seconds_including_model_load": wall_seconds,
         "incremental_end_to_end_reactions_per_second": (
@@ -1563,6 +1605,7 @@ def run_configuration(args) -> None:
         batch_mode=args.batch_mode,
         threads_per_worker=args.threads_per_worker,
         predictor_tokens=args.predictor_tokens,
+        assignment_mode=args.assignment_mode,
     )
     print(json.dumps(summary, sort_keys=True))
 
@@ -1829,6 +1872,10 @@ def parse_args():
     worker_parser.add_argument("--prompt-batch-size", type=int, default=1)
     worker_parser.add_argument("--batch-mode", choices=("left-pad", "equal-length"), default="left-pad")
     worker_parser.add_argument("--threads-per-worker", type=int, default=1)
+    worker_parser.add_argument(
+        "--assignment-mode", choices=("round-robin", "length-balanced"),
+        default="round-robin",
+    )
     worker_parser.add_argument("--output", type=Path, required=True)
     worker_parser.add_argument(
         "--predictor-tokens", action=argparse.BooleanOptionalAction, default=True,
@@ -1842,6 +1889,10 @@ def parse_args():
     run.add_argument("--prompt-batch-size", type=int, default=1)
     run.add_argument("--batch-mode", choices=("left-pad", "equal-length"), default="left-pad")
     run.add_argument("--threads-per-worker", type=int, default=1)
+    run.add_argument(
+        "--assignment-mode", choices=("round-robin", "length-balanced"),
+        default="round-robin",
+    )
     run.add_argument("--output-dir", type=Path, required=True)
     run.add_argument(
         "--predictor-tokens", action=argparse.BooleanOptionalAction, default=True,

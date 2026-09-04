@@ -9,6 +9,8 @@ import pytest
 import numpy as np
 
 from eval_uspto_mit_five_view_a6000 import (
+    _generation_cost_proxy,
+    assign_groups,
     clopper_pearson_interval,
     exact_mcnemar_power,
     holm_adjust,
@@ -103,3 +105,23 @@ def test_adapter_architecture_is_reconstructed_and_legacy_rank8_survives(tmp_pat
     observed = read_adapter_architecture(tmp_path / "rank128")
     assert (observed["rank"], observed["alpha"]) == (128, 128)
     assert observed["weights_path"] == nested
+
+
+def test_length_balanced_assignment_is_complete_deterministic_and_balanced():
+    groups = []
+    for index, target_length in enumerate((120, 100, 80, 60, 40, 20, 10, 5)):
+        groups.append({
+            "panel_index": index,
+            "reaction_identity": f"r{index}",
+            "sources": ["C" * 20] * 5,
+            "targets": ["C" * target_length] * 5,
+            "source_character_lengths": [20] * 5,
+        })
+    first = assign_groups(groups, 4, "length-balanced")
+    second = assign_groups(groups, 4, "length-balanced")
+    assert first == second
+    assert sorted(item["panel_index"] for worker in first for item in worker) == list(range(8))
+    balanced_loads = [sum(_generation_cost_proxy(item) for item in worker) for worker in first]
+    round_robin = assign_groups(groups, 4, "round-robin")
+    round_robin_loads = [sum(_generation_cost_proxy(item) for item in worker) for worker in round_robin]
+    assert max(balanced_loads) - min(balanced_loads) < max(round_robin_loads) - min(round_robin_loads)
