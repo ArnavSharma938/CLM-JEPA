@@ -25,7 +25,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from chemfm import MODEL_DIR, TOKENIZER_DIR, load_lora_model, load_reaction_tokenizer  # noqa: E402
-from frozen_geometry import MOTIF_QUERIES, annotate_example, _atom_spans  # noqa: E402
+from frozen_geometry import (  # noqa: E402
+    MOTIF_QUERIES, annotate_example, _atom_spans,
+    _sampled_parameter_fingerprint,
+)
 from jepa import add_predictor_tokens  # noqa: E402
 from latent_predictability import (  # noqa: E402
     HORIZONS, LAYERS, ResidualMLPProbe, RidgeProbe, Standardizer, TargetBasis,
@@ -227,6 +230,7 @@ def extract(args) -> None:
             continue
         destination.parent.mkdir(parents=True, exist_ok=True)
         load_adapter_checkpoint(model, ROOT / spec.checkpoint)
+        parameter_fingerprint = _sampled_parameter_fingerprint(model)
         before = time.perf_counter()
         if args.device.startswith("cuda"):
             torch.cuda.reset_peak_memory_stats()
@@ -238,10 +242,14 @@ def extract(args) -> None:
             "panel_sha256": sha256_file(args.panel),
         }
         torch.save(payload, destination)
+        after_fingerprint = _sampled_parameter_fingerprint(model)
+        if after_fingerprint != parameter_fingerprint:
+            raise RuntimeError("model parameters changed during frozen extraction")
         row = {
             "key": spec.key, "seconds": time.perf_counter() - before,
             "bytes": destination.stat().st_size,
             "peak_cuda_bytes": int(torch.cuda.max_memory_allocated()) if args.device.startswith("cuda") else 0,
+            "parameter_fingerprint": parameter_fingerprint,
         }
         metadata.append(row)
         print(json.dumps({"stage": "checkpoint_extracted", "index": index, "total": len(specs), **row}), flush=True)
@@ -808,6 +816,7 @@ def score_decoder(args) -> None:
                             cells[(segment, horizon, mode)] = {
                                 "key": key, "x": x, "y": y, "metadata": metadata,
                                 "predictions": predictions,
+                                "parity_max_abs": 0.0,
                             }
 
                 if layer == "final_post_norm":
@@ -872,9 +881,15 @@ def score_decoder(args) -> None:
                                 raise RuntimeError(
                                     "true-state suffix replay failed full-forward parity"
                                 )
+                            parity_error = float(
+                                (replayed[0].float() - reference).abs().max()
+                            )
                             offset = 1
                             for cell_key, index in requests:
                                 cell = cells[cell_key]
+                                cell["parity_max_abs"] = max(
+                                    cell["parity_max_abs"], parity_error
+                                )
                                 cell["true_rows"].append((index, replayed[0]))
                                 for kind in cell["predictions"]:
                                     cell["predicted_rows"][kind].append(
@@ -938,6 +953,7 @@ def score_decoder(args) -> None:
                             "checkpoint":spec.key, "layer":layer, "segment":segment,
                             "horizon":horizon, "mode":mode, "probe":kind,
                             "n":len(cell["x"]),
+                            "true_state_replay_max_abs_error": cell["parity_max_abs"],
                             **{name:float(value.float().mean()) for name,value in metrics.items()},
                             "supports": support_metrics,
                             "reaction_metrics": reaction_metrics,
