@@ -739,6 +739,38 @@ def extract_development_view_invariance(args) -> None:
     """Join graph-aligned five-view states to the archived generation endpoint."""
     groups = [json.loads(line) for line in DEVELOPMENT_PANEL.read_text(encoding="utf-8").splitlines() if line]
     valid_groups = [row for row in groups if row.get("canonical_source")]
+    if args.development_reactions:
+        selected = sorted(
+            valid_groups,
+            key=lambda row: hashlib.sha256(
+                f"development-view-coupling-v1|{row['reaction_identity']}".encode()
+            ).digest(),
+        )[:args.development_reactions]
+        # Preserve the complete preregistered seed-1301 natural experiment
+        # even when it falls outside the representative coupling subset.
+        native_rows = {
+            row["reaction_identity"]: row for row in (
+                json.loads(line) for line in prediction_path_for_key(
+                    "native_r8_s1301"
+                ).read_text(encoding="utf-8").splitlines() if line
+            )
+        }
+        released_rows = {
+            row["reaction_identity"]: row for row in (
+                json.loads(line) for line in prediction_path_for_key(
+                    "released_r8_l0.02_s1301"
+                ).read_text(encoding="utf-8").splitlines() if line
+            )
+        }
+        forced = {
+            identity for identity in native_rows.keys() & released_rows.keys()
+            if native_rows[identity]["ranked_candidates"][0] == native_rows[identity]["target"]
+            and released_rows[identity]["ranked_candidates"][0] != released_rows[identity]["target"]
+        }
+        selected_ids = {row["reaction_identity"] for row in selected} | forced
+        valid_groups = [
+            row for row in valid_groups if row["reaction_identity"] in selected_ids
+        ]
     assert_disjoint_confirmation(
         [chemical_pair_id(row["canonical_source"], row["canonical_target"]) for row in valid_groups],
         args.confirmation_manifest,
@@ -1103,8 +1135,11 @@ def score_candidates(args) -> None:
             records = payload["records"]
             if args.candidate_limit:
                 records = records[:args.candidate_limit]
-            for horizon in HORIZONS:
-                for mode in ("current", "history"):
+            horizons = tuple(int(value) for value in args.candidate_horizons.split(","))
+            modes = tuple(value.strip() for value in args.candidate_modes.split(",") if value.strip())
+            probes = tuple(value.strip() for value in args.candidate_probes.split(",") if value.strip())
+            for horizon in horizons:
+                for mode in modes:
                     key = f"{spec.key}__final_post_norm__product__k{horizon}__{mode}"
                     artifact = torch.load(
                         args.output / "probes" / f"{key}.pt",
@@ -1121,13 +1156,14 @@ def score_candidates(args) -> None:
                         )
                         predictions = probe_predictions_from_artifact(
                             artifact, x, args.device, args.probe_batch_size,
+                            kinds=probes,
                             fixed_batch_shape=True,
                         )
                         true_logits = y.to(
                             device=args.device, dtype=weight.dtype
                         ) @ weight.T
                         functional_by_probe = {}
-                        for kind in ("constant", "ridge", "residual_mlp"):
+                        for kind in probes:
                             prediction = predictions[kind]
                             gold = torch.tensor([row["gold_id"] for row in metadata], device=args.device)
                             functional_by_probe[kind] = {
@@ -1148,7 +1184,7 @@ def score_candidates(args) -> None:
                             chosen = slice(cursor, cursor + count)
                             cursor += count
                             beam = record["beam_metadata"]
-                            for kind in ("constant", "ridge", "residual_mlp"):
+                            for kind in probes:
                                 latent = latent_metrics(
                                     y[chosen], predictions[kind][chosen],
                                     artifact["basis"].mean,
@@ -1232,7 +1268,9 @@ def parser() -> argparse.ArgumentParser:
     p = sub.add_parser("extract-views", parents=[common]); p.set_defaults(function=extract_views)
     p = sub.add_parser("extract-candidates", parents=[common]); p.set_defaults(function=extract_candidates)
     p = sub.add_parser("analyze-views", parents=[common]); p.set_defaults(function=analyze_views)
-    p = sub.add_parser("extract-development-views", parents=[common]); p.set_defaults(function=extract_development_view_invariance)
+    p = sub.add_parser("extract-development-views", parents=[common])
+    p.add_argument("--development-reactions", type=int, default=128)
+    p.set_defaults(function=extract_development_view_invariance)
     p = sub.add_parser("fit-probes", parents=[common])
     p.add_argument("--pca-rank", type=int, default=256)
     p.add_argument("--train-positions", type=int, default=16384)
@@ -1256,6 +1294,9 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--probe-batch-size", type=int, default=512)
     p.add_argument("--candidate-record-batch", type=int, default=128)
     p.add_argument("--candidate-limit", type=int, default=0)
+    p.add_argument("--candidate-horizons", default="1,2,4,8")
+    p.add_argument("--candidate-modes", default="history")
+    p.add_argument("--candidate-probes", default="ridge,residual_mlp")
     p.set_defaults(function=score_candidates)
     sub.add_parser("summarize", parents=[common]).set_defaults(function=summarize)
     return root
