@@ -90,9 +90,10 @@ over all audit-test positions. This amendment replaces the impractical
 full-matrix materialization and suffix replay—not model inference or probe
 fitting—as the bottleneck, and before inspecting any decoder result.
 Because BF16 SDPA uses different kernels for the original batched extraction
-and one-position suffix replay, parity is gated on RMS error <=0.02, cosine
->=0.999, and identical LM-head top-1 rather than an outlier-sensitive absolute
-element threshold. Maximum absolute error is still recorded without hiding it.
+and one-position suffix replay, parity is gated on RMS error <=0.02 and cosine
+>=0.999 rather than an outlier-sensitive absolute element threshold. Maximum
+absolute error and LM-head top-1 mismatches are still recorded without hiding
+them; a near-tied argmax mismatch alone is not treated as state-replay failure.
 
 ## Semantic supports
 

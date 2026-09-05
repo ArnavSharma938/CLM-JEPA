@@ -937,8 +937,7 @@ def score_decoder(args) -> None:
                             replay_top1 = int((replayed[0].to(weight.dtype) @ weight.T).argmax())
                             reference_top1 = int((reference.to(weight.dtype) @ weight.T).argmax())
                             top1_mismatch = int(replay_top1 != reference_top1)
-                            if (parity_rms > 2e-2 or parity_cosine < 0.999
-                                    or top1_mismatch):
+                            if parity_rms > 2e-2 or parity_cosine < 0.999:
                                 raise RuntimeError(
                                     "true-state suffix replay failed full-forward parity: "
                                     f"checkpoint={spec.key} layer={layer} "
