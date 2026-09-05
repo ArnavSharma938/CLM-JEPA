@@ -844,31 +844,26 @@ def score_decoder(args) -> None:
                         cache, _ = build_suffix_cache(
                             llama, layer_numbers[layer], layer_input
                         )
-                        by_position = defaultdict(list)
-                        for cell_key, index in work[reaction_identity]:
-                            by_position[int(cells[cell_key]["metadata"][index]["future_index"])].append(
-                                (cell_key, index)
+                        # Preserve the validated reference batch shape: one
+                        # true state plus the three probe alternatives. The
+                        # cache itself remains hoisted across every cell for
+                        # this reaction/layer, which is the large exact saving.
+                        for cell_key, index in sorted(
+                            work[reaction_identity],
+                            key=lambda item: (
+                                cells[item[0]]["metadata"][item[1]]["future_index"],
+                                item[0], item[1],
+                            ),
+                        ):
+                            cell = cells[cell_key]
+                            future_index = int(
+                                cell["metadata"][index]["future_index"]
                             )
-                        # The same future position occurs across current/history
-                        # and often across horizons. Replay its true state once
-                        # and batch every probe alternative in the same exact
-                        # causal cache. This changes neither inputs nor outputs.
-                        for future_index, requests in sorted(by_position.items()):
-                            requests = sorted(requests, key=lambda item: (item[0], item[1]))
-                            first_cell, first_index = requests[0]
-                            true_state = cells[first_cell]["y"][first_index]
-                            alternatives = [true_state]
-                            for cell_key, index in requests:
-                                cell = cells[cell_key]
-                                if not torch.equal(cell["y"][index], true_state):
-                                    raise RuntimeError("shared future position has inconsistent target state")
-                                alternatives.extend(
-                                    cell["predictions"][kind][index]
-                                    for kind in cell["predictions"]
-                                )
-                            alternatives = torch.stack(alternatives).to(
-                                device=args.device, dtype=layer_input.dtype
-                            )
+                            alternatives = torch.stack([
+                                cell["y"][index],
+                                *(cell["predictions"][kind][index]
+                                  for kind in cell["predictions"]),
+                            ]).to(device=args.device, dtype=layer_input.dtype)
                             replayed = replay_suffix_from_cache(
                                 llama, layer_numbers[layer], cache, alternatives,
                                 future_index,
@@ -880,23 +875,22 @@ def score_decoder(args) -> None:
                                 replayed[0].float(), reference, rtol=2e-2, atol=2e-2
                             ):
                                 raise RuntimeError(
-                                    "true-state suffix replay failed full-forward parity"
+                                    "true-state suffix replay failed full-forward parity: "
+                                    f"checkpoint={spec.key} layer={layer} "
+                                    f"reaction={reaction_identity} position={future_index} "
+                                    f"max_abs={float((replayed[0].float() - reference).abs().max())}"
                                 )
                             parity_error = float(
                                 (replayed[0].float() - reference).abs().max()
                             )
-                            offset = 1
-                            for cell_key, index in requests:
-                                cell = cells[cell_key]
-                                cell["parity_max_abs"] = max(
-                                    cell["parity_max_abs"], parity_error
+                            cell["parity_max_abs"] = max(
+                                cell["parity_max_abs"], parity_error
+                            )
+                            cell["true_rows"].append((index, replayed[0]))
+                            for offset, kind in enumerate(cell["predictions"], 1):
+                                cell["predicted_rows"][kind].append(
+                                    (index, replayed[offset])
                                 )
-                                cell["true_rows"].append((index, replayed[0]))
-                                for kind in cell["predictions"]:
-                                    cell["predicted_rows"][kind].append(
-                                        (index, replayed[offset])
-                                    )
-                                    offset += 1
                         del cache, layer_input
                     for cell in cells.values():
                         cell["true_final"] = torch.stack([
