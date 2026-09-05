@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import csv
 import gc
+import hashlib
 import json
 import os
 import platform
@@ -37,7 +38,8 @@ from latent_predictability import (  # noqa: E402
     build_suffix_cache, replay_suffix_from_cache,
     chemical_pair_id,
     decoder_distribution_metrics, deterministic_random_smiles, fit_probe,
-    forecast_matrices, invariance_metrics, latent_metrics, locked_reaction_split,
+    forecast_matrices, forecast_plan, materialize_forecast_plan,
+    invariance_metrics, latent_metrics, locked_reaction_split,
     reaction_balanced_indices, sha256_file, suffix_replay_one_position,
     shuffled_reaction_targets,
 )
@@ -773,6 +775,7 @@ def extract_development_view_invariance(args) -> None:
     capture.close()
 
 
+@torch.inference_mode()
 def score_decoder(args) -> None:
     """Score decoder preservation with one suffix-cache build per reaction/layer.
 
@@ -797,6 +800,12 @@ def score_decoder(args) -> None:
             payload = torch.load(args.output / "cache/canonical" / f"{spec.key}.pt", map_location="cpu", weights_only=False)
             test_records = [row for row in payload["records"] if row["split"] == "test"]
             record_map = {row["reaction_identity"]: row for row in test_records}
+            decoder_records = sorted(
+                test_records,
+                key=lambda row: hashlib.sha256(
+                    f"decoder-replay-v2|{args.probe_seed}|{row['reaction_identity']}".encode()
+                ).digest(),
+            )[: min(args.decoder_reactions, len(test_records))]
             for layer in LAYERS:
                 if args.layers and layer not in args.layers.split(","):
                     continue
@@ -804,10 +813,14 @@ def score_decoder(args) -> None:
                 for segment in ("source", "product"):
                     for horizon in HORIZONS:
                         for mode in ("current", "history"):
-                            x, y, metadata = forecast_matrices(
-                                test_records, layer, segment, horizon, mode
+                            cell_records = (
+                                test_records if layer == "final_post_norm"
+                                else decoder_records
                             )
-                            if not len(x):
+                            plan, metadata = forecast_plan(
+                                cell_records, segment, horizon
+                            )
+                            if not plan:
                                 continue
                             if layer != "final_post_norm":
                                 cap = (
@@ -817,17 +830,27 @@ def score_decoder(args) -> None:
                                 sample = reaction_balanced_indices(
                                     metadata, cap, args.probe_seed
                                 )
+                                selected = set(sample.tolist())
                                 rare = support_flags(metadata)
-                                rare_indices = np.flatnonzero(
-                                    rare["event_to_next_event"]
-                                    | rare["component_boundary"]
-                                    | rare["reaction_center_window"]
-                                ).tolist()
-                                sample = torch.tensor(sorted(
-                                    set(sample.tolist()) | set(rare_indices)
-                                ), dtype=torch.long)
-                                x, y = x[sample], y[sample]
-                                metadata = [metadata[index] for index in sample.tolist()]
+                                for offset, support in enumerate((
+                                    "event_to_next_event", "component_boundary",
+                                    "reaction_center_window",
+                                ), 1):
+                                    eligible = np.flatnonzero(rare[support]).tolist()
+                                    if not eligible:
+                                        continue
+                                    local_metadata = [metadata[index] for index in eligible]
+                                    local = reaction_balanced_indices(
+                                        local_metadata, args.decoder_rare_positions,
+                                        args.probe_seed + offset,
+                                    )
+                                    selected.update(eligible[index] for index in local.tolist())
+                                indices = sorted(selected)
+                                plan = [plan[index] for index in indices]
+                                metadata = [metadata[index] for index in indices]
+                            x, y = materialize_forecast_plan(
+                                cell_records, layer, mode, plan
+                            )
                             key = f"{spec.key}__{layer}__{segment}__k{horizon}__{mode}"
                             artifact = torch.load(
                                 args.output / "probes" / f"{key}.pt",
@@ -970,6 +993,15 @@ def score_decoder(args) -> None:
                             "checkpoint":spec.key, "layer":layer, "segment":segment,
                             "horizon":horizon, "mode":mode, "probe":kind,
                             "n":len(cell["x"]),
+                            "intermediate_replay_reactions": (
+                                len(decoder_records) if layer != "final_post_norm" else None
+                            ),
+                            "intermediate_base_position_cap": (
+                                args.decoder_positions if layer != "final_post_norm" else None
+                            ),
+                            "intermediate_per_rare_support_cap": (
+                                args.decoder_rare_positions if layer != "final_post_norm" else None
+                            ),
                             "true_state_replay_max_abs_error": cell["parity_max_abs"],
                             **{name:float(value.float().mean()) for name,value in metrics.items()},
                             "supports": support_metrics,
@@ -1112,7 +1144,9 @@ def parser() -> argparse.ArgumentParser:
     p.set_defaults(function=fit_probes)
     p = sub.add_parser("score-decoder", parents=[common])
     p.add_argument("--layers", default="layer_6,layer_16,layer_21,final_post_norm")
-    p.add_argument("--decoder-positions", type=int, default=4096)
+    p.add_argument("--decoder-positions", type=int, default=96)
+    p.add_argument("--decoder-rare-positions", type=int, default=32)
+    p.add_argument("--decoder-reactions", type=int, default=64)
     p.add_argument("--probe-seed", type=int, default=20260904)
     p.add_argument("--probe-batch-size", type=int, default=512)
     p.set_defaults(function=score_decoder)

@@ -77,8 +77,18 @@ must reproduce full-forward logits before predicted-state results are valid.
 Report `KL(true || predicted)`, JS, actual next teacher-token log probability
 and probability, rank, margin against the best other token, top-1 agreement,
 and top-5/top-10 overlap. Final-layer metrics use all test positions.
-Intermediate replay uses a shared reaction-balanced cap of 4,096 product and
-2,048 source positions per cell, plus every available rare-support position.
+
+**Runtime amendment made before any decoder metric existed.** Intermediate
+block injection is an exact but deliberately representative diagnostic rather
+than an exhaustive census. It uses the same 64 audit-test reactions selected
+only by a fixed identity hash, a reaction-balanced base cap of 96 product and
+48 source positions per cell, and up to 32 reaction-balanced positions for
+each sparse support (event completion, component boundary, and reaction-center
+window). The latent probes and final-layer decoder analysis remain exhaustive
+over all audit-test positions. This amendment replaces the impractical
+4,096/2,048-plus-all-rare replay plan; it was locked after profiling exposed
+full-matrix materialization and suffix replay—not model inference or probe
+fitting—as the bottleneck, and before inspecting any decoder result.
 
 ## Semantic supports
 

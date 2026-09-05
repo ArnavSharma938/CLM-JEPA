@@ -120,26 +120,22 @@ def history_positions(
     ]
 
 
-def forecast_matrices(
-    records: Sequence[dict], layer: str, segment: str, horizon: int,
-    mode: str, history: int = 3,
-) -> tuple[torch.Tensor, torch.Tensor, list[dict]]:
-    """Expand cached reactions into causal probe matrices.
+def forecast_plan(
+    records: Sequence[dict], segment: str, horizon: int, history: int = 3,
+) -> tuple[list[tuple[int, list[int], int]], list[dict]]:
+    """Plan causal forecast rows without materializing any hidden states.
 
-    The state cache uses ``states[layer, token, hidden]`` and never includes a
-    future state in X.  Metadata is retained for reaction-clustered reductions.
+    The ordering and metadata are exactly those historically produced by
+    :func:`forecast_matrices`.  Keeping this state-free lets expensive decoder
+    replay choose its locked reaction-balanced panel before gathering multi-GB
+    hidden-state matrices.
     """
-    if mode not in {"current", "history"}:
-        raise ValueError("mode must be current or history")
-    xs, ys, metadata = [], [], []
-    for record in records:
-        states = record["states"][layer].float()
+    plan, metadata = [], []
+    for record_index, record in enumerate(records):
         positions = record[f"{segment}_indices"]
         token_metadata = record.get("token_metadata", {})
         for past, future in history_positions(positions, horizon, history):
-            x = states[past[-1]] if mode == "current" else states[past].reshape(-1)
-            xs.append(x)
-            ys.append(states[future])
+            plan.append((record_index, past, future))
             info = dict(token_metadata.get(str(future), {}))
             current_info = token_metadata.get(str(past[-1]), {})
             intervening = [
@@ -157,7 +153,7 @@ def forecast_matrices(
                 "horizon": horizon,
                 "current_index": past[-1],
                 "future_index": future,
-                "sequence_length": int(states.shape[0]),
+                "sequence_length": len(record["input_ids"]),
                 "gold_id": int(record["input_ids"][min(future + 1, len(record["input_ids"]) - 1)]),
                 **info,
                 "current_token_class": current_info.get("token_class"),
@@ -175,11 +171,36 @@ def forecast_matrices(
                 "component_boundary": current_info.get("component") != info.get("component"),
                 "around_reaction_center": any(abs(future - index) <= 2 for index in center_indices),
             })
+    return plan, metadata
+
+
+def materialize_forecast_plan(
+    records: Sequence[dict], layer: str, mode: str,
+    plan: Sequence[tuple[int, Sequence[int], int]], history: int = 3,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Gather only the forecast rows selected from a state-free plan."""
+    if mode not in {"current", "history"}:
+        raise ValueError("mode must be current or history")
+    xs, ys = [], []
+    for record_index, past, future in plan:
+        states = records[record_index]["states"][layer].float()
+        xs.append(states[past[-1]] if mode == "current" else states[list(past)].reshape(-1))
+        ys.append(states[future])
     if not xs:
         hidden = int(records[0]["states"][layer].shape[-1]) if records else 0
         width = hidden if mode == "current" else hidden * (history + 1)
-        return torch.empty(0, width), torch.empty(0, hidden), []
-    return torch.stack(xs), torch.stack(ys), metadata
+        return torch.empty(0, width), torch.empty(0, hidden)
+    return torch.stack(xs), torch.stack(ys)
+
+
+def forecast_matrices(
+    records: Sequence[dict], layer: str, segment: str, horizon: int,
+    mode: str, history: int = 3,
+) -> tuple[torch.Tensor, torch.Tensor, list[dict]]:
+    """Expand cached reactions into causal probe matrices."""
+    plan, metadata = forecast_plan(records, segment, horizon, history)
+    x, y = materialize_forecast_plan(records, layer, mode, plan, history)
+    return x, y, metadata
 
 
 def reaction_balanced_indices(

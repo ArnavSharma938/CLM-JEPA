@@ -38,7 +38,12 @@ def main() -> None:
          lambda: len(list((output / "cache/canonical").glob("*.pt"))) == 8),
         ("fit_probes", runner + ["fit-probes", *common, "--resume"],
          lambda: lines(output / "raw/probe_metrics.jsonl") == 512),
-        ("decoder", runner + ["score-decoder", *common, "--decoder-positions", "4096"],
+        ("decoder", runner + [
+            "score-decoder", *common,
+            "--decoder-reactions", "64",
+            "--decoder-positions", "96",
+            "--decoder-rare-positions", "32",
+        ],
          lambda: lines(output / "raw/decoder_metrics.jsonl") == 1536),
         ("extract_views", runner + ["extract-views", *common, "--batch-size", "8"],
          lambda: len(list((output / "cache/views").glob("*.pt"))) == 8),

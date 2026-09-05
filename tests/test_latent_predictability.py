@@ -10,6 +10,8 @@ from latent_predictability import (
     chemical_pair_id,
     canonical_atom_correspondence,
     decoder_distribution_metrics,
+    forecast_matrices,
+    forecast_plan,
     history_positions,
     invariance_metrics,
     latent_metrics,
@@ -18,6 +20,7 @@ from latent_predictability import (
     suffix_replay_one_position,
     build_suffix_cache,
     replay_suffix_from_cache,
+    materialize_forecast_plan,
 )
 
 
@@ -46,6 +49,33 @@ def test_history_positions_never_use_future_input():
     rows = history_positions([10, 11, 12, 13, 14, 15, 16], horizon=2, history=3)
     assert rows == [([10, 11, 12, 13], 15), ([11, 12, 13, 14], 16)]
     assert all(max(past) < future for past, future in rows)
+
+
+def test_forecast_plan_gather_is_exact_and_selection_preserves_order():
+    records = []
+    for reaction, offset in (("a", 0), ("b", 100)):
+        states = torch.arange(offset, offset + 18, dtype=torch.float32).reshape(9, 2)
+        records.append({
+            "reaction_identity": reaction,
+            "input_ids": list(range(9)),
+            "product_indices": [1, 2, 3, 4, 5, 6, 7, 8],
+            "states": {"layer_6": states},
+            "token_metadata": {},
+        })
+    x_reference, y_reference, metadata_reference = forecast_matrices(
+        records, "layer_6", "product", 2, "history"
+    )
+    plan, metadata = forecast_plan(records, "product", 2)
+    x, y = materialize_forecast_plan(records, "layer_6", "history", plan)
+    assert torch.equal(x, x_reference)
+    assert torch.equal(y, y_reference)
+    assert metadata == metadata_reference
+    chosen = [3, 0, 2]
+    x_selected, y_selected = materialize_forecast_plan(
+        records, "layer_6", "history", [plan[index] for index in chosen]
+    )
+    assert torch.equal(x_selected, x_reference[chosen])
+    assert torch.equal(y_selected, y_reference[chosen])
 
 
 def test_latent_metrics_have_unit_constant_nmse_and_zero_r2():
