@@ -266,13 +266,45 @@ def extract(args) -> None:
     })
 
 
-def predict_batches(model, values: torch.Tensor, device: str, batch_size: int) -> torch.Tensor:
+def predict_batches(
+    model, values: torch.Tensor, device: str, batch_size: int,
+    fixed_batch_shape: bool = False,
+) -> torch.Tensor:
     model.eval()
     output = []
     with torch.inference_mode():
         for start in range(0, len(values), batch_size):
-            output.append(model(values[start:start + batch_size].to(device)).float().cpu())
+            chunk = values[start:start + batch_size]
+            count = len(chunk)
+            if fixed_batch_shape and count < batch_size:
+                chunk = torch.cat([
+                    chunk,
+                    torch.zeros(
+                        batch_size - count, *chunk.shape[1:],
+                        dtype=chunk.dtype, device=chunk.device,
+                    ),
+                ])
+            output.append(model(chunk.to(device)).float().cpu()[:count])
     return torch.cat(output) if output else torch.empty((0, 0))
+
+
+def decode_probe_scores(
+    basis, scores: torch.Tensor, batch_size: int,
+    fixed_batch_shape: bool = False,
+) -> torch.Tensor:
+    if not fixed_batch_shape:
+        return basis.decode(scores)
+    output = []
+    for start in range(0, len(scores), batch_size):
+        chunk = scores[start:start + batch_size]
+        count = len(chunk)
+        if count < batch_size:
+            chunk = torch.cat([
+                chunk,
+                torch.zeros(batch_size - count, chunk.shape[1], dtype=chunk.dtype),
+            ])
+        output.append(basis.decode(chunk)[:count])
+    return torch.cat(output) if output else torch.empty((0, basis.mean.numel()))
 
 
 def load_probe_predictions(path: Path, values: torch.Tensor, kind: str, device: str, batch_size: int):
@@ -285,7 +317,7 @@ def load_probe_predictions(path: Path, values: torch.Tensor, kind: str, device: 
 
 def probe_predictions_from_artifact(
     artifact: dict, values: torch.Tensor, device: str, batch_size: int,
-    kinds=("constant", "ridge", "residual_mlp"),
+    kinds=("constant", "ridge", "residual_mlp"), fixed_batch_shape: bool = False,
 ) -> dict[str, torch.Tensor]:
     """Evaluate requested probes after one artifact load/standardization."""
     standardizer, basis = artifact["standardizer"], artifact["basis"]
@@ -299,8 +331,13 @@ def probe_predictions_from_artifact(
     ridge = RidgeProbe(artifact["input_size"], artifact["output_size"])
     ridge.load_state_dict(artifact["ridge_state"])
     if "ridge" in learned:
-        output["ridge"] = basis.decode(
-            predict_batches(ridge.to(device), standardized, device, batch_size)
+        output["ridge"] = decode_probe_scores(
+            basis,
+            predict_batches(
+                ridge.to(device), standardized, device, batch_size,
+                fixed_batch_shape=fixed_batch_shape,
+            ),
+            batch_size, fixed_batch_shape,
         )
         ridge = ridge.cpu()
     if "residual_mlp" in learned:
@@ -309,8 +346,13 @@ def probe_predictions_from_artifact(
         )
         model.load_state_dict(artifact["mlp_state"])
         model = model.to(device)
-        output["residual_mlp"] = basis.decode(
-            predict_batches(model, standardized, device, batch_size)
+        output["residual_mlp"] = decode_probe_scores(
+            basis,
+            predict_batches(
+                model, standardized, device, batch_size,
+                fixed_batch_shape=fixed_batch_shape,
+            ),
+            batch_size, fixed_batch_shape,
         )
     unknown = set(kinds) - {"constant", "ridge", "residual_mlp"}
     if unknown:
@@ -1079,6 +1121,7 @@ def score_candidates(args) -> None:
                         )
                         predictions = probe_predictions_from_artifact(
                             artifact, x, args.device, args.probe_batch_size,
+                            fixed_batch_shape=True,
                         )
                         true_logits = y.to(
                             device=args.device, dtype=weight.dtype
