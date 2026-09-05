@@ -134,19 +134,18 @@ def forecast_plan(
     for record_index, record in enumerate(records):
         positions = record[f"{segment}_indices"]
         token_metadata = record.get("token_metadata", {})
+        event_indices = [
+            int(index) for index, value in token_metadata.items()
+            if value.get("events")
+        ]
+        center_indices = [
+            int(index) for index, value in token_metadata.items()
+            if "reaction_center" in value.get("events", [])
+        ]
         for past, future in history_positions(positions, horizon, history):
             plan.append((record_index, past, future))
             info = dict(token_metadata.get(str(future), {}))
             current_info = token_metadata.get(str(past[-1]), {})
-            intervening = [
-                token_metadata.get(str(index), {})
-                for index in positions
-                if past[-1] < index < future
-            ]
-            center_indices = [
-                int(index) for index, value in token_metadata.items()
-                if "reaction_center" in value.get("events", [])
-            ]
             metadata.append({
                 "reaction_identity": record["reaction_identity"],
                 "segment": segment,
@@ -166,7 +165,7 @@ def forecast_plan(
                 ),
                 "event_to_next_event": (
                     bool(current_info.get("events")) and bool(info.get("events"))
-                    and not any(value.get("events") for value in intervening)
+                    and not any(past[-1] < index < future for index in event_indices)
                 ),
                 "component_boundary": current_info.get("component") != info.get("component"),
                 "around_reaction_center": any(abs(future - index) <= 2 for index in center_indices),
@@ -182,8 +181,12 @@ def materialize_forecast_plan(
     if mode not in {"current", "history"}:
         raise ValueError("mode must be current or history")
     xs, ys = [], []
+    state_cache = {
+        record_index: records[record_index]["states"][layer].float()
+        for record_index in {row[0] for row in plan}
+    }
     for record_index, past, future in plan:
-        states = records[record_index]["states"][layer].float()
+        states = state_cache[record_index]
         xs.append(states[past[-1]] if mode == "current" else states[list(past)].reshape(-1))
         ys.append(states[future])
     if not xs:
