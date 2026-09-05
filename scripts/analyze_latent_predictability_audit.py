@@ -68,7 +68,7 @@ def native_key(seed: int) -> str:
     return f"native_r8_s{seed}"
 
 
-def bootstrap(values: Iterable[float], seed: int = 20260904, draws: int = 10000) -> dict:
+def bootstrap(values: Iterable[float], seed: int = 20260904, draws: int = 2000) -> dict:
     x = np.asarray(list(values), dtype=np.float64)
     x = x[np.isfinite(x)]
     if not len(x):
@@ -90,20 +90,26 @@ def bootstrap(values: Iterable[float], seed: int = 20260904, draws: int = 10000)
     }
 
 
-def hierarchical_bootstrap(seed_values: dict[int, list[float]], draws: int = 10000) -> dict:
+def hierarchical_bootstrap(seed_values: dict[int, list[float]], draws: int = 2000) -> dict:
     clean = {seed: np.asarray(values, dtype=np.float64) for seed, values in seed_values.items() if values}
     if not clean:
         return {"seeds": 0, "reactions": 0, "mean_seed_effect": None, "ci95": [None, None]}
     effects = {seed: float(values.mean()) for seed, values in clean.items()}
     seeds = sorted(clean)
     rng = np.random.default_rng(20260904)
-    sampled = []
-    for _ in range(draws):
-        chosen = rng.choice(seeds, size=len(seeds), replace=True)
-        sampled.append(float(np.mean([
-            rng.choice(clean[int(seed)], size=len(clean[int(seed)]), replace=True).mean()
-            for seed in chosen
-        ])))
+    # Vectorize both bootstrap levels. The previous scalar Python loop was
+    # repeated for thousands of diagnostic cells and dominated the entire
+    # audit despite using only one CPU core.
+    chosen = rng.integers(0, len(seeds), size=(draws, len(seeds)))
+    sampled = np.zeros(draws, dtype=np.float64)
+    for slot in range(len(seeds)):
+        for seed_index, seed in enumerate(seeds):
+            rows = np.flatnonzero(chosen[:, slot] == seed_index)
+            if not len(rows):
+                continue
+            values = clean[seed]
+            indices = rng.integers(0, len(values), size=(len(rows), len(values)))
+            sampled[rows] += values[indices].mean(1) / len(seeds)
     return {
         "seeds": len(seeds), "reactions": int(sum(len(value) for value in clean.values())),
         "seed_effects": effects, "mean_seed_effect": float(np.mean(list(effects.values()))),
