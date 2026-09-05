@@ -274,23 +274,45 @@ def predict_batches(model, values: torch.Tensor, device: str, batch_size: int) -
 
 def load_probe_predictions(path: Path, values: torch.Tensor, kind: str, device: str, batch_size: int):
     artifact = torch.load(path, map_location="cpu", weights_only=False)
+    predictions = probe_predictions_from_artifact(
+        artifact, values, device, batch_size, kinds=(kind,),
+    )
+    return predictions[kind], artifact
+
+
+def probe_predictions_from_artifact(
+    artifact: dict, values: torch.Tensor, device: str, batch_size: int,
+    kinds=("constant", "ridge", "residual_mlp"),
+) -> dict[str, torch.Tensor]:
+    """Evaluate requested probes after one artifact load/standardization."""
     standardizer, basis = artifact["standardizer"], artifact["basis"]
     standardized = standardizer(values)
+    output = {}
+    if "constant" in kinds:
+        output["constant"] = basis.mean.expand(len(values), -1).clone()
+    learned = set(kinds) & {"ridge", "residual_mlp"}
+    if not learned:
+        return output
     ridge = RidgeProbe(artifact["input_size"], artifact["output_size"])
     ridge.load_state_dict(artifact["ridge_state"])
-    if kind == "ridge":
-        model = ridge.to(device)
-    elif kind == "residual_mlp":
+    if "ridge" in learned:
+        output["ridge"] = basis.decode(
+            predict_batches(ridge.to(device), standardized, device, batch_size)
+        )
+        ridge = ridge.cpu()
+    if "residual_mlp" in learned:
         model = ResidualMLPProbe(
             ridge, artifact["input_size"], artifact["output_size"], artifact["mlp_width"],
         )
         model.load_state_dict(artifact["mlp_state"])
         model = model.to(device)
-    elif kind == "constant":
-        return basis.mean.expand(len(values), -1).clone(), artifact
-    else:
-        raise ValueError(kind)
-    return basis.decode(predict_batches(model, standardized, device, batch_size)), artifact
+        output["residual_mlp"] = basis.decode(
+            predict_batches(model, standardized, device, batch_size)
+        )
+    unknown = set(kinds) - {"constant", "ridge", "residual_mlp"}
+    if unknown:
+        raise ValueError(sorted(unknown))
+    return output
 
 
 def support_flags(metadata: list[dict]) -> dict[str, np.ndarray]:
@@ -807,13 +829,13 @@ def score_decoder(args) -> None:
                                 x, y = x[sample], y[sample]
                                 metadata = [metadata[index] for index in sample.tolist()]
                             key = f"{spec.key}__{layer}__{segment}__k{horizon}__{mode}"
-                            predictions = {
-                                kind: load_probe_predictions(
-                                    args.output / "probes" / f"{key}.pt", x, kind,
-                                    args.device, args.probe_batch_size,
-                                )[0]
-                                for kind in ("constant", "ridge", "residual_mlp")
-                            }
+                            artifact = torch.load(
+                                args.output / "probes" / f"{key}.pt",
+                                map_location="cpu", weights_only=False,
+                            )
+                            predictions = probe_predictions_from_artifact(
+                                artifact, x, args.device, args.probe_batch_size,
+                            )
                             cells[(segment, horizon, mode)] = {
                                 "key": key, "x": x, "y": y, "metadata": metadata,
                                 "predictions": predictions,
@@ -976,13 +998,20 @@ def score_candidates(args) -> None:
             records = payload["records"]
             for horizon in HORIZONS:
                 for mode in ("current", "history"):
+                    key = f"{spec.key}__final_post_norm__product__k{horizon}__{mode}"
+                    artifact = torch.load(
+                        args.output / "probes" / f"{key}.pt",
+                        map_location="cpu", weights_only=False,
+                    )
                     for record in records:
                         x, y, metadata = forecast_matrices([record], "final_post_norm", "product", horizon, mode)
                         if not len(x): continue
                         beam = record["beam_metadata"]
-                        key = f"{spec.key}__final_post_norm__product__k{horizon}__{mode}"
+                        predictions = probe_predictions_from_artifact(
+                            artifact, x, args.device, args.probe_batch_size,
+                        )
                         for kind in ("constant", "ridge", "residual_mlp"):
-                            prediction, artifact = load_probe_predictions(args.output / "probes" / f"{key}.pt", x, kind, args.device, args.probe_batch_size)
+                            prediction = predictions[kind]
                             latent = latent_metrics(y, prediction, artifact["basis"].mean)
                             weight = model.get_output_embeddings().weight
                             gold = torch.tensor([row["gold_id"] for row in metadata], device=args.device)
