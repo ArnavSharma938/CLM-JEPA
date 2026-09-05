@@ -929,7 +929,11 @@ def score_decoder(args) -> None:
                             parity_cosine = float(F.cosine_similarity(
                                 replayed[0].float(), reference, dim=0
                             ))
-                            weight = model.get_output_embeddings().weight
+                            # Predictor-only special tokens are appended after
+                            # the native ChemFM vocabulary and are forbidden at
+                            # reaction generation time. Decoder diagnostics and
+                            # replay parity must use that same native support.
+                            weight = model.get_output_embeddings().weight[:chemfm_vocab]
                             replay_top1 = int((replayed[0].to(weight.dtype) @ weight.T).argmax())
                             reference_top1 = int((reference.to(weight.dtype) @ weight.T).argmax())
                             top1_mismatch = int(replay_top1 != reference_top1)
@@ -978,7 +982,7 @@ def score_decoder(args) -> None:
                     )
                     true_final = cell["true_final"]
                     predicted_final = cell["predicted_final"]
-                    weight = model.get_output_embeddings().weight
+                    weight = model.get_output_embeddings().weight[:chemfm_vocab]
                     true_logits = true_final.to(weight.dtype) @ weight.T
                     flags = support_flags(metadata)
                     for kind in ("constant", "ridge", "residual_mlp"):
@@ -1071,7 +1075,7 @@ def score_candidates(args) -> None:
                         for kind in ("constant", "ridge", "residual_mlp"):
                             prediction = predictions[kind]
                             latent = latent_metrics(y, prediction, artifact["basis"].mean)
-                            weight = model.get_output_embeddings().weight
+                            weight = model.get_output_embeddings().weight[:chemfm_vocab]
                             gold = torch.tensor([row["gold_id"] for row in metadata], device=args.device)
                             functional = decoder_distribution_metrics(
                                 y.to(device=args.device, dtype=weight.dtype) @ weight.T,
