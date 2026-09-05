@@ -1059,6 +1059,8 @@ def score_candidates(args) -> None:
             load_adapter_checkpoint(model, ROOT / spec.checkpoint)
             payload = torch.load(args.output / "cache/candidates" / f"{spec.key}.pt", map_location="cpu", weights_only=False)
             records = payload["records"]
+            if args.candidate_limit:
+                records = records[:args.candidate_limit]
             for horizon in HORIZONS:
                 for mode in ("current", "history"):
                     key = f"{spec.key}__final_post_norm__product__k{horizon}__{mode}"
@@ -1210,6 +1212,7 @@ def parser() -> argparse.ArgumentParser:
     p = sub.add_parser("score-candidates", parents=[common])
     p.add_argument("--probe-batch-size", type=int, default=512)
     p.add_argument("--candidate-record-batch", type=int, default=128)
+    p.add_argument("--candidate-limit", type=int, default=0)
     p.set_defaults(function=score_candidates)
     sub.add_parser("summarize", parents=[common]).set_defaults(function=summarize)
     return root
