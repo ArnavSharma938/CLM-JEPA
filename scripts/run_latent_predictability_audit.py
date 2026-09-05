@@ -307,6 +307,48 @@ def decode_probe_scores(
     return torch.cat(output) if output else torch.empty((0, basis.mean.numel()))
 
 
+def fixed_shape_logits(states: torch.Tensor, weight: torch.Tensor, batch_size: int) -> torch.Tensor:
+    """Project rows with a fixed GEMM shape so grouping cannot change BF16 logits."""
+    output = []
+    for start in range(0, len(states), batch_size):
+        chunk = states[start:start + batch_size].to(device=weight.device, dtype=weight.dtype)
+        count = len(chunk)
+        if count < batch_size:
+            chunk = torch.cat([
+                chunk,
+                torch.zeros(
+                    batch_size - count, chunk.shape[1],
+                    device=chunk.device, dtype=chunk.dtype,
+                ),
+            ])
+        output.append((chunk @ weight.T)[:count])
+    return torch.cat(output) if output else torch.empty(0, weight.shape[0], device=weight.device)
+
+
+def fixed_shape_decoder_metrics(
+    true_logits: torch.Tensor, predicted_logits: torch.Tensor,
+    gold: torch.Tensor, batch_size: int,
+) -> dict[str, torch.Tensor]:
+    """Evaluate row metrics with fixed kernel shapes, independent of record grouping."""
+    output = defaultdict(list)
+    for start in range(0, len(gold), batch_size):
+        end = min(start + batch_size, len(gold))
+        count = end - start
+        true_chunk = true_logits[start:end]
+        predicted_chunk = predicted_logits[start:end]
+        gold_chunk = gold[start:end]
+        if count < batch_size:
+            pad = batch_size - count
+            true_chunk = torch.cat([true_chunk, torch.zeros(pad, true_chunk.shape[1], device=true_chunk.device, dtype=true_chunk.dtype)])
+            predicted_chunk = torch.cat([predicted_chunk, torch.zeros(pad, predicted_chunk.shape[1], device=predicted_chunk.device, dtype=predicted_chunk.dtype)])
+            gold_chunk = torch.cat([gold_chunk, torch.zeros(pad, device=gold_chunk.device, dtype=gold_chunk.dtype)])
+        for name, values in decoder_distribution_metrics(
+            true_chunk, predicted_chunk, gold_chunk
+        ).items():
+            output[name].append(values[:count])
+    return {name: torch.cat(values) for name, values in output.items()}
+
+
 def load_probe_predictions(path: Path, values: torch.Tensor, kind: str, device: str, batch_size: int):
     artifact = torch.load(path, map_location="cpu", weights_only=False)
     predictions = probe_predictions_from_artifact(
@@ -1159,19 +1201,22 @@ def score_candidates(args) -> None:
                             kinds=probes,
                             fixed_batch_shape=True,
                         )
-                        true_logits = y.to(
-                            device=args.device, dtype=weight.dtype
-                        ) @ weight.T
+                        true_logits = fixed_shape_logits(
+                            y, weight, args.probe_batch_size
+                        )
                         functional_by_probe = {}
                         for kind in probes:
                             prediction = predictions[kind]
                             gold = torch.tensor([row["gold_id"] for row in metadata], device=args.device)
                             functional_by_probe[kind] = {
                                 name: values.float().cpu()
-                                for name, values in decoder_distribution_metrics(
+                                for name, values in fixed_shape_decoder_metrics(
                                 true_logits,
-                                prediction.to(device=args.device, dtype=weight.dtype) @ weight.T,
+                                fixed_shape_logits(
+                                    prediction, weight, args.probe_batch_size
+                                ),
                                 gold,
+                                args.probe_batch_size,
                                 ).items()
                             }
                         counts = [0] * len(chunk)
