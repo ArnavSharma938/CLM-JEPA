@@ -886,6 +886,7 @@ def score_decoder(args) -> None:
                     work = defaultdict(list)
                     for cell_key, cell in cells.items():
                         cell["true_rows"] = []
+                        cell["reference_rows"] = []
                         cell["predicted_rows"] = {
                             kind: [] for kind in cell["predictions"]
                         }
@@ -924,40 +925,8 @@ def score_decoder(args) -> None:
                             reference = record["states"]["final_post_norm"][
                                 future_index
                             ].float().to(args.device)
-                            difference = replayed[0].float() - reference
-                            parity_rms = float(difference.square().mean().sqrt())
-                            parity_cosine = float(F.cosine_similarity(
-                                replayed[0].float(), reference, dim=0
-                            ))
-                            # Predictor-only special tokens are appended after
-                            # the native ChemFM vocabulary and are forbidden at
-                            # reaction generation time. Decoder diagnostics and
-                            # replay parity must use that same native support.
-                            weight = model.get_output_embeddings().weight[:chemfm_vocab]
-                            replay_top1 = int((replayed[0].to(weight.dtype) @ weight.T).argmax())
-                            reference_top1 = int((reference.to(weight.dtype) @ weight.T).argmax())
-                            top1_mismatch = int(replay_top1 != reference_top1)
-                            if parity_rms > 2e-2 or parity_cosine < 0.999:
-                                raise RuntimeError(
-                                    "true-state suffix replay failed full-forward parity: "
-                                    f"checkpoint={spec.key} layer={layer} "
-                                    f"reaction={reaction_identity} position={future_index} "
-                                    f"max_abs={float(difference.abs().max())} "
-                                    f"rms={parity_rms} cosine={parity_cosine} "
-                                    f"top1={replay_top1}/{reference_top1}"
-                                )
-                            parity_error = float(difference.abs().max())
-                            cell["parity_max_abs"] = max(
-                                cell["parity_max_abs"], parity_error
-                            )
-                            cell["parity_max_rms"] = max(
-                                cell["parity_max_rms"], parity_rms
-                            )
-                            cell["parity_min_cosine"] = min(
-                                cell["parity_min_cosine"], parity_cosine
-                            )
-                            cell["parity_top1_mismatches"] += top1_mismatch
                             cell["true_rows"].append((index, replayed[0]))
+                            cell["reference_rows"].append((index, reference))
                             for offset, kind in enumerate(cell["predictions"], 1):
                                 cell["predicted_rows"][kind].append(
                                     (index, replayed[offset])
@@ -967,6 +936,36 @@ def score_decoder(args) -> None:
                         cell["true_final"] = torch.stack([
                             value for _, value in sorted(cell.pop("true_rows"))
                         ])
+                        references = torch.stack([
+                            value for _, value in sorted(cell.pop("reference_rows"))
+                        ])
+                        difference = cell["true_final"].float() - references
+                        rms = difference.square().mean(-1).sqrt()
+                        cosine = F.cosine_similarity(
+                            cell["true_final"].float(), references, dim=-1
+                        )
+                        weight = model.get_output_embeddings().weight[:chemfm_vocab]
+                        replay_top1 = (
+                            cell["true_final"].to(weight.dtype) @ weight.T
+                        ).argmax(-1)
+                        reference_top1 = (
+                            references.to(weight.dtype) @ weight.T
+                        ).argmax(-1)
+                        cell["parity_max_abs"] = float(difference.abs().max())
+                        cell["parity_max_rms"] = float(rms.max())
+                        cell["parity_min_cosine"] = float(cosine.min())
+                        cell["parity_top1_mismatches"] = int(
+                            replay_top1.ne(reference_top1).sum()
+                        )
+                        if (cell["parity_max_rms"] > 2e-2
+                                or cell["parity_min_cosine"] < 0.999):
+                            raise RuntimeError(
+                                "true-state suffix replay failed full-forward parity: "
+                                f"checkpoint={spec.key} layer={layer} "
+                                f"max_abs={cell['parity_max_abs']} "
+                                f"max_rms={cell['parity_max_rms']} "
+                                f"min_cosine={cell['parity_min_cosine']}"
+                            )
                         cell["predicted_final"] = {
                             kind: torch.stack([
                                 value for _, value in sorted(values)
@@ -989,6 +988,12 @@ def score_decoder(args) -> None:
                         metrics = decoder_distribution_metrics(
                             true_logits, prediction_logits, gold
                         )
+                        # One device transfer replaces thousands of scalar GPU
+                        # synchronizations in support/reaction reductions.
+                        metrics_cpu = {
+                            name: values.float().cpu()
+                            for name, values in metrics.items()
+                        }
                         support_metrics = {}
                         reaction_metrics = {}
                         for support, mask_np in flags.items():
@@ -996,10 +1001,8 @@ def score_decoder(args) -> None:
                             if not len(selected):
                                 continue
                             support_metrics[support] = {
-                                name: float(values[
-                                    torch.tensor(selected, device=values.device)
-                                ].float().mean())
-                                for name, values in metrics.items()
+                                name: float(values[torch.tensor(selected)].mean())
+                                for name, values in metrics_cpu.items()
                             }
                             grouped = {}
                             for index in selected:
@@ -1008,10 +1011,8 @@ def score_decoder(args) -> None:
                                 ).append(int(index))
                             reaction_metrics[support] = {
                                 reaction: {
-                                    name: float(values[
-                                        torch.tensor(indices, device=values.device)
-                                    ].float().mean())
-                                    for name, values in metrics.items()
+                                    name: float(values[torch.tensor(indices)].mean())
+                                    for name, values in metrics_cpu.items()
                                 }
                                 for reaction, indices in sorted(grouped.items())
                             }
@@ -1032,7 +1033,7 @@ def score_decoder(args) -> None:
                             "true_state_replay_max_rms_error": cell["parity_max_rms"],
                             "true_state_replay_min_cosine": cell["parity_min_cosine"],
                             "true_state_replay_top1_mismatches": cell["parity_top1_mismatches"],
-                            **{name:float(value.float().mean()) for name,value in metrics.items()},
+                            **{name:float(value.mean()) for name,value in metrics_cpu.items()},
                             "supports": support_metrics,
                             "reaction_metrics": reaction_metrics,
                         }
