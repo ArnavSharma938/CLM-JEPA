@@ -104,6 +104,20 @@ def test_decoder_metrics_direction_and_overlap():
     assert same["top2_overlap"].item() == 1
 
 
+def test_decoder_metrics_are_row_batch_invariant():
+    generator = torch.Generator().manual_seed(41)
+    true = torch.randn(11, 17, generator=generator)
+    predicted = torch.randn(11, 17, generator=generator)
+    gold = torch.randint(0, 17, (11,), generator=generator)
+    together = decoder_distribution_metrics(true, predicted, gold, topk=(5, 10))
+    split = [
+        decoder_distribution_metrics(true[start:end], predicted[start:end], gold[start:end], topk=(5, 10))
+        for start, end in ((0, 4), (4, 11))
+    ]
+    for name, values in together.items():
+        assert torch.equal(values, torch.cat([part[name] for part in split]))
+
+
 def test_invariance_ratio_is_zero_for_identical_views():
     values = torch.tensor([[[1.0, 0.0], [1.0, 0.0]], [[0.0, 1.0], [0.0, 1.0]]])
     result = invariance_metrics(values)

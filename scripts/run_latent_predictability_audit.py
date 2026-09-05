@@ -1066,31 +1066,57 @@ def score_candidates(args) -> None:
                         args.output / "probes" / f"{key}.pt",
                         map_location="cpu", weights_only=False,
                     )
-                    for record in records:
-                        x, y, metadata = forecast_matrices([record], "final_post_norm", "product", horizon, mode)
-                        if not len(x): continue
-                        beam = record["beam_metadata"]
+                    weight = model.get_output_embeddings().weight[:chemfm_vocab]
+                    for start in range(0, len(records), args.candidate_record_batch):
+                        chunk = records[start:start + args.candidate_record_batch]
+                        plan, metadata = forecast_plan(chunk, "product", horizon)
+                        if not plan:
+                            continue
+                        x, y = materialize_forecast_plan(
+                            chunk, "final_post_norm", mode, plan
+                        )
                         predictions = probe_predictions_from_artifact(
                             artifact, x, args.device, args.probe_batch_size,
                         )
+                        true_logits = y.to(
+                            device=args.device, dtype=weight.dtype
+                        ) @ weight.T
+                        functional_by_probe = {}
                         for kind in ("constant", "ridge", "residual_mlp"):
                             prediction = predictions[kind]
-                            latent = latent_metrics(y, prediction, artifact["basis"].mean)
-                            weight = model.get_output_embeddings().weight[:chemfm_vocab]
                             gold = torch.tensor([row["gold_id"] for row in metadata], device=args.device)
-                            functional = decoder_distribution_metrics(
-                                y.to(device=args.device, dtype=weight.dtype) @ weight.T,
+                            functional_by_probe[kind] = {
+                                name: values.float().cpu()
+                                for name, values in decoder_distribution_metrics(
+                                true_logits,
                                 prediction.to(device=args.device, dtype=weight.dtype) @ weight.T,
                                 gold,
-                            )
-                            row = {
-                                "checkpoint":spec.key, "reaction_identity":record["reaction_identity"],
-                                "panel_index":beam["panel_index"], "view":beam["view"], "role":beam["role"],
-                                "candidate":beam["candidate"], "horizon":horizon, "mode":mode, "probe":kind,
-                                **{f"latent_{name}":value for name,value in latent.items()},
-                                **{f"decoder_{name}":float(value.float().mean()) for name,value in functional.items()},
+                                ).items()
                             }
-                            handle.write(json.dumps(row) + "\n")
+                        counts = [0] * len(chunk)
+                        for record_index, _, _ in plan:
+                            counts[record_index] += 1
+                        cursor = 0
+                        for record_index, (record, count) in enumerate(zip(chunk, counts)):
+                            if not count:
+                                continue
+                            chosen = slice(cursor, cursor + count)
+                            cursor += count
+                            beam = record["beam_metadata"]
+                            for kind in ("constant", "ridge", "residual_mlp"):
+                                latent = latent_metrics(
+                                    y[chosen], predictions[kind][chosen],
+                                    artifact["basis"].mean,
+                                )
+                                functional = functional_by_probe[kind]
+                                row = {
+                                    "checkpoint":spec.key, "reaction_identity":record["reaction_identity"],
+                                    "panel_index":beam["panel_index"], "view":beam["view"], "role":beam["role"],
+                                    "candidate":beam["candidate"], "horizon":horizon, "mode":mode, "probe":kind,
+                                    **{f"latent_{name}":value for name,value in latent.items()},
+                                    **{f"decoder_{name}":float(value[chosen].mean()) for name,value in functional.items()},
+                                }
+                                handle.write(json.dumps(row) + "\n")
                     handle.flush()
                 print(json.dumps({"stage":"candidate_scores_complete", "checkpoint":spec.key, "horizon":horizon}), flush=True)
 
@@ -1183,6 +1209,7 @@ def parser() -> argparse.ArgumentParser:
     p.set_defaults(function=score_decoder)
     p = sub.add_parser("score-candidates", parents=[common])
     p.add_argument("--probe-batch-size", type=int, default=512)
+    p.add_argument("--candidate-record-batch", type=int, default=128)
     p.set_defaults(function=score_candidates)
     sub.add_parser("summarize", parents=[common]).set_defaults(function=summarize)
     return root
