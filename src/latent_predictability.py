@@ -529,10 +529,14 @@ def clone_cropped_cache(cache: DynamicCache, length: int, batch_size: int = 1) -
             return []
         cropped = value[..., :length, :]
         if cropped.shape[0] == batch_size:
-            return cropped.clone()
+            return cropped
         if cropped.shape[0] != 1:
             raise ValueError("cached prefix batch cannot be expanded")
-        return cropped.expand(batch_size, *cropped.shape[1:]).clone()
+        # transformers==4.45.2 DynamicCache.update concatenates a new tensor
+        # and only rebinds the child cache entry; it never mutates the prefix
+        # storage. An expanded view is therefore exact and avoids copying the
+        # entire remaining-layer KV prefix at every diagnostic position.
+        return cropped.expand(batch_size, *cropped.shape[1:])
     result.key_cache = [expand(value) for value in cache.key_cache]
     result.value_cache = [expand(value) for value in cache.value_cache]
     result._seen_tokens = length
