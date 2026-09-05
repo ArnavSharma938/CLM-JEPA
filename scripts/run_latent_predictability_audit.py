@@ -22,6 +22,7 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn.functional as F
+from rdkit import Chem
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
