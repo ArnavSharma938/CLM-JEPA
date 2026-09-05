@@ -176,15 +176,17 @@ def forecast_plan(
 def materialize_forecast_plan(
     records: Sequence[dict], layer: str, mode: str,
     plan: Sequence[tuple[int, Sequence[int], int]], history: int = 3,
+    state_cache: Mapping[int, torch.Tensor] | None = None,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """Gather only the forecast rows selected from a state-free plan."""
     if mode not in {"current", "history"}:
         raise ValueError("mode must be current or history")
     xs, ys = [], []
-    state_cache = {
-        record_index: records[record_index]["states"][layer].float()
-        for record_index in {row[0] for row in plan}
-    }
+    if state_cache is None:
+        state_cache = {
+            record_index: records[record_index]["states"][layer].float()
+            for record_index in {row[0] for row in plan}
+        }
     for record_index, past, future in plan:
         states = state_cache[record_index]
         xs.append(states[past[-1]] if mode == "current" else states[list(past)].reshape(-1))

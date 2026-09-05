@@ -76,6 +76,15 @@ def test_forecast_plan_gather_is_exact_and_selection_preserves_order():
     )
     assert torch.equal(x_selected, x_reference[chosen])
     assert torch.equal(y_selected, y_reference[chosen])
+    cached_states = {
+        index: record["states"]["layer_6"].float()
+        for index, record in enumerate(records)
+    }
+    x_cached, y_cached = materialize_forecast_plan(
+        records, "layer_6", "history", plan, state_cache=cached_states
+    )
+    assert torch.equal(x_cached, x_reference)
+    assert torch.equal(y_cached, y_reference)
 
 
 def test_latent_metrics_have_unit_constant_nmse_and_zero_r2():

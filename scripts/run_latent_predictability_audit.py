@@ -809,16 +809,20 @@ def score_decoder(args) -> None:
             for layer in LAYERS:
                 if args.layers and layer not in args.layers.split(","):
                     continue
+                layer_records = (
+                    test_records if layer == "final_post_norm"
+                    else decoder_records
+                )
+                layer_state_cache = {
+                    index: record["states"][layer].float()
+                    for index, record in enumerate(layer_records)
+                }
                 cells = {}
                 for segment in ("source", "product"):
                     for horizon in HORIZONS:
                         for mode in ("current", "history"):
-                            cell_records = (
-                                test_records if layer == "final_post_norm"
-                                else decoder_records
-                            )
                             plan, metadata = forecast_plan(
-                                cell_records, segment, horizon
+                                layer_records, segment, horizon
                             )
                             if not plan:
                                 continue
@@ -849,7 +853,8 @@ def score_decoder(args) -> None:
                                 plan = [plan[index] for index in indices]
                                 metadata = [metadata[index] for index in indices]
                             x, y = materialize_forecast_plan(
-                                cell_records, layer, mode, plan
+                                layer_records, layer, mode, plan,
+                                state_cache=layer_state_cache,
                             )
                             key = f"{spec.key}__{layer}__{segment}__k{horizon}__{mode}"
                             artifact = torch.load(
@@ -863,6 +868,9 @@ def score_decoder(args) -> None:
                                 "key": key, "x": x, "y": y, "metadata": metadata,
                                 "predictions": predictions,
                                 "parity_max_abs": 0.0,
+                                "parity_max_rms": 0.0,
+                                "parity_min_cosine": 1.0,
+                                "parity_top1_mismatches": 0,
                             }
 
                 if layer == "final_post_norm":
@@ -916,21 +924,36 @@ def score_decoder(args) -> None:
                             reference = record["states"]["final_post_norm"][
                                 future_index
                             ].float().to(args.device)
-                            if not torch.allclose(
-                                replayed[0].float(), reference, rtol=2e-2, atol=2e-2
-                            ):
+                            difference = replayed[0].float() - reference
+                            parity_rms = float(difference.square().mean().sqrt())
+                            parity_cosine = float(F.cosine_similarity(
+                                replayed[0].float(), reference, dim=0
+                            ))
+                            weight = model.get_output_embeddings().weight
+                            replay_top1 = int((replayed[0].to(weight.dtype) @ weight.T).argmax())
+                            reference_top1 = int((reference.to(weight.dtype) @ weight.T).argmax())
+                            top1_mismatch = int(replay_top1 != reference_top1)
+                            if (parity_rms > 2e-2 or parity_cosine < 0.999
+                                    or top1_mismatch):
                                 raise RuntimeError(
                                     "true-state suffix replay failed full-forward parity: "
                                     f"checkpoint={spec.key} layer={layer} "
                                     f"reaction={reaction_identity} position={future_index} "
-                                    f"max_abs={float((replayed[0].float() - reference).abs().max())}"
+                                    f"max_abs={float(difference.abs().max())} "
+                                    f"rms={parity_rms} cosine={parity_cosine} "
+                                    f"top1={replay_top1}/{reference_top1}"
                                 )
-                            parity_error = float(
-                                (replayed[0].float() - reference).abs().max()
-                            )
+                            parity_error = float(difference.abs().max())
                             cell["parity_max_abs"] = max(
                                 cell["parity_max_abs"], parity_error
                             )
+                            cell["parity_max_rms"] = max(
+                                cell["parity_max_rms"], parity_rms
+                            )
+                            cell["parity_min_cosine"] = min(
+                                cell["parity_min_cosine"], parity_cosine
+                            )
+                            cell["parity_top1_mismatches"] += top1_mismatch
                             cell["true_rows"].append((index, replayed[0]))
                             for offset, kind in enumerate(cell["predictions"], 1):
                                 cell["predicted_rows"][kind].append(
@@ -1003,6 +1026,9 @@ def score_decoder(args) -> None:
                                 args.decoder_rare_positions if layer != "final_post_norm" else None
                             ),
                             "true_state_replay_max_abs_error": cell["parity_max_abs"],
+                            "true_state_replay_max_rms_error": cell["parity_max_rms"],
+                            "true_state_replay_min_cosine": cell["parity_min_cosine"],
+                            "true_state_replay_top1_mismatches": cell["parity_top1_mismatches"],
                             **{name:float(value.float().mean()) for name,value in metrics.items()},
                             "supports": support_metrics,
                             "reaction_metrics": reaction_metrics,
