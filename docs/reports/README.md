@@ -1,6 +1,6 @@
 # CLM-JEPA scientific reports
 
-This directory contains two current evidence records. The reports separate
+This directory contains three current evidence records. The reports separate
 measured results from scope limits and do not use representation diagnostics as
 substitutes for generated exact match.
 
@@ -18,6 +18,10 @@ substitutes for generated exact match.
    frozen Geodesic Mechanism Audit of tube scale, intrinsic and decoder-Fisher
    geometry, predictive perpendicular motion, beam trajectories, and inference
    cones.
+3. [Untouched STP confirmation and latent predictability](02_STP_CONFIRMATION_AND_LATENT_PREDICTABILITY.md)
+   records the independent 640-reaction/four-seed confirmation and the frozen
+   future-state predictability, decoder-coupling, chemical-view invariance,
+   candidate replay, and joint predictability-by-invariance audit.
 
 ## Endpoint summary
 
@@ -27,8 +31,11 @@ substitutes for generated exact match.
 | Persistent pair residual | Three-seed mean top-1 effect `-1.04` pp; crossed CI `[-3.52,+1.17]`; preregistered verdict **FAIL** for the tested trajectory |
 | Released STP r8/.02 | Seed effects `+2.15,+.98,-1.17` pp; mean `+.65`; crossed CI `[-1.17,+2.54]` |
 | Paper STP r8/.02 | Seed effects `+1.37,+1.37` pp; crossed CI `[+.39,+2.54]` on the repeatedly used development panel |
-| STP program | Preregistered development verdict **INCONCLUSIVE**; no untouched-panel confirmation was run |
+| STP development program | Report 01's repeatedly used development panel was **INCONCLUSIVE**; confirmation status is reported separately below |
 | Literal final-layer Euclidean geodesic mechanism | Not supported: no small-radius/positive-persistence local tube, no consistent STP straightening, and perpendicular motion remains predictively active |
+| Released STP untouched confirmation | Four new seed effects `+.469,+.625,+.625,+.469` pp; mean `+.547` pp; crossed CI `[-.195,+1.328]`; Holm p `.1025`; **INCONCLUSIVE** |
+| Paper STP untouched confirmation | Four new seed effects `+.625,+.781,-.938,0` pp; mean `+.117` pp; crossed CI `[-.898,+1.133]`; not supported on the confirmation panel |
+| Frozen latent mechanism | Native final-product `R2=.641,.432,.161,.008` at k=1/2/4/8; neither STP increases predictable fraction, decoder preservation, or final cross-view invariance consistently |
 
 Former report text and historical implementation paths remain recoverable from
 Git history. Decision-relevant protocols, measurements, uncertainty, limits,
