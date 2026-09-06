@@ -69,8 +69,8 @@ def active_weight(module):
 def extract(smoke=False):
     from chemfm import (MODEL_DIR, TOKENIZER_DIR, load_reaction_tokenizer,
                         load_lora_model, ReactionCollator, REACTANT_START, PRODUCT_START, END)
-    from jepa import add_predictor_tokens
-    from train import load_adapter_checkpoint
+    from chemfm import add_predictor_tokens
+    from chemfm import load_adapter_checkpoint
     from frozen_geometry import _sampled_parameter_fingerprint
     split = json.loads(SPLIT.read_text())
     assert Counter(r["split"] for r in split["records"]) == {"train":640,"validation":192,"test":192}

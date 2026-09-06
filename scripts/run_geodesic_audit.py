@@ -56,9 +56,9 @@ from src.geodesic_audit import (
     tangent_autocorrelation,
     tube_scale_space,
 )
-from src.jepa import add_predictor_tokens
+from src.chemfm import add_predictor_tokens
 from src.stp_representation_analysis import CheckpointSpec, checkpoint_specs, validate_checkpoint_specs
-from src.train import load_adapter_checkpoint
+from src.chemfm import load_adapter_checkpoint
 
 
 DEFAULT_OUTPUT = ROOT / "runs" / "geodesic_mechanism_audit"

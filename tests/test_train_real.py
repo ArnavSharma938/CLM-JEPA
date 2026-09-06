@@ -30,12 +30,12 @@ def test_one_real_batch_covers_training_tracking_validation_checkpoint_and_outpu
         str(ROOT / "src" / "train.py"),
         "--gate", "4",
         "--dataset", "uspto_mit_synthesis",
-        "--condition", "clm_jepa",
+        "--condition", "native",
         "--seed", "533",
         "--learning-rate", "0.0001",
-        "--k", "1",
+        "--k", "0",
         "--lambda-eff", "1.0",
-        "--dropout", "0.0",
+        "--dropout", "0.5",
         "--epochs", "1",
         "--batch-size", "4",
         "--gradient-accumulation-steps", "2",
@@ -56,7 +56,7 @@ def test_one_real_batch_covers_training_tracking_validation_checkpoint_and_outpu
     subprocess.run(command, cwd=ROOT, env=environment, check=True)
     result = json.loads(output.read_text(encoding="utf-8"))
     assert result["compute"]["optimizer_steps"] == 1
-    assert result["compute"]["jepa_active_microbatches"] == 1
+    assert result["compute"]["jepa_active_microbatches"] == 0
     assert result["validation_metrics"]
     assert result["diagnostics"]
     assert result["predictions"]

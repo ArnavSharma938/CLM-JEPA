@@ -32,7 +32,7 @@ from frozen_geometry import (  # noqa: E402
     MOTIF_QUERIES, annotate_example, _atom_spans,
     _sampled_parameter_fingerprint,
 )
-from jepa import add_predictor_tokens  # noqa: E402
+from chemfm import add_predictor_tokens  # noqa: E402
 from latent_predictability import (  # noqa: E402
     HORIZONS, LAYERS, ResidualMLPProbe, RidgeProbe, Standardizer, TargetBasis,
     assert_disjoint_confirmation, canonical_atom_correspondence,
@@ -45,7 +45,7 @@ from latent_predictability import (  # noqa: E402
     shuffled_reaction_targets,
 )
 from stp_representation_analysis import checkpoint_specs  # noqa: E402
-from train import load_adapter_checkpoint  # noqa: E402
+from chemfm import load_adapter_checkpoint  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "scripts"))
 from run_geodesic_audit import (  # noqa: E402

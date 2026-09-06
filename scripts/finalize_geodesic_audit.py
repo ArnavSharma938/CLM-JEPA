@@ -50,7 +50,7 @@ def run(root: Path) -> None:
     for relative in (
         "src/geodesic_audit.py", "scripts/run_geodesic_audit.py",
         "scripts/summarize_geodesic_audit.py",
-        "docs/preregistrations/GEODESIC_MECHANISM_AUDIT_PROTOCOL.md",
+        "docs/reports/PROTOCOL_ARCHIVE.md",
     ):
         path = ROOT / relative
         sources.append({"path": relative, "sha256": sha256(path)})

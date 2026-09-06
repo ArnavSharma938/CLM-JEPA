@@ -40,8 +40,8 @@ from frozen_geometry import (
     read_panel,
     read_stereo_supplement,
 )
-from jepa import add_predictor_tokens
-from train import load_adapter_checkpoint
+from chemfm import add_predictor_tokens
+from chemfm import load_adapter_checkpoint
 
 
 ROOT = Path(__file__).resolve().parents[1]

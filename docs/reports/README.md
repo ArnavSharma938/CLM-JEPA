@@ -1,5 +1,9 @@
 # CLM-JEPA scientific reports
 
+Historical protocols are consolidated in [PROTOCOL_ARCHIVE.md](PROTOCOL_ARCHIVE.md).
+Retired implementations and pre-cleanup analysis source are recoverable at
+commit `3b9b9b6`; see [cleanup boundaries](../CLEANUP.md).
+
 This directory contains four current evidence records. The reports separate
 measured results from scope limits and do not use representation diagnostics as
 substitutes for generated exact match.

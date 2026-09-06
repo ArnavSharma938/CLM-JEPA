@@ -22,7 +22,7 @@ from chemfm import (  # noqa: E402
     MODEL_DIR, TOKENIZER_DIR, ReactionCollator, load_lora_model,
     load_reaction_tokenizer,
 )
-from jepa import add_predictor_tokens  # noqa: E402
+from chemfm import add_predictor_tokens  # noqa: E402
 from stp import PaperSemanticTubePrediction, SemanticTubePrediction  # noqa: E402
 
 

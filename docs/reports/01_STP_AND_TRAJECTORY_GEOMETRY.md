@@ -1168,13 +1168,13 @@ than choosing the numerically favorable formulation after repeated panel use.
 | Report 09 preregistration | `runs/stp_completion/a6000/required/preregistration.json` |
 | Report 09 analysis/archive | `runs/stp_completion/a6000/analysis.json`; `runs/stp_completion/stp_completion_l40_compact.tar.zst` |
 | Seed-1301 beam/token diagnoses | `runs/stp_completion/a6000/existing_diagnostics/` |
-| Representation protocol | `docs/preregistrations/STP_REPRESENTATION_GEOMETRY_PROTOCOL.md` |
+| Representation protocol | `docs/reports/PROTOCOL_ARCHIVE.md`, STP_REPRESENTATION_GEOMETRY_PROTOCOL.md section |
 | Frozen extractor/analyzer | `src/stp_representation_analysis.py`; `scripts/analyze_stp_representations.py` |
 | Raw frozen outputs | `runs/stp_representation/frozen_all_checkpoints/` |
 | Derived analysis | `runs/stp_representation/analysis/analysis.json` |
 | Final table/event tests | `runs/stp_representation/analysis/configuration_final_layer.csv`; `event_treatment_effects.csv` |
 | Plots | `runs/stp_representation/analysis/*.svg` |
-| Geodesic audit preregistration | `docs/preregistrations/GEODESIC_MECHANISM_AUDIT_PROTOCOL.md` |
+| Geodesic audit preregistration | `docs/reports/PROTOCOL_ARCHIVE.md`, GEODESIC_MECHANISM_AUDIT_PROTOCOL.md section |
 | Geodesic implementation | `src/geodesic_audit.py`; `scripts/run_geodesic_audit.py`; `scripts/summarize_geodesic_audit.py` |
 | Geodesic canonical analysis | `runs/geodesic_mechanism_audit/analysis.json`; `runs/geodesic_mechanism_audit/analysis/` |
 | Post-canonical derived manifest | `runs/geodesic_mechanism_audit/derived_supplement_manifest.json` |

@@ -39,7 +39,7 @@ from chemfm import (
     load_lora_model,
     load_reaction_tokenizer,
 )
-from jepa import add_predictor_tokens
+from chemfm import add_predictor_tokens
 
 
 RDLogger.DisableLog("rdApp.*")

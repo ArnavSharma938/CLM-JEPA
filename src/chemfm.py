@@ -1,8 +1,8 @@
 """Shared ChemFM model, tokenizer, reaction collation, and generation utilities.
 
-This module owns the unchanged task-facing path used by native ChemFM,
-endpoint cLM-JEPA, and dense V-JEPA-style training. Auxiliary objectives live
-in :mod:`jepa` and :mod:`vjepa2_1`; generation remains ordinary ChemFM.
+This module owns the task-facing path used by Native/STP and frozen audits.
+Reserved-token helpers preserve historical checkpoint compatibility;
+generation remains ordinary ChemFM.
 """
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ from typing import Sequence
 
 import torch
 from peft import LoraConfig, get_peft_model
+from peft.utils.save_and_load import load_peft_weights, set_peft_model_state_dict
 from rdkit import Chem, RDLogger
 from torch.nn.utils.rnn import pad_sequence
 from transformers import AutoConfig, AutoTokenizer, LlamaForCausalLM
@@ -32,6 +33,27 @@ PAD_TOKEN = "[PAD]"
 REACTANT_START = "<rstart>"
 PRODUCT_START = "<prostart>"
 END = "<eos>"
+ADAPTER_NAME = "USPTO-MIT-Synthesis"
+PREDICTOR_TOKENS = [f"<|predictor_{index}|>" for index in range(1, 11)]
+
+
+def add_predictor_tokens(tokenizer, model=None) -> list[int]:
+    """Restore the reserved vocabulary needed by historical Native/STP adapters."""
+    tokenizer.add_special_tokens({"additional_special_tokens": PREDICTOR_TOKENS})
+    if model is not None and model.get_input_embeddings().weight.shape[0] != len(tokenizer):
+        model.resize_token_embeddings(len(tokenizer))
+    return tokenizer.convert_tokens_to_ids(PREDICTOR_TOKENS)
+
+
+def load_adapter_checkpoint(model, checkpoint: Path) -> None:
+    """Load a saved ChemFM adapter without importing any training objective."""
+    directory = checkpoint / ADAPTER_NAME
+    if not directory.exists():
+        directory = checkpoint
+    weights = load_peft_weights(str(directory), device=str(model.device))
+    result = set_peft_model_state_dict(model, weights, adapter_name=ADAPTER_NAME)
+    if getattr(result, "unexpected_keys", None):
+        raise RuntimeError(f"unexpected adapter checkpoint keys: {result.unexpected_keys}")
 
 
 class ExactPreallocatedDynamicCache(DynamicCache):

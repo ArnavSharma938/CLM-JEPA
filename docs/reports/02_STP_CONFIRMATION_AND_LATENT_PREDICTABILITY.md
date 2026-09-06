@@ -459,8 +459,8 @@ reactions from the already locked 1,280 manifest, with no further selection.
 
 | Artifact | Path |
 |---|---|
-| Confirmation protocol | `docs/preregistrations/STP_UNTOUCHED_CONFIRMATION_PROTOCOL.md` |
-| Audit protocol | `docs/preregistrations/LATENT_PREDICTABILITY_DECODER_COUPLING_PROTOCOL.md` |
+| Confirmation protocol | `docs/reports/PROTOCOL_ARCHIVE.md`, STP_UNTOUCHED_CONFIRMATION_PROTOCOL.md section |
+| Audit protocol | `docs/reports/PROTOCOL_ARCHIVE.md`, LATENT_PREDICTABILITY_DECODER_COUPLING_PROTOCOL.md section |
 | Confirmation manifest | `data/clm_jepa_uspto_mit_stp_confirmation/untouched_640.jsonl` |
 | Confirmation analysis | `runs/stp_confirmation/a6000/analysis/confirmation.json` |
 | Reaction-level top-1 | `runs/stp_confirmation/a6000/analysis/reaction_level_top1.jsonl` |
