@@ -34,6 +34,13 @@ PANEL = ROOT / "data/clm_jepa_uspto_mit_validation_1024/uspto_mit_validation_102
 SEEDS = (533, 917)
 PROBE_SEED = 20260904
 ARMS = ("A", "B", "C", "D", "C_shuffle")
+DECODER_FIELDS = ("kl_true_predicted", "js", "top1_agreement", "top5_overlap", "top10_overlap",
+                  "gold_log_probability", "gold_probability", "gold_rank", "gold_margin")
+
+
+def decoder_weight(payload, native_vocab):
+    weight = payload["lm_head"]
+    return weight[:payload["provenance"]["native_vocab"]] if native_vocab else weight
 
 
 def save_json(path, value):
@@ -240,7 +247,7 @@ def probe_smoke():
     log(stage="probe_smoke_complete",batches=records)
 
 
-def fit(seed, stage):
+def fit(seed, stage, arms=None):
     prep = prepare(seed)
     payload = load(OUT/f"cache_native_{seed}.pt")
     chosen,basis = prep["chosen"],prep["basis"]
@@ -253,7 +260,7 @@ def fit(seed, stage):
     del payload
     ty = basis.encode(data["train"]["y"])
     vy = basis.encode(data["validation"]["y"])
-    for arm in ARMS if stage=="ridge" else ("A","C","D"):
+    for arm in arms or (ARMS if stage=="ridge" else ("A","C","D")):
         ridge_path = OUT/f"probe_{seed}_{arm}_ridge.pt"
         if stage == "ridge" and ridge_path.exists(): continue
         if stage == "mlp" and all((OUT/f"probe_{seed}_{arm}_mlp_{s}.pt").exists()
@@ -305,22 +312,20 @@ def fit(seed, stage):
 
 
 @torch.inference_mode()
-def evaluate(seed,stage):
-    destination=OUT/f"metrics_{seed}_{stage}.json"
+def evaluate(seed,stage,native_vocab=False):
+    destination=OUT/f"metrics_{seed}_{stage}{'_native' if native_vocab else ''}.json"
     if destination.exists(): return
     payload=load(OUT/f"cache_native_{seed}.pt")
     prep=load(OUT/f"preprocessing_{seed}.pt")
     basis=prep["basis"]
     data=rows(payload,"test")
-    head=payload["lm_head"].cuda()
-    # The oracle request specifies the unchanged saved head: retain every output
-    # (including reserved IDs), rather than Report 02's native-vocabulary renormalization.
+    head=decoder_weight(payload,native_vocab).cuda()
     assert data["gold"].max()<len(head)
     identities=[m["reaction_identity"] for m in data["metadata"]]
     unique=sorted(set(identities))
     groups={r:np.array([i for i,x in enumerate(identities) if x==r]) for r in unique}
     results={}
-    for arm in ARMS if stage=="ridge" else ("A","C","D"):
+    for arm in ARMS if stage=="ridge" else (("A","C","D","C_shuffle") if native_vocab else ("A","C","D")):
         artifact=load(OUT/f"probe_{seed}_{arm}_ridge.pt")
         x=artifact["standardizer"](inputs(data,payload["embedding"],arm))
         ridge=RidgeProbe(x.shape[1],256)
@@ -364,6 +369,7 @@ def evaluate(seed,stage):
         values={k:torch.cat(v).numpy() for k,v in pieces.items()}
         true_metrics={r:{k:float(v[idx].mean()) for k,v in values.items()} for r,idx in groups.items()}
     save_json(destination,dict(seed=seed,stage=stage,rows=len(identities),reactions=len(unique),
+                              decoder_vocab_size=len(head),decoder_vocabulary="native" if native_vocab else "full_saved_head",
                               pca_variance_coverage=basis.variance_coverage,results=results,true_metrics=true_metrics,
                               row_keys=[(m["reaction_identity"],m["current_index"]) for m in data["metadata"]]))
     log(stage="evaluation_complete",seed=seed,probe_stage=stage,rows=len(identities),reactions=len(unique))
@@ -388,16 +394,16 @@ def check_common():
     log(stage="common_rows_verified",**counts)
 
 
-def summarize():
+def summarize(native_vocab=True):
     metrics={}
     for seed in SEEDS:
         for stage in ("ridge","mlp"):
-            metrics[seed,stage]=json.loads((OUT/f"metrics_{seed}_{stage}.json").read_text())
+            metrics[seed,stage]=json.loads((OUT/f"metrics_{seed}_{stage}{'_native' if native_vocab else ''}.json").read_text())
     keys=metrics[533,"ridge"]["row_keys"]
     assert all(m["row_keys"]==keys for m in metrics.values())
     assert load(OUT/"preprocessing_533.pt")["selected_keys"]==load(OUT/"preprocessing_917.pt")["selected_keys"]
     identities=sorted(next(iter(metrics[533,"ridge"]["results"].values())))
-    names=[("ridge",arm) for arm in ARMS]+[("mlp",arm) for arm in ("A","C","D")]
+    names=[("ridge",arm) for arm in ARMS]+[("mlp",arm) for arm in (("A","C","D","C_shuffle") if native_vocab else ("A","C","D"))]
     # Preserve pairing across arms and checkpoints; MLP replicates average metrics, not predictions.
     cubes={}
     for stage,arm in names:
@@ -432,19 +438,21 @@ def summarize():
     paired={}
     for stage in ("ridge","mlp"):
         for baseline,improved in (("A","C"),("C","D")):
-            for field in ("r2","js","top1_agreement","gold_rank","gold_margin"):
+            for field in ("r2","normalized_mse",*DECODER_FIELDS):
                 array=np.array([[cubes[stage,improved][s][r][field]-cubes[stage,baseline][s][r][field]
                                  for r in identities] for s in range(2)])
                 paired[f"{stage}:{baseline}->{improved}:{field}"]=dict(mean=float(array.mean()),ci95=interval(array))
     for (left_stage,left_arm),(right_stage,right_arm) in [
             (("ridge","C_shuffle"),("ridge","C")),
+            *([(("mlp","C_shuffle"),("mlp","C"))] if native_vocab else []),
             *(( ("ridge",arm),("mlp",arm)) for arm in ("A","C","D"))]:
-        for field in ("r2","js","top1_agreement","gold_rank","gold_margin"):
+        for field in ("r2","normalized_mse",*DECODER_FIELDS):
             array=np.array([[cubes[right_stage,right_arm][s][r][field]-cubes[left_stage,left_arm][s][r][field]
                              for r in identities] for s in range(2)])
             paired[f"{left_stage}:{left_arm}->{right_stage}:{right_arm}:{field}"]=dict(
                 mean=float(array.mean()),ci95=interval(array))
     save_json(OUT/"summary.json",dict(rows=rows_out,conditional=conditional,paired=paired,
+              decoder_vocabulary="native (392 outputs)" if native_vocab else "full saved head (402 outputs); robustness only",
               pca_coverage={str(s):metrics[s,"ridge"]["pca_variance_coverage"] for s in SEEDS},
               uncertainty="4000 paired crossed checkpoint/reaction bootstrap draws; two checkpoints only",
               mlp_reduction="mean metrics of three independently initialized residual probes; no prediction ensemble"))
@@ -481,9 +489,10 @@ def summarize():
              "by having only two checkpoints. Conditional quantities use each reaction's SSE ratio first.", "",
              "All KL, JS, top-1/5/10, teacher probability/log-probability/rank/margin, latent cosine, centered "
              "cosine, SSE/SST, and per-reaction results are retained in metrics_*.json and table.csv. "
-             "Actual-state decoder references are in the ridge metrics files. Saved BF16 LM-head weights "
-             "are used unchanged over all saved outputs (402, including reserved IDs). Unlike "
-             "Report 02's decoder tables, there is no native-vocabulary truncation or renormalization.", "",
+             "Actual-state decoder references are in the ridge metrics files. Primary decoder metrics use "
+             "the unchanged BF16 lm_head[:native_vocab] (392 outputs), matching Report 02. "
+             "The original 402-output metrics are retained separately as a full-head robustness check; "
+             "their extra predictor/reserved tokens change the probability normalization.", "",
              "Ridge: AdamW lr=.003, weight_decay=.001; residual MLP: frozen ridge plus "
              "Linear(input,128)-GELU-Linear(128,256), weight_decay=.0001. Both use batch size 512, "
              "at most 20 epochs, validation-only early stopping (patience 3, improvement 1e-8). "

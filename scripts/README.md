@@ -33,3 +33,10 @@ fitted probes, reaction-level metrics, and paired uncertainty under
 Completed artifacts are reused; this path
 never trains ChemFM or generates tokens. The saved caches are local ignored
 run artifacts and must be retained separately from Git.
+
+For the Report 03 amendment, `amend_oracle_transition.py compute` uses only
+saved oracle caches and probes: it measures the test PCA ceiling, fits the
+six missing nonlinear shuffled-token probes, and scores the native vocabulary.
+`amend_oracle_transition.py summarize` regenerates the amended report and
+compact audit summaries. Original full-head metrics remain robustness-only;
+neither amendment stage calls ChemFM or generation.

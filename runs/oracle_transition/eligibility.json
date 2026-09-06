@@ -1,0 +1,32 @@
+{
+  "rows": {
+    "train": 23702,
+    "validation": 7000,
+    "test": 7287
+  },
+  "reaction_split": {
+    "test": 192,
+    "train": 640,
+    "validation": 192
+  },
+  "eligible_reaction_split": {
+    "test": 192,
+    "train": 640,
+    "validation": 192
+  },
+  "identical_tokens_positions_splits": true,
+  "inputs": "states t-3..t only; explicit oracle embedding x[t+1]",
+  "target": "h[t+1]",
+  "decoder_target": "x[t+2]",
+  "future_hidden_input_count": 0,
+  "confirmation_overlap": 0,
+  "confirmation_exclusion": {
+    "confirmation_manifest": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\data\\clm_jepa_uspto_mit_stp_confirmation\\untouched_640.jsonl",
+    "confirmation_sha256": "3655e58404c3509c04b15cd4ffcdf15723f9be62e76c48c676ccb7decf9e2945",
+    "confirmation_reactions": 640,
+    "chemical_pair_overlap": 0,
+    "official_identity_overlap": 0
+  },
+  "sampled_train_positions": 16384,
+  "common_rows_across_all_arms_and_seeds": true
+}

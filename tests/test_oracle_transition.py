@@ -6,6 +6,9 @@ import torch
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
 from run_oracle_transition import rows, inputs
+from run_oracle_transition import decoder_weight
+from amend_oracle_transition import projection_ceiling
+from latent_predictability import TargetBasis, decoder_distribution_metrics
 
 
 def test_common_product_rows_and_explicit_oracle_only():
@@ -38,3 +41,23 @@ def test_no_decoder_target_outside_product():
     data=rows(dict(records=[record]),"test")
     assert len(data["y"])==1
     assert data["metadata"][0]["decoder_target_index"]==7
+
+
+def test_projection_ceiling_uses_train_mean_and_equal_reaction_weights():
+    basis=TargetBasis(torch.zeros(2),torch.tensor([[1.,0.]]),.9)
+    values=torch.tensor([[1.,1.],[2.,0.],[0.,3.]])
+    measured=projection_ceiling(values,basis,["a","a","b"])
+    assert abs(measured["reaction_mean_r2"]-5/12)<1e-6
+    assert abs(measured["reaction_mean_normalized_mse"]-7/12)<1e-6
+    assert abs(measured["token_weighted_r2"]-1/3)<1e-6
+
+
+def test_native_vocabulary_excludes_reserved_argmax_and_probability_mass():
+    payload=dict(lm_head=torch.tensor([[1.,0.],[0.,1.],[0.,0.],[100.,100.]]),
+                 provenance=dict(native_vocab=3))
+    target=torch.tensor([[1.,0.]]);pred=torch.tensor([[0.,1.]])
+    full=decoder_weight(payload,False);native=decoder_weight(payload,True)
+    f=decoder_distribution_metrics(target@full.T,pred@full.T,torch.tensor([0]))
+    n=decoder_distribution_metrics(target@native.T,pred@native.T,torch.tensor([0]))
+    assert bool(f["top1_agreement"][0]) and not bool(n["top1_agreement"][0])
+    assert n["gold_probability"][0]>f["gold_probability"][0]

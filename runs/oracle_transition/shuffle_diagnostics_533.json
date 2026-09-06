@@ -1,0 +1,21 @@
+{
+  "train": {
+    "self_reaction_matches": 0,
+    "same_token_fraction": 0.1390380859375,
+    "mean_absolute_product_position_gap": 3.056396484375,
+    "mean_absolute_product_length_gap": 18.1346435546875
+  },
+  "validation": {
+    "self_reaction_matches": 0,
+    "same_token_fraction": 0.14142857491970062,
+    "mean_absolute_product_position_gap": 3.6607142857142856,
+    "mean_absolute_product_length_gap": 19.041714285714285
+  },
+  "test": {
+    "self_reaction_matches": 0,
+    "same_token_fraction": 0.13325099647045135,
+    "mean_absolute_product_position_gap": 3.0859064086729795,
+    "mean_absolute_product_length_gap": 17.77288321668725
+  },
+  "matching": "cross-reaction derangement; approximate product-position/length matching, not exact"
+}

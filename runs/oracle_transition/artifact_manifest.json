@@ -1,0 +1,211 @@
+{
+  "analysis_sources": {
+    "scripts/run_oracle_transition.py": "9a041fd356f432f147707151ef56431bd8bf261a76e4176a52bb07e4c1542396",
+    "scripts/amend_oracle_transition.py": "19c79dcc790d86369c18642f8ff09f4a6ecc3e3f59641567243fc750d0859913"
+  },
+  "immutable_original_inputs": {
+    "cache_native_533.pt": {
+      "bytes": 181161342,
+      "sha256": "4b722d9a9fb4a34f0743fda7cc4ca880c28948ac5572e83846ec99719fb38a15"
+    },
+    "cache_native_917.pt": {
+      "bytes": 181161342,
+      "sha256": "a924a34743fe2d37ac7f795b1cb9d35ec0c5e676fea0476d28ab57dde4fb308f"
+    },
+    "metrics_533_mlp.json": {
+      "bytes": 2623959,
+      "sha256": "dc2d7b3cb143a68f37c36d34ad26d3fa85d3d170b259d43171c3c60892781653"
+    },
+    "metrics_533_ridge.json": {
+      "bytes": 2094934,
+      "sha256": "18093f7ae43dbba3c94ea4b06ff919280a0c3c5bec1bbc36543c03cf15e5f4be"
+    },
+    "metrics_917_mlp.json": {
+      "bytes": 2623916,
+      "sha256": "005bc4c9cb6a0981353e948a6df7e214801bd85fa8a1001734dc33300c7c3583"
+    },
+    "metrics_917_ridge.json": {
+      "bytes": 2095158,
+      "sha256": "e83f5b0743c2cc520ded1128d5d4b6b549481b93d59ccf2d97facfa6bf7cffc8"
+    },
+    "preprocessing_533.pt": {
+      "bytes": 2523354,
+      "sha256": "ac88fda60df6620927f02019de1995f7797b7c5f88055267a354915f40a248b1"
+    },
+    "preprocessing_917.pt": {
+      "bytes": 2523354,
+      "sha256": "642b90867c72a478718b89e29d54c591a4cc4954fed9e842b9a78626a54dd78c"
+    },
+    "probe_533_A_mlp_20260904.pt": {
+      "bytes": 3282354,
+      "sha256": "f219d1717f13af7f3952740757e4da6099761aac1241eef7942b9da63a42fb6a"
+    },
+    "probe_533_A_mlp_20260905.pt": {
+      "bytes": 3282354,
+      "sha256": "f1b1dd90adb073708aea55c9e361c62667a26e0c043d0c20df10716d08793b94"
+    },
+    "probe_533_A_mlp_20260906.pt": {
+      "bytes": 3282354,
+      "sha256": "17acb3afaa7a1c4f72727a6361528abad526fae8faf58b614438687a1660fa23"
+    },
+    "probe_533_A_ridge.pt": {
+      "bytes": 2116896,
+      "sha256": "91032cc2dda6f3546d51558cf93d4089feafe31cab1fceed22382bd0fea729c7"
+    },
+    "probe_533_B_ridge.pt": {
+      "bytes": 2116832,
+      "sha256": "3cb2e345eac0bc67a18e0eaa3c7ff0055405a0994e0ce55d044b1ec132bc4057"
+    },
+    "probe_533_C_mlp_20260904.pt": {
+      "bytes": 6428146,
+      "sha256": "bcb557915819708f6b36557eec95b5176f9ccc833c667b0403c9c9ddf3f574db"
+    },
+    "probe_533_C_mlp_20260905.pt": {
+      "bytes": 6428146,
+      "sha256": "053892a295e43e555e144cc2f5b5de8ab827df04ecdb3cc23239ebf3b89a0dff"
+    },
+    "probe_533_C_mlp_20260906.pt": {
+      "bytes": 6428082,
+      "sha256": "d7541560f172f7e7b88e93f012a8a25a6d06e2c6d243b48356601dde9e31283b"
+    },
+    "probe_533_C_ridge.pt": {
+      "bytes": 4230432,
+      "sha256": "09322527cd99faeb6fe8044f8ebeb7440c13dbe1a41be6a754d33ac4ecf9d165"
+    },
+    "probe_533_C_shuffle_ridge.pt": {
+      "bytes": 4230560,
+      "sha256": "0f045ecc86076356169b9d320d8a55812419e935af3fef6fe5261018022e9f86"
+    },
+    "probe_533_D_mlp_20260904.pt": {
+      "bytes": 15865266,
+      "sha256": "717d0a08ce10b3f665c05672b40b8755e94975b65f66e63ae53bfd2a283bf1c7"
+    },
+    "probe_533_D_mlp_20260905.pt": {
+      "bytes": 15865266,
+      "sha256": "60f5e1b2ea4d2d8216043086fd4af3a30c745b1a6bfa9330b8a742de8bef0f29"
+    },
+    "probe_533_D_mlp_20260906.pt": {
+      "bytes": 15865266,
+      "sha256": "34b972a188f312120e03d1aba3fca3eb38596933a3defbd5ccb9dc44aafe3e0d"
+    },
+    "probe_533_D_ridge.pt": {
+      "bytes": 10571040,
+      "sha256": "023ed428f3c6b26566891fb20569094af42eb5e0af42b595b57882595a2c91ad"
+    },
+    "probe_917_A_mlp_20260904.pt": {
+      "bytes": 3282354,
+      "sha256": "fff5cba86a9487409a41330cc51518d58ec41541dffde4f8f568bf9b90ff664d"
+    },
+    "probe_917_A_mlp_20260905.pt": {
+      "bytes": 3282354,
+      "sha256": "cc576dd7866c3767424e35ebad7ec1e6989b70e085b9cfc2a071e06954a0a755"
+    },
+    "probe_917_A_mlp_20260906.pt": {
+      "bytes": 3282354,
+      "sha256": "2919b412bb894669080683a708d753e93bb380c23d6f239815e592df6c3393b4"
+    },
+    "probe_917_A_ridge.pt": {
+      "bytes": 2116896,
+      "sha256": "703183e3b899242c3f06811537723d0562962a2554fc14de88b8b62a1a33fcd2"
+    },
+    "probe_917_B_ridge.pt": {
+      "bytes": 2116832,
+      "sha256": "d5c570223252b06db5846f22d9fd81376aad3312e9a1f7b83d62256d4a38b229"
+    },
+    "probe_917_C_mlp_20260904.pt": {
+      "bytes": 6428146,
+      "sha256": "510d4767ae34ee1436a1b353f76876a5baa5cc57bc2315ca4d65f423edd84bde"
+    },
+    "probe_917_C_mlp_20260905.pt": {
+      "bytes": 6428082,
+      "sha256": "36e39f93df6d511d462b10f3cab91eccc64ec2977c0c31dfe87994481d082024"
+    },
+    "probe_917_C_mlp_20260906.pt": {
+      "bytes": 6428146,
+      "sha256": "964404d81a5b16d339ac6973daea9d968f23de1561d5ea2f8a766ffec701b053"
+    },
+    "probe_917_C_ridge.pt": {
+      "bytes": 4230432,
+      "sha256": "8b0e14cf7078d6c68b2d2b35c793e52b52f55806e93288a296fadc2961754a72"
+    },
+    "probe_917_C_shuffle_ridge.pt": {
+      "bytes": 4230560,
+      "sha256": "fa353f2c56159e620302e9a488625cabe2281440c12ea273a11d8226132d7859"
+    },
+    "probe_917_D_mlp_20260904.pt": {
+      "bytes": 15865266,
+      "sha256": "1a12c730a0294e808bc525b4fae6994e92ada4c588b38d68099d60cd749b2571"
+    },
+    "probe_917_D_mlp_20260905.pt": {
+      "bytes": 15865266,
+      "sha256": "6b4064ca974847c76d68f7a7d415964406d513364e7cd594ae3b5e44a9d80688"
+    },
+    "probe_917_D_mlp_20260906.pt": {
+      "bytes": 15865266,
+      "sha256": "6eb85e483e55a3069c260cf3cfdd1543ea925968838c1362c34f3d273d43c681"
+    },
+    "probe_917_D_ridge.pt": {
+      "bytes": 10571040,
+      "sha256": "501371c963551d250dcafb31b2bd7b5988c2de958850d0a6383f97db84da2470"
+    }
+  },
+  "additional_local_probes": {
+    "probe_533_C_shuffle_mlp_20260904.pt": "a050b555baaa4928c4bb8239b20a2379ee98dd4efecc45b239ba0b9e264b68a1",
+    "probe_533_C_shuffle_mlp_20260905.pt": "079310e12b07fdb95c2100eacb15d93ccb18c8e7d0ce69bcca8fba307ab037ed",
+    "probe_533_C_shuffle_mlp_20260906.pt": "f8258dd7e9e6f15c31f041b44b76b45b58a014dc6a97837fc2b74549f9b74d31",
+    "probe_917_C_shuffle_mlp_20260904.pt": "97a8bc190fb076a1b3dcb41f449dbf3764936588bc8c045f3d4aa06453273d04",
+    "probe_917_C_shuffle_mlp_20260905.pt": "49e26c8efccc17d9b0c27449b948183f795c6a57e03079ab724a724690e38cf7",
+    "probe_917_C_shuffle_mlp_20260906.pt": "9003e6a93d3f107c44eb81f93ecbbb9b2f3f0347185ef58e49ee6826910ad1d7"
+  },
+  "amended_local_metrics": {
+    "metrics_533_mlp_native.json": "ffa30e78a8293267cb5294986b7083a80a19e4c4ff6959d5186b21d77c00d396",
+    "metrics_533_ridge_native.json": "5cbb74ffdde7509a67b161aa218c4f81a1940297edbe0e71958956db10e4d49f",
+    "metrics_917_mlp_native.json": "ce28e44223e20d44418ed7fb86df52def89694a21a3cb5fe7d49deb243544ab6",
+    "metrics_917_ridge_native.json": "6e91e4ce0549f6826afbc6793706a41a8f7170847f01e68a7118a02537346125"
+  },
+  "compact_files": {
+    "summary.json": {
+      "bytes": 39650,
+      "sha256": "a3ef72fbd1e73e479dd04558d1e5635358362ffc77b2540ce25700b344b018c0"
+    },
+    "eligibility.json": {
+      "bytes": 970,
+      "sha256": "479fbf89d05548f151bd546252925b2788dd9e0cdba165a99544107061f0226b"
+    },
+    "shuffle_diagnostics_533.json": {
+      "bytes": 775,
+      "sha256": "ea92d0d9b22eda5dd9185831cc1b3e5d8d3568f4db61c18d38a6a66ff0e1a046"
+    },
+    "shuffle_diagnostics_917.json": {
+      "bytes": 775,
+      "sha256": "ea92d0d9b22eda5dd9185831cc1b3e5d8d3568f4db61c18d38a6a66ff0e1a046"
+    },
+    "table.csv": {
+      "bytes": 8566,
+      "sha256": "93723680919746a0de660f3657b1096d73cadabdeed36fd4f4faf2685045810f"
+    },
+    "pca_ceiling.json": {
+      "bytes": 126647,
+      "sha256": "22de96755b66f8f7805443a2f2ff6a4e05b686851b8ae14bb4eee226260fad36"
+    },
+    "native_vocab_decoder_summary.json": {
+      "bytes": 21895,
+      "sha256": "5c8069f6b1da066fc5a88bfc48a9509802b69d5577fa2e6743a331e0ec098f74"
+    },
+    "nonlinear_c_shuffle_summary.json": {
+      "bytes": 160351,
+      "sha256": "0dde187ce1696713a5dc94d15de659530533efddc5501c3bd37c9a4e3729fa46"
+    }
+  },
+  "report": {
+    "path": "docs/reports/03_NATIVE_ORACLE_TRANSITION_DECOMPOSITION.md",
+    "sha256": "4df3a87fcf75355291496676ce3a186a6f9505d502ff61ebd76d0b10f920cfdd"
+  },
+  "verification": {
+    "original_inputs_unchanged": true,
+    "new_frozen_ridges_verified": 6,
+    "no_chemfm_forward": true,
+    "no_generation": true,
+    "max_original_latent_metric_change": 0.0
+  }
+}
