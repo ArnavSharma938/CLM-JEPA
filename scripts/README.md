@@ -14,9 +14,22 @@ consolidated reports.
 | Frozen representation study | `analyze_stp_representations.py` |
 | Geodesic Mechanism Audit | `run_geodesic_audit.py`, `summarize_geodesic_audit.py`, `validate_geodesic_capture.py`, `finalize_geodesic_audit.py` |
 | Geodesic derived controls | `compare_candidate_geometry.py`, `analyze_candidate_length_controls.py`, `analyze_signal_uncertainty.py` |
+| Frozen oracle next-token transition | `run_oracle_transition.py` |
 
 The geodesic remote shell wrappers reproduce the completed Thunder sequence,
 but the hardware-neutral scientific entrypoint is `run_geodesic_audit.py`.
 Historical one-off source remains recoverable from Git history. Current
 protocols, result boundaries, and artifact hashes are recorded in
 `docs/reports/README.md` and the linked consolidated reports.
+
+The oracle runner is scoped to Native r8 seeds 533/917, product final
+post-RMSNorm states, and common `t-3...t+2` rows on the frozen audit split.
+Its stages are `smoke`, `extract`, `probe-smoke`, `ridge`, `mlp`, and
+`summarize`, in that order. It saves compact product-state caches, actual
+checkpoint embedding/LM-head matrices, train-only PCA and standardizers,
+fitted probes, reaction-level metrics, and paired uncertainty under
+`runs/oracle_transition/`. The scientific report is saved to
+`docs/reports/03_NATIVE_ORACLE_TRANSITION_DECOMPOSITION.md`.
+Completed artifacts are reused; this path
+never trains ChemFM or generates tokens. The saved caches are local ignored
+run artifacts and must be retained separately from Git.

@@ -1,6 +1,6 @@
 # CLM-JEPA scientific reports
 
-This directory contains three current evidence records. The reports separate
+This directory contains four current evidence records. The reports separate
 measured results from scope limits and do not use representation diagnostics as
 substitutes for generated exact match.
 
@@ -22,6 +22,9 @@ substitutes for generated exact match.
    records the independent 640-reaction/four-seed confirmation and the frozen
    future-state predictability, decoder-coupling, chemical-view invariance,
    candidate replay, and joint predictability-by-invariance audit.
+4. [Native oracle transition decomposition](03_NATIVE_ORACLE_TRANSITION_DECOMPOSITION.md)
+   records the frozen final-layer k=1 oracle-token and short-history probes
+   for Native seeds 533/917, their decoder preservation, and paired uncertainty.
 
 ## Endpoint summary
 
