@@ -4,9 +4,9 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
+
 import statistics
 import subprocess
 import sys
@@ -389,10 +389,11 @@ def prereg_guard(root: Path) -> None:
         PANEL, PANEL_ROOT / "untouched_640.metadata.json",
         PANEL_ROOT / "exclusion_ledger.json", expected_reactions=640,
     )
-    prereg = ROOT / "docs/reports/PROTOCOL_ARCHIVE.md"
+    report = ROOT / "docs/reports/02_STP_CONFIRMATION_AND_LATENT_PREDICTABILITY.md"
     expected = json.loads((PANEL_ROOT / "preregistration.json").read_text(encoding="utf-8"))
-    if expected["panel_sha256"] != file_sha256(PANEL) or not prereg.exists():
+    if expected["panel_sha256"] != file_sha256(PANEL) or not report.exists():
         raise ValueError("committed preregistration/panel guard failed")
+
 
 
 def main() -> None:

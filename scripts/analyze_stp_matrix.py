@@ -5,9 +5,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import math
 import statistics
 import sys
+
 from pathlib import Path
 
 import numpy as np

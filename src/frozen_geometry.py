@@ -16,12 +16,12 @@ import math
 import os
 import platform
 import random
-import statistics
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Sequence
+
 
 import numpy as np
 import scipy

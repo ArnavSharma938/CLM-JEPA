@@ -19,9 +19,10 @@ from analyze_stp_beams import compare as beam_compare, read_jsonl  # noqa: E402
 from analyze_stp_matrix import aggregate, compare  # noqa: E402
 from chemfm import TOKENIZER_DIR, load_reaction_tokenizer  # noqa: E402
 from run_stp_completion import (  # noqa: E402
-    MATRIX, SEEDS, completion_paths, native_evaluation, paper_paths,
+    MATRIX, SEEDS, native_evaluation, paper_paths,
     released_evaluation,
 )
+
 
 
 def read_json(path: Path):

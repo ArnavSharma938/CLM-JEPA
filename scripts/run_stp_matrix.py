@@ -26,9 +26,8 @@ ENDPOINT_ROOT = ROOT / "data/clm_jepa_uspto_mit_official_endpoint"
 SOURCE_PANEL = ENDPOINT_ROOT / "prespecified_stage1_1280.jsonl"
 PANEL = ENDPOINT_ROOT / "prespecified_stage1_512.jsonl"
 EQUIVALENCE_PANEL = ENDPOINT_ROOT / "stp_rank128_equivalence_24.jsonl"
-OLD_NATIVE = ROOT / "runs/pair_residual/a6000/results"
-OLD_RELEASED = ROOT / "runs/stp/a6000/results"
 DEFAULT_OUTPUT = ROOT / "runs/stp_matrix/a6000"
+
 
 
 def sha256(path: Path) -> str:

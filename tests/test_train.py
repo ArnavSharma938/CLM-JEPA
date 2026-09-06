@@ -1,8 +1,7 @@
 """Native/STP trainer contracts; retired objective tests live in Git history."""
 import random
-import json
-import sys
 from types import SimpleNamespace
+
 import numpy as np
 import pytest
 import torch
