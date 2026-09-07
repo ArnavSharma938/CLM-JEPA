@@ -146,6 +146,15 @@ primary seeds.
 | full-state baseline | 917 | 2.1484 | 3.5156 | +1.3672 | 10 / 3 |
 | full-state baseline mean | — | 2.3438 | 3.5156 | **+1.1719** | — |
 
+Full top-k treatment results and same-seed Native differences:
+
+| Arm | Seed | Top-1 treatment / Δ pp | Top-3 treatment / Δ pp | Top-5 treatment / Δ pp | Top-10 treatment / Δ pp | View-candidate validity % |
+|---|---:|---:|---:|---:|---:|---:|
+| decoder-projected | 533 | 3.7109 / +1.1719 | 16.9922 / +1.7578 | 24.6094 / +1.7578 | 34.9609 / -0.3906 | 98.5547 |
+| decoder-projected | 917 | 3.7109 / +1.5625 | 16.9922 / +2.3438 | 24.8047 / +2.9297 | 36.3281 / +6.0547 | 98.2773 |
+| full-state NextLat-style | 533 | 3.5156 / +0.9766 | 16.7969 / +1.5625 | 25.1953 / +2.3438 | 35.5469 / +0.0000 | 98.8398 |
+| full-state NextLat-style | 917 | 3.5156 / +1.3672 | 17.3828 / +2.7344 | 26.3672 / +4.4922 | 36.9141 / +6.6406 | 98.6602 |
+
 The runner invokes the existing official five-view evaluator and its `summarize`
 command: beam 10, 10 candidates per view, reciprocal-rank aggregation and
 canonical identity scoring. One worker keeps compute sequential. Summaries
@@ -159,6 +168,25 @@ The positive development gate triggered the full-state baseline. Both baseline
 seeds completed. Mean top-1 effects are +1.3672 pp for decoder-projected and
 +1.1719 pp for full-state; decoder-projected is selected descriptively for later
 confirmation by the specified generation criterion.
+
+The direct projected-versus-full-state comparison is also available from the
+archived paired endpoint rows. The previously reported 69/68/375 (seed 533) and
+67/73/372 (seed 917) counts are **ordinal gold-rank comparisons** over the
+ranked candidate lists, not binary top-1 outcomes. Mean gold-rank difference
+(full-state minus projected) is 0.00 and -0.04297 ranks, respectively. The
+actual binary top-1 discordances are: seed 533, projected-only 6 versus
+full-state-only 5 (501 same-binary outcomes); seed 917, projected-only 5 versus
+full-state-only 4 (503 same-binary outcomes). These are descriptive paired
+endpoint contrasts, separate from the prespecified Native comparisons.
+
+Training-log summaries (means over optimizer steps within each epoch) are:
+
+| Arm | Seed | g_N | unscaled g_A | alpha | ratio | NTP e1/e4 | L_z e1/e4 | L_KL e1/e4 | predictor norm e1/e4 | ChemFM norm e1/e4 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| projected | 533 | 8.347e15 | 2.036e16 | .020494 | .05 | 1.156 / .168 | .338 / .371 | 3.713 / 1.364 | 2.224 / 1.775 | 4.948e13 / 98.90 |
+| projected | 917 | 1.803e16 | 2.485e16 | .036288 | .05 | 1.309 / .154 | .316 / .338 | 3.449 / 1.242 | 2.064 / 1.630 | 6.322e13 / 2.03 |
+| full-state | 533 | 8.347e15 | 1.975e16 | .021135 | .05 | 1.285 / .169 | .052 / .068 | 2.795 / 1.108 | 1.869 / 1.524 | 4.959e13 / 3.89 |
+| full-state | 917 | 1.803e16 | 2.380e16 | .037885 | .05 | 1.264 / .165 | .051 / .066 | 2.825 / 1.060 | 1.994 / 1.371 | 6.344e13 / 2.16 |
 
 ## Execution and checks
 
