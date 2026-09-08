@@ -1,5 +1,17 @@
 # Decoder-projected mechanism and confirmation (Report 05)
 
+> Panel-provenance correction (2026-09-08): the four archived evaluations in
+> section 3 actually used the **first** 640 reactions, not rows 641–1280.
+> Their ordered reaction identities and official group indices match
+> `untouched_1280.jsonl[0:640]` exactly, with zero overlap with its second half.
+> The evaluator command, logs, and manifest hash agree on the first panel
+> (`3655e58404c3509c04b15cd4ffcdf15723f9be62e76c48c676ccb7decf9e2945`).
+> The historical counts below are first-640 results and **are not the
+> second-640 confirmation result**. The claimed untouched-second-640
+> confirmation conclusion and its associated decision are invalid as such.
+> This historical text is retained for provenance; the separate actual
+> second-640 evaluation uses the existing frozen checkpoints without retraining.
+
 The frozen Report-04 decoder-projected method was evaluated without changing its
 training or inference path. This report has three evidence blocks.
 
