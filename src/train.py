@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 from chemfm import add_predictor_tokens, load_adapter_checkpoint, IGNORE_INDEX, MODEL_DIR, TOKENIZER_DIR, ReactionCollator, generate_products_batch, canonicalize, load_lora_model, load_reaction_tokenizer
 from metrics import canonical_set, rank_augmented_candidates, score_candidates
 from decoder_projected import DecoderProjectedObjective, FullStateObjective
+from faithful_nextlat import FaithfulNextLatObjective
 from stp import STP_PAPER, STP_UPSTREAM_COMMIT, STP_UPSTREAM_REPOSITORY, PaperSemanticTubePrediction, SemanticTubePrediction
 ADAPTER_NAME = 'USPTO-MIT-Synthesis'
 ADAM_BETAS = (0.9, 0.999)
@@ -42,13 +43,16 @@ RELEASED_STP_CONDITION = 'stp_released'
 PAPER_STP_CONDITION = 'stp_paper'
 PROJECTED_CONDITION = 'decoder_projected'
 FULL_STATE_CONDITION = 'full_state_nextlat'
-TRAINING_CONDITIONS = (PROJECTED_CONDITION, FULL_STATE_CONDITION, NATIVE_CONDITION, STP_CONDITION, RELEASED_STP_CONDITION, PAPER_STP_CONDITION)
+FAITHFUL_NEXTLAT_CONDITION = 'faithful_nextlat'
+TRAINING_CONDITIONS = (PROJECTED_CONDITION, FULL_STATE_CONDITION, FAITHFUL_NEXTLAT_CONDITION, NATIVE_CONDITION, STP_CONDITION, RELEASED_STP_CONDITION, PAPER_STP_CONDITION)
 
 def condition_family(condition):
     if condition == PROJECTED_CONDITION:
         return 'decoder_projected'
     if condition == FULL_STATE_CONDITION:
         return 'full_state_nextlat'
+    if condition == FAITHFUL_NEXTLAT_CONDITION:
+        return 'faithful_nextlat'
     if condition == 'native':
         return 'native'
     if condition in {'stp', 'stp_released'}:
@@ -373,7 +377,7 @@ def save_training_checkpoint(checkpoint: Path, model, tokenizer, optimizer, sche
     }
     if isinstance(method, SemanticTubePrediction):
         state['stp_generator_state'] = method.generator_state()
-    if isinstance(method, DecoderProjectedObjective):
+    if hasattr(method, 'save_training_state'):
         method.save_training_state(checkpoint / 'auxiliary_training_state.pt')
     torch.save(state, checkpoint / 'training_state.pt')
 
@@ -382,7 +386,7 @@ def restore_training_checkpoint(checkpoint: Path, model, optimizer, scheduler, g
     state = torch.load(checkpoint / 'training_state.pt', map_location=model.device, weights_only=False)
     if state['planned_epochs'] != planned_epochs:
         raise ValueError("resume must use the checkpoint's original planned epoch budget")
-    if isinstance(method, DecoderProjectedObjective):
+    if hasattr(method, 'restore_training_state'):
         method.restore_training_state(checkpoint / 'auxiliary_training_state.pt')
     optimizer.load_state_dict(state['optimizer'])
     scheduler.load_state_dict(state['scheduler'])
@@ -462,6 +466,8 @@ def train(args):
     has_stp = has_released_stp or has_paper_stp
     has_projected = method_family in {'decoder_projected', 'full_state_nextlat'}
     has_full_state = method_family == 'full_state_nextlat'
+    has_faithful_nextlat = method_family == 'faithful_nextlat'
+    has_auxiliary = has_projected or has_faithful_nextlat
     tokenizer = load_reaction_tokenizer(TOKENIZER_DIR)
     chemfm_vocab_size = len(tokenizer)
     add_predictor_tokens(tokenizer)
@@ -485,16 +491,22 @@ def train(args):
     if has_stp:
         stp_class = PaperSemanticTubePrediction if has_paper_stp else SemanticTubePrediction
         method = stp_class(seed=args.seed, reactant_start_token_id=tokenizer.convert_tokens_to_ids('<rstart>'), product_start_token_id=tokenizer.convert_tokens_to_ids('<prostart>'), eos_token_id=tokenizer.eos_token_id)
-    elif has_projected:
+    elif has_auxiliary:
+        args.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         # Isolate predictor initialization from Native's transformer dropout RNG.
         with torch.random.fork_rng(devices=[torch.cuda.current_device()]):
-            objective_class = FullStateObjective if has_full_state else DecoderProjectedObjective
-            method = objective_class(
-                model.get_output_embeddings().weight[:392],
+            objective_class = (FaithfulNextLatObjective if has_faithful_nextlat else
+                               FullStateObjective if has_full_state else DecoderProjectedObjective)
+            objective_kwargs = dict(
                 product_start_token_id=tokenizer.convert_tokens_to_ids('<prostart>'),
                 eos_token_id=tokenizer.eos_token_id,
-                resume_state=(args.resume_from / 'auxiliary_training_state.pt') if args.resume_from else None).to(model.device)
-        if args.resume_from is None:
+                resume_state=(args.resume_from / 'auxiliary_training_state.pt') if args.resume_from else None)
+            if has_faithful_nextlat:
+                objective_kwargs['native_vocab_size'] = chemfm_vocab_size
+            method = objective_class(
+                model.get_output_embeddings().weight[:392], **objective_kwargs
+            ).to(model.device)
+        if args.resume_from is None and has_projected:
             calibration_generator = torch.Generator().manual_seed(args.seed)
             calibration_loader = DataLoader(train_rows, batch_size=args.batch_size, shuffle=True,
                 generator=calibration_generator, collate_fn=collator)
@@ -507,7 +519,7 @@ def train(args):
     else:
         method = NativeObjective()
     optimizer_parameters = [parameter for parameter in model.parameters() if parameter.requires_grad]
-    if has_projected:
+    if has_auxiliary:
         optimizer_parameters.extend(method.parameters())
     optimizer = torch.optim.AdamW(optimizer_parameters, lr=args.learning_rate, betas=ADAM_BETAS, eps=ADAM_EPSILON, weight_decay=WEIGHT_DECAY, fused=args.fused_adamw)
     scheduler = get_scheduler('cosine_with_min_lr', optimizer, num_warmup_steps=int(steps * WARMUP_RATIO), num_training_steps=steps, scheduler_specific_kwargs={'min_lr': MIN_LEARNING_RATE})
@@ -537,7 +549,7 @@ def train(args):
         'lora_use_rslora': False,
         'jepa_loss_dropout': None if has_stp else args.dropout if has_jepa else None,
         'jepa_ratio': resolved_ratio,
-        'jepa_target_stop_gradient': has_projected,
+        'jepa_target_stop_gradient': has_auxiliary,
         'jepa_target_encoder': None,
         'jepa_loss_type': jepa_loss_type if has_jepa else None,
         'semantic_tube_prediction': has_stp,
@@ -589,8 +601,11 @@ def train(args):
     best_selector = None
     best_checkpoint = None
     previous_elapsed_seconds = 0.0
-    if has_projected:
-        config.update({'decoder_projected': method.metadata if not has_full_state else None, 'full_state_nextlat': method.metadata if has_full_state else None, 'auxiliary_calibration': method.calibration,
+    if has_auxiliary:
+        config.update({'decoder_projected': method.metadata if method_family == 'decoder_projected' else None,
+            'full_state_nextlat': method.metadata if has_full_state else None,
+            'faithful_nextlat': method.metadata if has_faithful_nextlat else None,
+            'auxiliary_calibration': method.calibration,
             'jepa_loss_type': 'smooth_l1_plus_teacher_to_prediction_kl', 'jepa_loss_dropout': None,
             'actual_lambda': 1.0, 'generation_vocabulary_unchanged': True,
             'auxiliary_inference_components': False})
@@ -603,11 +618,11 @@ def train(args):
         best_selector = state['best_selector']
         best_checkpoint = state['best_checkpoint']
         previous_elapsed_seconds = state.get('elapsed_wall_time_seconds', args.prior_wall_time_seconds)
-        if has_projected:
+        if has_auxiliary:
             config['auxiliary_calibration'] = method.calibration
         if start_epoch > args.stop_after_epoch:
             raise ValueError('resume checkpoint is beyond the requested resource budget')
-        if has_projected:
+        if has_auxiliary:
             (args.checkpoint_dir / 'auxiliary_steps.jsonl').write_text(
                 ''.join(json.dumps(record) + '\n' for record in curves))
     optimizer.zero_grad(set_to_none=True)
@@ -632,9 +647,11 @@ def train(args):
                     objective_value = float(output.jepa_loss.detach())
                 else:
                     output = method(model, batch)
-                    stp_metrics = ({'L_z': float(output.lz.detach()), 'L_KL': float(output.kl.detach()),
-                        'alpha': method.alpha, 'calibration_auxiliary_ntp_ratio': method.calibration['expected_auxiliary_ntp_ratio']}
-                        if has_projected else {})
+                    stp_metrics = ({'L_z': float(output.lz.detach()), 'L_KL': float(output.kl.detach())}
+                        if has_auxiliary else {})
+                    if has_projected:
+                        stp_metrics.update(alpha=method.alpha,
+                            calibration_auxiliary_ntp_ratio=method.calibration['expected_auxiliary_ntp_ratio'])
                     jepa_active = output.jepa_active
                     sigreg_value = None if output.sigreg_loss is None else float(output.sigreg_loss.detach())
                     objective_value = None if output.jepa_objective_loss is None else float(output.jepa_objective_loss.detach())
@@ -658,8 +675,13 @@ def train(args):
                     continue
                 learning_rate = optimizer.param_groups[0]['lr']
                 predictor_gradient_norm = (float(torch.stack([p.grad.detach().float().square().sum()
-                    for p in method.parameters() if p.grad is not None]).sum().sqrt()) if has_projected else None)
-                (total_gradient_norm, largest_gradient) = gradient_diagnostics(model, ())
+                    for p in method.parameters() if p.grad is not None]).sum().sqrt()) if has_auxiliary else None)
+                # Upstream registers the dynamics model inside the trainable
+                # model, so its parameters participate in the same global
+                # max-norm clipping. Preserve legacy projected-arm behavior.
+                extra_clip_modules = (("faithful_nextlat", method),) if has_faithful_nextlat else ()
+                (total_gradient_norm, largest_gradient) = gradient_diagnostics(
+                    model, extra_clip_modules)
                 optimizer.step()
                 scheduler.step()
                 optimizer.zero_grad(set_to_none=True)
@@ -688,7 +710,7 @@ def train(args):
                 stp_keys = sorted(set().union(*(row['stp_metrics'] for row in window_records)))
                 stp_record = {key: sum((row['stp_metrics'][key] for row in window_records if key in row['stp_metrics'])) / sum((key in row['stp_metrics'] for row in window_records)) for key in stp_keys}
                 record['stp'] = stp_record if has_stp and stp_record else None
-                if has_projected:
+                if has_auxiliary:
                     record['auxiliary'] = {**stp_record, 'predictor_gradient_norm': predictor_gradient_norm,
                         'chemfm_total_gradient_norm': total_gradient_norm,
                         'peak_vram_bytes': torch.cuda.max_memory_allocated(),
@@ -754,8 +776,8 @@ def train(args):
             'final_epoch_mean_stp_loss': float(np.mean([row['jepa_loss'] for row in stp_rows if row['epoch'] == selected['epoch']])),
             'final_epoch_mean_sampled_span_fraction': float(np.mean([row['stp']['mean_sampled_span_fraction'] for row in stp_rows if row['epoch'] == selected['epoch']])),
         }
-    elif has_projected:
-        diagnostics = {'type': 'decoder_projected', 'svd': method.metadata, 'calibration': method.calibration}
+    elif has_auxiliary:
+        diagnostics = {'type': method_family, 'method': method.metadata, 'calibration': method.calibration}
     else:
         diagnostics = {'type': 'native_training_summary'}
     result = {

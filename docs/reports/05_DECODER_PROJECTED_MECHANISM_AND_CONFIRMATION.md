@@ -27,22 +27,14 @@ actual binary projected-vs-full-state top-1 discordances are 6 projected-only /
 
 ## 2. Focused post-training representation evidence
 
-Treatment final post-RMSNorm product states were extracted once and compacted in
-`runs/decoder_projected/representation/cache/`. Native Report-03 caches were
-reused. The efficient functional probe is implemented by
-`scripts/analyze_decoder_projected_mechanism.py` as the requested standardized
-ridge `[z_t,a_(t+1)] -> z_(t+1)` with fixed executed width `r=352`, using the
-640/192/192 reaction split and product k=1 rows. Results are in
-`runs/decoder_projected/representation/mechanism_analysis.json`, including
-visible decoder JS, top-1 agreement, gold rank and margin, and per-arm R2,
-normalized MSE and cosine. No new ChemFM inference was used.
-
-The compact caches do not contain the orthogonal hidden coordinates, so the
-visible/null target split, head-vs-representation margin decomposition, and
-singular-spectrum/token-class enrichment requiring those additional quantities
-remain explicitly marked incomplete rather than inferred. The final-head
-retention calculation likewise requires a separate weights-only extraction and
-is not used to alter the frozen confirmation decision.
+**Invalidated (2026-09-08).** None of the numerical representation claims from
+this section may be reused. The implementation mixed product-relative indices
+with full-sequence states, substituted Native embeddings/heads into treatment
+calculations, subtracted a decoder-row mean from hidden states, used the wrong
+sampling convention, and computed several decoder metrics from the wrong logits
+or reduction. The archived files are retained only as provenance of the error.
+Report 07 reruns the analysis through a fail-closed common pipeline. This
+invalidation does not alter Report 06's checkpoint-frozen behavioral result.
 
 ## 3. Untouched confirmation evidence
 
