@@ -37,6 +37,13 @@ def main() -> None:
         ROOT / "data/proteingym_panel.json",
         ROOT / "data/proteingym_panel/manifest.json",
     ]
+    amendment_paths = [
+        ROOT / "runs/amendment/faithful_full_predictor.json",
+        ROOT / "runs/amendment/full_target_and_residual.json",
+        ROOT / "runs/amendment/scale_free_coupling.json",
+        ROOT / "runs/amendment/nextlat_full_gradient.json",
+        ROOT / "runs/amendment/decision.json",
+    ]
     record = {
         "created_date": "2026-09-14",
         "model": "lightonai/RITA_m",
@@ -60,6 +67,8 @@ def main() -> None:
             "command": "easy-cluster --min-seq-id 0.3 -c 0.8 --cov-mode 0 --cluster-mode 2 --threads 6",
         },
         "input_sha256": {str(path.relative_to(ROOT)).replace("\\", "/"): sha256(path) for path in paths},
+        "amendment_output_sha256": {str(path.relative_to(ROOT)).replace("\\", "/"): sha256(path)
+                                     for path in amendment_paths if path.exists()},
         "cache_performance": {
             "uniref_3000": {"seconds": 84.5293833000469, "peak_vram_bytes": 746777600},
             "tape_684": {"seconds": 23.45763249997981, "peak_vram_bytes": 746617344},

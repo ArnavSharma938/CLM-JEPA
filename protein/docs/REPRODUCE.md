@@ -52,6 +52,24 @@ reference CSV from the URLs recorded in the final report, then run:
 .venv/Scripts/python.exe protein/scripts/record_reproducibility.py
 ```
 
+## NextLat validity amendment
+
+These commands consume the existing cache, locked panel, original fitness
+scores, and unchanged generated sequences. They save a new full-objective
+predictor rather than replacing the SmoothL1-only checkpoint.
+
+```powershell
+.venv/Scripts/python.exe protein/scripts/run_gradient_audit.py warmup-full protein/runs/uniref/cache protein/data/diagnostic_pool.jsonl protein/runs/amendment/faithful_full_predictor.pt
+.venv/Scripts/python.exe protein/scripts/run_full_target_and_residual_probes.py protein/runs/uniref/cache protein/data/diagnostic_pool.jsonl protein/runs/amendment/full_target_and_residual.json
+.venv/Scripts/python.exe protein/scripts/run_scale_free_coupling.py protein/runs/uniref/cache protein/data/diagnostic_pool.jsonl protein/data/proteingym_panel.json protein/data/proteingym_panel protein/runs/proteingym/scores.json protein/runs/generation/native_replay.json protein/runs/amendment/faithful_full_predictor.pt protein/runs/amendment/scale_free_coupling.json --batch-size 8
+.venv/Scripts/python.exe protein/scripts/run_gradient_audit.py audit protein/data/diagnostic_pool.jsonl protein/runs/amendment/nextlat_full_gradient.json --objective nextlat --predictor protein/runs/amendment/faithful_full_predictor.pt --batches 12
+.venv/Scripts/python.exe -m pytest protein/tests/test_nextlat.py protein/tests/test_residual_probe.py protein/tests/test_real_rita_parity.py -q
+```
+
+`protein/runs/amendment/decision.json` records why the conditional rank-32
+LoRA-subspace audit was not run. Full-backbone gradient values must not be used
+as LoRA coefficients.
+
 Bulk archives, hidden-state shards, and the warmed predictor checkpoint are
 ignored. Their source hashes, compact manifests, output JSON, and all IDs needed
 to reconstruct them are retained.

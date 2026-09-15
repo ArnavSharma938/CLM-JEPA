@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from src.nextlat import FaithfulNextLatPredictor, faithful_losses
+from src.nextlat import FaithfulNextLatPredictor, faithful_losses, transition_diagnostics
 
 
 def test_faithful_nextlat_shape_order_and_residual():
@@ -48,3 +48,33 @@ def test_causal_tensor_shift_is_current_t_to_future_t_plus_one():
     assert torch.equal(current[0, 2], hidden[0, 2])
     assert torch.equal(future[0, 2], hidden[0, 3])
 
+
+def test_full_objective_predictor_step_updates_only_predictor():
+    torch.manual_seed(11)
+    predictor = FaithfulNextLatPredictor(80)
+    current = torch.randn(2, 3, 80)
+    future = torch.randn(2, 3, 80)
+    embedding = torch.randn(2, 3, 80)
+    frozen_rita_head = nn.Parameter(torch.randn(6, 80), requires_grad=False)
+    snapshots = [value.clone() for value in (current, future, embedding, frozen_rita_head)]
+    before = [parameter.detach().clone() for parameter in predictor.parameters()]
+    latent, kl, _ = faithful_losses(
+        predictor, current, future, embedding, torch.ones(2, 3, dtype=torch.bool), frozen_rita_head
+    )
+    total = latent + kl
+    optimizer = torch.optim.SGD(predictor.parameters(), lr=1e-3)
+    optimizer.zero_grad(); total.backward(); optimizer.step()
+    torch.testing.assert_close(total.detach(), latent.detach() + kl.detach())
+    assert latent > 0 and kl > 0
+    assert any(not torch.equal(old, new) for old, new in zip(before, predictor.parameters()))
+    for old, new in zip(snapshots, (current, future, embedding, frozen_rita_head)):
+        torch.testing.assert_close(old, new)
+    assert frozen_rita_head.grad is None
+
+
+def test_transition_diagnostics_are_zero_for_exact_prediction():
+    torch.manual_seed(12)
+    current, future = torch.randn(4, 8), torch.randn(4, 8)
+    values = transition_diagnostics(current, future, future.clone(), torch.randn(8), torch.randn(6, 8))
+    for name, value in values.items():
+        torch.testing.assert_close(value, torch.zeros_like(value), atol=2e-6, rtol=0, msg=name)

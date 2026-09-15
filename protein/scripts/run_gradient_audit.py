@@ -61,6 +61,25 @@ def evaluate_predictor(predictor, examples, embedding, device, batch_size=256):
     return float(np.mean(losses))
 
 
+def evaluate_predictor_full(predictor, examples, embedding, head, device, batch_size=256):
+    predictor.eval(); totals = {"latent": [], "kl": [], "total": []}
+    with torch.inference_mode():
+        for start in range(0, len(examples), batch_size):
+            batch = examples[start:start + batch_size]
+            current = torch.stack([x[0] for x in batch]).to(device=device, dtype=torch.float32)
+            future = torch.stack([x[1] for x in batch]).to(device=device, dtype=torch.float32)
+            ids = torch.tensor([x[2] for x in batch], device=device)
+            mask = torch.ones(len(batch), dtype=torch.bool, device=device)
+            latent, kl, _ = faithful_losses(
+                predictor, current, future, embedding[ids].float(), mask, head.float()
+            )
+            totals["latent"].append((float(latent), len(batch)))
+            totals["kl"].append((float(kl), len(batch)))
+            totals["total"].append((float(latent + kl), len(batch)))
+    return {name: sum(value * count for value, count in cells) / sum(count for _, count in cells)
+            for name, cells in totals.items()}
+
+
 def warmup(cache_dir: Path, split_manifest: Path, output: Path, seed: int = 20260914):
     torch.manual_seed(seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -102,6 +121,63 @@ def warmup(cache_dir: Path, split_manifest: Path, output: Path, seed: int = 2026
         "initial_validation_smooth_l1": initial, "best_validation_smooth_l1": best,
         "relative_validation_improvement": (initial - best) / initial,
         "history": history, "backbone_frozen": True,
+    }, indent=2) + "\n", encoding="utf-8")
+
+
+def warmup_full(cache_dir: Path, split_manifest: Path, output: Path, seed: int = 20260914):
+    """Fit a fresh predictor under the complete faithful latent + KL objective."""
+    torch.manual_seed(seed); device = "cuda" if torch.cuda.is_available() else "cpu"
+    loaded = load_rita(device=device); model = loaded.model
+    embedding = model.get_input_embeddings().weight.detach(); head = model.get_output_embeddings().weight.detach()
+    assignments = {row["id"]: row["split"] for row in read_jsonl(split_manifest)}
+    train = predictor_examples(cache_dir, "train", assignments)
+    validation = predictor_examples(cache_dir, "validation", assignments)
+    predictor = FaithfulNextLatPredictor(1024).to(device)
+    initial = evaluate_predictor_full(predictor, validation, embedding, head, device)
+    optimizer = torch.optim.AdamW(predictor.parameters(), lr=2e-4, weight_decay=1e-4)
+    generator = torch.Generator().manual_seed(seed)
+    best, best_state, history, patience = initial["total"], copy.deepcopy(predictor.state_dict()), [], 0
+    rita_versions = [parameter._version for parameter in model.parameters()]
+    for epoch in range(12):
+        predictor.train(); order = torch.randperm(len(train), generator=generator).tolist()
+        epoch_cells = {"latent": [], "kl": [], "total": []}
+        for start in range(0, len(order), 128):
+            batch = [train[i] for i in order[start:start + 128]]
+            current = torch.stack([x[0] for x in batch]).to(device=device, dtype=torch.float32)
+            future = torch.stack([x[1] for x in batch]).to(device=device, dtype=torch.float32)
+            ids = torch.tensor([x[2] for x in batch], device=device)
+            mask = torch.ones(len(batch), dtype=torch.bool, device=device)
+            latent, kl, _ = faithful_losses(
+                predictor, current, future, embedding[ids].float(), mask, head.float()
+            )
+            total = latent + kl
+            optimizer.zero_grad(set_to_none=True); total.backward(); optimizer.step()
+            for name, value in (("latent", latent), ("kl", kl), ("total", total)):
+                epoch_cells[name].append(float(value.detach()))
+        value = evaluate_predictor_full(predictor, validation, embedding, head, device)
+        history.append({"epoch": epoch + 1,
+            **{f"train_{name}": float(np.mean(cells)) for name, cells in epoch_cells.items()},
+            **{f"validation_{name}": metric for name, metric in value.items()}})
+        if value["total"] < best - 1e-5:
+            best, best_state, patience = value["total"], copy.deepcopy(predictor.state_dict()), 0
+        else:
+            patience += 1
+            if patience >= 3: break
+    predictor.load_state_dict(best_state)
+    final = evaluate_predictor_full(predictor, validation, embedding, head, device)
+    if rita_versions != [parameter._version for parameter in model.parameters()]:
+        raise AssertionError("RITA parameter version changed during predictor-only warmup")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    torch.save({"state_dict": best_state, "hidden_size": 1024, "seed": seed,
+                "objective": "smooth_l1_plus_teacher_to_student_kl"}, output)
+    output.with_suffix(".json").write_text(json.dumps({
+        "train_examples": len(train), "validation_examples": len(validation),
+        "initial_validation": initial, "final_validation": final,
+        "relative_total_improvement": (initial["total"] - final["total"]) / initial["total"],
+        "history": history, "selected_epoch": int(np.argmin([row["validation_total"] for row in history])) + 1,
+        "backbone_frozen": True, "rita_parameter_versions_unchanged": True,
+        "optimizer_parameter_scope": "FaithfulNextLatPredictor only",
+        "objective": "unit SmoothL1 + unit teacher-to-student KL",
     }, indent=2) + "\n", encoding="utf-8")
 
 
@@ -201,22 +277,34 @@ def audit(manifest: Path, output: Path, objective: str, predictor_path: Path | N
         mean, ci = cluster_bootstrap_mean(values, [row["cluster_id"] for row in records], seed=seed)
         summary[metric] = {"mean": mean, "ci95": ci, "sign_flip_p_vs_zero": sign_flip_pvalue(values, seed=seed)}
     ratio = summary["norm_ratio"]["mean"]
-    summary["scale_for_3pct_backbone_pressure"] = .03 / ratio
+    summary["scale_for_3pct_full_backbone_pressure_only"] = .03 / ratio
+    depth_summary = {}
+    for depth_name in sorted(set().union(*(row["depth"].keys() for row in records))):
+        depth_summary[depth_name] = {}
+        for metric in ("norm_ratio", "cosine", "ntp_direction_retention"):
+            values = [row["depth"][depth_name][metric] for row in records if depth_name in row["depth"]]
+            mean, ci = cluster_bootstrap_mean(values, [row["cluster_id"] for row in records], seed=seed)
+            depth_summary[depth_name][metric] = {"mean": mean, "ci95": ci,
+                "sign_flip_p_vs_zero": sign_flip_pvalue(values, seed=seed)}
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps({"objective": objective, "records": records, "summary": summary,
+        "depth_summary": depth_summary,
         "parameter_scope": "all unique RITA-M parameters", "backbone_updated": False,
         "nextlat_auxiliary": "SmoothL1 + teacher-to-student KL, unit coefficients" if objective == "nextlat" else None,
+        "lora_coefficient_warning": "full-backbone geometry cannot calibrate a rank-32 LoRA subspace",
     }, indent=2) + "\n", encoding="utf-8")
 
 
 def main():
     parser = argparse.ArgumentParser(); sub = parser.add_subparsers(dest="stage", required=True)
     p = sub.add_parser("warmup"); p.add_argument("cache_dir", type=Path); p.add_argument("split_manifest", type=Path); p.add_argument("output", type=Path)
+    p = sub.add_parser("warmup-full"); p.add_argument("cache_dir", type=Path); p.add_argument("split_manifest", type=Path); p.add_argument("output", type=Path)
     p = sub.add_parser("audit"); p.add_argument("manifest", type=Path); p.add_argument("output", type=Path)
     p.add_argument("--objective", choices=("stp", "nextlat"), required=True)
     p.add_argument("--predictor", type=Path); p.add_argument("--batches", type=int, default=6)
     args = parser.parse_args()
     if args.stage == "warmup": warmup(args.cache_dir, args.split_manifest, args.output)
+    elif args.stage == "warmup-full": warmup_full(args.cache_dir, args.split_manifest, args.output)
     else:
         if args.objective == "nextlat" and args.predictor is None: raise SystemExit("--predictor required")
         audit(args.manifest, args.output, args.objective, args.predictor, args.batches, 20260914)

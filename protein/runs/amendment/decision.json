@@ -1,0 +1,7 @@
+{
+  "decision_rule_applied": "skip LoRA-subspace audit when decoder-functional or complete faithful predictability remains adversely coupled to behavior",
+  "lora_subspace_audit_performed": false,
+  "lora_training_performed": false,
+  "reason": "Decoder JS and the complete faithful SmoothL1-plus-KL value retain adverse coupling on UniRef Native behavior, the locked ProteinGym panel, and the unchanged Native generation replay. A future NextLat training experiment is therefore not scientifically justified under the prespecified rule.",
+  "full_backbone_gradients_used_to_set_lora_coefficient": false
+}

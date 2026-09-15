@@ -1,0 +1,167 @@
+{
+  "amendment": true,
+  "conditional_layer12": {
+    "base_final_only": {
+      "centered_cosine": 0.618536651134491,
+      "decoder_js": 0.051770057529211044,
+      "decoder_kl_teacher_student": 0.2585475444793701,
+      "decoder_top1_agreement": 0.49743326488706363,
+      "normalized_mse": 0.6299017071723938,
+      "r2": 0.3700982928276062
+    },
+    "incremental_full_state_r2": 0.044214487075805664,
+    "paired_plus_unique_minus_base": {
+      "decoder_js": {
+        "ci95": [
+          -0.00040933920372106947,
+          -0.00011309055197570085
+        ],
+        "mean_difference": -0.0002591522849345036,
+        "sign_flip_p": 0.0005499725013749313
+      },
+      "mse": {
+        "ci95": [
+          -0.007139177605367952,
+          -0.006154767745998478
+        ],
+        "mean_difference": -0.0066238244259615,
+        "sign_flip_p": 4.999750012499375e-05
+      },
+      "paired_proteins": 487,
+      "top1": {
+        "ci95": [
+          -0.0075445816186556925,
+          0.004029492455418382
+        ],
+        "mean_difference": -0.0017146776406035662,
+        "sign_flip_p": 0.5945702714864257
+      }
+    },
+    "plus_unique_layer12_residual": {
+      "centered_cosine": 0.6558405756950378,
+      "decoder_js": 0.05151161551475525,
+      "decoder_kl_teacher_student": 0.25678738951683044,
+      "decoder_top1_agreement": 0.495807665982204,
+      "normalized_mse": 0.5856872200965881,
+      "r2": 0.41431277990341187
+    },
+    "residual_target_r2": 0.07019263505935669,
+    "unique_layer_feature_rms_test": 0.9697738289833069,
+    "unique_layer_feature_rms_train": 0.9576553702354431
+  },
+  "counts": {
+    "test": 11688,
+    "train": 49008,
+    "validation": 11304
+  },
+  "full_target_results": {
+    "A_current_state": {
+      "centered_cosine": 0.618536651134491,
+      "decoder_js": 0.051770057529211044,
+      "decoder_kl_teacher_student": 0.2585475444793701,
+      "decoder_top1_agreement": 0.49743326488706363,
+      "normalized_mse": 0.6299017071723938,
+      "r2": 0.3700982928276062
+    },
+    "B_realized_residue": {
+      "centered_cosine": 0.21298617124557495,
+      "decoder_js": 0.0752270519733429,
+      "decoder_kl_teacher_student": 0.3497084379196167,
+      "decoder_top1_agreement": 0.29312114989733057,
+      "normalized_mse": 0.9703189134597778,
+      "r2": 0.029681086540222168
+    },
+    "C_oracle": {
+      "centered_cosine": 0.6484259366989136,
+      "decoder_js": 0.05145137384533882,
+      "decoder_kl_teacher_student": 0.2566969394683838,
+      "decoder_top1_agreement": 0.5038501026694046,
+      "normalized_mse": 0.6130092144012451,
+      "r2": 0.3869907855987549
+    },
+    "C_shuffle": {
+      "centered_cosine": 0.6132999658584595,
+      "decoder_js": 0.05196724832057953,
+      "decoder_kl_teacher_student": 0.2597348690032959,
+      "decoder_top1_agreement": 0.49623545516769335,
+      "normalized_mse": 0.6368582248687744,
+      "r2": 0.3631417751312256
+    }
+  },
+  "input_pca_width": 256,
+  "old_target_pca256_reconstruction_ceiling": {
+    "centered_cosine": 0.7743940353393555,
+    "decoder_js": 0.0014373392332345247,
+    "decoder_kl_teacher_student": 0.005784294102340937,
+    "decoder_top1_agreement": 0.8884325804243669,
+    "normalized_mse": 0.3902585208415985,
+    "r2": 0.6097414791584015,
+    "train_variance_covered": 0.6157288551330566
+  },
+  "original_results_preserved": true,
+  "paired_C_minus_A": {
+    "decoder_js": {
+      "ci95": [
+        -0.00041768844688546927,
+        -0.00021586872576429304
+      ],
+      "mean_difference": -0.00031843559659342955,
+      "sign_flip_p": 4.999750012499375e-05
+    },
+    "mse": {
+      "ci95": [
+        -0.0026417308238837023,
+        -0.0024073241755688266
+      ],
+      "mean_difference": -0.002526796480387817,
+      "sign_flip_p": 4.999750012499375e-05
+    },
+    "paired_proteins": 487,
+    "top1": {
+      "ci95": [
+        0.0006858710562414269,
+        0.012174211248285324
+      ],
+      "mean_difference": 0.006472908093278465,
+      "sign_flip_p": 0.026998650067496625
+    }
+  },
+  "paired_C_minus_C_shuffle": {
+    "decoder_js": {
+      "ci95": [
+        -0.0005743381315185938,
+        -0.00045737399036493997
+      ],
+      "mean_difference": -0.0005159735518657131,
+      "sign_flip_p": 4.999750012499375e-05
+    },
+    "mse": {
+      "ci95": [
+        -0.003654448163921757,
+        -0.003485604462121832
+      ],
+      "mean_difference": -0.003569227237055086,
+      "sign_flip_p": 4.999750012499375e-05
+    },
+    "paired_proteins": 487,
+    "top1": {
+      "ci95": [
+        0.002443415637860083,
+        0.013031550068587108
+      ],
+      "mean_difference": 0.0077589163237311385,
+      "sign_flip_p": 0.0055997200139993
+    }
+  },
+  "proteins": {
+    "test": 487,
+    "train": 2042,
+    "validation": 471
+  },
+  "shuffle_self_protein_matches": {
+    "test": 0,
+    "train": 0,
+    "validation": 0
+  },
+  "target": "full 1024-dimensional final h[t+1]"
+}
