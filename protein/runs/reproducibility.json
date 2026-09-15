@@ -1,0 +1,53 @@
+{
+  "cache_performance": {
+    "reverse_128": {
+      "peak_vram_bytes": 746599936,
+      "seconds": 6.327405099989846
+    },
+    "tape_684": {
+      "peak_vram_bytes": 746617344,
+      "seconds": 23.45763249997981
+    },
+    "uniref_3000": {
+      "peak_vram_bytes": 746777600,
+      "seconds": 84.5293833000469
+    }
+  },
+  "created_date": "2026-09-14",
+  "hardware": {
+    "local_cuda": "12.1",
+    "local_gpu": "NVIDIA GeForce RTX 4050 Laptop GPU",
+    "thunder": "A6000 unavailable; one temporary L40, 6 vCPU, 100 GB, used only for MMseqs2 and deleted"
+  },
+  "input_sha256": {
+    "data/DMS_ProteinGym_substitutions.zip": "3a83766254ac9ac9984ec25cb73c6e010ea4418f5e35f143933e6b6e6473b921",
+    "data/ProteinGym_DMS_substitutions_reference.csv": "a8f498011532a74aa9fe556a50555a75e928c5837d19c06a87592ae04049b308",
+    "data/diagnostic_pool.jsonl": "9de1e2c77dc0dd30c82ec2dfb211877f32e9fbc75dfe5df8b17817253f1e0cb6",
+    "data/mmseqs30_cluster.tsv": "6e0ace621e85e142f7c7c1d434f37c51be4633eb565d2f2e08bc93a49266e625",
+    "data/proteingym_panel.json": "df7ccef15b639a72b8d96c86bd6fd3ab2fafe28a78dbf7b927e49df659dbbaa3",
+    "data/proteingym_panel/manifest.json": "0218f70fe29175757ce4587307f38fa4563d982d17a47054531d3b33285b87d5",
+    "data/tape_structural_manifest.jsonl": "769bc22321214ed173ce7041a20866f308900f42b716d484d295f768f21ea9a1",
+    "data/uniref50_candidates.jsonl": "776459f5bd39d3adf465db17d088ebfbe7c0bf5bc70da1e8e826c5f0d19dd408"
+  },
+  "mmseqs": {
+    "command": "easy-cluster --min-seq-id 0.3 -c 0.8 --cov-mode 0 --cluster-mode 2 --threads 6",
+    "version": "13-45111+ds-2"
+  },
+  "model": "lightonai/RITA_m",
+  "model_revision": "d819157a3a96d278500232b2cbb2a02d9646bcf6",
+  "packages": {
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "pytest": "8.3.3",
+    "scikit-learn": "1.5.2",
+    "scipy": "1.14.1",
+    "torch": "2.3.0+cu121",
+    "transformers": "4.45.2"
+  },
+  "platform": "Windows-10-10.0.26200-SP0",
+  "python": "3.10.20 (main, Jul 18 2026, 17:08:20) [MSC v.1944 64 bit (AMD64)]",
+  "random_seed": 20260914,
+  "repository_commit_at_start": "934bc4ad8208d86d009c276192fee3185d587529",
+  "repository_worktree_note": "protein diagnostic is an uncommitted addition at report generation",
+  "tokenizer_revision": "d819157a3a96d278500232b2cbb2a02d9646bcf6"
+}

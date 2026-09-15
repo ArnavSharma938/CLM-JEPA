@@ -1,0 +1,15 @@
+data/**/*.tar.gz
+data/**/*.zip
+data/**/*.lmdb
+data/**/*.parquet
+data/**/*.pt
+data/**/*.npz
+data/tape/secondary_structure/
+data/tape/proteinnet/
+runs/**/*.pt
+runs/**/*.npz
+runs/**/*.npy
+runs/**/*.safetensors
+runs/**/cache/
+__pycache__/
+*.pyc

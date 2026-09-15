@@ -1,0 +1,251 @@
+{
+  "objective": "stp",
+  "records": [
+    {
+      "id": "UniRef50_A0A011NLZ1",
+      "cluster_id": "UniRef50_A0A011NLZ1",
+      "ntp_loss": 1.7783597707748413,
+      "auxiliary_loss": 1.6542893648147583,
+      "norm_ratio": 0.7812041984200332,
+      "cosine": -0.029777605752493278,
+      "ntp_direction_retention": 0.9767376093672557,
+      "depth": {
+        "tied_embedding_head": {
+          "norm_ratio": 0.06169835028639045,
+          "cosine": -0.028492289692758715,
+          "ntp_direction_retention": 0.9982420727300748
+        },
+        "early_0_7": {
+          "norm_ratio": 0.652251226278991,
+          "cosine": -0.13489564477480243,
+          "ntp_direction_retention": 0.91201415027594
+        },
+        "middle_8_15": {
+          "norm_ratio": 0.8724531165462598,
+          "cosine": -0.02069405724929775,
+          "ntp_direction_retention": 0.9819454052588634
+        },
+        "late_16_23": {
+          "norm_ratio": 0.8804941845925837,
+          "cosine": 0.04043481087341138,
+          "ntp_direction_retention": 1.0356026158291396
+        },
+        "other": {
+          "norm_ratio": 3.8360998706318368,
+          "cosine": -0.004435474788681126,
+          "ntp_direction_retention": 0.9829850757369496
+        }
+      }
+    },
+    {
+      "id": "UniRef50_A0A023G580",
+      "cluster_id": "UniRef50_A0A023G580",
+      "ntp_loss": 2.828829288482666,
+      "auxiliary_loss": 1.3270652294158936,
+      "norm_ratio": 2.3964550088009013,
+      "cosine": -0.18411932474998513,
+      "ntp_direction_retention": 0.5587663219858584,
+      "depth": {
+        "tied_embedding_head": {
+          "norm_ratio": 0.10253141655229768,
+          "cosine": -0.024265117839216737,
+          "ntp_direction_retention": 0.9975120630951366
+        },
+        "early_0_7": {
+          "norm_ratio": 2.326022345412841,
+          "cosine": -0.24947450737793048,
+          "ntp_direction_retention": 0.419716721228073
+        },
+        "middle_8_15": {
+          "norm_ratio": 2.5704197077109274,
+          "cosine": -0.2552936793793328,
+          "ntp_direction_retention": 0.3437880952693282
+        },
+        "late_16_23": {
+          "norm_ratio": 3.189504291408766,
+          "cosine": -0.08494027283979358,
+          "ntp_direction_retention": 0.7290826352640469
+        },
+        "other": {
+          "norm_ratio": 3.190255491407198,
+          "cosine": 0.017546647631109833,
+          "ntp_direction_retention": 1.0559782889609353
+        }
+      }
+    },
+    {
+      "id": "UniRef50_A0A024GJR2",
+      "cluster_id": "UniRef50_A0A024GJR2",
+      "ntp_loss": 2.9602549076080322,
+      "auxiliary_loss": 1.2574522495269775,
+      "norm_ratio": 6.164796418061257,
+      "cosine": 0.2685464632304484,
+      "ntp_direction_retention": 2.655534274606087,
+      "depth": {
+        "tied_embedding_head": {
+          "norm_ratio": 0.4188520988890801,
+          "cosine": -0.00817078106626229,
+          "ntp_direction_retention": 0.9965776512008329
+        },
+        "early_0_7": {
+          "norm_ratio": 5.878547177947666,
+          "cosine": -0.19028919402091377,
+          "ntp_direction_retention": -0.11862400450557864
+        },
+        "middle_8_15": {
+          "norm_ratio": 6.1778867552828665,
+          "cosine": -0.054626878898294304,
+          "ntp_direction_retention": 0.6625213283717866
+        },
+        "late_16_23": {
+          "norm_ratio": 7.208700931108853,
+          "cosine": 0.716324207792988,
+          "ntp_direction_retention": 6.163766983693125
+        },
+        "other": {
+          "norm_ratio": 8.211354272087473,
+          "cosine": 0.09756433245271284,
+          "ntp_direction_retention": 1.8011352980889461
+        }
+      }
+    },
+    {
+      "id": "UniRef50_A0A068RIG8",
+      "cluster_id": "UniRef50_A0A068RIG8",
+      "ntp_loss": 3.060871124267578,
+      "auxiliary_loss": 1.2145307064056396,
+      "norm_ratio": 2.0516674792402214,
+      "cosine": 0.21593635347850962,
+      "ntp_direction_retention": 1.4430295940175792,
+      "depth": {
+        "tied_embedding_head": {
+          "norm_ratio": 0.07469319419078256,
+          "cosine": -0.01951078811022942,
+          "ntp_direction_retention": 0.9985426769148674
+        },
+        "early_0_7": {
+          "norm_ratio": 2.747031697604476,
+          "cosine": 0.06578197498577228,
+          "ntp_direction_retention": 1.1807051704169411
+        },
+        "middle_8_15": {
+          "norm_ratio": 3.042332404789353,
+          "cosine": 0.05013370056515522,
+          "ntp_direction_retention": 1.152523381801378
+        },
+        "late_16_23": {
+          "norm_ratio": 1.7800935761299381,
+          "cosine": 0.4396623360288008,
+          "ntp_direction_retention": 1.7826401000311507
+        },
+        "other": {
+          "norm_ratio": 3.246164522840962,
+          "cosine": -0.04837411824608379,
+          "ntp_direction_retention": 0.8429696535258491
+        }
+      }
+    },
+    {
+      "id": "UniRef50_A0A075AGB2",
+      "cluster_id": "UniRef50_A0A075AGB2",
+      "ntp_loss": 2.9835941791534424,
+      "auxiliary_loss": 1.3164376020431519,
+      "norm_ratio": 4.157793659809245,
+      "cosine": 0.055370757097874215,
+      "ntp_direction_retention": 1.2302201828003791,
+      "depth": {
+        "tied_embedding_head": {
+          "norm_ratio": 0.2981946390133075,
+          "cosine": 0.00784373923515251,
+          "ntp_direction_retention": 1.0023389609897408
+        },
+        "early_0_7": {
+          "norm_ratio": 5.616414963767854,
+          "cosine": -0.03640101214963242,
+          "ntp_direction_retention": 0.795556810666509
+        },
+        "middle_8_15": {
+          "norm_ratio": 6.20763821304012,
+          "cosine": 0.023727834702333712,
+          "ntp_direction_retention": 1.1472938134109063
+        },
+        "late_16_23": {
+          "norm_ratio": 3.492327762221595,
+          "cosine": 0.23596170958283225,
+          "ntp_direction_retention": 1.8240556291973942
+        },
+        "other": {
+          "norm_ratio": 1.6912450186470904,
+          "cosine": 0.04397584089626057,
+          "ntp_direction_retention": 1.0743739218566177
+        }
+      }
+    },
+    {
+      "id": "UniRef50_A0A078BE47",
+      "cluster_id": "UniRef50_A0A078BE47",
+      "ntp_loss": 2.8728854656219482,
+      "auxiliary_loss": 1.2989856004714966,
+      "norm_ratio": 2.362854900584963,
+      "cosine": 0.29841939787733957,
+      "ntp_direction_retention": 1.7051217367040858,
+      "depth": {
+        "tied_embedding_head": {
+          "norm_ratio": 0.1671590144344928,
+          "cosine": 0.0075567232680543,
+          "ntp_direction_retention": 1.001263174413842
+        },
+        "early_0_7": {
+          "norm_ratio": 2.7070589374493985,
+          "cosine": 0.14169395595609965,
+          "ntp_direction_retention": 1.383573889853521
+        },
+        "middle_8_15": {
+          "norm_ratio": 3.1613147450760812,
+          "cosine": 0.06971748480811132,
+          "ntp_direction_retention": 1.2203989127135
+        },
+        "late_16_23": {
+          "norm_ratio": 2.2518016399836465,
+          "cosine": 0.5660037296513318,
+          "ntp_direction_retention": 2.2745281266657296
+        },
+        "other": {
+          "norm_ratio": 3.8999808329850274,
+          "cosine": -0.0016573672746666083,
+          "ntp_direction_retention": 0.9935362993955836
+        }
+      }
+    }
+  ],
+  "summary": {
+    "norm_ratio": {
+      "mean": 2.9857952774861034,
+      "ci95": [
+        1.737508877451062,
+        4.5111175489697
+      ],
+      "sign_flip_p_vs_zero": 0.030748462576871156
+    },
+    "cosine": {
+      "mean": 0.10406267353028224,
+      "ci95": [
+        -0.038057570837872486,
+        0.23377335788361825
+      ],
+      "sign_flip_p_vs_zero": 0.18509074546272686
+    },
+    "ntp_direction_retention": {
+      "mean": 1.428234953246874,
+      "ci95": [
+        0.9573762732540313,
+        1.9892687698687153
+      ],
+      "sign_flip_p_vs_zero": 0.030748462576871156
+    },
+    "scale_for_3pct_backbone_pressure": 0.010047574335122721
+  },
+  "parameter_scope": "all unique RITA-M parameters",
+  "backbone_updated": false,
+  "nextlat_auxiliary": null
+}

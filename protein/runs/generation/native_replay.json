@@ -1,0 +1,1757 @@
+{
+  "configuration": {
+    "prompt": "M",
+    "temperature": 1.0,
+    "top_p": 0.9,
+    "minimum_residues": 64,
+    "maximum_residues": 128,
+    "canonical_tokens_plus_EOS_only": true,
+    "seed": 20260914,
+    "quality_rule_fixed_before_surrogates": true
+  },
+  "records": [
+    {
+      "id": "generation_000",
+      "sequence": "MADRMGSDALRQDAQKIMSSVETNSMQSGPQGSLNNYYENAQKLLAQYTSYASSGYKAINFFQNNTSLRQLDGQSRILADTFGAMKGSANNFATTQKEVYASWASSATLQQFQQSLQQRQSTSLGSLA",
+      "quality": {
+        "entropy": 2.6401777088205085,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9444444444444444,
+        "composition_l1": 0.5473585210524783
+      },
+      "quality_composite": 0.1969545927152781,
+      "quality_group": "better",
+      "nextlat_error": 0.14275714755058289,
+      "curvature": 1.407588243484497,
+      "tangent_c1": -0.4075881540775299,
+      "tube_radius": 0.6475769281387329,
+      "path_efficiency": 0.013475699350237846
+    },
+    {
+      "id": "generation_001",
+      "sequence": "MLSTSPTPQGKSLQEEDEDKAAPDGQSLQDESSPEKGTQTAKVDLVDPGPVGPEAPKTESDQRPLSLSLRRPGRPAPEPSPPEEPEEGPELAGLGLPSASRLGPTPSGPSGQPAAEQQSLLQLEGASS",
+      "quality": {
+        "entropy": 2.376301327904249,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9444444444444444,
+        "composition_l1": 0.6531223811804142
+      },
+      "quality_composite": -0.14739321760566654,
+      "quality_group": "worse",
+      "nextlat_error": 0.04688186198472977,
+      "curvature": 1.4155360460281372,
+      "tangent_c1": -0.4155358374118805,
+      "tube_radius": 0.521025538444519,
+      "path_efficiency": 0.018534954637289047
+    },
+    {
+      "id": "generation_002",
+      "sequence": "MLLTILAGLGAVAIGFFVLLVSGIAKAVPGPAEVAAEAPESAAEVLGPEETADETLDEAAEEPSPGSADPESSEEPESESSGAAAEAEPEPDDEPEPDDEETAEAEPEPDESADEEPEPDEAADEDPE",
+      "quality": {
+        "entropy": 2.176755822137246,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.7142857142857143,
+        "composition_l1": 0.8382533605825387
+      },
+      "quality_composite": -1.0589175527540249,
+      "quality_group": "worse",
+      "nextlat_error": 0.02412046678364277,
+      "curvature": 1.4197548627853394,
+      "tangent_c1": -0.4197547435760498,
+      "tube_radius": 0.4500322639942169,
+      "path_efficiency": 0.028009239584207535
+    },
+    {
+      "id": "generation_003",
+      "sequence": "MATLDGVLPDTGTKVPQGFSAAPPQIGLARAAIGASQGFQVGGMAQGDQRAQELQSYYLATALSQSQMQPIQVNTLQPSALAQGQGPQATLPQVPIRGQGLQTQQQQLAQAQQPNLQSQQQQQQQQQQ",
+      "quality": {
+        "entropy": 2.3595618461628494,
+        "longest_homopolymer": 10,
+        "unique_trimer_fraction": 0.873015873015873,
+        "composition_l1": 0.7024897087468169
+      },
+      "quality_composite": -0.5395431163042923,
+      "quality_group": "worse",
+      "nextlat_error": 0.046771928668022156,
+      "curvature": 1.4220607280731201,
+      "tangent_c1": -0.42206069827079773,
+      "tube_radius": 0.485514760017395,
+      "path_efficiency": 0.02206350862979889
+    },
+    {
+      "id": "generation_004",
+      "sequence": "MEVDPDVAGYVEILEAYSDLINNTSSRKRFENLFRAYIGDAQELSLAGLQYKIQDKVLEASLDGGAAEASQSTKQDAM",
+      "quality": {
+        "entropy": 2.69579674834128,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9736842105263158,
+        "composition_l1": 0.36737930500650473
+      },
+      "quality_composite": 0.5222196410420359,
+      "quality_group": "better",
+      "nextlat_error": 0.019437158480286598,
+      "curvature": 1.4002307653427124,
+      "tangent_c1": -0.4002307653427124,
+      "tube_radius": 0.41102489829063416,
+      "path_efficiency": 0.04340353235602379
+    },
+    {
+      "id": "generation_005",
+      "sequence": "MGAVLAVALLVRAFAFMKLLTKRSGSALTVPFLAFLLFLQISIVGGVVPGALGLGLADAVPLGFAVLTGVASVLVLPNFTSFVHVVLHHFGGAGDILRKADDPNISLPKRTAVLMIAFLIIFGNIILP",
+      "quality": {
+        "entropy": 2.5139241914647017,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9682539682539683,
+        "composition_l1": 0.5620788654990438
+      },
+      "quality_composite": 0.12734900853966996,
+      "quality_group": "worse",
+      "nextlat_error": 0.0600627176463604,
+      "curvature": 1.3805804252624512,
+      "tangent_c1": -0.38058018684387207,
+      "tube_radius": 0.660266637802124,
+      "path_efficiency": 0.01713152602314949
+    },
+    {
+      "id": "generation_006",
+      "sequence": "MIYLVSQADILLQKKGILVLVTSTTVTSALPPGKVVEVDNLRGEFTELLLTSQYEVVICTDCLSNLHSSAVLNSVSLQISSKKALVLLDEVQCLPSNLLIHFLKAVSLSSFLVSVLGEQKFIKFLVTK",
+      "quality": {
+        "entropy": 2.612771247184353,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9444444444444444,
+        "composition_l1": 0.5211919633179211
+      },
+      "quality_composite": 0.18528591413349615,
+      "quality_group": "better",
+      "nextlat_error": 0.04284185916185379,
+      "curvature": 1.3501560688018799,
+      "tangent_c1": -0.3501560389995575,
+      "tube_radius": 0.5194265842437744,
+      "path_efficiency": 0.018280791118741035
+    },
+    {
+      "id": "generation_007",
+      "sequence": "MLKLVQDKFLEIADRSLRPIDASQDGNKDVARVFNAVDGNRVEIRDDRILIATGAKARALPGLDIDGDRVVGYREALTPAGMMKSLKPRQVVIIGAGYIGLEMAAVYAKLGSSVTVVEAAPRILSRAV",
+      "quality": {
+        "entropy": 2.6558594651485294,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9841269841269841,
+        "composition_l1": 0.4164023242984395
+      },
+      "quality_composite": 0.45354962693591416,
+      "quality_group": "better",
+      "nextlat_error": 0.13345354795455933,
+      "curvature": 1.3951393365859985,
+      "tangent_c1": -0.3951393961906433,
+      "tube_radius": 0.6856383085250854,
+      "path_efficiency": 0.01520543172955513
+    },
+    {
+      "id": "generation_008",
+      "sequence": "MALNVTVPLLRGDASYVPGKEVEIQDPKISLRQAAIRVLSPIVARGMEATGKSGGFGPVTAVARHEQVEMLRTSAAPELWANQWSHTTATRAM",
+      "quality": {
+        "entropy": 2.754824610286564,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.989010989010989,
+        "composition_l1": 0.3482767242977019
+      },
+      "quality_composite": 0.627436996567924,
+      "quality_group": "better",
+      "nextlat_error": 0.08898225426673889,
+      "curvature": 1.4225099086761475,
+      "tangent_c1": -0.4225098788738251,
+      "tube_radius": 0.6338815689086914,
+      "path_efficiency": 0.02059442363679409
+    },
+    {
+      "id": "generation_009",
+      "sequence": "MGGLARVTRTLVVPGLVAGLVILPLLLAVAAVGTAPAVATVVTLLVGALIAVIAGLLIDLATAPAVGRRLAAESDPRRVAADRDGAGEPERDERDGAVAVEVPGPARATVVDEEDELPESTDAPAESP",
+      "quality": {
+        "entropy": 2.2873689101714025,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.8650793650793651,
+        "composition_l1": 0.6770487864855158
+      },
+      "quality_composite": -0.4439272796042355,
+      "quality_group": "worse",
+      "nextlat_error": 0.020427651703357697,
+      "curvature": 1.3834760189056396,
+      "tangent_c1": -0.3834758996963501,
+      "tube_radius": 0.4589649736881256,
+      "path_efficiency": 0.026133060455322266
+    },
+    {
+      "id": "generation_010",
+      "sequence": "MTNVVDNILTSDLLAARDEDTVARVLAVLVGSGAVISLGAAPAGPDGPAGLSGLLRASLEASVDDLLAGERDGGRRRAAREAGAPLPVGDAPGLSLSEESLRSALGTAAGVAGEPTPAARSVLEVAEA",
+      "quality": {
+        "entropy": 2.3279135564371805,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9444444444444444,
+        "composition_l1": 0.6114754651994266
+      },
+      "quality_composite": -0.15788107068601046,
+      "quality_group": "worse",
+      "nextlat_error": 0.015409874729812145,
+      "curvature": 1.3976796865463257,
+      "tangent_c1": -0.39767971634864807,
+      "tube_radius": 0.40770208835601807,
+      "path_efficiency": 0.02613184228539467
+    },
+    {
+      "id": "generation_011",
+      "sequence": "MGFQKKYFETRRIKQRESIKVSPSIQVPEGYIIHPPPRGLLYATQMEQLQVFYQNRKEELQKILQEKHMKEEKLRKMLENLVTEEECLMIETVERTEVALPELQEEGSM",
+      "quality": {
+        "entropy": 2.672955727709163,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9719626168224299,
+        "composition_l1": 0.5351420041214511
+      },
+      "quality_composite": 0.27869834246893616,
+      "quality_group": "better",
+      "nextlat_error": 0.1356649249792099,
+      "curvature": 1.3925672769546509,
+      "tangent_c1": -0.3925672769546509,
+      "tube_radius": 0.7109796404838562,
+      "path_efficiency": 0.013698752038180828
+    },
+    {
+      "id": "generation_012",
+      "sequence": "MGTAISIAEAPGLKVLQAGLNGGEVIDSGVASEIRRRPIKLPEIADDEVRRQEQLVSLISEREGQSIRGDDLLEAVIRQKMRRRIDARASQRRGRRTGKAKAGAAATKRGSKRAAM",
+      "quality": {
+        "entropy": 2.5291119163152227,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9912280701754386,
+        "composition_l1": 0.5122602735828626
+      },
+      "quality_composite": 0.22954837289969893,
+      "quality_group": "better",
+      "nextlat_error": 0.04234591871500015,
+      "curvature": 1.3886544704437256,
+      "tangent_c1": -0.3886544108390808,
+      "tube_radius": 0.5079830288887024,
+      "path_efficiency": 0.023292917758226395
+    },
+    {
+      "id": "generation_013",
+      "sequence": "MFILIIILIYFVFYGVMTMFDNLYLNLKTMTFVLFLNLGISLDYSLIYIAKYQEELKAGKTYDEAITSTLKSSGKTIVFSALTTLIGFAVLSFSDINLIRDFGIVLGVGILIDTFIVRTVLVPSILKI",
+      "quality": {
+        "entropy": 2.587482911446117,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9603174603174603,
+        "composition_l1": 0.5597145971992584
+      },
+      "quality_composite": 0.15318313517647966,
+      "quality_group": "worse",
+      "nextlat_error": 0.11255258321762085,
+      "curvature": 1.3778737783432007,
+      "tangent_c1": -0.37787383794784546,
+      "tube_radius": 0.6618633270263672,
+      "path_efficiency": 0.014855878427624702
+    },
+    {
+      "id": "generation_014",
+      "sequence": "MSASAAAPGSGSGVRLLPTDSATTGTTLAAQAPDTPQGGAGLGLPTLLERDSRERAAARTVDAPARGTAESPAARAPTTAPGAPRSPEPASPPATGAPGAPVSAPVAPTSSTSPSSGSTGSTSPTSPS",
+      "quality": {
+        "entropy": 2.1805436530853672,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.8571428571428571,
+        "composition_l1": 0.8636018658128978
+      },
+      "quality_composite": -0.7725856909356605,
+      "quality_group": "worse",
+      "nextlat_error": 0.017053719609975815,
+      "curvature": 1.4456522464752197,
+      "tangent_c1": -0.44565215706825256,
+      "tube_radius": 0.41749194264411926,
+      "path_efficiency": 0.031477224081754684
+    },
+    {
+      "id": "generation_015",
+      "sequence": "MAVAITAVLLLVFPTVLLPFGVSTGRVSWVALGPVVLAMVTAGILFGGIVELVVRRFDRRLGVLAVVLGVSVILVPISYAGGVLPPAAAVVLIVAFSVSSGVSLAIGVGRRPLAVTLLPGFPPAVRGR",
+      "quality": {
+        "entropy": 2.322894411079106,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9047619047619048,
+        "composition_l1": 0.6544355827005025
+      },
+      "quality_composite": -0.3004707641034598,
+      "quality_group": "worse",
+      "nextlat_error": 0.031495265662670135,
+      "curvature": 1.3799537420272827,
+      "tangent_c1": -0.37995368242263794,
+      "tube_radius": 0.5759497284889221,
+      "path_efficiency": 0.024362806230783463
+    },
+    {
+      "id": "generation_016",
+      "sequence": "MRAREVDEDSLSSVNISAAAAQRIALAEAESTASTSAPAPAAAQTAGGSLLLVATAITALRNLLRTTTPPM",
+      "quality": {
+        "entropy": 2.3669900371654733,
+        "longest_homopolymer": 4,
+        "unique_trimer_fraction": 0.9420289855072463,
+        "composition_l1": 0.5951544002138964
+      },
+      "quality_composite": -0.13172019451699724,
+      "quality_group": "worse",
+      "nextlat_error": 0.025808604434132576,
+      "curvature": 1.3697201013565063,
+      "tangent_c1": -0.3697199821472168,
+      "tube_radius": 0.4701366722583771,
+      "path_efficiency": 0.049677710980176926
+    },
+    {
+      "id": "generation_017",
+      "sequence": "MKSFYKLSLSDKTIQKLSTKDSLIKQQKEKVNIAVFAKPTELVLGKEFFSIDNFENKLLELLSTKLKEKSIKINLKETKDFLSQTYDKLKSNFVFGFAAIIAILVLFLILFYRSISISIITLLSNFIS",
+      "quality": {
+        "entropy": 2.5138931688725665,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9047619047619048,
+        "composition_l1": 0.6532749097265588
+      },
+      "quality_composite": -0.1210395252364321,
+      "quality_group": "worse",
+      "nextlat_error": 0.044595349580049515,
+      "curvature": 1.4068725109100342,
+      "tangent_c1": -0.4068724513053894,
+      "tube_radius": 0.5715975165367126,
+      "path_efficiency": 0.02603657729923725
+    },
+    {
+      "id": "generation_018",
+      "sequence": "MTGSAVDIGIKALAVVTPAIISLGIFLVFVIVVMARVLRDLTKDEISTIDEITGTTRLAKRAKNGIAGDGLGKSIERVKGVAGALKELTSEMKEMKGRTKELKEGQQAMNAAAKELSNNSDELKENVA",
+      "quality": {
+        "entropy": 2.6137656390952273,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9444444444444444,
+        "composition_l1": 0.4327663066514378
+      },
+      "quality_composite": 0.2918209202532369,
+      "quality_group": "better",
+      "nextlat_error": 0.036107294261455536,
+      "curvature": 1.4021501541137695,
+      "tangent_c1": -0.40215009450912476,
+      "tube_radius": 0.5205520987510681,
+      "path_efficiency": 0.019305268302559853
+    },
+    {
+      "id": "generation_019",
+      "sequence": "MLLDRRPAPTGQRAGTLASTSMPTQRDVRRQRKRLAFEALRNGTPAPPRSRTPLTPLAGIRLDSVAGIAPVIPTTRAQARAAIARIQRTPDLLVIGPTGSGKTLLAQGLGDLLSPPDRDPVLIIDPRG",
+      "quality": {
+        "entropy": 2.4836086377430586,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9523809523809523,
+        "composition_l1": 0.5884876893234668
+      },
+      "quality_composite": 0.03590848827579838,
+      "quality_group": "worse",
+      "nextlat_error": 0.04609326273202896,
+      "curvature": 1.3841441869735718,
+      "tangent_c1": -0.384144127368927,
+      "tube_radius": 0.6063244938850403,
+      "path_efficiency": 0.022338537499308586
+    },
+    {
+      "id": "generation_020",
+      "sequence": "MPGFKLGKETGANSDRKYFNQLTQFEDVRQLWETNEDGVQEQEKLEFVEKLVKTHELDSDIAQIMEQYDEENAAGFNYLEIKAFHEEGSLTHLHAKLAFGKNKQAYIYIDHGAKRNFLLNFSLKDMLQ",
+      "quality": {
+        "entropy": 2.7700858663676913,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9920634920634921,
+        "composition_l1": 0.4702530406618758
+      },
+      "quality_composite": 0.5009144211966073,
+      "quality_group": "better",
+      "nextlat_error": 0.0667809396982193,
+      "curvature": 1.4253243207931519,
+      "tangent_c1": -0.42532429099082947,
+      "tube_radius": 0.6559270620346069,
+      "path_efficiency": 0.013631543144583702
+    },
+    {
+      "id": "generation_021",
+      "sequence": "MNIAQLGGVGTIKSLKKGIVETDEPKRLIKAGGSVVVINRKMLSKLISATTSKGNSGTIAIVPVKGKEHRIFEMVQATVTVPDEVKIAPGKVQYKLLFGLVAGRRYIELAKDFNKKDSLNTKYDLLVK",
+      "quality": {
+        "entropy": 2.69967723287993,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9920634920634921,
+        "composition_l1": 0.3954253266345479
+      },
+      "quality_composite": 0.5119100151843723,
+      "quality_group": "better",
+      "nextlat_error": 0.09933316707611084,
+      "curvature": 1.391588807106018,
+      "tangent_c1": -0.3915887475013733,
+      "tube_radius": 0.6730647087097168,
+      "path_efficiency": 0.014740683138370514
+    },
+    {
+      "id": "generation_022",
+      "sequence": "MAGVGAVLLTLFSGPGAIGDIGGTLLLVLAVGGVVTVVNILSAVLTPILSGLALDGFTSGDSVDYGTLKEEFKAFNPIVAVLLIGGIIAETLGIGDFVETVQAGFTGVAIGLVVYLVVCLFLSGLIRR",
+      "quality": {
+        "entropy": 2.4836840970287914,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9047619047619048,
+        "composition_l1": 0.6162561254089
+      },
+      "quality_composite": -0.12204860893620498,
+      "quality_group": "worse",
+      "nextlat_error": 0.08838259428739548,
+      "curvature": 1.361793041229248,
+      "tangent_c1": -0.3617928624153137,
+      "tube_radius": 0.6919111609458923,
+      "path_efficiency": 0.014593121595680714
+    },
+    {
+      "id": "generation_023",
+      "sequence": "MVVAAGVLIAVLVLVIVLASLLTSKRQAKSQAEALAQSDERTETVVDVRPSSLLDLPDDGITDPSLEPEEEADAVALTSPVADEEPEEEEPIVPDAASPVVEVVPVAEPAPAPAVEVAPVVEPEAEPA",
+      "quality": {
+        "entropy": 2.3163332562908656,
+        "longest_homopolymer": 4,
+        "unique_trimer_fraction": 0.8571428571428571,
+        "composition_l1": 0.7270273404764755
+      },
+      "quality_composite": -0.5174950737017514,
+      "quality_group": "worse",
+      "nextlat_error": 0.0617973729968071,
+      "curvature": 1.4262194633483887,
+      "tangent_c1": -0.42621949315071106,
+      "tube_radius": 0.5585396885871887,
+      "path_efficiency": 0.01887025684118271
+    },
+    {
+      "id": "generation_024",
+      "sequence": "MEAGRYVSLDAAIERFLESTEKFARDAQERDPAERDFIARAEHLAKQFEEAFAKRFRADAGSKWDYKNPEVLSYRGYDENNAIEVFIQKGLRNGTWCDIPPDAVIGKVARRAAAILEQ",
+      "quality": {
+        "entropy": 2.738536526903371,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9741379310344828,
+        "composition_l1": 0.4572617143925129
+      },
+      "quality_composite": 0.43073477962387274,
+      "quality_group": "better",
+      "nextlat_error": 0.06581685692071915,
+      "curvature": 1.4141417741775513,
+      "tangent_c1": -0.4141417443752289,
+      "tube_radius": 0.6557056307792664,
+      "path_efficiency": 0.016400722786784172
+    },
+    {
+      "id": "generation_025",
+      "sequence": "MENALGADRVGLGVMVGTAVRRDRAGIAEDRRRLRAFIRQVARLGRVCETVMAVEGPTVSLPQIIAMAEAGADAVSIGTAVLVGKDLFERLVRGRDDEPAARPEAWVGSAARRAGAARTRPPGPERPA",
+      "quality": {
+        "entropy": 2.505936070716236,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9444444444444444,
+        "composition_l1": 0.6068178591766674
+      },
+      "quality_composite": -0.0053039962203423885,
+      "quality_group": "worse",
+      "nextlat_error": 0.09350386261940002,
+      "curvature": 1.4009459018707275,
+      "tangent_c1": -0.40094584226608276,
+      "tube_radius": 0.6470895409584045,
+      "path_efficiency": 0.013280397281050682
+    },
+    {
+      "id": "generation_026",
+      "sequence": "MKLGKLALQYSKPPLDIKIDLELNLLTENKLLDFILSFLYSNFLNAYNLDLNLSIPHNFANLTHLFHKFAEESELTLLTPTEFYICDNFHINLISNKLVIKELSANQKVYFHGKQRYFEKLEYLTELL",
+      "quality": {
+        "entropy": 2.6181774600302323,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9682539682539683,
+        "composition_l1": 0.6359330662069946
+      },
+      "quality_composite": 0.12514659342038803,
+      "quality_group": "worse",
+      "nextlat_error": 0.12207022309303284,
+      "curvature": 1.4603533744812012,
+      "tangent_c1": -0.46035346388816833,
+      "tube_radius": 0.701659619808197,
+      "path_efficiency": 0.013307793997228146
+    },
+    {
+      "id": "generation_027",
+      "sequence": "MDPYIIFVNQLKENIYREQKKFRYRKLNNSFNQDLSQRKIRSKDSRDEQRKIYQILRDHSLFGKFAYKINIPASIWPIGRDLSIFPLEEESSGLLFNSKRDEQQTRIVDLDGLELTDARKQKGLDRVR",
+      "quality": {
+        "entropy": 2.722323833720896,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9603174603174603,
+        "composition_l1": 0.49638562452072565
+      },
+      "quality_composite": 0.3402436362567559,
+      "quality_group": "better",
+      "nextlat_error": 0.033123426139354706,
+      "curvature": 1.4241362810134888,
+      "tangent_c1": -0.4241361916065216,
+      "tube_radius": 0.4975315034389496,
+      "path_efficiency": 0.019361112266778946
+    },
+    {
+      "id": "generation_028",
+      "sequence": "MVLLLAALLLGVGSFVRRRSVPPQAQLRRLGEGLLPWVVLALGLGIAVYLAQDGLFGVLGRGVPQGLNLPAPLVQWSTITLVGLAAALATTLFVSPRISSRSM",
+      "quality": {
+        "entropy": 2.4505942460628773,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9702970297029703,
+        "composition_l1": 0.5887244177736868
+      },
+      "quality_composite": 0.02736130505970996,
+      "quality_group": "worse",
+      "nextlat_error": 0.04136478528380394,
+      "curvature": 1.3741275072097778,
+      "tangent_c1": -0.374127596616745,
+      "tube_radius": 0.5206719636917114,
+      "path_efficiency": 0.024708513170480728
+    },
+    {
+      "id": "generation_029",
+      "sequence": "MFDTVTLLIVLVALGSVAFFGWATAAIRSKDNAERPKPAPAQGPSAATGGPTGQSGPATQPGSSPSAPPAGQAPQGSRR",
+      "quality": {
+        "entropy": 2.522953769693397,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.987012987012987,
+        "composition_l1": 0.6241414224114293
+      },
+      "quality_composite": 0.10177681465020641,
+      "quality_group": "worse",
+      "nextlat_error": 0.01906229555606842,
+      "curvature": 1.3916152715682983,
+      "tangent_c1": -0.39161524176597595,
+      "tube_radius": 0.45236048102378845,
+      "path_efficiency": 0.04373055323958397
+    },
+    {
+      "id": "generation_030",
+      "sequence": "MPKAFQDILDGKGGADPQLLERIASLIGESGGKVFLEEFRDLTSEAKKDLLQETLAKGSVTRNGGGKKQRLDDEDDSQSDEESEDEEEEEDVVLQNEEDDEEEEDNENDTEEEDDDDEDAEAAGGDKR",
+      "quality": {
+        "entropy": 2.4564878535196497,
+        "longest_homopolymer": 5,
+        "unique_trimer_fraction": 0.8650793650793651,
+        "composition_l1": 0.6499976946298627
+      },
+      "quality_composite": -0.3125693282259351,
+      "quality_group": "worse",
+      "nextlat_error": 0.020738545805215836,
+      "curvature": 1.338249683380127,
+      "tangent_c1": -0.33824968338012695,
+      "tube_radius": 0.48454946279525757,
+      "path_efficiency": 0.026802480220794678
+    },
+    {
+      "id": "generation_031",
+      "sequence": "MLPELDVELADKLLEASQRSKGRFKLSAPKAGTPIIINYTVNPKVTGQWHKPAAVTAEGDKLTIALNLDQAGEFEFSVIAENGELSSSATFKIVEKKKEEKEEEKPEEEKEEKAKPETEVVETEQPEE",
+      "quality": {
+        "entropy": 2.615513609869492,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9126984126984127,
+        "composition_l1": 0.47028059387952537
+      },
+      "quality_composite": 0.17874711002893195,
+      "quality_group": "better",
+      "nextlat_error": 0.07412802428007126,
+      "curvature": 1.450326919555664,
+      "tangent_c1": -0.4503267705440521,
+      "tube_radius": 0.605103075504303,
+      "path_efficiency": 0.015813739970326424
+    },
+    {
+      "id": "generation_032",
+      "sequence": "MLDQQKLVQIEEDRKAVQTNVSKLEAIVSGLDEPESVKVRENLEKQLKARAKRSSVARKELADLKKRLGTERKVKESADSRTQELQLTTNTIAADQAEAETLKQNKSALESELDDLKSKQSDLQTQTE",
+      "quality": {
+        "entropy": 2.491504623343549,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9920634920634921,
+        "composition_l1": 0.5541944490731603
+      },
+      "quality_composite": 0.17051249434707666,
+      "quality_group": "worse",
+      "nextlat_error": 0.059039898216724396,
+      "curvature": 1.421077847480774,
+      "tangent_c1": -0.4210778474807739,
+      "tube_radius": 0.5577035546302795,
+      "path_efficiency": 0.01528263371437788
+    },
+    {
+      "id": "generation_033",
+      "sequence": "MLAKQSEAANSFEREMSSLQAQADAYAKQKDERKSIEKNIVELGAEADNFQASIKNLEDELKTKETTTSSIKTKLDTIIKKLGQKQSETAALQTKLDNAAQATQKENKERAEKLEKEIAALEERSKEI",
+      "quality": {
+        "entropy": 2.4773454951761855,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9206349206349206,
+        "composition_l1": 0.6347476206153477
+      },
+      "quality_composite": -0.11455547762126364,
+      "quality_group": "worse",
+      "nextlat_error": 0.05754637345671654,
+      "curvature": 1.4183058738708496,
+      "tangent_c1": -0.41830575466156006,
+      "tube_radius": 0.5461186170578003,
+      "path_efficiency": 0.015196393243968487
+    },
+    {
+      "id": "generation_034",
+      "sequence": "MDLQTSEESARKVELEMNQARQSVLRLEREKKRLQEEAESQVSRASQIQELEKDISALQEQISSQESKIRGLTEELTRERSDREEKAKDLQDMENNFKRKEEEIKSLKLELEKRSLELERQNKERTDS",
+      "quality": {
+        "entropy": 2.3997216163711155,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9365079365079365,
+        "composition_l1": 0.7233674137144447
+      },
+      "quality_composite": -0.2497680268970825,
+      "quality_group": "worse",
+      "nextlat_error": 0.10344602167606354,
+      "curvature": 1.4553240537643433,
+      "tangent_c1": -0.4553239941596985,
+      "tube_radius": 0.6532062888145447,
+      "path_efficiency": 0.011868375353515148
+    },
+    {
+      "id": "generation_035",
+      "sequence": "MIVAENEFIFENLPADQEIFDATLQKINRGDYKLYVVNPASEIDYITQFKLPSVKVEKEVIAEFLESADKTSFVISDTAGFLAGEEEKVDGVVVANALSLYSLEEKKTLVFLADIRGGGTANSKDSKE",
+      "quality": {
+        "entropy": 2.6831362424644776,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9841269841269841,
+        "composition_l1": 0.3892782290551057
+      },
+      "quality_composite": 0.488182457242646,
+      "quality_group": "better",
+      "nextlat_error": 0.02977716736495495,
+      "curvature": 1.3798068761825562,
+      "tangent_c1": -0.37980666756629944,
+      "tube_radius": 0.6002703905105591,
+      "path_efficiency": 0.023355647921562195
+    },
+    {
+      "id": "generation_036",
+      "sequence": "MRRGIVENFQHYLIKSVIAAAAVGEDAAPKEIFINVGKNELFKKAKQIKKFAGGVSILLYEVDKISSTELYHEIASIAADMLADKLQNIDSPTFTNKSKAPVNSLESNGEALNINLKDPNEKLLQTLN",
+      "quality": {
+        "entropy": 2.715354691110799,
+        "longest_homopolymer": 4,
+        "unique_trimer_fraction": 0.9841269841269841,
+        "composition_l1": 0.38421470599655083
+      },
+      "quality_composite": 0.5005224026973037,
+      "quality_group": "better",
+      "nextlat_error": 0.06797181814908981,
+      "curvature": 1.3980153799057007,
+      "tangent_c1": -0.39801543951034546,
+      "tube_radius": 0.5722488164901733,
+      "path_efficiency": 0.01727272942662239
+    },
+    {
+      "id": "generation_037",
+      "sequence": "MLSQRVRDNNPVVVFEADMIEIDQGANILATSPYNSTGGTNYVVVKAAAASFSALSLSLALATTTLKIM",
+      "quality": {
+        "entropy": 2.6714331856411344,
+        "longest_homopolymer": 4,
+        "unique_trimer_fraction": 0.9402985074626866,
+        "composition_l1": 0.43330670287920736
+      },
+      "quality_composite": 0.3093783772324286,
+      "quality_group": "better",
+      "nextlat_error": 0.06168309226632118,
+      "curvature": 1.3849660158157349,
+      "tangent_c1": -0.3849659860134125,
+      "tube_radius": 0.5873140692710876,
+      "path_efficiency": 0.03625736013054848
+    },
+    {
+      "id": "generation_038",
+      "sequence": "MFQSPLEPVRKETVLNKKARVLALREKLLEETQQLDEERQRAREQESQRDREEIRKAERIDAATQKIRQLREELRKRSGREIPQAEEDVRTQSGEEGGLEREDRRRLSGERSELLRKRRGPRVDTPLT",
+      "quality": {
+        "entropy": 2.4500021128278258,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9603174603174603,
+        "composition_l1": 0.6345778017931735
+      },
+      "quality_composite": -0.04984664574690448,
+      "quality_group": "worse",
+      "nextlat_error": 0.027171200141310692,
+      "curvature": 1.3982666730880737,
+      "tangent_c1": -0.39826658368110657,
+      "tube_radius": 0.4495987892150879,
+      "path_efficiency": 0.021021317690610886
+    },
+    {
+      "id": "generation_039",
+      "sequence": "MRKKLGQKEEALLRRIFNDYYSLPLQKYNRILAGFVPVQANLIEGLPGGIVIVSKGSYDVRKGLLNQRFRGQKGKLMHSLSKLPRNGPGTVPRGRRGNDFLADVAEQLMRKENNVIIEPAGLDILRKL",
+      "quality": {
+        "entropy": 2.70394516021931,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9841269841269841,
+        "composition_l1": 0.41115568609433084
+      },
+      "quality_composite": 0.4995306305497765,
+      "quality_group": "better",
+      "nextlat_error": 0.13852307200431824,
+      "curvature": 1.4094394445419312,
+      "tangent_c1": -0.4094393253326416,
+      "tube_radius": 0.6521797180175781,
+      "path_efficiency": 0.014022283256053925
+    },
+    {
+      "id": "generation_040",
+      "sequence": "MQTLFGVGEEIDPTEKPLDEAAPTFRLHLTPDGRILAYSSRKHVYLAKLDSADGRPLRSVASLDELTDGISLSWRPDGSQLAVSLRDNGRVDLFVADVASGKVERLTHGGGRSIAFSPDGTTLAFTIE",
+      "quality": {
+        "entropy": 2.7068581103865648,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9603174603174603,
+        "composition_l1": 0.29844255058062974
+      },
+      "quality_composite": 0.5641153588060193,
+      "quality_group": "better",
+      "nextlat_error": 0.07085185497999191,
+      "curvature": 1.3996113538742065,
+      "tangent_c1": -0.39961129426956177,
+      "tube_radius": 0.6096843481063843,
+      "path_efficiency": 0.01618439145386219
+    },
+    {
+      "id": "generation_041",
+      "sequence": "MDNLQNIILLITSQMSVDLSSIPEDCIIFKPNLALARAIGIRQRQGGSFEHPYRDIFDSALGVKELLKVASDRRAKESGIGHIRLGEEIIQGVKMRPSLSAYPDQFIIQIDRRLQRLSRGRVATIDRG",
+      "quality": {
+        "entropy": 2.7263082665295952,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9682539682539683,
+        "composition_l1": 0.39193440979288874
+      },
+      "quality_composite": 0.5061428039915246,
+      "quality_group": "better",
+      "nextlat_error": 0.1961185485124588,
+      "curvature": 1.4106725454330444,
+      "tangent_c1": -0.41067251563072205,
+      "tube_radius": 0.7008205652236938,
+      "path_efficiency": 0.012056216597557068
+    },
+    {
+      "id": "generation_042",
+      "sequence": "MEPAPLEGNVIVRGQAQAFDGRVFLRTPAVGLQAFAALATLARALGTSSTGAIEFIERLPVQSSVAFPTDALSTVSDSDASQAVPRLVLTVDSPDGDGPPPSLILDAQAIARPLQGADRSLDVTQVRA",
+      "quality": {
+        "entropy": 2.5323385573383366,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9841269841269841,
+        "composition_l1": 0.45034394504644715
+      },
+      "quality_composite": 0.2906508013380048,
+      "quality_group": "better",
+      "nextlat_error": 0.035331547260284424,
+      "curvature": 1.4559757709503174,
+      "tangent_c1": -0.45597562193870544,
+      "tube_radius": 0.4745347499847412,
+      "path_efficiency": 0.01891821250319481
+    },
+    {
+      "id": "generation_043",
+      "sequence": "MRFTSDVAAGDTAVDQYGGSDNISSGALNDASTYLADTVTGSLGTDTLTGGAGNDTLYGEAGNDTLYGGTGNDTLNGGAGNDTLDGGTGADTYIFDLGTGNDTVIDFATGSGTATGGSLSVIEVTGLT",
+      "quality": {
+        "entropy": 2.328723347601792,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.746031746031746,
+        "composition_l1": 0.7461020033262041
+      },
+      "quality_composite": -0.733268950113571,
+      "quality_group": "worse",
+      "nextlat_error": 0.1135064959526062,
+      "curvature": 1.438170313835144,
+      "tangent_c1": -0.43817007541656494,
+      "tube_radius": 0.6237673759460449,
+      "path_efficiency": 0.01567128673195839
+    },
+    {
+      "id": "generation_044",
+      "sequence": "MVKKEFATEITRTVFGGEAFKGAEFTAEAYRAGADFLRRLLAEYRPKDLLFDPTLAVNLPGFTDAPRSEYLRFAAWCDRVAELSRPDTSILYAGEMGTVEYVARIVDALEATARPDAFGIALAHLHTV",
+      "quality": {
+        "entropy": 2.6747099137494565,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9920634920634921,
+        "composition_l1": 0.41073728163695833
+      },
+      "quality_composite": 0.49330585184543413,
+      "quality_group": "better",
+      "nextlat_error": 0.09571915864944458,
+      "curvature": 1.4340887069702148,
+      "tangent_c1": -0.43408864736557007,
+      "tube_radius": 0.7101802825927734,
+      "path_efficiency": 0.013163583353161812
+    },
+    {
+      "id": "generation_045",
+      "sequence": "MGSPIGAGIPALEGGKLSLGEEITVSAGDVVARMPITSTKAEEIIDRALKISEEKYRPALKEKADVKAQRDAEVREIKELNAEEAGQVKGKVVVTVAQDEAFALLDKAKEAAEEKIREIKGAEVKEAA",
+      "quality": {
+        "entropy": 2.5172236921782343,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9126984126984127,
+        "composition_l1": 0.5907500359961303
+      },
+      "quality_composite": -0.046442072620993646,
+      "quality_group": "worse",
+      "nextlat_error": 0.04672275483608246,
+      "curvature": 1.4194414615631104,
+      "tangent_c1": -0.41944143176078796,
+      "tube_radius": 0.5803946256637573,
+      "path_efficiency": 0.017047392204403877
+    },
+    {
+      "id": "generation_046",
+      "sequence": "MNTGRVVGAPEQPGSDASASGASGPVDESADAAVPSDVVAELLADGVIDPATGEPASSAGAVLDLRRATTALRRRRGGRRPLLFHAALAEALVPHLLDDAADPASLGELLSEGTRLGVLDESLAEQGA",
+      "quality": {
+        "entropy": 2.4257807332178416,
+        "longest_homopolymer": 4,
+        "unique_trimer_fraction": 0.9206349206349206,
+        "composition_l1": 0.5646004651994266
+      },
+      "quality_composite": -0.09359450027413938,
+      "quality_group": "worse",
+      "nextlat_error": 0.05036383867263794,
+      "curvature": 1.3875975608825684,
+      "tangent_c1": -0.38759753108024597,
+      "tube_radius": 0.614137589931488,
+      "path_efficiency": 0.01820528507232666
+    },
+    {
+      "id": "generation_047",
+      "sequence": "MPFRTVGYQRALSESVSLATEKLSEKRIVLAGKDKPGRLPLIQEDVLLGSNDLAKRSVLYLSKSILRTGTAVSTVSKETLSVKELLDQAAEGANAGSTTDRIFLRGGATLAKEYAVVIEDENKPNVIK",
+      "quality": {
+        "entropy": 2.661897883343936,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9841269841269841,
+        "composition_l1": 0.31162491991872154
+      },
+      "quality_composite": 0.5837986244031959,
+      "quality_group": "better",
+      "nextlat_error": 0.026946162804961205,
+      "curvature": 1.3838955163955688,
+      "tangent_c1": -0.3838953971862793,
+      "tube_radius": 0.5666527152061462,
+      "path_efficiency": 0.02273573726415634
+    },
+    {
+      "id": "generation_048",
+      "sequence": "MLKARERFIRDVKQAAKGILWNYTFYSQEDGNAQYAEKIKRGDIEIGKLKEFHQVPVGGVNLIIDPKLDNILAVSKALCELEQTVYTHQPDLKGVKLASYHPEAGVQEGLGDVIAMGAPDTCVIRTPD",
+      "quality": {
+        "entropy": 2.837749720442582,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 1.0,
+        "composition_l1": 0.28880863122490386
+      },
+      "quality_composite": 0.7911263447982926,
+      "quality_group": "better",
+      "nextlat_error": 0.16169719398021698,
+      "curvature": 1.4118125438690186,
+      "tangent_c1": -0.41181257367134094,
+      "tube_radius": 0.7121990919113159,
+      "path_efficiency": 0.013290193863213062
+    },
+    {
+      "id": "generation_049",
+      "sequence": "MIEKNKSKDRQKLLGRILRLTRIDTLPEEVILEEADKVGNKYKEIAKMGLTIDGNGLYLVNANAGENFEQVFEGYKKRGVEKDRLETFYEATSNKSKIYYSYTSGTKGKGKVNVRLPESDELVNQSSI",
+      "quality": {
+        "entropy": 2.6941264348025933,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9523809523809523,
+        "composition_l1": 0.4140253157952637
+      },
+      "quality_composite": 0.41832325220488636,
+      "quality_group": "better",
+      "nextlat_error": 0.019911717623472214,
+      "curvature": 1.4220085144042969,
+      "tangent_c1": -0.42200854420661926,
+      "tube_radius": 0.3567420244216919,
+      "path_efficiency": 0.02272019349038601
+    },
+    {
+      "id": "generation_050",
+      "sequence": "MLTRQVLVLTEGPVLVATPEALRATRTREALRELLGALEPEDDLPGDAPWATLLGARAALAEAEEPFPAGPYSGFATRRAPGALRLVASGLPAGPALAALLEEGEAGPRALQEALFSSRGARGGHRES",
+      "quality": {
+        "entropy": 2.358612984634954,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.873015873015873,
+        "composition_l1": 0.6984470197630889
+      },
+      "quality_composite": -0.3729403123988809,
+      "quality_group": "worse",
+      "nextlat_error": 0.07066542655229568,
+      "curvature": 1.393506407737732,
+      "tangent_c1": -0.39350637793540955,
+      "tube_radius": 0.6584452390670776,
+      "path_efficiency": 0.015238238498568535
+    },
+    {
+      "id": "generation_051",
+      "sequence": "MSFGLEIILLVCGMTATTYTGETLAVPFYASVVLIVLGVVNYILFKKQPVIEIIDKENQNKIKISDTDLTSMISFTRVTVLSFIIVTLLSGFFSIKPYFYVYTFAMLILAIFAYVTIFLINLIVRKLF",
+      "quality": {
+        "entropy": 2.6516514436623346,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9841269841269841,
+        "composition_l1": 0.5753395971992584
+      },
+      "quality_composite": 0.2600634280760637,
+      "quality_group": "better",
+      "nextlat_error": 0.02190123125910759,
+      "curvature": 1.384087085723877,
+      "tangent_c1": -0.384086936712265,
+      "tube_radius": 0.4895274043083191,
+      "path_efficiency": 0.02466166764497757
+    },
+    {
+      "id": "generation_052",
+      "sequence": "MFARRERPQGLDPREAFELGEIFGERLSTTGVQDDASWQRVLEALRSGALVFPRQRVSSPVRTLRSVDETDPPVAGGSAAGGDDGRSRRGLWLSGAVAAVLAAAGGGYVAASGGPGPSGEAGAGDAAA",
+      "quality": {
+        "entropy": 2.4678605877123125,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9365079365079365,
+        "composition_l1": 0.5415663796952705
+      },
+      "quality_composite": 0.02384546177285467,
+      "quality_group": "worse",
+      "nextlat_error": 0.019124353304505348,
+      "curvature": 1.3395289182662964,
+      "tangent_c1": -0.3395289182662964,
+      "tube_radius": 0.4983823895454407,
+      "path_efficiency": 0.027948696166276932
+    },
+    {
+      "id": "generation_053",
+      "sequence": "MRFKTGETSISTNFRPFKNKVDDILEGDVDSPVIPDDPNLKSSKIRLDPASPFPIVINGNDDRLVVPSQYANSIPFSEVEDEFLVRNLGSENEEEVYSLPKPEVRPKDVYRPEYYEEEKEELFPNIVN",
+      "quality": {
+        "entropy": 2.646323340323715,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9920634920634921,
+        "composition_l1": 0.5609053512089847
+      },
+      "quality_composite": 0.27001781413000864,
+      "quality_group": "better",
+      "nextlat_error": 0.016696404665708542,
+      "curvature": 1.4193323850631714,
+      "tangent_c1": -0.41933244466781616,
+      "tube_radius": 0.3834593892097473,
+      "path_efficiency": 0.025735534727573395
+    },
+    {
+      "id": "generation_054",
+      "sequence": "MKSEKEFAIKLKNISETDIVDLLKEIYLNDITLRNTIATTGGSAPLTLSKKYLEIITDAFQQAEDEIKKDLKSETEYQNVLQVNLQTMVILAALNSISFIFIAVFLSNVFTNQFINPIENLLSTLENL",
+      "quality": {
+        "entropy": 2.6290446814253072,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9761904761904762,
+        "composition_l1": 0.524006436027192
+      },
+      "quality_composite": 0.2853472666985328,
+      "quality_group": "better",
+      "nextlat_error": 0.032170187681913376,
+      "curvature": 1.385372519493103,
+      "tangent_c1": -0.38537245988845825,
+      "tube_radius": 0.532892644405365,
+      "path_efficiency": 0.02386273443698883
+    },
+    {
+      "id": "generation_055",
+      "sequence": "MRIAQNEEEARAAVLTSSGAEEEEAIVGILNTAINRAADKKNTLPKSDTKSIAATTTPQAEETPKTPVASDKPAVAEVKAAEAVPTTVEVTSDEAAKATPAEKAAKTEEPVKAEEAAKAEEATKAEET",
+      "quality": {
+        "entropy": 2.325408905507155,
+        "longest_homopolymer": 4,
+        "unique_trimer_fraction": 0.8492063492063492,
+        "composition_l1": 0.7912310393417481
+      },
+      "quality_composite": -0.6041738723627885,
+      "quality_group": "worse",
+      "nextlat_error": 0.026775483042001724,
+      "curvature": 1.3690704107284546,
+      "tangent_c1": -0.36907047033309937,
+      "tube_radius": 0.48729485273361206,
+      "path_efficiency": 0.0265740305185318
+    },
+    {
+      "id": "generation_056",
+      "sequence": "MEILDLKATSDRIDEFNDLATRRFGEAAQVMVALGSAPQREDFNDLISVVATAEKSTLNLQNQLTLQADIEGRVEQLLKQQENLDDQVDELEQRATETGEQRLQAERQSNVLRKELDSLNARFNRIST",
+      "quality": {
+        "entropy": 2.6050679989198495,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9682539682539683,
+        "composition_l1": 0.48853573809053874
+      },
+      "quality_composite": 0.29053609160909755,
+      "quality_group": "better",
+      "nextlat_error": 0.04163694754242897,
+      "curvature": 1.4249714612960815,
+      "tangent_c1": -0.4249712824821472,
+      "tube_radius": 0.5805059671401978,
+      "path_efficiency": 0.01791517250239849
+    },
+    {
+      "id": "generation_057",
+      "sequence": "MIPVLNTRKLVQNGKAGGVPLAARPGDALYVIAPSPAIKQLQRDLVLTYEITNNRPFSTLPGGARVSTEFTKDRPVISIRDGNVIVLSRSQ",
+      "quality": {
+        "entropy": 2.708354684552054,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 1.0,
+        "composition_l1": 0.3211715984372515
+      },
+      "quality_composite": 0.6455831928714182,
+      "quality_group": "better",
+      "nextlat_error": 0.03168713301420212,
+      "curvature": 1.3995839357376099,
+      "tangent_c1": -0.39958393573760986,
+      "tube_radius": 0.534946084022522,
+      "path_efficiency": 0.027515128254890442
+    },
+    {
+      "id": "generation_058",
+      "sequence": "MIDRKDTLTKGREAIVLPHDRTFKYLTAARSGAKNGNIIANTGAPYLTKDENRYRFTTKVGLNGFLGAPTEIRSGDFRFVDTLTLARSEVPFISAALLLTLFTKKM",
+      "quality": {
+        "entropy": 2.689215759407948,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9230769230769231,
+        "composition_l1": 0.3749665221489829
+      },
+      "quality_composite": 0.3763347323104601,
+      "quality_group": "better",
+      "nextlat_error": 0.020619703456759453,
+      "curvature": 1.4008358716964722,
+      "tangent_c1": -0.40083572268486023,
+      "tube_radius": 0.4782130718231201,
+      "path_efficiency": 0.03568536415696144
+    },
+    {
+      "id": "generation_059",
+      "sequence": "MDKGEIGSFDDGGDNEGNEEGNEGDDEGDESDVNGDGEGDSTGEGEGETNEGNEEEGEVVKGESSENEGEKGEEGKEEDEEEEEEEEGEDGEEGKKEEDGEEEGEDDEEGEDGEEGKEEEEEEEEEGE",
+      "quality": {
+        "entropy": 1.6691806062424162,
+        "longest_homopolymer": 9,
+        "unique_trimer_fraction": 0.5158730158730159,
+        "composition_l1": 1.2567000830742152
+      },
+      "quality_composite": -2.5356679554284853,
+      "quality_group": "worse",
+      "nextlat_error": 0.02235536463558674,
+      "curvature": 1.3820689916610718,
+      "tangent_c1": -0.38206905126571655,
+      "tube_radius": 0.3866380453109741,
+      "path_efficiency": 0.03266192600131035
+    },
+    {
+      "id": "generation_060",
+      "sequence": "MVQTESPNRFRHMTNPDVTVTDGAALHVVDGDLHFVIEGELVYFFEDETDHAHWVFDGVRKGPRLTYDNVEAIVRPSWQTKIEEFRESLNLKPKDM",
+      "quality": {
+        "entropy": 2.828687497888159,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 1.0,
+        "composition_l1": 0.41857439415951325
+      },
+      "quality_composite": 0.6285064673418237,
+      "quality_group": "better",
+      "nextlat_error": 0.16064180433750153,
+      "curvature": 1.3770596981048584,
+      "tangent_c1": -0.3770597577095032,
+      "tube_radius": 0.7668367624282837,
+      "path_efficiency": 0.016318056732416153
+    },
+    {
+      "id": "generation_061",
+      "sequence": "MPAGKGSGKVLGAVRDGIGAVRDAVDEAVEGFKNGKKLSVRKIGSAVDKTAGALETAQVGITRVADAIKGADPALEAVRKVLDKILPPAGLKGLLGGLIGGGASGGGGGAGKKKPAGKGGGGGLVGRI",
+      "quality": {
+        "entropy": 2.3506755641870383,
+        "longest_homopolymer": 5,
+        "unique_trimer_fraction": 0.8174603174603174,
+        "composition_l1": 0.6670693143910102
+      },
+      "quality_composite": -0.524859934556866,
+      "quality_group": "worse",
+      "nextlat_error": 0.0404774434864521,
+      "curvature": 1.3599492311477661,
+      "tangent_c1": -0.3599492013454437,
+      "tube_radius": 0.5543357729911804,
+      "path_efficiency": 0.02070939540863037
+    },
+    {
+      "id": "generation_062",
+      "sequence": "MQLGGSLVGVKLVGVYSPIILLGVISLVQVISLIVAVRDRTRLAGTFPPILASKAAYMPLGLAAIVQGALMFPYSHWSTVVSDLLQGQLLYISFWALAALVPTWFGIAWFIRNRLAKGFIPRDATKID",
+      "quality": {
+        "entropy": 2.6731267928069022,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9444444444444444,
+        "composition_l1": 0.4000461276252908
+      },
+      "quality_composite": 0.4002771441245325,
+      "quality_group": "better",
+      "nextlat_error": 0.11099310964345932,
+      "curvature": 1.3741052150726318,
+      "tangent_c1": -0.3741051256656647,
+      "tube_radius": 0.6798239946365356,
+      "path_efficiency": 0.01482420414686203
+    },
+    {
+      "id": "generation_063",
+      "sequence": "MVDIADGAAATRPGFLPAAVDTTVSLLGVAADDPGLSRLVGLAEGLGLAVDEAAAAHVGSTTSRVLLAPSGLPGAAVGKPLSELSRGLLLGAYAQVVAAGGHDLSTLVAATELDPYRVGVAWLLGYLD",
+      "quality": {
+        "entropy": 2.4198783169210527,
+        "longest_homopolymer": 4,
+        "unique_trimer_fraction": 0.8968253968253969,
+        "composition_l1": 0.6123718800657475
+      },
+      "quality_composite": -0.20783128798378803,
+      "quality_group": "worse",
+      "nextlat_error": 0.06176174432039261,
+      "curvature": 1.415847659111023,
+      "tangent_c1": -0.415847510099411,
+      "tube_radius": 0.6455171704292297,
+      "path_efficiency": 0.01682564802467823
+    },
+    {
+      "id": "generation_064",
+      "sequence": "MLFAAVTAFVFTAIGPFFRAMGFQLTMLTVVVVILAILVLRLTPAEERLVPRETPVYHGDLHFPRDKVFWLLGAAIVLAGAVNYPLLSEYGFAPKLWTAASSLFPNSATLAIAFNIATTLVGTAILPL",
+      "quality": {
+        "entropy": 2.6368347990740792,
+        "longest_homopolymer": 4,
+        "unique_trimer_fraction": 0.9682539682539683,
+        "composition_l1": 0.5104313448639589
+      },
+      "quality_composite": 0.24995397330104693,
+      "quality_group": "better",
+      "nextlat_error": 0.10089532285928726,
+      "curvature": 1.370149850845337,
+      "tangent_c1": -0.37014979124069214,
+      "tube_radius": 0.684819757938385,
+      "path_efficiency": 0.016512971371412277
+    },
+    {
+      "id": "generation_065",
+      "sequence": "MRSGVGKVNPNALRKMGIPQKLAKEMVQASIGQMLQSAEIEGIIDRLNEEVDRLTRRNQQMKDYEKAGRLRDQIKALSNEVLDKEEDEEQQTAPGETLNQEETLES",
+      "quality": {
+        "entropy": 2.6594719707803103,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9807692307692307,
+        "composition_l1": 0.44596935831132556
+      },
+      "quality_composite": 0.41381628934259473,
+      "quality_group": "better",
+      "nextlat_error": 0.0783916711807251,
+      "curvature": 1.3913394212722778,
+      "tangent_c1": -0.39133939146995544,
+      "tube_radius": 0.6013355255126953,
+      "path_efficiency": 0.017057666555047035
+    },
+    {
+      "id": "generation_066",
+      "sequence": "MFQNLNRSTSFCALKALLIADTNVPPGTLALPREIQQKIKGVIQAFKKWIEEESEGPESEADDGSGQREGTDSESSGASDSGSSSSGSESDSSESEGERSQSSSRGGSSGSSGSGSSESDSDSSESSE",
+      "quality": {
+        "entropy": 2.4383055527246853,
+        "longest_homopolymer": 4,
+        "unique_trimer_fraction": 0.7698412698412699,
+        "composition_l1": 0.6839437137814218
+      },
+      "quality_composite": -0.5568532907059128,
+      "quality_group": "worse",
+      "nextlat_error": 0.0804525762796402,
+      "curvature": 1.479210615158081,
+      "tangent_c1": -0.47921058535575867,
+      "tube_radius": 0.5279346108436584,
+      "path_efficiency": 0.018325915560126305
+    },
+    {
+      "id": "generation_067",
+      "sequence": "MGVDLAKTIGLIKTAVARIEQGSAQKVARQLGTTTPKTVLLPEGELREATVPVSPELISDLPGAMELLGGQGKISMSLREKYGLAEKILSEVNQLDSSVARQILTEVGNPSFLQKLLSRLGNPREILR",
+      "quality": {
+        "entropy": 2.6461033216551453,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9603174603174603,
+        "composition_l1": 0.33616032716842303
+      },
+      "quality_composite": 0.46885276516170604,
+      "quality_group": "better",
+      "nextlat_error": 0.03084227815270424,
+      "curvature": 1.403754711151123,
+      "tangent_c1": -0.40375465154647827,
+      "tube_radius": 0.5281801223754883,
+      "path_efficiency": 0.01859157346189022
+    },
+    {
+      "id": "generation_068",
+      "sequence": "MIIVGAIGVTGIAGGAYVVITHAVQQDLGAPLLTGYLLVAVGLGASVAGLTLGRLADRRGPRPVIALTLGVLAVLTVAAATATSIPLLVVALFVLGFFGAAGNPSRWALARTAYPDARGRALGIVTSG",
+      "quality": {
+        "entropy": 2.4127105565264118,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9603174603174603,
+        "composition_l1": 0.6326564072302879
+      },
+      "quality_composite": -0.07834451681049093,
+      "quality_group": "worse",
+      "nextlat_error": 0.14266148209571838,
+      "curvature": 1.3794323205947876,
+      "tangent_c1": -0.37943214178085327,
+      "tube_radius": 0.6642232537269592,
+      "path_efficiency": 0.015168789774179459
+    },
+    {
+      "id": "generation_069",
+      "sequence": "MERLSAKQFLPTNPNPFGAPPQIIPEEHRSIYNRPLTSIPALPSIPREINSVKSNVVAPLGLSTSSLNRVPQKFLSTQVPDTHHTTPTSPPTDSSMQKRLKQDAFLRDKHGQPPQLFNNTPKRQDSPQ",
+      "quality": {
+        "entropy": 2.7044190542574715,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9761904761904762,
+        "composition_l1": 0.47651662010088625
+      },
+      "quality_composite": 0.40436511833879607,
+      "quality_group": "better",
+      "nextlat_error": 0.15675468742847443,
+      "curvature": 1.4161896705627441,
+      "tangent_c1": -0.41618961095809937,
+      "tube_radius": 0.7474984526634216,
+      "path_efficiency": 0.010339710861444473
+    },
+    {
+      "id": "generation_070",
+      "sequence": "MKNIEKDKQKFFLQEERRIQEELESTASRVQALQEELTHKEATINEMKIDNKQSLLEMKERDKLFERDKSILLEEIQKIEEEYVLLDTKHRDSMKEMDKMTKSLEEENLKKEQIQAELEIEIKSLKDE",
+      "quality": {
+        "entropy": 2.466736918796843,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.8968253968253969,
+        "composition_l1": 0.7183932743050724
+      },
+      "quality_composite": -0.2755666045758937,
+      "quality_group": "worse",
+      "nextlat_error": 0.07756740599870682,
+      "curvature": 1.4153718948364258,
+      "tangent_c1": -0.41537195444107056,
+      "tube_radius": 0.5972523093223572,
+      "path_efficiency": 0.014740518294274807
+    },
+    {
+      "id": "generation_071",
+      "sequence": "MGARSSRAKITVEEALRLFTRQDDITPPIRVSKIIINPDSYTSFDEVKDLFRNIPTKNGQVLNAYITDKATNKVVAQLAPNRLSAAPSGKSLVTDLAVGDSIFAETGLKSTKYVAANQINSGVASTVA",
+      "quality": {
+        "entropy": 2.7106697898728203,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 1.0,
+        "composition_l1": 0.35731639546885563
+      },
+      "quality_composite": 0.583964314596698,
+      "quality_group": "better",
+      "nextlat_error": 0.036135148257017136,
+      "curvature": 1.3994030952453613,
+      "tangent_c1": -0.39940303564071655,
+      "tube_radius": 0.4898841679096222,
+      "path_efficiency": 0.01793445274233818
+    },
+    {
+      "id": "generation_072",
+      "sequence": "MVLSQAGLAIGFDVRAEVEIRRINKLFVEVAKRVGLPILDEVLKNGQEVTLRSMVEGLLDGRADGVIASAGIPDGLADAFFEHEVLGGTLRTLDSFLAREKQSRGRAVGFLVGAPASAPAASAKEPAP",
+      "quality": {
+        "entropy": 2.618466550408235,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9444444444444444,
+        "composition_l1": 0.39156433721821904
+      },
+      "quality_composite": 0.36527944629579956,
+      "quality_group": "better",
+      "nextlat_error": 0.054354600608348846,
+      "curvature": 1.3949295282363892,
+      "tangent_c1": -0.3949293792247772,
+      "tube_radius": 0.6024534106254578,
+      "path_efficiency": 0.016885748133063316
+    },
+    {
+      "id": "generation_073",
+      "sequence": "MPDVGAFPEDLFIVEPDAALARAIGVRQQQGGSLEHPYRSRFKAMDVQELLEDAKELRDKKPVGKIELGFEINKAVTMHPFLAYSQFVMGFNRKEPSLRTVDKGNIEVSGADVDEFGAIMRLTTTKGC",
+      "quality": {
+        "entropy": 2.8158391341005697,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 1.0,
+        "composition_l1": 0.273754109221157
+      },
+      "quality_composite": 0.7707115326029319,
+      "quality_group": "better",
+      "nextlat_error": 0.22023311257362366,
+      "curvature": 1.4144999980926514,
+      "tangent_c1": -0.4144999086856842,
+      "tube_radius": 0.7459047436714172,
+      "path_efficiency": 0.011700274422764778
+    },
+    {
+      "id": "generation_074",
+      "sequence": "MEGRDERSVVFTRSKRRCDDLAGYLNDHGYRAAALHGDLNQSQRERAMDSLRSGQLDVLVATDVAARGLDVDDVTHVINYQCPEDEKTYLHRIGRTGRAGKTGIAVTLVDWDDIPRWQLINKALDLGQ",
+      "quality": {
+        "entropy": 2.768659213008527,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9920634920634921,
+        "composition_l1": 0.34889587937332767
+      },
+      "quality_composite": 0.6245009743281354,
+      "quality_group": "better",
+      "nextlat_error": 0.23060694336891174,
+      "curvature": 1.4594870805740356,
+      "tangent_c1": -0.4594869613647461,
+      "tube_radius": 0.8259061574935913,
+      "path_efficiency": 0.00984557531774044
+    },
+    {
+      "id": "generation_075",
+      "sequence": "MFLASVMLLASTLMGSVGYIVALPRLALSSGLGFVTTPFATYLMRPSFRNWVLFGGLGLGGLVFALGMGLQSLAIHVPQLGYQKFFAALGIKVAAYGVLSLAAVGFVLWGGKPVSSRDAASSDSM",
+      "quality": {
+        "entropy": 2.558297963467157,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.943089430894309,
+        "composition_l1": 0.59454160829092
+      },
+      "quality_composite": 0.06995772379314963,
+      "quality_group": "worse",
+      "nextlat_error": 0.04303319379687309,
+      "curvature": 1.369964838027954,
+      "tangent_c1": -0.36996471881866455,
+      "tube_radius": 0.5362684726715088,
+      "path_efficiency": 0.021182291209697723
+    },
+    {
+      "id": "generation_076",
+      "sequence": "MDGVQIADRLADKVRPRRERQERLALKAQAIDEPAAAIVATQAGTYVTPERGLIGDFESLLRGVESVLLGSRRRGSVEVSGIEQLRDLMPSVTATETSVRSAIDVATAPQTEALLLLAHLYREVVTTM",
+      "quality": {
+        "entropy": 2.6083960431686672,
+        "longest_homopolymer": 4,
+        "unique_trimer_fraction": 0.9682539682539683,
+        "composition_l1": 0.40344599245779955
+      },
+      "quality_composite": 0.35437176056830266,
+      "quality_group": "better",
+      "nextlat_error": 0.07011722773313522,
+      "curvature": 1.405648946762085,
+      "tangent_c1": -0.40564897656440735,
+      "tube_radius": 0.5795333981513977,
+      "path_efficiency": 0.017136014997959137
+    },
+    {
+      "id": "generation_077",
+      "sequence": "MAQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ",
+      "quality": {
+        "entropy": 0.091315261764256,
+        "longest_homopolymer": 126,
+        "unique_trimer_fraction": 0.023809523809523808,
+        "composition_l1": 1.8934509490035947
+      },
+      "quality_composite": -8.057096712180469,
+      "quality_group": "worse",
+      "nextlat_error": 0.011181860230863094,
+      "curvature": 1.0527509450912476,
+      "tangent_c1": -0.052750762552022934,
+      "tube_radius": 0.16776058077812195,
+      "path_efficiency": 0.20800656080245972
+    },
+    {
+      "id": "generation_078",
+      "sequence": "MKGIRFFNPESGVETARVAYYFEEQNVPLENLIVYDLPVGEMSFTDVDSSTNALGETGVGFTGQALQDTDTPYTVVVNPLTAEGTEGINELGIKATASVNLGNADITNMPVGEVTASTTVGSAVEGAT",
+      "quality": {
+        "entropy": 2.6593618247643134,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9761904761904762,
+        "composition_l1": 0.4598463167465323
+      },
+      "quality_composite": 0.3667677705701171,
+      "quality_group": "better",
+      "nextlat_error": 0.06286920607089996,
+      "curvature": 1.468435287475586,
+      "tangent_c1": -0.46843525767326355,
+      "tube_radius": 0.6360238790512085,
+      "path_efficiency": 0.016838034614920616
+    },
+    {
+      "id": "generation_079",
+      "sequence": "MQKETQKALLDVDTSLRSGEEEQLSQTQRELKTRISGEMRKRNLQFQNIDESVKQILQNVSAVQEDLLDREVRAREIEGELEQIHSELQRREEKVAETKLKVQSRLQAANQEEEELRAELQQIREELS",
+      "quality": {
+        "entropy": 2.485864481047,
+        "longest_homopolymer": 4,
+        "unique_trimer_fraction": 0.9444444444444444,
+        "composition_l1": 0.6033278017931735
+      },
+      "quality_composite": -0.038025632226190244,
+      "quality_group": "worse",
+      "nextlat_error": 0.05205890163779259,
+      "curvature": 1.4289106130599976,
+      "tangent_c1": -0.4289105236530304,
+      "tube_radius": 0.5694059133529663,
+      "path_efficiency": 0.01794309914112091
+    },
+    {
+      "id": "generation_080",
+      "sequence": "MATITLPPDSPQLLQQVNGALRTIGRPADLEAVLVTALEHLQPAAPTQVLSEFLAEPQASGERERILDVISDLGLATSLEDAAQASGESGDPEAVARAYRSLSAKLHPDKGGTAEEQERLNALNWARS",
+      "quality": {
+        "entropy": 2.632697545389808,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9682539682539683,
+        "composition_l1": 0.3982985963935922
+      },
+      "quality_composite": 0.4212317389542878,
+      "quality_group": "better",
+      "nextlat_error": 0.05692713335156441,
+      "curvature": 1.3998866081237793,
+      "tangent_c1": -0.39988645911216736,
+      "tube_radius": 0.514634370803833,
+      "path_efficiency": 0.023818116635084152
+    },
+    {
+      "id": "generation_081",
+      "sequence": "MKEDLDEVEDFSDLYLVEGDITEEEGLYNFALSAKTNEEAFADRKKQINNNQSTYDSIRNLNEELKKIEEKRREEEKSAQELAEEIEEQSLKGKKLLSSLKEELTNFRNFFKKSFSLFDEKESIEFSF",
+      "quality": {
+        "entropy": 2.507108576016795,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9523809523809523,
+        "composition_l1": 0.6461130448358091
+      },
+      "quality_composite": -0.033896454202717544,
+      "quality_group": "worse",
+      "nextlat_error": 0.044125624001026154,
+      "curvature": 1.3905211687088013,
+      "tangent_c1": -0.3905210793018341,
+      "tube_radius": 0.5930590033531189,
+      "path_efficiency": 0.019138526171445847
+    },
+    {
+      "id": "generation_082",
+      "sequence": "MTDKSIDATKAVVTDTVDFTKENNVTYSNDTQKITPSTTPVIPADLNAIKNVVEDNIKTAKDAINGNATLTEEKQEALKTVTDEEKLAMQSVTPATTDNGIKAAKDKGVTYSEDTQKITPSTKPVVPV",
+      "quality": {
+        "entropy": 2.538103838675944,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9047619047619048,
+        "composition_l1": 0.6238065665030528
+      },
+      "quality_composite": -0.0658169149713165,
+      "quality_group": "worse",
+      "nextlat_error": 0.1757068634033203,
+      "curvature": 1.4239814281463623,
+      "tangent_c1": -0.42398133873939514,
+      "tube_radius": 0.7147672176361084,
+      "path_efficiency": 0.011343315243721008
+    },
+    {
+      "id": "generation_083",
+      "sequence": "MAARLSPSMGIIVPRKLREEIQRLQEVIATMGDEPPLRYDSMEDAVPVEVFSLGARAMRTAIHELGPKGLAARGLPGAVLRNAYNIGIEM",
+      "quality": {
+        "entropy": 2.6807619270713117,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9886363636363636,
+        "composition_l1": 0.44193404466360287
+      },
+      "quality_composite": 0.4534864237410817,
+      "quality_group": "better",
+      "nextlat_error": 0.07832328230142593,
+      "curvature": 1.406929850578308,
+      "tangent_c1": -0.4069298505783081,
+      "tube_radius": 0.6228265762329102,
+      "path_efficiency": 0.022160246968269348
+    },
+    {
+      "id": "generation_084",
+      "sequence": "MDATVLGDAAQARTFPSDVTFGKSAGGTSAGRHAALAALGQTDLVVVLDGDDELAADDLSAVVAAVADADADLVGGLVRIEEDGTTRRVAVVTPRRDEAAAVSALASGSGVFVRRDVLRAVDAPGWVL",
+      "quality": {
+        "entropy": 2.3912068933150246,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9206349206349206,
+        "composition_l1": 0.655537863075574
+      },
+      "quality_composite": -0.21054266538339367,
+      "quality_group": "worse",
+      "nextlat_error": 0.05303981155157089,
+      "curvature": 1.362051010131836,
+      "tangent_c1": -0.3620510399341583,
+      "tube_radius": 0.6108697056770325,
+      "path_efficiency": 0.019124822691082954
+    },
+    {
+      "id": "generation_085",
+      "sequence": "MGTEVKGEGAEEEEEQLLRQRELESSVLAGDETGQEPSLQPQPLPPPPPSPEPQAELLALLQSLRVLSLARAERSAALSLLAESLSPARPLAQLLDGFVDGGEAEGEEGEAAAEPLEPVAAVSPSDTL",
+      "quality": {
+        "entropy": 2.3159862106750047,
+        "longest_homopolymer": 5,
+        "unique_trimer_fraction": 0.9285714285714286,
+        "composition_l1": 0.7126045707805255
+      },
+      "quality_composite": -0.364104072472226,
+      "quality_group": "worse",
+      "nextlat_error": 0.027717653661966324,
+      "curvature": 1.4205963611602783,
+      "tangent_c1": -0.42059630155563354,
+      "tube_radius": 0.4916027784347534,
+      "path_efficiency": 0.02095751278102398
+    },
+    {
+      "id": "generation_086",
+      "sequence": "MERRSDIGPYAKAAFKLRSGALALQIQAAIQPDASTSLRRGTDGATPASKKPLNRLAERLSGSGEQGGLGVFKRRVTEIAAAALDREQPALAGSATELATRLDDFVVRWEGRLERSVTKLQDDLARSS",
+      "quality": {
+        "entropy": 2.6079772148451146,
+        "longest_homopolymer": 4,
+        "unique_trimer_fraction": 0.9841269841269841,
+        "composition_l1": 0.397016588149265
+      },
+      "quality_composite": 0.3965465804178462,
+      "quality_group": "better",
+      "nextlat_error": 0.022174032405018806,
+      "curvature": 1.4066776037216187,
+      "tangent_c1": -0.4066775143146515,
+      "tube_radius": 0.4059140384197235,
+      "path_efficiency": 0.022295091301202774
+    },
+    {
+      "id": "generation_087",
+      "sequence": "MDPVAGTRFVNLVTGEVRPTVLGEPEIARALGITEASVAEGAAVDLASGPRLVITRRARSEEITRLRSDLDAAVGRLRRIEEGLR",
+      "quality": {
+        "entropy": 2.4295328531929496,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.963855421686747,
+        "composition_l1": 0.5497673503250929
+      },
+      "quality_composite": 0.0627253398788431,
+      "quality_group": "worse",
+      "nextlat_error": 0.027822345495224,
+      "curvature": 1.4215142726898193,
+      "tangent_c1": -0.4215143918991089,
+      "tube_radius": 0.48986566066741943,
+      "path_efficiency": 0.029427804052829742
+    },
+    {
+      "id": "generation_088",
+      "sequence": "MLTPKASLPDISRSTEEEIIALSVNAIDEAQNQFEPPLNDTPINAPSNQGQFPERSNSSFTTGRPSRSNTTGFAAVPDFVLTDSTLTSGSEIRNENIDSTSSDPSPSNELSDGPSASSADQDGQLQRQ",
+      "quality": {
+        "entropy": 2.5900225936600085,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9603174603174603,
+        "composition_l1": 0.5421193651900433
+      },
+      "quality_composite": 0.17631566846697638,
+      "quality_group": "better",
+      "nextlat_error": 0.016066495329141617,
+      "curvature": 1.4172574281692505,
+      "tangent_c1": -0.4172574281692505,
+      "tube_radius": 0.39233243465423584,
+      "path_efficiency": 0.02764090709388256
+    },
+    {
+      "id": "generation_089",
+      "sequence": "MLEFVVGGSGSGGKITAGGGLTESVPSTINGDAVGRGYSRVKEAGGKIGAIRGGTAAGVVGSGAFGAIVGEKVGGVIDKGSGKDLDRGTKDIQNEDRSKKLGGKGIEVTDSGVVNGKDSAVTRPKDAI",
+      "quality": {
+        "entropy": 2.464865281811105,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9047619047619048,
+        "composition_l1": 0.5986120559533555
+      },
+      "quality_composite": -0.11649528069626923,
+      "quality_group": "worse",
+      "nextlat_error": 0.023266814649105072,
+      "curvature": 1.3876078128814697,
+      "tangent_c1": -0.38760778307914734,
+      "tube_radius": 0.4300408959388733,
+      "path_efficiency": 0.02391177974641323
+    },
+    {
+      "id": "generation_090",
+      "sequence": "MERQQTDTVQNIPTSDQPSGQQISSTSSQQQVTGTPQNSTTQEPSQSSQQPATQTQTSTGSPQVQAVSGTTTQTPVATQPAAASQAPAAAQQAAPAQAQPLSQPHPGASPSRVAVQRVPPPPPSSQAP",
+      "quality": {
+        "entropy": 2.203485714980927,
+        "longest_homopolymer": 5,
+        "unique_trimer_fraction": 0.8809523809523809,
+        "composition_l1": 0.9703453060237298
+      },
+      "quality_composite": -0.8696403051019002,
+      "quality_group": "worse",
+      "nextlat_error": 0.0734088346362114,
+      "curvature": 1.4209084510803223,
+      "tangent_c1": -0.4209083318710327,
+      "tube_radius": 0.6159605979919434,
+      "path_efficiency": 0.018519695848226547
+    },
+    {
+      "id": "generation_091",
+      "sequence": "MTFQEVVVRLEEEIERRLEEELREEMERQREEFAKRELELQVAMEQLREEMELRKKQKRSKKKKRGAREESGESKVELPASPSPTTREPLEEEEAKVASSALVKAAARLEEEEAAKSESDERAEDEKR",
+      "quality": {
+        "entropy": 2.3018561289591073,
+        "longest_homopolymer": 4,
+        "unique_trimer_fraction": 0.8492063492063492,
+        "composition_l1": 0.7189803853446407
+      },
+      "quality_composite": -0.5372470175988449,
+      "quality_group": "worse",
+      "nextlat_error": 0.038187794387340546,
+      "curvature": 1.4000988006591797,
+      "tangent_c1": -0.4000988006591797,
+      "tube_radius": 0.47201550006866455,
+      "path_efficiency": 0.020197322592139244
+    },
+    {
+      "id": "generation_092",
+      "sequence": "MFSSADKEQLRGIGLATLGIGPFVYSEAYLSRITASDFGIGDIKNSSADYYKNEDLIIERDPKTYVAAGTPLYQIIEDEIGYQGINLLAFDTLGWFGHTGSASLRKKSNLSKADQQNPTSGQELWNKY",
+      "quality": {
+        "entropy": 2.7732421785569747,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9523809523809523,
+        "composition_l1": 0.3345322100653269
+      },
+      "quality_composite": 0.5786909694761242,
+      "quality_group": "better",
+      "nextlat_error": 0.058203138411045074,
+      "curvature": 1.4077800512313843,
+      "tangent_c1": -0.40778008103370667,
+      "tube_radius": 0.6079299449920654,
+      "path_efficiency": 0.01889730617403984
+    },
+    {
+      "id": "generation_093",
+      "sequence": "MPTGSVAYSNLLFGTLGYADAIRQTLSIGRGGSRKEAGDLAEKIATETADEVGSGADRVYLAVADPTLHAEVSVSVGAAHELANDVLNSLIESFRDAEGRILPLPDGPYAAVLSLDSLRSAREVTSRV",
+      "quality": {
+        "entropy": 2.6314972541262436,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9920634920634921,
+        "composition_l1": 0.3754721964272425
+      },
+      "quality_composite": 0.4997811551990279,
+      "quality_group": "better",
+      "nextlat_error": 0.08074875921010971,
+      "curvature": 1.4275875091552734,
+      "tangent_c1": -0.4275874197483063,
+      "tube_radius": 0.6360238790512085,
+      "path_efficiency": 0.016918189823627472
+    },
+    {
+      "id": "generation_094",
+      "sequence": "MLTNAEQGRAAEVREARAVDDEAVATAEDVEERAQEAAAALAQAQQERLAVDRTLSALETRLRELETSAASVAGDAEELDARLREAEDRAATVAEEQAARREVVSQLRLELEQARAAADAAAREAGGA",
+      "quality": {
+        "entropy": 2.1123881259333475,
+        "longest_homopolymer": 4,
+        "unique_trimer_fraction": 0.8650793650793651,
+        "composition_l1": 0.8324887724429805
+      },
+      "quality_composite": -0.7945736909223815,
+      "quality_group": "worse",
+      "nextlat_error": 0.0627761259675026,
+      "curvature": 1.4212652444839478,
+      "tangent_c1": -0.421265184879303,
+      "tube_radius": 0.5204733610153198,
+      "path_efficiency": 0.015901410952210426
+    },
+    {
+      "id": "generation_095",
+      "sequence": "MNTEIFEFVDESKLKSLKLLQIISIIIEDLDKPQLKKFYDFKTSLSSSKEKYKEIISILSDQNNINFIEFTKSNDKKSFILNLLSISGEIKYRLKTELSDIKKKLITLFELDNNSDFINNLLDLSLKD",
+      "quality": {
+        "entropy": 2.3893156793031913,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9603174603174603,
+        "composition_l1": 0.8186337001433374
+      },
+      "quality_composite": -0.3200016333732141,
+      "quality_group": "worse",
+      "nextlat_error": 0.014739484526216984,
+      "curvature": 1.4115893840789795,
+      "tangent_c1": -0.41158926486968994,
+      "tube_radius": 0.3415650427341461,
+      "path_efficiency": 0.028211910277605057
+    },
+    {
+      "id": "generation_096",
+      "sequence": "MTRYLPFLSNKTPAPQVSVIESGDVEALKQLIQNRTGRLILVIDNGSSTGAIADLLAEEGIQVLRNPQIRIADEKAEYVIADMEKLAVAIVQTLTEAVQKSE",
+      "quality": {
+        "entropy": 2.698465206837591,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.98,
+        "composition_l1": 0.324360931096095
+      },
+      "quality_composite": 0.589712531657032,
+      "quality_group": "better",
+      "nextlat_error": 0.07463715970516205,
+      "curvature": 1.3939611911773682,
+      "tangent_c1": -0.39396125078201294,
+      "tube_radius": 0.653795599937439,
+      "path_efficiency": 0.018936648964881897
+    },
+    {
+      "id": "generation_097",
+      "sequence": "MVPNKADGRNYLVLLKEVSGSIATVARKFQTDVDAIKKANRLTGAKLLQGQQVLFSTVRELEEENERLKQQLKDVKLENQFTKKVLKLLQDDSAPKSRKGVQW",
+      "quality": {
+        "entropy": 2.6571026104662296,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9801980198019802,
+        "composition_l1": 0.4568741778848257
+      },
+      "quality_composite": 0.3772501516237747,
+      "quality_group": "better",
+      "nextlat_error": 0.08409051597118378,
+      "curvature": 1.3907703161239624,
+      "tangent_c1": -0.3907703161239624,
+      "tube_radius": 0.6797872185707092,
+      "path_efficiency": 0.018264416605234146
+    },
+    {
+      "id": "generation_098",
+      "sequence": "MKSFSLNLDSKVDIRSKKDAEDDVGLEDVIKTGFSITVSRIPVNKFDDLSKERESIKKVEEGRLLDVSKSINKITENVQKVTDSVQETDTTIKRVDSNLKELEKKLNLSKDAVDIDDKTAQDAVTGLK",
+      "quality": {
+        "entropy": 2.5377320836977493,
+        "longest_homopolymer": 2,
+        "unique_trimer_fraction": 0.9603174603174603,
+        "composition_l1": 0.5965149274738644
+      },
+      "quality_composite": 0.0884234579822901,
+      "quality_group": "worse",
+      "nextlat_error": 0.021441837772727013,
+      "curvature": 1.431132197380066,
+      "tangent_c1": -0.43113213777542114,
+      "tube_radius": 0.4398968517780304,
+      "path_efficiency": 0.023300928995013237
+    },
+    {
+      "id": "generation_099",
+      "sequence": "MFANSAFGTAGYYYALIRRYRFKLLGVLGLGTLGGLVGGITSGVFMLPGFDKIILSWFLLPSLLVALVAGLLAGIGAGRLTGTLDVDLAEAFGAGASRGVIASILIGISEALAVIVAFFWLLVPTSSA",
+      "quality": {
+        "entropy": 2.4904899628505124,
+        "longest_homopolymer": 3,
+        "unique_trimer_fraction": 0.9603174603174603,
+        "composition_l1": 0.5786476516771771
+      },
+      "quality_composite": 0.050452846939911825,
+      "quality_group": "worse",
+      "nextlat_error": 0.04747108370065689,
+      "curvature": 1.3525516986846924,
+      "tangent_c1": -0.3525516390800476,
+      "tube_radius": 0.5877622961997986,
+      "path_efficiency": 0.017493991181254387
+    }
+  ],
+  "comparisons": {
+    "nextlat_error": {
+      "better_minus_worse": 0.02360424062237143,
+      "ci95": [
+        0.006315673860721288,
+        0.041829843032639466
+      ],
+      "permutation_p": 0.012198780121987801
+    },
+    "curvature": {
+      "better_minus_worse": 0.011812405586242525,
+      "ci95": [
+        -0.0029557566642760265,
+        0.030125926554202816
+      ],
+      "permutation_p": 0.18648135186481352
+    },
+    "tangent_c1": {
+      "better_minus_worse": -0.011812409833073634,
+      "ci95": [
+        -0.03012595003843305,
+        0.0029557660967111537
+      ],
+      "permutation_p": 0.18648135186481352
+    },
+    "tube_radius": {
+      "better_minus_worse": 0.05396589159965515,
+      "ci95": [
+        0.013125155359506622,
+        0.09441039724647993
+      ],
+      "permutation_p": 0.012198780121987801
+    },
+    "path_efficiency": {
+      "better_minus_worse": -0.005874416418373583,
+      "ci95": [
+        -0.014574161374475807,
+        -8.070578146725855e-05
+      ],
+      "permutation_p": 0.07039296070392961
+    }
+  },
+  "backbone_updated": false
+}

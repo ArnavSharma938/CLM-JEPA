@@ -1,0 +1,9 @@
+{
+  "sequence": "ACDEFGHIKLMNPQRSTVWY",
+  "local_score": -6.66796875,
+  "upstream_score": -6.666015625,
+  "absolute_difference": 0.001953125,
+  "absolute_tolerance": 0.005,
+  "upstream_source": "https://github.com/lightonai/RITA/blob/master/compute_fitness.py",
+  "passed": true
+}

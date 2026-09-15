@@ -1,0 +1,95 @@
+{
+  "canonical_ids": [
+    4,
+    21,
+    12,
+    7,
+    17,
+    5,
+    20,
+    9,
+    10,
+    3,
+    19,
+    15,
+    14,
+    16,
+    11,
+    8,
+    13,
+    6,
+    22,
+    18,
+    2
+  ],
+  "canonical_sequence": "ACDEFGHIKLMNPQRSTVWY",
+  "canonical_tokens": [
+    "A",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "V",
+    "W",
+    "Y",
+    "<EOS>"
+  ],
+  "encoded_tokens_per_residue_including_eos": 1.05,
+  "environment": {
+    "cuda": "12.1",
+    "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.10.20 (main, Jul 18 2026, 17:08:20) [MSC v.1944 64 bit (AMD64)]",
+    "repository_commit": "934bc4ad8208d86d009c276192fee3185d587529",
+    "torch": "2.3.0+cu121"
+  },
+  "model_config": {
+    "d_feedforward": 4096,
+    "d_model": 1024,
+    "eos_token_id": 2,
+    "max_seq_len": 1024,
+    "num_heads": 16,
+    "num_layers": 24,
+    "pad_token_id": null,
+    "tie_word_embeddings": true,
+    "vocab_size": 26
+  },
+  "model_id": "lightonai/RITA_m",
+  "model_revision": "d819157a3a96d278500232b2cbb2a02d9646bcf6",
+  "official_fitness_contract": {
+    "aggregation": "sum of negative mean cross-entropies",
+    "directions": [
+      "forward",
+      "reversed"
+    ],
+    "first_residue_scored": false,
+    "shift": "encode(direction)[:-1] predicts encode(direction)[1:]",
+    "source": "https://github.com/lightonai/RITA/blob/master/compute_fitness.py",
+    "terminal_eos_scored": true
+  },
+  "residue_token_ratio": 1.0,
+  "tokenizer_attributes": {
+    "bos_token_id": null,
+    "eos_token_id": null,
+    "pad_token_id": null,
+    "special_tokens_map": {}
+  },
+  "tokenizer_revision": "d819157a3a96d278500232b2cbb2a02d9646bcf6",
+  "weights": {
+    "exact_values": true,
+    "same_shape": true,
+    "same_storage": true
+  }
+}

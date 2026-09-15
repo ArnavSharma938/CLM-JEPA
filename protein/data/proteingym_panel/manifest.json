@@ -1,0 +1,21 @@
+{
+  "panel": "protein\\data\\proteingym_panel.json",
+  "variants_per_assay_cap": 256,
+  "subsampling": "SHA256(rita-variants-v1, assay, mutant), before scores are inspected",
+  "file_sha256": {
+    "CASP3_HUMAN_Roychowdhury_2020.csv": "9996a2349e079d48eb337bd93d7a01ee0a00ac0d9625c972560cd8a2cfdaf05a",
+    "CCR5_HUMAN_Gill_2023.csv": "d863d7d950926338e79c7050b29341cc068189e1aea2347712382ece09f1d96b",
+    "CP2C9_HUMAN_Amorosi_2021_abundance.csv": "9d1e0cdf33c5a4b3e7e89af78f41093525d7198bbc51ef443a021ad1da50954e",
+    "D7PM05_CLYGR_Somermeyer_2022.csv": "e5825f3cc05b6431efabe33023b108815daea2242e7c67f41b35e889c539f7a6",
+    "FECA_ECOLI_Tsuboyama_2023_2D1U.csv": "c48fe8bf1610695d7a964a0f26f55a824b894228210d30a9682a53428d203c4b",
+    "GLPA_HUMAN_Elazar_2016.csv": "e769416ae881ce2f789214f86baef0640efb5665735765106376a1532de74a26",
+    "HIS7_YEAST_Pokusaeva_2019.csv": "7b0e019e7936f7ad41aec565ca9906b14eb67e1e5f3053ed8fda963eb3985805",
+    "I6TAH8_I68A0_Doud_2015.csv": "24fdab30ed5a5d4e7090dc6976a462ec660ea13d63f6353926f80e14b141c28d",
+    "KKA2_KLEPN_Melnikov_2014.csv": "749746bcef09096a9d0ae5512b1bfc5f5482a6025e5322e55c0615c1d849f566",
+    "LGK_LIPST_Klesmith_2015.csv": "c634c53b95cefc6b296f57f851a4e30debc7ef039430e79e62917c6f30a8da27",
+    "PTEN_HUMAN_Matreyek_2021.csv": "ef11fc2465d040fa4cf8b62578c82609deb0ea5f52c69ad4411a1723df36b96b",
+    "SPG1_STRSG_Olson_2014.csv": "31463c9807107b1f1dd86af1638381744025d121461289c241aad10f089bf95b",
+    "VILI_CHICK_Tsuboyama_2023_1YU5.csv": "b849b9c24e0b7be626751be33fd6f7158f0023fb12674609920ae9b1be48c9a5",
+    "YAP1_HUMAN_Araya_2012.csv": "ba7b3eaea097db4103dab58fb774fefe7615a48cbc13cd2fce0bdb4032a967c6"
+  }
+}

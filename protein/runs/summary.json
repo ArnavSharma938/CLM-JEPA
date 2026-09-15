@@ -1,0 +1,130 @@
+{
+  "native_geometry": {
+    "curvature_mean": {
+      "mean": 1.4044781376520792,
+      "ci95": [
+        1.4033964049657184,
+        1.4055286490678789
+      ]
+    },
+    "tangent_c1": {
+      "mean": -0.40447813950591566,
+      "ci95": [
+        -0.40552865085028555,
+        -0.4033964056919455
+      ]
+    },
+    "efficiency_25_64": {
+      "mean": 0.030212360238170245,
+      "ci95": [
+        0.029993333967433606,
+        0.03044277385998599
+      ]
+    },
+    "efficiency_4_8": {
+      "mean": 0.1635507807362981,
+      "ci95": [
+        0.16313314346271093,
+        0.16398826764882837
+      ]
+    },
+    "efficiency_9_24": {
+      "mean": 0.06388027899656587,
+      "ci95": [
+        0.06360645003395073,
+        0.06415992660900038
+      ]
+    },
+    "tube_25_64": {
+      "mean": 0.7176908404150381,
+      "ci95": [
+        0.7148794121235672,
+        0.7205684927322484
+      ]
+    },
+    "tube_4_8": {
+      "mean": 0.7576068718751846,
+      "ci95": [
+        0.7538457937045415,
+        0.7626967991189582
+      ]
+    },
+    "tube_9_24": {
+      "mean": 0.7605441645420024,
+      "ci95": [
+        0.7578887318747017,
+        0.7637881273669634
+      ]
+    }
+  },
+  "probe_paired_differences": {
+    "C_oracle_minus_A_current_state": {
+      "paired_proteins": 487,
+      "error": {
+        "mean_difference": -0.002550035059248928,
+        "ci95": [
+          -0.0026480520672265613,
+          -0.002452158241496253
+        ],
+        "sign_flip_p": 4.999750012499375e-05
+      },
+      "decoder_disagreement": {
+        "mean_difference": -2.251051532064759e-06,
+        "ci95": [
+          -6.020978323496419e-06,
+          1.6184467072304692e-06
+        ],
+        "sign_flip_p": 0.2528373581320934
+      }
+    },
+    "C_oracle_minus_C_shuffle": {
+      "paired_proteins": 487,
+      "error": {
+        "mean_difference": -0.0032147007633210765,
+        "ci95": [
+          -0.0032968747486958887,
+          -0.0031346060902621865
+        ],
+        "sign_flip_p": 4.999750012499375e-05
+      },
+      "decoder_disagreement": {
+        "mean_difference": -8.99088166326724e-06,
+        "ci95": [
+          -1.0951114618969795e-05,
+          -7.007451621288967e-06
+        ],
+        "sign_flip_p": 4.999750012499375e-05
+      }
+    },
+    "state_final_plus_layer12_minus_state_final_only": {
+      "paired_proteins": 487,
+      "error": {
+        "mean_difference": 0.0013831719784551538,
+        "ci95": [
+          0.001113994413406641,
+          0.0016588825965759306
+        ],
+        "sign_flip_p": 4.999750012499375e-05
+      },
+      "decoder_disagreement": {
+        "mean_difference": 6.16781194826777e-05,
+        "ci95": [
+          4.794585288209073e-05,
+          7.727030086476332e-05
+        ],
+        "sign_flip_p": 4.999750012499375e-05
+      }
+    }
+  },
+  "artifact_sha256": {
+    "data\\diagnostic_pool.jsonl": "9de1e2c77dc0dd30c82ec2dfb211877f32e9fbc75dfe5df8b17817253f1e0cb6",
+    "data\\tape_structural_manifest.jsonl": "769bc22321214ed173ce7041a20866f308900f42b716d484d295f768f21ea9a1",
+    "data\\proteingym_panel.json": "df7ccef15b639a72b8d96c86bd6fd3ab2fafe28a78dbf7b927e49df659dbbaa3",
+    "data\\proteingym_panel\\manifest.json": "0218f70fe29175757ce4587307f38fa4563d982d17a47054531d3b33285b87d5",
+    "runs\\uniref\\nextlat_probes.json": "36e04342a7567694760a7c04183123527be3883c0c2402a667e9578b15dd892d",
+    "runs\\uniref\\stp_gradient.json": "4e63cf003f5a5e5e9f3401d46f2cc672ced4f30a59e7b624ca868d56d8f167d2",
+    "runs\\uniref\\nextlat_gradient.json": "effb883649d261a8061becbee4a43103deca3672ed77aa6e96d0b02acf8edd0f",
+    "runs\\proteingym\\scores.json": "5f226c1d0f062edc37e21b8b91777e8ba4d1610ab61620ba9d94c82384a73478",
+    "runs\\generation\\native_replay.json": "29408f216365690199da34b9df5a41d3d10571cc183ca11da4256258dbe3f09c"
+  }
+}

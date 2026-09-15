@@ -1,0 +1,251 @@
+{
+  "objective": "nextlat",
+  "records": [
+    {
+      "id": "UniRef50_A0A011NLZ1",
+      "cluster_id": "UniRef50_A0A011NLZ1",
+      "ntp_loss": 1.7783597707748413,
+      "auxiliary_loss": 1.0672345161437988,
+      "norm_ratio": 1.004168891281563,
+      "cosine": -0.18573164134330675,
+      "ntp_direction_retention": 0.8134940636363868,
+      "depth": {
+        "tied_embedding_head": {
+          "norm_ratio": 0.07433337148100147,
+          "cosine": -0.012118240790715721,
+          "ntp_direction_retention": 0.9990992103056076
+        },
+        "early_0_7": {
+          "norm_ratio": 0.8438149967625518,
+          "cosine": -0.34863756026366355,
+          "ntp_direction_retention": 0.7058143982148128
+        },
+        "middle_8_15": {
+          "norm_ratio": 0.9643170573313147,
+          "cosine": -0.19536164767445693,
+          "ntp_direction_retention": 0.8116094307991706
+        },
+        "late_16_23": {
+          "norm_ratio": 1.229129098433074,
+          "cosine": -0.0838798088874518,
+          "ntp_direction_retention": 0.8969008861254278
+        },
+        "other": {
+          "norm_ratio": 1.7731389981401235,
+          "cosine": -0.1204660403542273,
+          "ntp_direction_retention": 0.7863969658963977
+        }
+      }
+    },
+    {
+      "id": "UniRef50_A0A023G580",
+      "cluster_id": "UniRef50_A0A023G580",
+      "ntp_loss": 2.828829288482666,
+      "auxiliary_loss": 0.05534502863883972,
+      "norm_ratio": 0.2837971996486857,
+      "cosine": -0.07948580591202364,
+      "ntp_direction_retention": 0.9774421508703487,
+      "depth": {
+        "tied_embedding_head": {
+          "norm_ratio": 0.030124441119140533,
+          "cosine": -0.021289079574895974,
+          "ntp_direction_retention": 0.9993586783758653
+        },
+        "early_0_7": {
+          "norm_ratio": 0.31499367460393085,
+          "cosine": -0.0259513488376617,
+          "ntp_direction_retention": 0.9918254892686965
+        },
+        "middle_8_15": {
+          "norm_ratio": 0.2356270494645195,
+          "cosine": -0.31867280954582444,
+          "ntp_direction_retention": 0.9249120661421486
+        },
+        "late_16_23": {
+          "norm_ratio": 0.36369204122960364,
+          "cosine": -0.04087029575530651,
+          "ntp_direction_retention": 0.985135798711095
+        },
+        "other": {
+          "norm_ratio": 0.2136000251343401,
+          "cosine": -0.05735691128482271,
+          "ntp_direction_retention": 0.9877485623079337
+        }
+      }
+    },
+    {
+      "id": "UniRef50_A0A024GJR2",
+      "cluster_id": "UniRef50_A0A024GJR2",
+      "ntp_loss": 2.9602549076080322,
+      "auxiliary_loss": 0.02858184278011322,
+      "norm_ratio": 0.3470974874521465,
+      "cosine": 0.19810515177398752,
+      "ntp_direction_retention": 1.0687618004320771,
+      "depth": {
+        "tied_embedding_head": {
+          "norm_ratio": 0.03233663614798526,
+          "cosine": -0.01828111212779084,
+          "ntp_direction_retention": 0.9994088503287432
+        },
+        "early_0_7": {
+          "norm_ratio": 0.3923969353168908,
+          "cosine": -0.25916996683678395,
+          "ntp_direction_retention": 0.8983024992870657
+        },
+        "middle_8_15": {
+          "norm_ratio": 0.33598296510990233,
+          "cosine": -0.02964624471827276,
+          "ntp_direction_retention": 0.9900393667951809
+        },
+        "late_16_23": {
+          "norm_ratio": 0.3579083316388282,
+          "cosine": 0.7314284395562207,
+          "ntp_direction_retention": 1.2617843325147584
+        },
+        "other": {
+          "norm_ratio": 0.4568934173000804,
+          "cosine": 0.05573730599094521,
+          "ntp_direction_retention": 1.025466008205303
+        }
+      }
+    },
+    {
+      "id": "UniRef50_A0A068RIG8",
+      "cluster_id": "UniRef50_A0A068RIG8",
+      "ntp_loss": 3.060871124267578,
+      "auxiliary_loss": 0.033733807504177094,
+      "norm_ratio": 0.2093295284276204,
+      "cosine": 0.358618066527241,
+      "ntp_direction_retention": 1.0750693507517723,
+      "depth": {
+        "tied_embedding_head": {
+          "norm_ratio": 0.00973045213916973,
+          "cosine": -0.04528546594816781,
+          "ntp_direction_retention": 0.9995593519409913
+        },
+        "early_0_7": {
+          "norm_ratio": 0.22073925968707933,
+          "cosine": 0.003368875735687963,
+          "ntp_direction_retention": 1.0007436431358736
+        },
+        "middle_8_15": {
+          "norm_ratio": 0.29102405218431215,
+          "cosine": 0.015165183724056472,
+          "ntp_direction_retention": 1.0044134332194945
+        },
+        "late_16_23": {
+          "norm_ratio": 0.22177549995231277,
+          "cosine": 0.680057882634389,
+          "ntp_direction_retention": 1.1508201769177528
+        },
+        "other": {
+          "norm_ratio": 0.25232918809492333,
+          "cosine": -0.25752703811078703,
+          "ntp_direction_retention": 0.9350184115610147
+        }
+      }
+    },
+    {
+      "id": "UniRef50_A0A075AGB2",
+      "cluster_id": "UniRef50_A0A075AGB2",
+      "ntp_loss": 2.9835941791534424,
+      "auxiliary_loss": 0.023028001189231873,
+      "norm_ratio": 0.1690829917809767,
+      "cosine": 0.163486314498249,
+      "ntp_direction_retention": 1.0276427551706095,
+      "depth": {
+        "tied_embedding_head": {
+          "norm_ratio": 0.011313099425348128,
+          "cosine": 0.028090745004878154,
+          "ntp_direction_retention": 1.0003177933911722
+        },
+        "early_0_7": {
+          "norm_ratio": 0.18099675887911248,
+          "cosine": 0.022226232498062107,
+          "ntp_direction_retention": 1.004022876044243
+        },
+        "middle_8_15": {
+          "norm_ratio": 0.2197198013330377,
+          "cosine": 0.06697251149240284,
+          "ntp_direction_retention": 1.0147151869198854
+        },
+        "late_16_23": {
+          "norm_ratio": 0.2048359455480043,
+          "cosine": 0.3679202266584476,
+          "ntp_direction_retention": 1.0753632875138193
+        },
+        "other": {
+          "norm_ratio": 0.26512181775707405,
+          "cosine": 0.13276868630776,
+          "ntp_direction_retention": 1.0351998754551321
+        }
+      }
+    },
+    {
+      "id": "UniRef50_A0A078BE47",
+      "cluster_id": "UniRef50_A0A078BE47",
+      "ntp_loss": 2.8728854656219482,
+      "auxiliary_loss": 0.03473515436053276,
+      "norm_ratio": 0.26194302992087154,
+      "cosine": 0.3716833426256602,
+      "ntp_direction_retention": 1.097359860938483,
+      "depth": {
+        "tied_embedding_head": {
+          "norm_ratio": 0.0211123393055549,
+          "cosine": -0.008868404511038864,
+          "ntp_direction_retention": 0.999812767234864
+        },
+        "early_0_7": {
+          "norm_ratio": 0.2363193615270126,
+          "cosine": 0.16060695952377382,
+          "ntp_direction_retention": 1.0379545341314529
+        },
+        "middle_8_15": {
+          "norm_ratio": 0.32375912595819406,
+          "cosine": -0.04628157768241094,
+          "ntp_direction_retention": 0.9850159168615764
+        },
+        "late_16_23": {
+          "norm_ratio": 0.3017777442617338,
+          "cosine": 0.6543890272328718,
+          "ntp_direction_retention": 1.1974800445079663
+        },
+        "other": {
+          "norm_ratio": 0.20630595539184726,
+          "cosine": -0.0995563556560242,
+          "ntp_direction_retention": 0.9794609309310534
+        }
+      }
+    }
+  ],
+  "summary": {
+    "norm_ratio": {
+      "mean": 0.37923652141864395,
+      "ci95": [
+        0.2191553724722265,
+        0.6354140587877497
+      ],
+      "sign_flip_p_vs_zero": 0.030748462576871156
+    },
+    "cosine": {
+      "mean": 0.13777923802830125,
+      "ci95": [
+        -0.0339103775856938,
+        0.29792924121705006
+      ],
+      "sign_flip_p_vs_zero": 0.21398930053497325
+    },
+    "ntp_direction_retention": {
+      "mean": 1.0099616636332798,
+      "ci95": [
+        0.9269592488272265,
+        1.072492571443917
+      ],
+      "sign_flip_p_vs_zero": 0.030748462576871156
+    },
+    "scale_for_3pct_backbone_pressure": 0.07910630518330966
+  },
+  "parameter_scope": "all unique RITA-M parameters",
+  "backbone_updated": false,
+  "nextlat_auxiliary": "SmoothL1 + teacher-to-student KL, unit coefficients"
+}
