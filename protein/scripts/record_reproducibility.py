@@ -43,6 +43,9 @@ def main() -> None:
         ROOT / "runs/amendment/scale_free_coupling.json",
         ROOT / "runs/amendment/nextlat_full_gradient.json",
         ROOT / "runs/amendment/decision.json",
+        ROOT / "runs/amendment/full_conditioning_residual.json",
+        ROOT / "runs/amendment/faithful_dense_predictor.json",
+        ROOT / "runs/amendment/scale_free_coupling_dense.json",
     ]
     record = {
         "created_date": "2026-09-14",

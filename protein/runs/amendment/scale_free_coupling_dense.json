@@ -1,0 +1,686 @@
+{
+  "amendment": true,
+  "backbone_updated": false,
+  "generation_regenerated": false,
+  "generation_replay": {
+    "comparisons": {
+      "centered_cosine_error": {
+        "better_minus_worse": 0.07376287821680305,
+        "bh_q": 0.00039996000399960006,
+        "ci95": [
+          0.045887323856353725,
+          0.10408058710396292
+        ],
+        "permutation_p": 9.999000099990002e-05
+      },
+      "decoder_js": {
+        "better_minus_worse": 0.04461717549711466,
+        "bh_q": 0.012798720127987202,
+        "ci95": [
+          0.014789505640976128,
+          0.07567801317316476
+        ],
+        "permutation_p": 0.006399360063993601
+      },
+      "decoder_transition_relative_js": {
+        "better_minus_worse": -0.0564704144001007,
+        "bh_q": 0.9794020597940206,
+        "ci95": [
+          -0.32539748142659664,
+          0.10490697437524785
+        ],
+        "permutation_p": 0.9794020597940206
+      },
+      "faithful_total": {
+        "better_minus_worse": 0.27056525915861135,
+        "bh_q": 0.012798720127987202,
+        "ci95": [
+          0.09254486110806467,
+          0.4572520860042423
+        ],
+        "permutation_p": 0.0052994700529947
+      },
+      "normalized_state_mse": {
+        "better_minus_worse": 0.1361263635754585,
+        "bh_q": 0.00039996000399960006,
+        "ci95": [
+          0.0850076058879495,
+          0.19193527359515422
+        ],
+        "permutation_p": 9.999000099990002e-05
+      },
+      "raw_mse": {
+        "better_minus_worse": 0.05491803687065838,
+        "bh_q": 0.019331400193314002,
+        "ci95": [
+          0.014009933631867168,
+          0.09664277036394921
+        ],
+        "permutation_p": 0.0131986801319868
+      },
+      "raw_smooth_l1": {
+        "better_minus_worse": 0.024931251397356385,
+        "bh_q": 0.019331400193314002,
+        "ci95": [
+          0.006122304612770682,
+          0.04422062499076128
+        ],
+        "permutation_p": 0.014498550144985502
+      },
+      "transition_relative_mse": {
+        "better_minus_worse": -5.0819130468368545,
+        "bh_q": 0.04582398902966846,
+        "ci95": [
+          -10.059720614552498,
+          -0.5243172632455846
+        ],
+        "permutation_p": 0.0400959904009599
+      }
+    },
+    "quality_groups_reused_unchanged": true,
+    "sequences": 100
+  },
+  "metric_orientation": "all metrics are errors: lower means more predictable",
+  "normalization_reference": {
+    "future_state_mean": "all transitions in homology-separated UniRef train proteins",
+    "transitions": 418003
+  },
+  "original_results_overwritten": false,
+  "predictor_objective": "smooth_l1_plus_teacher_to_student_kl",
+  "proteingym": {
+    "assays": [
+      {
+        "DMS_id": "D7PM05_CLYGR_Somermeyer_2022",
+        "category": "Activity",
+        "spearman_centered_cosine_error_vs_DMS": -0.1263793481626796,
+        "spearman_centered_cosine_error_vs_RITA_fitness": -0.18329923895628286,
+        "spearman_decoder_js_vs_DMS": -0.1113651987796074,
+        "spearman_decoder_js_vs_RITA_fitness": 0.1233198386358434,
+        "spearman_decoder_transition_relative_js_vs_DMS": -0.07495016139719857,
+        "spearman_decoder_transition_relative_js_vs_RITA_fitness": -0.24616044861524372,
+        "spearman_faithful_total_vs_DMS": -0.0827685399486792,
+        "spearman_faithful_total_vs_RITA_fitness": 0.08868305104142822,
+        "spearman_normalized_state_mse_vs_DMS": -0.13073974912507516,
+        "spearman_normalized_state_mse_vs_RITA_fitness": -0.18439002059967952,
+        "spearman_raw_mse_vs_DMS": -0.09818881563179399,
+        "spearman_raw_mse_vs_RITA_fitness": 0.05669131952391851,
+        "spearman_raw_smooth_l1_vs_DMS": -0.0982918679440515,
+        "spearman_raw_smooth_l1_vs_RITA_fitness": 0.05650678072785534,
+        "spearman_transition_relative_mse_vs_DMS": -0.06829720430760225,
+        "spearman_transition_relative_mse_vs_RITA_fitness": -0.23619964522774084,
+        "variants": 256
+      },
+      {
+        "DMS_id": "YAP1_HUMAN_Araya_2012",
+        "category": "Binding",
+        "spearman_centered_cosine_error_vs_DMS": 0.10874842641336689,
+        "spearman_centered_cosine_error_vs_RITA_fitness": 0.7746373598077362,
+        "spearman_decoder_js_vs_DMS": 0.15457341496910046,
+        "spearman_decoder_js_vs_RITA_fitness": 0.8302107175555046,
+        "spearman_decoder_transition_relative_js_vs_DMS": 0.08921163309681848,
+        "spearman_decoder_transition_relative_js_vs_RITA_fitness": 0.5293173495078964,
+        "spearman_faithful_total_vs_DMS": 0.14927471961547262,
+        "spearman_faithful_total_vs_RITA_fitness": 0.745282101167315,
+        "spearman_normalized_state_mse_vs_DMS": 0.0498623200858185,
+        "spearman_normalized_state_mse_vs_RITA_fitness": 0.6852988894231643,
+        "spearman_raw_mse_vs_DMS": 0.1154862382696269,
+        "spearman_raw_mse_vs_RITA_fitness": 0.6971503776607918,
+        "spearman_raw_smooth_l1_vs_DMS": 0.11639677271686882,
+        "spearman_raw_smooth_l1_vs_RITA_fitness": 0.6897788395513847,
+        "spearman_transition_relative_mse_vs_DMS": 0.07919575417715723,
+        "spearman_transition_relative_mse_vs_RITA_fitness": 0.5984707598992903,
+        "variants": 256
+      },
+      {
+        "DMS_id": "PTEN_HUMAN_Matreyek_2021",
+        "category": "Expression",
+        "spearman_centered_cosine_error_vs_DMS": 0.2549346702146324,
+        "spearman_centered_cosine_error_vs_RITA_fitness": 0.5523997196154725,
+        "spearman_decoder_js_vs_DMS": 0.3326212256489713,
+        "spearman_decoder_js_vs_RITA_fitness": 0.7687814717326619,
+        "spearman_decoder_transition_relative_js_vs_DMS": 0.19080671184888,
+        "spearman_decoder_transition_relative_js_vs_RITA_fitness": 0.5000979915312428,
+        "spearman_faithful_total_vs_DMS": 0.3124975524464945,
+        "spearman_faithful_total_vs_RITA_fitness": 0.7098878461890591,
+        "spearman_normalized_state_mse_vs_DMS": 0.22041303437804957,
+        "spearman_normalized_state_mse_vs_RITA_fitness": 0.4657852197299152,
+        "spearman_raw_mse_vs_DMS": 0.3339079905849487,
+        "spearman_raw_mse_vs_RITA_fitness": 0.676791742961776,
+        "spearman_raw_smooth_l1_vs_DMS": 0.3381770603572561,
+        "spearman_raw_smooth_l1_vs_RITA_fitness": 0.672659647516594,
+        "spearman_transition_relative_mse_vs_DMS": 0.2528199839816045,
+        "spearman_transition_relative_mse_vs_RITA_fitness": 0.5868927386129548,
+        "variants": 256
+      },
+      {
+        "DMS_id": "KKA2_KLEPN_Melnikov_2014",
+        "category": "OrganismalFitness",
+        "spearman_centered_cosine_error_vs_DMS": 0.08890907530327304,
+        "spearman_centered_cosine_error_vs_RITA_fitness": 0.007529612039368276,
+        "spearman_decoder_js_vs_DMS": 0.29664325360494387,
+        "spearman_decoder_js_vs_RITA_fitness": 0.6240529869535362,
+        "spearman_decoder_transition_relative_js_vs_DMS": 0.20163438429846645,
+        "spearman_decoder_transition_relative_js_vs_RITA_fitness": 0.20424439230945293,
+        "spearman_faithful_total_vs_DMS": 0.29474391571725905,
+        "spearman_faithful_total_vs_RITA_fitness": 0.5947489762297274,
+        "spearman_normalized_state_mse_vs_DMS": 0.07178131290436157,
+        "spearman_normalized_state_mse_vs_RITA_fitness": -0.038468120291421756,
+        "spearman_raw_mse_vs_DMS": 0.20918513410984216,
+        "spearman_raw_mse_vs_RITA_fitness": 0.5672877387717064,
+        "spearman_raw_smooth_l1_vs_DMS": 0.1974808661666149,
+        "spearman_raw_smooth_l1_vs_RITA_fitness": 0.5602480831297445,
+        "spearman_transition_relative_mse_vs_DMS": -0.13804124732632042,
+        "spearman_transition_relative_mse_vs_RITA_fitness": -0.09859603734702974,
+        "variants": 256
+      },
+      {
+        "DMS_id": "VILI_CHICK_Tsuboyama_2023_1YU5",
+        "category": "Stability",
+        "spearman_centered_cosine_error_vs_DMS": 0.2949065861753261,
+        "spearman_centered_cosine_error_vs_RITA_fitness": 0.4183215552758067,
+        "spearman_decoder_js_vs_DMS": 0.19660820553902492,
+        "spearman_decoder_js_vs_RITA_fitness": 0.3550383382925154,
+        "spearman_decoder_transition_relative_js_vs_DMS": 0.03720745593957427,
+        "spearman_decoder_transition_relative_js_vs_RITA_fitness": 0.17271257724879832,
+        "spearman_faithful_total_vs_DMS": 0.21332827878233,
+        "spearman_faithful_total_vs_RITA_fitness": 0.3549532215609979,
+        "spearman_normalized_state_mse_vs_DMS": 0.27453150034332796,
+        "spearman_normalized_state_mse_vs_RITA_fitness": 0.3754935339894712,
+        "spearman_raw_mse_vs_DMS": 0.16710417143511097,
+        "spearman_raw_mse_vs_RITA_fitness": 0.24560969329365984,
+        "spearman_raw_smooth_l1_vs_DMS": 0.1654397459372854,
+        "spearman_raw_smooth_l1_vs_RITA_fitness": 0.24513618677042795,
+        "spearman_transition_relative_mse_vs_DMS": -0.10194724750341422,
+        "spearman_transition_relative_mse_vs_RITA_fitness": -0.2517180754132396,
+        "variants": 256
+      },
+      {
+        "DMS_id": "CASP3_HUMAN_Roychowdhury_2020",
+        "category": "Activity",
+        "spearman_centered_cosine_error_vs_DMS": 0.27866574158846413,
+        "spearman_centered_cosine_error_vs_RITA_fitness": 0.42092055192131156,
+        "spearman_decoder_js_vs_DMS": 0.3507360093842984,
+        "spearman_decoder_js_vs_RITA_fitness": 0.6638441047443929,
+        "spearman_decoder_transition_relative_js_vs_DMS": 0.2679896715495536,
+        "spearman_decoder_transition_relative_js_vs_RITA_fitness": 0.5058284407595569,
+        "spearman_faithful_total_vs_DMS": 0.3364728770885786,
+        "spearman_faithful_total_vs_RITA_fitness": 0.6444492883900322,
+        "spearman_normalized_state_mse_vs_DMS": 0.23609955011508124,
+        "spearman_normalized_state_mse_vs_RITA_fitness": 0.3661336855307584,
+        "spearman_raw_mse_vs_DMS": 0.3071998741130693,
+        "spearman_raw_mse_vs_RITA_fitness": 0.621299321444298,
+        "spearman_raw_smooth_l1_vs_DMS": 0.3045634012359807,
+        "spearman_raw_smooth_l1_vs_RITA_fitness": 0.6138344397020368,
+        "spearman_transition_relative_mse_vs_DMS": -0.08697642481116959,
+        "spearman_transition_relative_mse_vs_RITA_fitness": -0.13706299658513976,
+        "variants": 256
+      },
+      {
+        "DMS_id": "CCR5_HUMAN_Gill_2023",
+        "category": "Binding",
+        "spearman_centered_cosine_error_vs_DMS": 0.15278214155092498,
+        "spearman_centered_cosine_error_vs_RITA_fitness": 0.33318408102540625,
+        "spearman_decoder_js_vs_DMS": 0.22272510661985104,
+        "spearman_decoder_js_vs_RITA_fitness": 0.7911457141222247,
+        "spearman_decoder_transition_relative_js_vs_DMS": 0.20901311389744584,
+        "spearman_decoder_transition_relative_js_vs_RITA_fitness": 0.5833371480888074,
+        "spearman_faithful_total_vs_DMS": 0.22155204099310385,
+        "spearman_faithful_total_vs_RITA_fitness": 0.7818393797207597,
+        "spearman_normalized_state_mse_vs_DMS": 0.08198691569281026,
+        "spearman_normalized_state_mse_vs_RITA_fitness": 0.16562070840009152,
+        "spearman_raw_mse_vs_DMS": 0.16858920087134402,
+        "spearman_raw_mse_vs_RITA_fitness": 0.7079087033646142,
+        "spearman_raw_smooth_l1_vs_DMS": 0.16718724439059734,
+        "spearman_raw_smooth_l1_vs_RITA_fitness": 0.7026472018768596,
+        "spearman_transition_relative_mse_vs_DMS": 0.042288867271085634,
+        "spearman_transition_relative_mse_vs_RITA_fitness": 0.2707829815054062,
+        "variants": 256
+      },
+      {
+        "DMS_id": "CP2C9_HUMAN_Amorosi_2021_abundance",
+        "category": "Expression",
+        "spearman_centered_cosine_error_vs_DMS": 0.21207084000915538,
+        "spearman_centered_cosine_error_vs_RITA_fitness": 0.4667758640421148,
+        "spearman_decoder_js_vs_DMS": 0.39818894483863576,
+        "spearman_decoder_js_vs_RITA_fitness": 0.6587491416800182,
+        "spearman_decoder_transition_relative_js_vs_DMS": 0.3329115644312199,
+        "spearman_decoder_transition_relative_js_vs_RITA_fitness": 0.531345130464637,
+        "spearman_faithful_total_vs_DMS": 0.38739557106889444,
+        "spearman_faithful_total_vs_RITA_fitness": 0.6334272716868848,
+        "spearman_normalized_state_mse_vs_DMS": 0.07065083375966326,
+        "spearman_normalized_state_mse_vs_RITA_fitness": 0.20908428149395958,
+        "spearman_raw_mse_vs_DMS": 0.33389219501029976,
+        "spearman_raw_mse_vs_RITA_fitness": 0.5673287651636529,
+        "spearman_raw_smooth_l1_vs_DMS": 0.3301441977569237,
+        "spearman_raw_smooth_l1_vs_RITA_fitness": 0.5573372053101395,
+        "spearman_transition_relative_mse_vs_DMS": -0.03871381443011449,
+        "spearman_transition_relative_mse_vs_RITA_fitness": -0.050036487546580306,
+        "variants": 256
+      },
+      {
+        "DMS_id": "I6TAH8_I68A0_Doud_2015",
+        "category": "OrganismalFitness",
+        "spearman_centered_cosine_error_vs_DMS": 0.2182615509347069,
+        "spearman_centered_cosine_error_vs_RITA_fitness": 0.6237882037466794,
+        "spearman_decoder_js_vs_DMS": 0.24873397802700845,
+        "spearman_decoder_js_vs_RITA_fitness": 0.7024061570153353,
+        "spearman_decoder_transition_relative_js_vs_DMS": 0.24234879262989242,
+        "spearman_decoder_transition_relative_js_vs_RITA_fitness": 0.3924696726939802,
+        "spearman_faithful_total_vs_DMS": 0.2751251716639963,
+        "spearman_faithful_total_vs_RITA_fitness": 0.5984450102998398,
+        "spearman_normalized_state_mse_vs_DMS": 0.19749370565346758,
+        "spearman_normalized_state_mse_vs_RITA_fitness": 0.19326075761043712,
+        "spearman_raw_mse_vs_DMS": 0.2393182078278782,
+        "spearman_raw_mse_vs_RITA_fitness": 0.44053845273517966,
+        "spearman_raw_smooth_l1_vs_DMS": 0.2283517395284962,
+        "spearman_raw_smooth_l1_vs_RITA_fitness": 0.3999849794003204,
+        "spearman_transition_relative_mse_vs_DMS": 0.17294789997711146,
+        "spearman_transition_relative_mse_vs_RITA_fitness": 0.13350165941863124,
+        "variants": 256
+      },
+      {
+        "DMS_id": "FECA_ECOLI_Tsuboyama_2023_2D1U",
+        "category": "Stability",
+        "spearman_centered_cosine_error_vs_DMS": 0.15244835774776833,
+        "spearman_centered_cosine_error_vs_RITA_fitness": 0.21518439574273285,
+        "spearman_decoder_js_vs_DMS": 0.284111781872282,
+        "spearman_decoder_js_vs_RITA_fitness": 0.6511637388418401,
+        "spearman_decoder_transition_relative_js_vs_DMS": 0.2082935168230716,
+        "spearman_decoder_transition_relative_js_vs_RITA_fitness": 0.4260993648432135,
+        "spearman_faithful_total_vs_DMS": 0.2879584859235522,
+        "spearman_faithful_total_vs_RITA_fitness": 0.6556298638132294,
+        "spearman_normalized_state_mse_vs_DMS": 0.10172452608658573,
+        "spearman_normalized_state_mse_vs_RITA_fitness": 0.10524077757367013,
+        "spearman_raw_mse_vs_DMS": 0.2795054646372167,
+        "spearman_raw_mse_vs_RITA_fitness": 0.6411957827878232,
+        "spearman_raw_smooth_l1_vs_DMS": 0.2775005722133211,
+        "spearman_raw_smooth_l1_vs_RITA_fitness": 0.6353484779125658,
+        "spearman_transition_relative_mse_vs_DMS": 0.036733618057358086,
+        "spearman_transition_relative_mse_vs_RITA_fitness": -0.009265928463272328,
+        "variants": 256
+      },
+      {
+        "DMS_id": "LGK_LIPST_Klesmith_2015",
+        "category": "Activity",
+        "spearman_centered_cosine_error_vs_DMS": 0.155103871320935,
+        "spearman_centered_cosine_error_vs_RITA_fitness": 0.3316884584573129,
+        "spearman_decoder_js_vs_DMS": 0.3139089005188532,
+        "spearman_decoder_js_vs_RITA_fitness": 0.7716876001373311,
+        "spearman_decoder_transition_relative_js_vs_DMS": 0.12436700944181707,
+        "spearman_decoder_transition_relative_js_vs_RITA_fitness": 0.07665871707247152,
+        "spearman_faithful_total_vs_DMS": 0.3003992629883632,
+        "spearman_faithful_total_vs_RITA_fitness": 0.7565961890592812,
+        "spearman_normalized_state_mse_vs_DMS": 0.14077813737968636,
+        "spearman_normalized_state_mse_vs_RITA_fitness": 0.28981536997442847,
+        "spearman_raw_mse_vs_DMS": 0.2806732252049288,
+        "spearman_raw_mse_vs_RITA_fitness": 0.745936570153353,
+        "spearman_raw_smooth_l1_vs_DMS": 0.27717162729464345,
+        "spearman_raw_smooth_l1_vs_RITA_fitness": 0.7424017223620965,
+        "spearman_transition_relative_mse_vs_DMS": 0.014359742081160688,
+        "spearman_transition_relative_mse_vs_RITA_fitness": 0.011886307589503521,
+        "variants": 256
+      },
+      {
+        "DMS_id": "SPG1_STRSG_Olson_2014",
+        "category": "Binding",
+        "spearman_centered_cosine_error_vs_DMS": 0.28041011171340446,
+        "spearman_centered_cosine_error_vs_RITA_fitness": 0.11995951590753032,
+        "spearman_decoder_js_vs_DMS": 0.20385331294989834,
+        "spearman_decoder_js_vs_RITA_fitness": 0.6295111867704279,
+        "spearman_decoder_transition_relative_js_vs_DMS": 0.11038959650098921,
+        "spearman_decoder_transition_relative_js_vs_RITA_fitness": 0.11448772602426184,
+        "spearman_faithful_total_vs_DMS": 0.3182750957235464,
+        "spearman_faithful_total_vs_RITA_fitness": 0.6038982032501715,
+        "spearman_normalized_state_mse_vs_DMS": 0.2976980656348661,
+        "spearman_normalized_state_mse_vs_RITA_fitness": 0.03196383611810483,
+        "spearman_raw_mse_vs_DMS": 0.11104075701707077,
+        "spearman_raw_mse_vs_RITA_fitness": 0.5617561226825359,
+        "spearman_raw_smooth_l1_vs_DMS": 0.10770695828693458,
+        "spearman_raw_smooth_l1_vs_RITA_fitness": 0.5607268539711603,
+        "spearman_transition_relative_mse_vs_DMS": -0.09302507755181243,
+        "spearman_transition_relative_mse_vs_RITA_fitness": 0.14238026436255435,
+        "variants": 256
+      },
+      {
+        "DMS_id": "GLPA_HUMAN_Elazar_2016",
+        "category": "Expression",
+        "spearman_centered_cosine_error_vs_DMS": -0.22798227647716424,
+        "spearman_centered_cosine_error_vs_RITA_fitness": -0.647942455670793,
+        "spearman_decoder_js_vs_DMS": 0.17780724444915913,
+        "spearman_decoder_js_vs_RITA_fitness": 0.3816791650686665,
+        "spearman_decoder_transition_relative_js_vs_DMS": 0.37867628458820557,
+        "spearman_decoder_transition_relative_js_vs_RITA_fitness": 0.46881492301038774,
+        "spearman_faithful_total_vs_DMS": 0.1997902879664461,
+        "spearman_faithful_total_vs_RITA_fitness": 0.4001093440174951,
+        "spearman_normalized_state_mse_vs_DMS": -0.2213645154183225,
+        "spearman_normalized_state_mse_vs_RITA_fitness": -0.6461146153783386,
+        "spearman_raw_mse_vs_DMS": 0.27475703596112583,
+        "spearman_raw_mse_vs_RITA_fitness": 0.5298827407812385,
+        "spearman_raw_smooth_l1_vs_DMS": 0.2755975160956026,
+        "spearman_raw_smooth_l1_vs_RITA_fitness": 0.5308366449338632,
+        "spearman_transition_relative_mse_vs_DMS": 0.4396864354380105,
+        "spearman_transition_relative_mse_vs_RITA_fitness": 0.7210695646658389,
+        "variants": 245
+      },
+      {
+        "DMS_id": "HIS7_YEAST_Pokusaeva_2019",
+        "category": "OrganismalFitness",
+        "spearman_centered_cosine_error_vs_DMS": 0.14297654577771926,
+        "spearman_centered_cosine_error_vs_RITA_fitness": 0.3831996087282726,
+        "spearman_decoder_js_vs_DMS": 0.09878239830362094,
+        "spearman_decoder_js_vs_RITA_fitness": 0.46361883165199613,
+        "spearman_decoder_transition_relative_js_vs_DMS": 0.06483330422853263,
+        "spearman_decoder_transition_relative_js_vs_RITA_fitness": 0.2458708955714944,
+        "spearman_faithful_total_vs_DMS": 0.10230283887753236,
+        "spearman_faithful_total_vs_RITA_fitness": 0.4559300671691276,
+        "spearman_normalized_state_mse_vs_DMS": 0.15506136095068657,
+        "spearman_normalized_state_mse_vs_RITA_fitness": 0.3479254508734012,
+        "spearman_raw_mse_vs_DMS": 0.17030732357990466,
+        "spearman_raw_mse_vs_RITA_fitness": 0.5144461710560284,
+        "spearman_raw_smooth_l1_vs_DMS": 0.1783681454547486,
+        "spearman_raw_smooth_l1_vs_RITA_fitness": 0.5165974053583451,
+        "spearman_transition_relative_mse_vs_DMS": 0.037813756933866204,
+        "spearman_transition_relative_mse_vs_RITA_fitness": -0.06199228465657712,
+        "variants": 168
+      }
+    ],
+    "macro": {
+      "spearman_centered_cosine_error_vs_DMS": {
+        "assay_bootstrap_ci95": [
+          0.05775702967973424,
+          0.21011643396722385
+        ],
+        "bh_q": 0.008266253353998967,
+        "macro_mean": 0.14184687815070238,
+        "sign_flip_p": 0.006199690015499225
+      },
+      "spearman_centered_cosine_error_vs_RITA_fitness": {
+        "assay_bootstrap_ci95": [
+          0.0773961655276969,
+          0.44126927142960537
+        ],
+        "bh_q": 0.022532206722997185,
+        "macro_mean": 0.2725962308344763,
+        "sign_flip_p": 0.016899155042247888
+      },
+      "spearman_decoder_js_vs_DMS": {
+        "assay_bootstrap_ci95": [
+          0.15617162106869129,
+          0.28687258203166244
+        ],
+        "bh_q": 0.00047997600119994,
+        "macro_mean": 0.22628061271043148,
+        "sign_flip_p": 0.0002999850007499625
+      },
+      "spearman_decoder_js_vs_RITA_fitness": {
+        "assay_bootstrap_ci95": [
+          0.49444182262629327,
+          0.6948811680398378
+        ],
+        "bh_q": 0.00039998000099995,
+        "macro_mean": 0.6010863566573067,
+        "sign_flip_p": 0.000199990000499975
+      },
+      "spearman_decoder_transition_relative_js_vs_DMS": {
+        "assay_bootstrap_ci95": [
+          0.1084008641763007,
+          0.22978122930041844
+        ],
+        "bh_q": 0.00047997600119994,
+        "macro_mean": 0.17019520556266202,
+        "sign_flip_p": 0.0002999850007499625
+      },
+      "spearman_decoder_transition_relative_js_vs_RITA_fitness": {
+        "assay_bootstrap_ci95": [
+          0.19401881261517243,
+          0.4333093821391636
+        ],
+        "bh_q": 0.00119994000299985,
+        "macro_mean": 0.32179456289363984,
+        "sign_flip_p": 0.0007499625018749063
+      },
+      "spearman_faithful_total_vs_DMS": {
+        "assay_bootstrap_ci95": [
+          0.17060806568481773,
+          0.2917715462442617
+        ],
+        "bh_q": 0.00047997600119994,
+        "macro_mean": 0.23688196849334928,
+        "sign_flip_p": 0.0002999850007499625
+      },
+      "spearman_faithful_total_vs_RITA_fitness": {
+        "assay_bootstrap_ci95": [
+          0.471004006034501,
+          0.6609927804050707
+        ],
+        "bh_q": 0.00039998000099995,
+        "macro_mean": 0.5731342723996677,
+        "sign_flip_p": 0.000199990000499975
+      },
+      "spearman_normalized_state_mse_vs_DMS": {
+        "assay_bootstrap_ci95": [
+          0.03152437369289028,
+          0.17955068791279963
+        ],
+        "bh_q": 0.018913340047283348,
+        "macro_mean": 0.11042692846007192,
+        "sign_flip_p": 0.01654917254137293
+      },
+      "spearman_normalized_state_mse_vs_RITA_fitness": {
+        "assay_bootstrap_ci95": [
+          -0.0035101494203224797,
+          0.3199473938987418
+        ],
+        "bh_q": 0.08039598020098995,
+        "macro_mean": 0.1690464110319973,
+        "sign_flip_p": 0.07034648267586621
+      },
+      "spearman_raw_mse_vs_DMS": {
+        "assay_bootstrap_ci95": [
+          0.14236881418922206,
+          0.26065596668573415
+        ],
+        "bh_q": 0.00047997600119994,
+        "macro_mean": 0.20662700021361236,
+        "sign_flip_p": 0.0002999850007499625
+      },
+      "spearman_raw_mse_vs_RITA_fitness": {
+        "assay_bootstrap_ci95": [
+          0.43823182220868323,
+          0.6268709676120318
+        ],
+        "bh_q": 0.00039998000099995,
+        "macro_mean": 0.5409873930271841,
+        "sign_flip_p": 0.000199990000499975
+      },
+      "spearman_raw_smooth_l1_vs_DMS": {
+        "assay_bootstrap_ci95": [
+          0.14086772476093742,
+          0.2586943466336556
+        ],
+        "bh_q": 0.00047997600119994,
+        "macro_mean": 0.2046995699636587,
+        "sign_flip_p": 0.0002999850007499625
+      },
+      "spearman_raw_smooth_l1_vs_RITA_fitness": {
+        "assay_bootstrap_ci95": [
+          0.4316149822387943,
+          0.6205652229821055
+        ],
+        "bh_q": 0.00039998000099995,
+        "macro_mean": 0.5345746048945281,
+        "sign_flip_p": 0.000199990000499975
+      },
+      "spearman_transition_relative_mse_vs_DMS": {
+        "assay_bootstrap_ci95": [
+          -0.033431407267917365,
+          0.12492582133769459
+        ],
+        "bh_q": 0.3992300384980751,
+        "macro_mean": 0.039203217284780066,
+        "sign_flip_p": 0.3992300384980751
+      },
+      "spearman_transition_relative_mse_vs_RITA_fitness": {
+        "assay_bootstrap_ci95": [
+          -0.03447619226849333,
+          0.282357377476055
+        ],
+        "bh_q": 0.20053997300134993,
+        "macro_mean": 0.11572234434389997,
+        "sign_flip_p": 0.20053997300134993
+      }
+    },
+    "statistical_unit": "assay (within-assay Spearman, macro-averaged)",
+    "variants": 3485
+  },
+  "uniref": {
+    "correlations": {
+      "centered_cosine_error_vs_native_correct_probability": {
+        "bh_q": 0.0005711429999286071,
+        "ci95": [
+          -0.28829806338315095,
+          -0.10406883228793205
+        ],
+        "permutation_p": 0.0004997501249375312,
+        "spearman": -0.19594126503833534
+      },
+      "centered_cosine_error_vs_native_ntp_loss": {
+        "bh_q": 0.0005711429999286071,
+        "ci95": [
+          0.13122658351308686,
+          0.3191858785456507
+        ],
+        "permutation_p": 0.0004997501249375312,
+        "spearman": 0.22789511720852257
+      },
+      "decoder_js_vs_native_correct_probability": {
+        "bh_q": 0.0005711429999286071,
+        "ci95": [
+          0.86258133123892,
+          0.9163552235786642
+        ],
+        "permutation_p": 0.0004997501249375312,
+        "spearman": 0.8920796195933369
+      },
+      "decoder_js_vs_native_ntp_loss": {
+        "bh_q": 0.0005711429999286071,
+        "ci95": [
+          -0.858842576602686,
+          -0.7815142898319464
+        ],
+        "permutation_p": 0.0004997501249375312,
+        "spearman": -0.82332000147947
+      },
+      "decoder_transition_relative_js_vs_native_correct_probability": {
+        "bh_q": 0.0005711429999286071,
+        "ci95": [
+          0.45264078680727116,
+          0.5923659730391828
+        ],
+        "permutation_p": 0.0004997501249375312,
+        "spearman": 0.5277500377140192
+      },
+      "decoder_transition_relative_js_vs_native_ntp_loss": {
+        "bh_q": 0.0005711429999286071,
+        "ci95": [
+          -0.5350471198936243,
+          -0.3847000106302139
+        ],
+        "permutation_p": 0.0004997501249375312,
+        "spearman": -0.46393947554448456
+      },
+      "faithful_total_vs_native_correct_probability": {
+        "bh_q": 0.0005711429999286071,
+        "ci95": [
+          0.8529607787399622,
+          0.9109859223957241
+        ],
+        "permutation_p": 0.0004997501249375312,
+        "spearman": 0.8850275135718523
+      },
+      "faithful_total_vs_native_ntp_loss": {
+        "bh_q": 0.0005711429999286071,
+        "ci95": [
+          -0.8535637037893152,
+          -0.7710938206448915
+        ],
+        "permutation_p": 0.0004997501249375312,
+        "spearman": -0.8161472729335524
+      },
+      "normalized_state_mse_vs_native_correct_probability": {
+        "bh_q": 0.0005711429999286071,
+        "ci95": [
+          -0.37658979635545375,
+          -0.20282085509944422
+        ],
+        "permutation_p": 0.0004997501249375312,
+        "spearman": -0.2907410108687024
+      },
+      "normalized_state_mse_vs_native_ntp_loss": {
+        "bh_q": 0.0005711429999286071,
+        "ci95": [
+          0.23254047906867148,
+          0.40505331160995894
+        ],
+        "permutation_p": 0.0004997501249375312,
+        "spearman": 0.3210517577642049
+      },
+      "raw_mse_vs_native_correct_probability": {
+        "bh_q": 0.0005711429999286071,
+        "ci95": [
+          0.7945638308834398,
+          0.8706752400292129
+        ],
+        "permutation_p": 0.0004997501249375312,
+        "spearman": 0.8355594994237964
+      },
+      "raw_mse_vs_native_ntp_loss": {
+        "bh_q": 0.0005711429999286071,
+        "ci95": [
+          -0.8253611029269649,
+          -0.7308548453444581
+        ],
+        "permutation_p": 0.0004997501249375312,
+        "spearman": -0.7818928655880666
+      },
+      "raw_smooth_l1_vs_native_correct_probability": {
+        "bh_q": 0.0005711429999286071,
+        "ci95": [
+          0.7954600236350877,
+          0.871927500185038
+        ],
+        "permutation_p": 0.0004997501249375312,
+        "spearman": 0.8370298266983673
+      },
+      "raw_smooth_l1_vs_native_ntp_loss": {
+        "bh_q": 0.0005711429999286071,
+        "ci95": [
+          -0.8270586895761205,
+          -0.7333435497031943
+        ],
+        "permutation_p": 0.0004997501249375312,
+        "spearman": -0.7840827721944406
+      },
+      "transition_relative_mse_vs_native_correct_probability": {
+        "bh_q": 0.04397801099450275,
+        "ci95": [
+          -0.17915893867754595,
+          -0.0010786082779873506
+        ],
+        "permutation_p": 0.04397801099450275,
+        "spearman": -0.09027686869329131
+      },
+      "transition_relative_mse_vs_native_ntp_loss": {
+        "bh_q": 0.04597701149425287,
+        "ci95": [
+          0.0002441506638071983,
+          0.17655015688958564
+        ],
+        "permutation_p": 0.04597701149425287,
+        "spearman": 0.09002689643335507
+      }
+    },
+    "proteins": 487,
+    "statistical_unit": "homology cluster"
+  }
+}

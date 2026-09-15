@@ -1,0 +1,71 @@
+{
+  "alpha": 1.0,
+  "base_full_final": {
+    "centered_cosine": 0.6937339305877686,
+    "decoder_js": 0.05131436884403229,
+    "decoder_kl_teacher_student": 0.254912793636322,
+    "decoder_top1_agreement": 0.48776522929500343,
+    "normalized_mse": 0.5204352736473083,
+    "r2": 0.47956472635269165
+  },
+  "conditioning": "all 1024 standardized coordinates of final h_t; no final-state PCA",
+  "counts": {
+    "test": 11688,
+    "train": 49008,
+    "validation": 11304
+  },
+  "decoder_js_improvement": -0.00010546296834945679,
+  "decoder_kl_improvement": -0.0005248486995697021,
+  "decoder_top1_change": 0.0030800821355235763,
+  "extra_representation": "layer 12 (zero-based layer 11), train PCA256, then ridge-residualized on full final h_t",
+  "homology_separated": true,
+  "incremental_full_state_r2": 0.011678338050842285,
+  "paired_plus_unique_minus_base": {
+    "decoder_js": {
+      "ci95": [
+        -3.1908385986423877e-06,
+        0.0002157289938428228
+      ],
+      "mean_difference": 0.00010511004787566975,
+      "sign_flip_p": 0.05339733013349333
+    },
+    "decoder_kl": {
+      "ci95": [
+        -0.00021778173345129615,
+        0.0012443688720629505
+      ],
+      "mean_difference": 0.0005233883282836573,
+      "sign_flip_p": 0.15564221788910554
+    },
+    "mse": {
+      "ci95": [
+        -0.0018991107876611866,
+        -0.0016083272584568357
+      ],
+      "mean_difference": -0.0017501359648328014,
+      "sign_flip_p": 4.999750012499375e-05
+    },
+    "paired_proteins": 487,
+    "top1": {
+      "ci95": [
+        -0.001971879286694101,
+        0.007973251028806584
+      ],
+      "mean_difference": 0.0030435528120713313,
+      "sign_flip_p": 0.22993850307484626
+    }
+  },
+  "plus_unique_layer12": {
+    "centered_cosine": 0.7026681303977966,
+    "decoder_js": 0.051419831812381744,
+    "decoder_kl_teacher_student": 0.2554376423358917,
+    "decoder_top1_agreement": 0.490845311430527,
+    "normalized_mse": 0.5087569355964661,
+    "r2": 0.49124306440353394
+  },
+  "residual_error_reduction": 0.022439559042565116,
+  "residualizer_alpha": 1.0,
+  "target": "full 1024-dimensional final h[t+1]",
+  "unique_layer_feature_rms_test": 0.7464173507190063,
+  "unique_layer_feature_rms_train": 0.7013651333744614
+}

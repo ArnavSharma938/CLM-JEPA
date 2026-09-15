@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import numpy as np
-from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.linear_model import Ridge
 
 
 def fit_conditional_residual_ridge(
@@ -13,6 +13,7 @@ def fit_conditional_residual_ridge(
     test_extra: np.ndarray,
     *,
     alpha: float = 1.0,
+    residualizer_alpha: float = 1e-4,
 ):
     """Predict target from final features, then only from extra-feature residuals.
 
@@ -24,7 +25,7 @@ def fit_conditional_residual_ridge(
     base = Ridge(alpha=alpha, fit_intercept=True).fit(train_final, train_target)
     base_train = base.predict(train_final)
     base_test = base.predict(test_final)
-    residualizer = LinearRegression(fit_intercept=True).fit(train_final, train_extra)
+    residualizer = Ridge(alpha=residualizer_alpha, fit_intercept=True).fit(train_final, train_extra)
     unique_train = train_extra - residualizer.predict(train_final)
     unique_test = test_extra - residualizer.predict(test_final)
     correction = Ridge(alpha=alpha, fit_intercept=True).fit(

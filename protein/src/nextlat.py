@@ -118,6 +118,13 @@ def transition_diagnostics(
     faithful_kl = F.kl_div(
         predicted_log, teacher_log, log_target=True, reduction="none"
     ).sum(-1)
+    current_log = F.log_softmax(F.linear(current, head), dim=-1)
+    current_probability = current_log.exp()
+    transition_midpoint = .5 * (teacher_probability + current_probability)
+    decoder_transition_js = .5 * (
+        (teacher_probability * (teacher_log - torch.log(transition_midpoint + 1e-30))).sum(-1)
+        + (current_probability * (current_log - torch.log(transition_midpoint + 1e-30))).sum(-1)
+    )
     return {
         "raw_smooth_l1": raw_smooth_l1,
         "raw_mse": raw_mse,
@@ -125,5 +132,7 @@ def transition_diagnostics(
         "transition_relative_mse": transition_relative_mse,
         "centered_cosine_error": 1.0 - centered_cosine,
         "decoder_js": decoder_js,
+        "decoder_transition_js": decoder_transition_js,
+        "decoder_transition_relative_js": decoder_js / (decoder_transition_js + eps),
         "faithful_total": raw_smooth_l1 + faithful_kl,
     }

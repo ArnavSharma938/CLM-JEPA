@@ -5,6 +5,20 @@ import numpy as np
 from scipy.stats import spearmanr
 
 
+def benjamini_hochberg(pvalues):
+    """Benjamini-Hochberg adjusted q-values in original input order."""
+    values = np.asarray(pvalues, dtype=float)
+    order = np.argsort(values)
+    adjusted = np.empty(len(values), dtype=float)
+    running = 1.0
+    for rank_index in range(len(values) - 1, -1, -1):
+        original_index = order[rank_index]
+        rank = rank_index + 1
+        running = min(running, float(values[original_index]) * len(values) / rank)
+        adjusted[original_index] = running
+    return adjusted.tolist()
+
+
 def cluster_bootstrap_mean(values, clusters, *, draws: int = 5000, seed: int = 0):
     values = np.asarray(values, dtype=float)
     clusters = np.asarray(clusters)

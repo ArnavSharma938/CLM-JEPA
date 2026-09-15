@@ -1,10 +1,13 @@
 {
   "amendment_output_sha256": {
-    "runs/amendment/decision.json": "9b3add4c74cfd1c10e0ebc379e74078b0590844bdd47dc268f020486a99eaf81",
+    "runs/amendment/decision.json": "6a75d1b2827306203149f386b552417c8e253f271e8fe64cb6876ce3c652dddb",
+    "runs/amendment/faithful_dense_predictor.json": "d7d00562853eeea8729b44e6f4bc83888898a58b2bf7f9b2405dd3e0c88db855",
     "runs/amendment/faithful_full_predictor.json": "537ac88390bcd3f55bdd9d680ae7c8042d6d4e51e081feb80bb2f7dc742a2442",
+    "runs/amendment/full_conditioning_residual.json": "c7b205758dc8b52ddfe76aab9f1396620d66588198d4e82b436d0f7356329569",
     "runs/amendment/full_target_and_residual.json": "2f5783c1d9d9608d28f35086e3818267914f3372d9f48b5ea03c73129bd88312",
     "runs/amendment/nextlat_full_gradient.json": "69e436248c6d2265f91e377e3cefd138fd9ef2e9a829a21db3196f8863d50797",
-    "runs/amendment/scale_free_coupling.json": "e7201326ce52223c73d052cbbafe02065018520749f2f77afb0a588035ce70af"
+    "runs/amendment/scale_free_coupling.json": "e7201326ce52223c73d052cbbafe02065018520749f2f77afb0a588035ce70af",
+    "runs/amendment/scale_free_coupling_dense.json": "708a66cab2c5093a70ed3e6416e8992dfa4d2892e2e9535eb462985efba7110f"
   },
   "cache_performance": {
     "reverse_128": {
@@ -54,7 +57,7 @@
   "platform": "Windows-10-10.0.26200-SP0",
   "python": "3.10.20 (main, Jul 18 2026, 17:08:20) [MSC v.1944 64 bit (AMD64)]",
   "random_seed": 20260914,
-  "repository_commit_at_start": "5c5277063468eccf17e9e2e098b6b149befbbbc7",
+  "repository_commit_at_start": "a07dd23713c1c381e3b9ed1926f0a558257b7a82",
   "repository_worktree_note": "protein diagnostic is an uncommitted addition at report generation",
   "tokenizer_revision": "d819157a3a96d278500232b2cbb2a02d9646bcf6"
 }

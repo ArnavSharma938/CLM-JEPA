@@ -70,6 +70,19 @@ predictor rather than replacing the SmoothL1-only checkpoint.
 LoRA-subspace audit was not run. Full-backbone gradient values must not be used
 as LoRA coefficients.
 
+The final uncertainty controls add full-state conditioning, dense cached-state
+fitting, stable relative decoder JS, and artifact-level BH q-values:
+
+```powershell
+.venv/Scripts/python.exe protein/scripts/run_full_conditioning_residual.py protein/runs/uniref/cache protein/data/diagnostic_pool.jsonl protein/runs/amendment/full_conditioning_residual.json
+.venv/Scripts/python.exe protein/scripts/run_gradient_audit.py warmup-dense protein/runs/uniref/cache protein/data/diagnostic_pool.jsonl protein/runs/amendment/faithful_dense_predictor.pt --cap-per-protein 64 --max-epochs 12
+.venv/Scripts/python.exe protein/scripts/run_scale_free_coupling.py protein/runs/uniref/cache protein/data/diagnostic_pool.jsonl protein/data/proteingym_panel.json protein/data/proteingym_panel protein/runs/proteingym/scores.json protein/runs/generation/native_replay.json protein/runs/amendment/faithful_dense_predictor.pt protein/runs/amendment/scale_free_coupling_dense.json --batch-size 8
+```
+
+The relative decoder diagnostic is aggregated as a ratio of sequence-level JS
+sums, rather than a mean of per-transition ratios, to avoid instability when an
+individual native decoder transition is nearly zero.
+
 Bulk archives, hidden-state shards, and the warmed predictor checkpoint are
 ignored. Their source hashes, compact manifests, output JSON, and all IDs needed
 to reconstruct them are retained.

@@ -77,4 +77,7 @@ def test_transition_diagnostics_are_zero_for_exact_prediction():
     current, future = torch.randn(4, 8), torch.randn(4, 8)
     values = transition_diagnostics(current, future, future.clone(), torch.randn(8), torch.randn(6, 8))
     for name, value in values.items():
+        if name == "decoder_transition_js":
+            assert torch.all(value >= 0)
+            continue
         torch.testing.assert_close(value, torch.zeros_like(value), atol=2e-6, rtol=0, msg=name)

@@ -124,21 +124,24 @@ def warmup(cache_dir: Path, split_manifest: Path, output: Path, seed: int = 2026
     }, indent=2) + "\n", encoding="utf-8")
 
 
-def warmup_full(cache_dir: Path, split_manifest: Path, output: Path, seed: int = 20260914):
+def warmup_full(
+    cache_dir: Path, split_manifest: Path, output: Path, seed: int = 20260914,
+    cap_per_protein: int = 12, max_epochs: int = 12,
+):
     """Fit a fresh predictor under the complete faithful latent + KL objective."""
     torch.manual_seed(seed); device = "cuda" if torch.cuda.is_available() else "cpu"
     loaded = load_rita(device=device); model = loaded.model
     embedding = model.get_input_embeddings().weight.detach(); head = model.get_output_embeddings().weight.detach()
     assignments = {row["id"]: row["split"] for row in read_jsonl(split_manifest)}
-    train = predictor_examples(cache_dir, "train", assignments)
-    validation = predictor_examples(cache_dir, "validation", assignments)
+    train = predictor_examples(cache_dir, "train", assignments, cap_per_protein)
+    validation = predictor_examples(cache_dir, "validation", assignments, cap_per_protein)
     predictor = FaithfulNextLatPredictor(1024).to(device)
     initial = evaluate_predictor_full(predictor, validation, embedding, head, device)
     optimizer = torch.optim.AdamW(predictor.parameters(), lr=2e-4, weight_decay=1e-4)
     generator = torch.Generator().manual_seed(seed)
     best, best_state, history, patience = initial["total"], copy.deepcopy(predictor.state_dict()), [], 0
     rita_versions = [parameter._version for parameter in model.parameters()]
-    for epoch in range(12):
+    for epoch in range(max_epochs):
         predictor.train(); order = torch.randperm(len(train), generator=generator).tolist()
         epoch_cells = {"latent": [], "kl": [], "total": []}
         for start in range(0, len(order), 128):
@@ -172,6 +175,7 @@ def warmup_full(cache_dir: Path, split_manifest: Path, output: Path, seed: int =
                 "objective": "smooth_l1_plus_teacher_to_student_kl"}, output)
     output.with_suffix(".json").write_text(json.dumps({
         "train_examples": len(train), "validation_examples": len(validation),
+        "maximum_transitions_per_protein": cap_per_protein,
         "initial_validation": initial, "final_validation": final,
         "relative_total_improvement": (initial["total"] - final["total"]) / initial["total"],
         "history": history, "selected_epoch": int(np.argmin([row["validation_total"] for row in history])) + 1,
@@ -299,12 +303,16 @@ def main():
     parser = argparse.ArgumentParser(); sub = parser.add_subparsers(dest="stage", required=True)
     p = sub.add_parser("warmup"); p.add_argument("cache_dir", type=Path); p.add_argument("split_manifest", type=Path); p.add_argument("output", type=Path)
     p = sub.add_parser("warmup-full"); p.add_argument("cache_dir", type=Path); p.add_argument("split_manifest", type=Path); p.add_argument("output", type=Path)
+    p = sub.add_parser("warmup-dense"); p.add_argument("cache_dir", type=Path); p.add_argument("split_manifest", type=Path); p.add_argument("output", type=Path)
+    p.add_argument("--cap-per-protein", type=int, default=64); p.add_argument("--max-epochs", type=int, default=12)
     p = sub.add_parser("audit"); p.add_argument("manifest", type=Path); p.add_argument("output", type=Path)
     p.add_argument("--objective", choices=("stp", "nextlat"), required=True)
     p.add_argument("--predictor", type=Path); p.add_argument("--batches", type=int, default=6)
     args = parser.parse_args()
     if args.stage == "warmup": warmup(args.cache_dir, args.split_manifest, args.output)
     elif args.stage == "warmup-full": warmup_full(args.cache_dir, args.split_manifest, args.output)
+    elif args.stage == "warmup-dense": warmup_full(args.cache_dir, args.split_manifest, args.output,
+        cap_per_protein=args.cap_per_protein, max_epochs=args.max_epochs)
     else:
         if args.objective == "nextlat" and args.predictor is None: raise SystemExit("--predictor required")
         audit(args.manifest, args.output, args.objective, args.predictor, args.batches, 20260914)

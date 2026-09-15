@@ -17,12 +17,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from src.modeling import load_rita
 from src.nextlat import FaithfulNextLatPredictor, transition_diagnostics
-from src.stats import cluster_spearman, sign_flip_pvalue
+from src.stats import benjamini_hochberg, cluster_spearman, sign_flip_pvalue
 from src.tokenization import collate_encoded, encode_canonical
 
 METRICS = (
     "raw_smooth_l1", "raw_mse", "normalized_state_mse",
     "transition_relative_mse", "centered_cosine_error", "decoder_js",
+    "decoder_transition_relative_js",
     "faithful_total",
 )
 
@@ -52,7 +53,15 @@ def train_future_mean(cache_dir: Path, assignments: dict[str, str]):
 def mean_diagnostics(current, future, next_ids, predictor, embedding, head, center):
     prediction = predictor(current, embedding[next_ids].float())
     values = transition_diagnostics(current, future, prediction, center, head)
-    return {name: float(values[name].mean().cpu()) for name in METRICS}
+    result = {name: float(values[name].mean().cpu()) for name in METRICS
+              if name != "decoder_transition_relative_js"}
+    # Ratio of summed residual JS to summed native decoder-transition JS is
+    # stable when an individual adjacent transition has nearly zero magnitude.
+    result["decoder_transition_relative_js"] = float(
+        values["decoder_js"].sum().cpu() /
+        (values["decoder_transition_js"].sum().cpu() + 1e-8)
+    )
+    return result
 
 
 @torch.inference_mode()
@@ -80,6 +89,10 @@ def uniref_correlations(records):
             rho, ci, p = cluster_spearman([row[metric] for row in records],
                 [row[outcome] for row in records], clusters, draws=2000, seed=20260914)
             result[f"{metric}_vs_{outcome}"] = {"spearman": rho, "ci95": ci, "permutation_p": p}
+    for outcome in ("native_ntp_loss", "native_correct_probability"):
+        keys = [f"{metric}_vs_{outcome}" for metric in METRICS]
+        for key, qvalue in zip(keys, benjamini_hochberg([result[key]["permutation_p"] for key in keys])):
+            result[key]["bh_q"] = qvalue
     return result
 
 
@@ -133,6 +146,10 @@ def proteingym_analysis(panel_path, data_dir, original_scores, model, tokenizer,
         values = [row[key] for row in assay_stats]; mean, ci = assay_bootstrap(values)
         macro[key] = {"macro_mean": mean, "assay_bootstrap_ci95": ci,
                       "sign_flip_p": sign_flip_pvalue(values, seed=20260914)}
+    for outcome in ("DMS", "RITA_fitness"):
+        keys = [f"spearman_{metric}_vs_{outcome}" for metric in METRICS]
+        for key, qvalue in zip(keys, benjamini_hochberg([macro[key]["sign_flip_p"] for key in keys])):
+            macro[key]["bh_q"] = qvalue
     return {"assays": assay_stats, "macro": macro, "variants": record_count,
             "statistical_unit": "assay (within-assay Spearman, macro-averaged)"}
 
@@ -155,8 +172,11 @@ def generation_analysis(replay_path, model, tokenizer, predictor, center, batch_
     diagnostics = sequence_metrics(model, tokenizer, predictor, [row["sequence"] for row in old], center, batch_size)
     records = [{"id": row["id"], "quality_composite": row["quality_composite"],
                 "quality_group": row["quality_group"], **diagnostics[index]} for index, row in enumerate(old)]
+    comparisons = {metric: independent_group_difference(records, metric) for metric in METRICS}
+    for metric, qvalue in zip(METRICS, benjamini_hochberg([comparisons[name]["permutation_p"] for name in METRICS])):
+        comparisons[metric]["bh_q"] = qvalue
     return {"sequences": len(records), "quality_groups_reused_unchanged": True,
-            "comparisons": {metric: independent_group_difference(records, metric) for metric in METRICS}}
+            "comparisons": comparisons}
 
 
 def main():
@@ -175,7 +195,7 @@ def main():
     embedding = model.get_input_embeddings().weight; head = model.get_output_embeddings().weight
     uni = uniref_records(args.cache_dir, assignments, predictor, embedding, head, center, device)
     output = {"amendment": True, "predictor_objective": payload.get("objective"),
-        "metric_orientation": "all seven metrics are errors: lower means more predictable",
+        "metric_orientation": "all metrics are errors: lower means more predictable",
         "normalization_reference": {"future_state_mean": "all transitions in homology-separated UniRef train proteins",
                                     "transitions": center_count},
         "uniref": {"proteins": len(uni), "statistical_unit": "homology cluster",

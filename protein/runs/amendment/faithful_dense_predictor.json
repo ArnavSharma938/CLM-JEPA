@@ -1,0 +1,131 @@
+{
+  "train_examples": 130682,
+  "validation_examples": 30143,
+  "maximum_transitions_per_protein": 64,
+  "initial_validation": {
+    "latent": 0.1755758102592577,
+    "kl": 0.5761901665132529,
+    "total": 0.7517659783193287
+  },
+  "final_validation": {
+    "latent": 0.04705308335105168,
+    "kl": 0.19852866625550913,
+    "total": 0.24558174962312151
+  },
+  "relative_total_improvement": 0.6733268640699175,
+  "history": [
+    {
+      "epoch": 1,
+      "train_latent": 0.06062779794506415,
+      "train_kl": 0.21587646988299872,
+      "train_total": 0.2765042678353602,
+      "validation_latent": 0.05959791537283174,
+      "validation_kl": 0.2154194791299664,
+      "validation_total": 0.2750173947242665
+    },
+    {
+      "epoch": 2,
+      "train_latent": 0.05502701605087279,
+      "train_kl": 0.1262496415303106,
+      "train_total": 0.18127665726374925,
+      "validation_latent": 0.05796840560571503,
+      "validation_kl": 0.21685525095819125,
+      "validation_total": 0.2748236565802198
+    },
+    {
+      "epoch": 3,
+      "train_latent": 0.05240499506632448,
+      "train_kl": 0.06770428164655035,
+      "train_total": 0.12010927669098281,
+      "validation_latent": 0.0559372418453092,
+      "validation_kl": 0.20968354340156128,
+      "validation_total": 0.2656207846150925
+    },
+    {
+      "epoch": 4,
+      "train_latent": 0.05019206219114706,
+      "train_kl": 0.05004574935682607,
+      "train_total": 0.10023781151513511,
+      "validation_latent": 0.054204231265216625,
+      "validation_kl": 0.2082837379983642,
+      "validation_total": 0.2624879706868115
+    },
+    {
+      "epoch": 5,
+      "train_latent": 0.048472266947078894,
+      "train_kl": 0.04609859313717318,
+      "train_total": 0.09457085998573803,
+      "validation_latent": 0.05286114242960928,
+      "validation_kl": 0.20813830536030284,
+      "validation_total": 0.2609994477592625
+    },
+    {
+      "epoch": 6,
+      "train_latent": 0.04717360136266086,
+      "train_kl": 0.044009062608413904,
+      "train_total": 0.0911826638178307,
+      "validation_latent": 0.05178659734442631,
+      "validation_kl": 0.2067947164862568,
+      "validation_total": 0.25858131351331104
+    },
+    {
+      "epoch": 7,
+      "train_latent": 0.045851716124083224,
+      "train_kl": 0.039499435603005645,
+      "train_total": 0.08535115165776418,
+      "validation_latent": 0.050657273203236375,
+      "validation_kl": 0.2030655575728751,
+      "validation_total": 0.253722831883206
+    },
+    {
+      "epoch": 8,
+      "train_latent": 0.04467550412652308,
+      "train_kl": 0.03491287100895962,
+      "train_total": 0.07958837523034808,
+      "validation_latent": 0.04971304737387144,
+      "validation_kl": 0.20357672513782973,
+      "validation_total": 0.2532897724966235
+    },
+    {
+      "epoch": 9,
+      "train_latent": 0.0436254638985135,
+      "train_kl": 0.032395006567020844,
+      "train_total": 0.07602047052938604,
+      "validation_latent": 0.048872640718717476,
+      "validation_kl": 0.20023368378647036,
+      "validation_total": 0.249106325232128
+    },
+    {
+      "epoch": 10,
+      "train_latent": 0.04282541286992046,
+      "train_kl": 0.03155365407131211,
+      "train_total": 0.07437906691934056,
+      "validation_latent": 0.04854598339447214,
+      "validation_kl": 0.2075526951988165,
+      "validation_total": 0.2560986777242231
+    },
+    {
+      "epoch": 11,
+      "train_latent": 0.04214964172165261,
+      "train_kl": 0.030509112805974587,
+      "train_total": 0.07265875452032985,
+      "validation_latent": 0.04771957070117876,
+      "validation_kl": 0.20131191804975906,
+      "validation_total": 0.24903148875019632
+    },
+    {
+      "epoch": 12,
+      "train_latent": 0.04130451705755555,
+      "train_kl": 0.02739249726248418,
+      "train_total": 0.06869701448605413,
+      "validation_latent": 0.04705308335105168,
+      "validation_kl": 0.19852866625550913,
+      "validation_total": 0.24558174962312151
+    }
+  ],
+  "selected_epoch": 12,
+  "backbone_frozen": true,
+  "rita_parameter_versions_unchanged": true,
+  "optimizer_parameter_scope": "FaithfulNextLatPredictor only",
+  "objective": "unit SmoothL1 + unit teacher-to-student KL"
+}

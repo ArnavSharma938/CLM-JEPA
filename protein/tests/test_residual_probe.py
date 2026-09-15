@@ -13,6 +13,6 @@ def test_duplicated_final_features_have_no_conditional_information():
         train_final, train_final.copy(), train_target,
         test_final, test_final.copy(), alpha=1.0,
     )
-    assert result["unique_train_rms"] < 1e-10
-    assert result["unique_test_rms"] < 1e-10
+    assert result["unique_train_rms"] < 1e-5
+    assert result["unique_test_rms"] < 1e-5
     np.testing.assert_allclose(result["combined_test"], result["base_test"], atol=1e-6, rtol=0)

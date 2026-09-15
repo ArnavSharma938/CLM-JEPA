@@ -39,6 +39,7 @@ def state_metrics(true, predicted, train_mean, head):
 
 def protein_metrics(rows, true, predicted, head):
     true_p = softmax(true @ head.T, -1); predicted_p = softmax(predicted @ head.T, -1)
+    kl = np.sum(true_p * np.log((true_p + 1e-30) / (predicted_p + 1e-30)), -1)
     midpoint = .5 * (true_p + predicted_p)
     js = .5 * np.sum(true_p * np.log((true_p + 1e-30) / (midpoint + 1e-30)), -1)
     js += .5 * np.sum(predicted_p * np.log((predicted_p + 1e-30) / (midpoint + 1e-30)), -1)
@@ -46,8 +47,10 @@ def protein_metrics(rows, true, predicted, head):
     agreement = ((true @ head.T).argmax(-1) == (predicted @ head.T).argmax(-1)).astype(float)
     cells = {}
     for index, row in enumerate(rows):
-        cell = cells.setdefault(row["id"], {"cluster_id": row["cluster"], "mse": [], "decoder_js": [], "top1": []})
-        cell["mse"].append(mse[index]); cell["decoder_js"].append(js[index]); cell["top1"].append(agreement[index])
+        cell = cells.setdefault(row["id"], {"cluster_id": row["cluster"], "mse": [], "decoder_js": [],
+                                                 "decoder_kl": [], "top1": []})
+        cell["mse"].append(mse[index]); cell["decoder_js"].append(js[index])
+        cell["decoder_kl"].append(kl[index]); cell["top1"].append(agreement[index])
     return {identifier: {"cluster_id": cell["cluster_id"],
         **{name: float(np.mean(value)) for name, value in cell.items() if name != "cluster_id"}}
         for identifier, cell in cells.items()}
@@ -55,7 +58,7 @@ def protein_metrics(rows, true, predicted, head):
 
 def paired_difference(left, right):
     common = sorted(left.keys() & right.keys()); result = {"paired_proteins": len(common)}
-    for metric in ("mse", "decoder_js", "top1"):
+    for metric in ("mse", "decoder_js", "decoder_kl", "top1"):
         differences = [left[key][metric] - right[key][metric] for key in common]
         clusters = [left[key]["cluster_id"] for key in common]
         mean, ci = cluster_bootstrap_mean(differences, clusters, seed=20260914)
