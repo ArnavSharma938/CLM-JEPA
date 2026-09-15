@@ -14,7 +14,7 @@ The amended NextLat evidence is more precise. Direct full-1024D ridge prediction
 
 Raw latent error was indeed scale-confounded. A denser predictor fitted on 130,682 train transitions reduces held-out latent loss, but does not change the faithful ordering. Most importantly, decoder error normalized by the actual decoder transition remains adverse on UniRef (`rho=+.528` versus correct probability, CI `[+.453,+.592]`) and ProteinGym (`macro rho=+.170` versus DMS, `[+.108,+.230]`); it is null in the generation replay. Absolute decoder JS and the complete faithful loss remain adverse on all three views. Thus “latent predictability is intrinsically adverse” remains withdrawn, but predictor underfitting and decoder-transition magnitude do not explain the behavior mismatch of the implemented faithful objective.
 
-A dense predictor optimized under unit `SmoothL1 + KL` lowers validation latent/KL/total from `.1756/.5762/.7518` to `.04705/.1985/.2456` with RITA frozen. Relative to the earlier 24,504-example full-objective predictor, latent validation error improves by 8.37% and total by 0.98%, while KL worsens slightly; a large train/validation gap remains. The prior corrected full-backbone gradient remains a native-objective diagnostic, not a LoRA result. Because the dense and decoder-transition-normalized behavioral checks strongly fail before adapter instantiation, the conditional rank-32 LoRA-subspace audit was not triggered and no LoRA training was run.
+A dense predictor optimized under unit `SmoothL1 + KL` lowers validation latent/KL/total from `.1756/.5762/.7518` to `.04705/.1985/.2456` with RITA frozen. Relative to the earlier 24,504-example full-objective predictor, latent validation error improves by 8.37% and total by 0.98%, while KL worsens slightly; a large train/validation gap remains. The subsequent explicitly requested rank-32 LoRA audit finds ratio `.500` (CI `[.439,.564]`), cosine `+.213` (`[+.096,+.329]`), and retention `1.080` (`[1.021,1.138]`). Thus ChemFM-style adapter-gradient domination does not reappear, but no LoRA training was run and gradient compatibility does not repair adverse behavior coupling.
 
 ## 1. Scope and preregistered exclusions
 
@@ -256,9 +256,26 @@ Across 12 fixed 128-residue test prefixes, this fully warmed loss requests a ful
 
 The corrected audit does not qualitatively rescue or worsen gradient safety: ChemFM's systematically opposing `2.8--4.6x` LoRA-subspace failure is absent, and protein full-backbone gradients are moderate and on average aligned. A value near `.0822` would produce 3% pressure **only in this measured full-backbone space**. It is not a rank-32 LoRA coefficient: projection into a particular adapter parameterization can materially change norms and angles.
 
-**NextLat decision: no rank-32 LoRA experiment.** The realized residue is useful but modest; the full-conditioning test finds only a small latent residual and no decoder-functional layer-12 gain; dense fitting leaves the absolute faithful ordering intact; and decoder-transition-relative error remains significantly adverse on both UniRef Native behavior and ProteinGym. Under the conditional rule, these pre-adapter checks strongly reject behavioral alignment, so the LoRA-subspace audit was not triggered. No adapter was instantiated or trained, and no full-backbone number is used to recommend or calibrate LoRA training. A pressure-controlled objective would be a distinct method, but gradient pressure is not the present blocker and the corrected evidence gives no positive reason to train it.
+The full-backbone audit is insufficient to characterize a future adapter parameterization. The explicitly requested gradient-only rank-32 audit below therefore supersedes it for adapter-space safety. No full-backbone number is used to recommend or calibrate LoRA training.
 
-### 6.6 Direct answers after amendment
+### 6.6 Rank-32 LoRA-subspace gradient audit
+
+The live pinned architecture was inspected before adapter construction. RITA-M uses separate linear attention projections named `transformer.layers.{0..23}.self_attention.{query,key,value,proj}`; these are not Llama module names. Standard attention-only PEFT LoRA 0.13.2 was attached to exactly those 96 modules with rank 32, alpha 32 (scale 1), zero dropout, no trained bias, and verified standard no-op initialization (nonzero A, zero B). This creates 6,291,456 trainable values in 192 LoRA tensors. At this initialization A gradients are zero and B gradients define the initial trainable tangent. Automated assertions verified that every matched module is under `self_attention`, every non-LoRA RITA parameter and every dense-predictor parameter is frozen, no optimizer exists, and all parameter version counters are unchanged after the audit.
+
+The sample is 32 deterministic length-stratified test proteins from 32 distinct homology clusters, each using the same 128-residue prefix. Protein-cluster bootstrap results are:
+
+| LoRA parameter space | auxiliary/NTP norm ratio (95% CI) | cosine (95% CI) | NTP-direction retention (95% CI) | negative cosine |
+|---|---:|---:|---:|---:|
+| all attention adapters | .500 `[.439,.564]` | +.213 `[+.096,+.329]` | 1.080 `[1.021,1.138]` | 8/32 = 25.0% `[9.4%,40.6%]` |
+| early layers 0--7 | .363 `[.316,.410]` | -.045 `[-.149,+.062]` | .985 `[.946,1.022]` | 18/32 = 56.3% `[40.6%,71.9%]` |
+| middle layers 8--15 | .400 `[.357,.443]` | -.072 `[-.142,+.002]` | .960 `[.930,.990]` | 19/32 = 59.4% `[43.8%,75.0%]` |
+| late layers 16--23 | .661 `[.565,.761]` | +.385 `[+.246,+.517]` | 1.184 `[1.088,1.270]` | 6/32 = 18.8% `[6.3%,34.4%]` |
+
+Relative to the existing RITA full-backbone audit, projection into the actual adapters raises the mean ratio from about `.365` to `.500` and cosine from `+.165` to `+.213`. It exposes mild localized opposition in early/middle layers, especially middle retention below one, but the global update remains aligned and moderate. This is qualitatively unlike ChemFM's trained-LoRA ratios of roughly `2.8--4.6x` with substantial middle/late conflict. **ChemFM-style gradient conflict does not reappear in RITA's initialized rank-32 attention-LoRA subspace.**
+
+This answers gradient compatibility only. It does not overturn the behavioral stop: dense faithful and decoder-transition-relative quantities still provide no evidence that reducing the objective improves Native NTP, ProteinGym fitness, or generation quality. Therefore no Native or NextLat adapter training is recommended or performed.
+
+### 6.7 Direct answers after amendment
 
 1. **Does the actual amino acid add information?** Yes: C exceeds both A and C-shuffle on full-state and decoder metrics.
 2. **How large is the gain?** C-minus-A is `+.0169 R2`, `-.000318` decoder JS, and `+.00647` decoder top-1; C-minus-shuffle is `+.02385 R2` and `+.00776` top-1.
@@ -267,15 +284,15 @@ The corrected audit does not qualitatively rescue or worsen gradient safety: Che
 5. **Does generation agree?** Absolute decoder JS and full loss remain adverse, but relative JS is null (`p=.979`). The report does not claim three-way replication for the normalized decoder metric.
 6. **Does an earlier layer add residual information beyond full final `h_t`?** A small amount: `+.01168 R2` and 2.24% residual reduction. Decoder JS/KL do not improve, and top-1 change is unresolved.
 7. **Did dense fitting change the result?** No materially. It uses 130,682 transitions and improves validation latent loss 8.37% over the sparse full-objective checkpoint, but faithful behavior correlations remain adverse.
-8. **What is the gradient evidence?** The existing corrected full-backbone ratio `.3649`, cosine `+.1646`, and retention `1.0429` are moderate, but are not LoRA-subspace estimates.
-9. **Is the ChemFM mechanism reproduced?** Partially: faithful-objective behavioral decoupling survives state-, predictor-, and decoder-transition-scale controls; severe full-backbone gradient domination does not.
-10. **Is rank-32 LoRA justified?** No. UniRef and ProteinGym reject relative decoder alignment and all three views reject the absolute faithful objective. The conditional LoRA-subspace audit and training were therefore omitted.
+8. **What is the gradient evidence?** The actual attention-LoRA ratio is `.500`, cosine `+.213`, and retention `1.080`; global geometry is compatible, with mild early/middle conflict.
+9. **Is the ChemFM mechanism reproduced?** Partially: faithful-objective behavioral decoupling survives state-, predictor-, and decoder-transition-scale controls; ChemFM-style LoRA gradient domination is absent.
+10. **Is rank-32 LoRA training justified?** No. The gradient audit removes incompatibility as a blocker but cannot supply the missing positive behavioral rationale.
 
 ## 7. Cross-modality conclusion
 
 ### Evidence for chemistry/SMILES specificity
 
-- RITA's correctly warmed faithful NextLat gradient is `.365x` NTP in the full backbone, with positive mean cosine, whereas ChemFM reported `2.8--4.6x` in its trained LoRA subspace. The spaces are not quantitatively interchangeable, but severe protein full-backbone domination is not observed; domination is therefore not established as modality-general.
+- RITA's faithful NextLat gradient is `.365x` NTP in the full backbone and `.500x` in the initialized rank-32 attention-LoRA subspace, both with positive global mean cosine. ChemFM reported `2.8--4.6x` in its trained LoRA subspace. Severe gradient domination is therefore not modality-general.
 - The realized next amino acid adds a small reproducible amount of future-state information after conditioning on `h_t`; it is not a useless input.
 - Several state-scale-free latent metrics reverse the originally adverse raw-error ordering on UniRef. Raw hidden-state magnitude, rather than latent predictability alone, explains an important part of the first protein result.
 
@@ -291,7 +308,7 @@ The corrected audit does not qualitatively rescue or worsen gradient safety: Che
 ### Ambiguous results
 
 - RITA local tangent persistence has a modest favorable association with native token probability, and secondary-structure transitions are slightly more curved. These show sensitivity to protein organization but do not establish causality or a trainable STP mechanism.
-- The corrected NextLat gradient audit uses 12 representative prefixes; its interval is still not a high-powered map of every batch, and it is explicitly not a LoRA-subspace audit.
+- The full-backbone audit uses 12 prefixes and the LoRA-subspace audit uses 32 distinct test clusters. The adapter result is an initialization-time tangent-space diagnostic, not evidence about gradients after LoRA parameters have trained away from their standard no-op initialization.
 - Scale-free results are not uniform: normalized/cosine latent predictability is favorable on UniRef, while decoder-transition-relative JS is adverse on UniRef and ProteinGym but null in generated sequences. The adverse conclusion applies to the decoder-functional/full faithful objective, not to an intrinsic universal value of latent predictability.
 - Dense fitting reduced validation latent error but left a large train/validation gap. An even denser or differently regularized predictor might generalize better, although the requested 100k-plus control did not alter the ordering.
 - TAPE and ProteinGym targets cannot be certified absent from RITA's original UniRef100 pretraining. This limits absolute generalization claims, though it does not invalidate within-checkpoint surrogate comparisons.
@@ -299,17 +316,17 @@ The corrected audit does not qualitatively rescue or worsen gradient safety: Che
 
 ## 8. Recommendation
 
-Do not launch Native/STP/NextLat rank-32 LoRA training from this result. STP remains closed. Faithful NextLat learns the intended transition mapping and has moderate, broadly compatible full-backbone gradients, but its decoder-functional/full objective remains behaviorally reversed after dense fitting, and decoder-transition normalization preserves that reversal on UniRef and ProteinGym. Full-state conditioning weakens the distributed-state objection to a small latent-only effect, so that is no longer the decisive blocker. The ChemFM mechanism is therefore **partially reproduced**: behavioral surrogate decoupling survives, while severe gradient domination does not appear in the measured protein full-backbone space. The chemistry-specific contribution is raw latent-scale confounding; the modality-general concern is optimizing a tractable transition surrogate without evidence that it selects useful behavior.
+Do not launch Native/STP/NextLat rank-32 LoRA training from this result. STP remains closed. Faithful NextLat learns the intended transition mapping and its actual initialized attention-LoRA gradients are globally moderate and compatible, but its decoder-functional/full objective remains behaviorally reversed after dense fitting, and decoder-transition normalization preserves that reversal on UniRef and ProteinGym. Full-state conditioning weakens the distributed-state objection to a small latent-only effect, so neither state sufficiency nor gradient conflict is now the decisive blocker. The ChemFM mechanism is therefore **partially reproduced**: behavioral surrogate decoupling survives, while severe LoRA gradient domination does not. The chemistry-specific contribution is raw latent-scale confounding; the modality-general concern is optimizing a tractable transition surrogate without evidence that it selects useful behavior.
 
-**Final question:** after controlling for full final-state conditioning, a 130k-transition predictor fit, and actual decoder-transition magnitude, there is still strong associational evidence that faithful NextLat is behaviorally misaligned enough to stop before training. The actual LoRA subspace was not measured—not because it was assumed safe or unsafe, but because the user-specified conditional gate failed before adapter instantiation. Consequently this report makes no claim about rank-32 gradient geometry; it concludes that such geometry cannot supply the missing positive behavioral rationale.
+**Final question:** after controlling for full final-state conditioning, a 130k-transition predictor fit, actual decoder-transition magnitude, and the actual initialized rank-32 attention-LoRA trainable subspace, there is still strong associational evidence that faithful NextLat is behaviorally misaligned enough to stop before training. The LoRA audit is reassuring on optimization safety: it does not reproduce ChemFM-style domination. That removes a negative argument but cannot supply the missing positive relationship between the objective and useful protein-model behavior.
 
-Reconsider training only after a new frozen diagnostic identifies a transition or geometry quantity with preregistered positive coupling to Native NTP, ProteinGym fitness, and free-running quality. If that occurs, first instantiate the exact RITA rank-32 target modules without optimization and audit gradients in that adapter subspace. Only then should a pilot remain one A6000, LoRA rank 32, matched Native and auxiliary arms, a fixed modest residue budget, predictor learning unscaled, and adapter pressure measured before training. That is a gate for future work, not a recommendation to run it now.
+Reconsider training only after a new frozen diagnostic identifies a transition quantity with preregistered positive coupling to Native NTP, ProteinGym fitness, and free-running quality. The rank-32 attention target set and initialization-time gradient geometry are now established; any future pilot should still remain one A6000, matched Native and auxiliary arms, a fixed modest residue budget, predictor learning unscaled, and adapter pressure monitored during training. That is a gate for future work, not a recommendation to run it now.
 
 ## 9. Reproducibility and artifact map
 
 Random seed is `20260914`. Local extraction used PyTorch 2.3.0+cu121, Transformers 4.45.2, NumPy 1.26.4, SciPy 1.14.1, scikit-learn 1.5.2, and pandas 2.2.3 on an NVIDIA RTX 4050 Laptop GPU. Frozen-state caching required 84.5 s for UniRef, 23.5 s for TAPE, and 6.3 s for reversals, with measured peak allocation about 747 MB. A requested Thunder A6000 was unavailable; an L40/6-vCPU/100-GB instance was used only to run MMseqs2, then deleted. No diagnostic inference result came from a substituted model.
 
-The amendment reused the same local environment, checkpoint, cached states, manifests, ProteinGym variants and fitness scores, and generated sequences/quality labels. It did not regenerate or relabel data. The new predictor checkpoint is separate from the old one. The LoRA gate decision is machine-readable and records that neither adapter instantiation nor optimization occurred.
+The amendment reused the same local environment, checkpoint, cached states, manifests, ProteinGym variants and fitness scores, and generated sequences/quality labels. It did not regenerate or relabel data. The new predictor checkpoint is separate from the old one. The LoRA decision is machine-readable and records that adapters were instantiated for gradients only, with neither optimization nor parameter updates.
 
 The latest coupling artifact computes and stores Benjamini-Hochberg q-values directly for the UniRef outcome families, ProteinGym DMS/RITA-fitness families, and generation family. The report no longer relies on prose-only multiplicity calculations.
 
@@ -330,6 +347,7 @@ Primary artifacts:
 - `protein/runs/amendment/full_conditioning_residual.json`: layer-12 residual test conditioned on all 1,024 final-state coordinates.
 - `protein/runs/amendment/faithful_dense_predictor.pt` and `.json`: 130,682-transition faithful predictor and frozen-backbone audit trail.
 - `protein/runs/amendment/scale_free_coupling_dense.json`: dense-predictor coupling, stable decoder-transition-relative JS, and saved BH q-values.
+- `protein/runs/amendment/nextlat_lora_r32_gradient.json`: 32-cluster rank-32 attention-LoRA gradient geometry and no-update audit.
 - `protein/runs/amendment/decision.json`: prespecified LoRA-gate outcome and explicit non-execution record.
 - `protein/runs/summary.json`: compact estimates and output hashes.
 - `protein/runs/reproducibility.json`: package, hardware, command, revision, manifest, and archive provenance.

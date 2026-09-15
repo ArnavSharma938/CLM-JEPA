@@ -1,8 +1,9 @@
 {
-  "decision_rule_applied": "skip LoRA-subspace audit when dense-predictor and decoder-transition-relative checks still strongly reject behavioral alignment",
-  "lora_subspace_audit_performed": false,
-  "lora_subspace_not_required_because_pre_adapter_gate_failed": true,
+  "decision_rule_applied": "perform the user-requested gradient-only LoRA audit without treating gradient compatibility as sufficient evidence for training",
+  "lora_subspace_audit_performed": true,
+  "lora_subspace_not_required_because_pre_adapter_gate_failed": false,
   "lora_training_performed": false,
-  "reason": "After fitting on 130682 train transitions, decoder-transition-relative JS remains significantly adverse on UniRef Native behavior and the locked ProteinGym panel, while absolute decoder JS and the complete faithful loss remain adverse on all three behavior views. The full-final-state residual test finds a small latent gain but no decoder JS/KL gain. These pre-LoRA checks strongly reject behavioral alignment under the conditional rule.",
-  "full_backbone_gradients_used_to_set_lora_coefficient": false
+  "reason": "The explicitly requested rank-32 audit finds moderate, globally aligned LoRA-subspace gradients rather than ChemFM-style domination. This removes gradient incompatibility as a stopping argument but does not change the adverse dense-predictor behavior coupling, so training remains unjustified.",
+  "full_backbone_gradients_used_to_set_lora_coefficient": false,
+  "lora_parameters_updated": false
 }

@@ -83,6 +83,12 @@ The relative decoder diagnostic is aggregated as a ratio of sequence-level JS
 sums, rather than a mean of per-transition ratios, to avoid instability when an
 individual native decoder transition is nearly zero.
 
+The gradient-only rank-32 attention-LoRA audit (no optimizer or updates) is:
+
+```powershell
+.venv/Scripts/python.exe protein/scripts/run_lora_gradient_audit.py protein/data/diagnostic_pool.jsonl protein/runs/amendment/faithful_dense_predictor.pt protein/runs/amendment/nextlat_lora_r32_gradient.json --proteins 32
+```
+
 Bulk archives, hidden-state shards, and the warmed predictor checkpoint are
 ignored. Their source hashes, compact manifests, output JSON, and all IDs needed
 to reconstruct them are retained.
