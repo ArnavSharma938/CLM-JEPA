@@ -1,0 +1,11 @@
+nohup: ignoring input
+Traceback (most recent call last):
+  File "/workspace/CLM-JEPA/protein/scripts/orchestrate_causal_pilot.py", line 114, in <module>
+    main()
+  File "/workspace/CLM-JEPA/protein/scripts/orchestrate_causal_pilot.py", line 75, in main
+    stage(
+  File "/workspace/CLM-JEPA/protein/scripts/orchestrate_causal_pilot.py", line 49, in stage
+    run_stage(name, command, expected, logs, ledger)
+  File "/workspace/CLM-JEPA/protein/scripts/orchestrate_causal_pilot.py", line 32, in run_stage
+    raise RuntimeError(record)
+RuntimeError: {'stage': 'primary_r0_native_25', 'status': 'failed', 'returncode': 1, 'elapsed_seconds': 12.005861282348633, 'output': '/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_025_primary.json', 'log': '/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r0_native_25.log', 'command': ['/workspace/CLM-JEPA/.venv/bin/python', '/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py', 'primary', '/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/native/checkpoint_025/adapter', '/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_025_primary.json', '--data', '/workspace/CLM-JEPA/protein/data/causal_pilot']}

@@ -1,0 +1,28 @@
+{
+  "audited_before_training": true,
+  "audited_date": "2026-09-15",
+  "repository": "https://github.com/JaydenTeoh/NextLat",
+  "commit": "3770be6009cea2b3c455a9ce7f2ca88b504bb955",
+  "model_source": "models/model_nextlat.py",
+  "model_source_sha256": "bd324f6c8ac21b7a475adfcf8ccde7724cfe5af607ff1f281cbd7c3fd877c096",
+  "training_config": "config/fineweb/1B/nextlat_finewebedu_1b_100b_horizon1.yaml",
+  "training_config_sha256": "66ba75e5ff0dded80eb7952db17a2f8175e2f3e19fb13e4278c9a496f98e4653",
+  "verified_mechanics": {
+    "input_order": "[next_token_embedding, current_hidden_state]",
+    "normalization": "biasless LayerNorm over concatenated input",
+    "predictor": "Linear-GELU-Linear-GELU-Linear, biasless, width rounded to a multiple of 128 with projection factor 1.6",
+    "prediction": "current_hidden_state + predictor_mlp_output",
+    "latent_loss": "element-mean SmoothL1 against detached future hidden state",
+    "kl": "teacher future-state distribution to predicted-state student distribution",
+    "head_path": "detached LM-head weight for auxiliary teacher and student",
+    "coefficients": {"smooth_l1": 1.0, "kl": 1.0, "cross_entropy": 0.0},
+    "predictor_per_replicate": "fresh and jointly optimized"
+  },
+  "rita_adaptations": {
+    "horizon": 1,
+    "mask": "canonical residue-to-residue transitions only; PAD and EOS excluded",
+    "backbone_training": "rank-32 attention LoRA instead of the upstream full GPT backbone",
+    "autograd_optimization": "one graph-preserving RITA forward instead of detached leaves plus manual VJP",
+    "autograd_parity_certificate": "parity_local.json"
+  }
+}

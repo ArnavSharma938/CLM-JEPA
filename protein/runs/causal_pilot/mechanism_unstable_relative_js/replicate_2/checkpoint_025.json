@@ -1,0 +1,1811 @@
+{
+  "fraction": 25,
+  "gradient_summary": {
+    "early": {
+      "cosine": {
+        "mean": -0.06144507639076155,
+        "protein_bootstrap_ci95": [
+          -0.17215102434132834,
+          0.049180079322491216
+        ]
+      },
+      "negative_cosine_fraction": {
+        "mean": 0.59375,
+        "protein_bootstrap_ci95": [
+          0.40625,
+          0.75
+        ]
+      },
+      "norm_ratio": {
+        "mean": 0.2643846707173359,
+        "protein_bootstrap_ci95": [
+          0.17532264171363526,
+          0.3880689634264133
+        ]
+      },
+      "ntp_direction_retention": {
+        "mean": 0.9912094162314297,
+        "protein_bootstrap_ci95": [
+          0.938585458696919,
+          1.0504161679666977
+        ]
+      }
+    },
+    "global": {
+      "cosine": {
+        "mean": -0.09961848247734259,
+        "protein_bootstrap_ci95": [
+          -0.19827530240312136,
+          0.001779737367962634
+        ]
+      },
+      "negative_cosine_fraction": {
+        "mean": 0.59375,
+        "protein_bootstrap_ci95": [
+          0.4375,
+          0.75
+        ]
+      },
+      "norm_ratio": {
+        "mean": 0.36069896202239726,
+        "protein_bootstrap_ci95": [
+          0.2311883569700277,
+          0.5722727601754506
+        ]
+      },
+      "ntp_direction_retention": {
+        "mean": 1.0002857611604994,
+        "protein_bootstrap_ci95": [
+          0.9195900844252282,
+          1.1198163838586561
+        ]
+      }
+    },
+    "late": {
+      "cosine": {
+        "mean": -0.1295040630469469,
+        "protein_bootstrap_ci95": [
+          -0.2420233018648802,
+          -0.016349011265155318
+        ]
+      },
+      "negative_cosine_fraction": {
+        "mean": 0.65625,
+        "protein_bootstrap_ci95": [
+          0.5,
+          0.8125
+        ]
+      },
+      "norm_ratio": {
+        "mean": 0.4695338989606551,
+        "protein_bootstrap_ci95": [
+          0.2875943947294158,
+          0.7621670994257991
+        ]
+      },
+      "ntp_direction_retention": {
+        "mean": 1.0184007803614836,
+        "protein_bootstrap_ci95": [
+          0.8916839000256069,
+          1.219199784467554
+        ]
+      }
+    },
+    "middle": {
+      "cosine": {
+        "mean": -0.09059405154961145,
+        "protein_bootstrap_ci95": [
+          -0.18437246699917592,
+          0.0006484598252624973
+        ]
+      },
+      "negative_cosine_fraction": {
+        "mean": 0.625,
+        "protein_bootstrap_ci95": [
+          0.46875,
+          0.78125
+        ]
+      },
+      "norm_ratio": {
+        "mean": 0.33703069665212854,
+        "protein_bootstrap_ci95": [
+          0.22183149508099234,
+          0.4964650766624598
+        ]
+      },
+      "ntp_direction_retention": {
+        "mean": 1.0020951958333721,
+        "protein_bootstrap_ci95": [
+          0.9340994819771271,
+          1.0979113829721414
+        ]
+      }
+    }
+  },
+  "initial_lora_sha256": "10d72778583c42aa4148b051122780422c71ce5854f0eb0ed0a7f43a39e15c11",
+  "parameters_updated_during_audit": false,
+  "proteins": 32,
+  "records": [
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.5196078419685364,
+          "decoder_transition_relative_js": 1.1506450176239014,
+          "drift": {
+            "early": 0.48442667722702026,
+            "late": 1.7637104988098145,
+            "middle": 0.8820196390151978
+          },
+          "faithful_total": 0.07884347438812256,
+          "kl": 0.037373702973127365,
+          "smooth_l1": 0.041469771414995193
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.5490196347236633,
+          "decoder_transition_relative_js": 0.9664244055747986,
+          "drift": {
+            "early": 0.6050015687942505,
+            "late": 3.9674997329711914,
+            "middle": 0.9360615611076355
+          },
+          "faithful_total": 0.041931044310331345,
+          "kl": 0.024101346731185913,
+          "smooth_l1": 0.01782969757914543
+        }
+      },
+      "cluster_id": "UniRef50_A0ABD5LXN5",
+      "id": "UniRef50_A0ABD5LXN5",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.016851281795625173,
+          "norm_ratio": 0.16462469341413222,
+          "ntp_direction_retention": 0.9972258629007601
+        },
+        "global": {
+          "cosine": -0.12601452968458002,
+          "norm_ratio": 0.20315718855779696,
+          "ntp_direction_retention": 0.9743992424318477
+        },
+        "late": {
+          "cosine": -0.260434566999384,
+          "norm_ratio": 0.25388761797157283,
+          "ntp_direction_retention": 0.9338788881470684
+        },
+        "middle": {
+          "cosine": 0.047589018664250735,
+          "norm_ratio": 0.1554134880587259,
+          "ntp_direction_retention": 1.007395975383903
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.5975609421730042,
+          "decoder_transition_relative_js": 1.0367614030838013,
+          "drift": {
+            "early": 0.311231791973114,
+            "late": 1.1839125156402588,
+            "middle": 0.45190203189849854
+          },
+          "faithful_total": 0.07945162057876587,
+          "kl": 0.04520716145634651,
+          "smooth_l1": 0.034244462847709656
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.7317072749137878,
+          "decoder_transition_relative_js": 1.0154399871826172,
+          "drift": {
+            "early": 0.4170226454734802,
+            "late": 3.966785430908203,
+            "middle": 0.5443623661994934
+          },
+          "faithful_total": 0.03474188596010208,
+          "kl": 0.02151831053197384,
+          "smooth_l1": 0.013223574496805668
+        }
+      },
+      "cluster_id": "UniRef50_A0AAV7SXN2",
+      "id": "UniRef50_A0AAV7SXN2",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.3546314902108704,
+          "norm_ratio": 0.1465893462830073,
+          "ntp_direction_retention": 0.9480148016786198
+        },
+        "global": {
+          "cosine": -0.5066884000179033,
+          "norm_ratio": 0.19623437090426377,
+          "ntp_direction_retention": 0.9005703205779988
+        },
+        "late": {
+          "cosine": -0.6162945299960952,
+          "norm_ratio": 0.2568537842895368,
+          "ntp_direction_retention": 0.8417024177335615
+        },
+        "middle": {
+          "cosine": -0.599208252887945,
+          "norm_ratio": 0.16745227555943268,
+          "ntp_direction_retention": 0.8996612145199216
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.7058823704719543,
+          "decoder_transition_relative_js": 1.2197880744934082,
+          "drift": {
+            "early": 0.32879918813705444,
+            "late": 1.5360053777694702,
+            "middle": 0.4649130702018738
+          },
+          "faithful_total": 0.053960081189870834,
+          "kl": 0.026876678690314293,
+          "smooth_l1": 0.02708340249955654
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.7352941632270813,
+          "decoder_transition_relative_js": 1.1195261478424072,
+          "drift": {
+            "early": 0.5255730748176575,
+            "late": 4.0280070304870605,
+            "middle": 0.6439183354377747
+          },
+          "faithful_total": 0.02772679552435875,
+          "kl": 0.015311382710933685,
+          "smooth_l1": 0.01241541188210249
+        }
+      },
+      "cluster_id": "UniRef50_UPI0036DC897C",
+      "id": "UniRef50_UPI0036DC897C",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": 0.4240797670026333,
+          "norm_ratio": 0.08106330057141657,
+          "ntp_direction_retention": 1.0343773056187908
+        },
+        "global": {
+          "cosine": 0.15776649249283092,
+          "norm_ratio": 0.10456910564995651,
+          "ntp_direction_retention": 1.0164975010215058
+        },
+        "late": {
+          "cosine": -0.19065862231085115,
+          "norm_ratio": 0.14673600808274972,
+          "ntp_direction_retention": 0.972023514855549
+        },
+        "middle": {
+          "cosine": 0.17081295420307538,
+          "norm_ratio": 0.10585585279690848,
+          "ntp_direction_retention": 1.0180815509359258
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.4683544337749481,
+          "decoder_transition_relative_js": 3.253739356994629,
+          "drift": {
+            "early": 0.3981950581073761,
+            "late": 1.448609471321106,
+            "middle": 0.5120365619659424
+          },
+          "faithful_total": 0.3041808307170868,
+          "kl": 0.27171316742897034,
+          "smooth_l1": 0.032467663288116455
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.4556962251663208,
+          "decoder_transition_relative_js": 3.3523857593536377,
+          "drift": {
+            "early": 0.26615187525749207,
+            "late": 4.217235565185547,
+            "middle": 0.4351654350757599
+          },
+          "faithful_total": 0.21837164461612701,
+          "kl": 0.20165087282657623,
+          "smooth_l1": 0.016720769926905632
+        }
+      },
+      "cluster_id": "UniRef50_UPI00195FB4AC",
+      "id": "UniRef50_UPI00195FB4AC",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.7600884391434332,
+          "norm_ratio": 0.6488869128179875,
+          "ntp_direction_retention": 0.5067885592555748
+        },
+        "global": {
+          "cosine": -0.6402247495530073,
+          "norm_ratio": 0.6160674646739658,
+          "ntp_direction_retention": 0.6055783617213542
+        },
+        "late": {
+          "cosine": -0.4559399675439391,
+          "norm_ratio": 0.5575295994296635,
+          "ntp_direction_retention": 0.7457999725312539
+        },
+        "middle": {
+          "cosine": -0.6061735421444613,
+          "norm_ratio": 0.6674397698096888,
+          "ntp_direction_retention": 0.5954156705663769
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.574999988079071,
+          "decoder_transition_relative_js": 1.0785890817642212,
+          "drift": {
+            "early": 0.2536293864250183,
+            "late": 1.8811864852905273,
+            "middle": 0.4619937539100647
+          },
+          "faithful_total": 0.13182660937309265,
+          "kl": 0.08616270124912262,
+          "smooth_l1": 0.04566390812397003
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.640625,
+          "decoder_transition_relative_js": 0.8685383200645447,
+          "drift": {
+            "early": 0.35936543345451355,
+            "late": 4.589578151702881,
+            "middle": 0.5499876141548157
+          },
+          "faithful_total": 0.08876847475767136,
+          "kl": 0.06724146753549576,
+          "smooth_l1": 0.02152700535953045
+        }
+      },
+      "cluster_id": "UniRef50_UPI00315C6798",
+      "id": "UniRef50_UPI00315C6798",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": 0.11043718489769387,
+          "norm_ratio": 0.1722842797366222,
+          "ntp_direction_retention": 1.0190265908562393
+        },
+        "global": {
+          "cosine": 0.009157853710445613,
+          "norm_ratio": 0.21196933983765204,
+          "ntp_direction_retention": 1.001941184205333
+        },
+        "late": {
+          "cosine": -0.08535491251427932,
+          "norm_ratio": 0.23171383256281514,
+          "ntp_direction_retention": 0.9802220860932526
+        },
+        "middle": {
+          "cosine": 0.1680769375490506,
+          "norm_ratio": 0.21934539935534164,
+          "ntp_direction_retention": 1.0368669029891193
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.6513761281967163,
+          "decoder_transition_relative_js": 0.9779456853866577,
+          "drift": {
+            "early": 0.4377697706222534,
+            "late": 1.7754381895065308,
+            "middle": 0.7511036396026611
+          },
+          "faithful_total": 0.04273310676217079,
+          "kl": 0.01718597486615181,
+          "smooth_l1": 0.025547131896018982
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.7431192398071289,
+          "decoder_transition_relative_js": 0.8222076296806335,
+          "drift": {
+            "early": 0.5940879583358765,
+            "late": 4.459202289581299,
+            "middle": 0.8723640441894531
+          },
+          "faithful_total": 0.02104083262383938,
+          "kl": 0.00969000905752182,
+          "smooth_l1": 0.011350823566317558
+        }
+      },
+      "cluster_id": "UniRef50_UPI002263B921",
+      "id": "UniRef50_UPI002263B921",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.08501672327610456,
+          "norm_ratio": 0.2035227342249794,
+          "ntp_direction_retention": 0.9826971640239988
+        },
+        "global": {
+          "cosine": -0.05775349723210035,
+          "norm_ratio": 0.2277521644201288,
+          "ntp_direction_retention": 0.9868465160025572
+        },
+        "late": {
+          "cosine": -0.039191446807282926,
+          "norm_ratio": 0.28521593715829113,
+          "ntp_direction_retention": 0.9888219747702715
+        },
+        "middle": {
+          "cosine": -0.021651647059661237,
+          "norm_ratio": 0.17678102770443072,
+          "ntp_direction_retention": 0.9961723995812994
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.5384615659713745,
+          "decoder_transition_relative_js": 0.7603626847267151,
+          "drift": {
+            "early": 0.32582807540893555,
+            "late": 1.6174789667129517,
+            "middle": 0.5187827944755554
+          },
+          "faithful_total": 0.029782723635435104,
+          "kl": 0.010939174331724644,
+          "smooth_l1": 0.018843548372387886
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.5615384578704834,
+          "decoder_transition_relative_js": 0.6910738348960876,
+          "drift": {
+            "early": 0.5179900527000427,
+            "late": 4.435356140136719,
+            "middle": 0.6576134562492371
+          },
+          "faithful_total": 0.016006676480174065,
+          "kl": 0.007474041078239679,
+          "smooth_l1": 0.008532635867595673
+        }
+      },
+      "cluster_id": "UniRef50_A0AAE0TH90",
+      "id": "UniRef50_A0AAE0TH90",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.23547868485010676,
+          "norm_ratio": 0.15113753024005663,
+          "ntp_direction_retention": 0.9644103331475782
+        },
+        "global": {
+          "cosine": -0.14118528448799889,
+          "norm_ratio": 0.15644379248871645,
+          "ntp_direction_retention": 0.9779124386510991
+        },
+        "late": {
+          "cosine": -0.08274451243324991,
+          "norm_ratio": 0.16125898636630515,
+          "ntp_direction_retention": 0.98665670379764
+        },
+        "middle": {
+          "cosine": -0.06530640532560465,
+          "norm_ratio": 0.15208250245602206,
+          "ntp_direction_retention": 0.9900680384516748
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.3746223449707031,
+          "decoder_transition_relative_js": 1.2620866298675537,
+          "drift": {
+            "early": 0.22097229957580566,
+            "late": 1.1795010566711426,
+            "middle": 0.33749136328697205
+          },
+          "faithful_total": 0.20329126715660095,
+          "kl": 0.1566154956817627,
+          "smooth_l1": 0.046675778925418854
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.44712990522384644,
+          "decoder_transition_relative_js": 1.0858968496322632,
+          "drift": {
+            "early": 0.3285864591598511,
+            "late": 3.6326608657836914,
+            "middle": 0.44795095920562744
+          },
+          "faithful_total": 0.1309308111667633,
+          "kl": 0.10932855308055878,
+          "smooth_l1": 0.02160225249826908
+        }
+      },
+      "cluster_id": "UniRef50_A0A7M5XIG7",
+      "id": "UniRef50_A0A7M5XIG7",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": 0.11800088856821488,
+          "norm_ratio": 0.27340125363981316,
+          "ntp_direction_retention": 1.0322615908651618
+        },
+        "global": {
+          "cosine": 0.03824740341866005,
+          "norm_ratio": 0.49803214141891056,
+          "ntp_direction_retention": 1.0190484362283083
+        },
+        "late": {
+          "cosine": -0.060611090624230896,
+          "norm_ratio": 0.8265573411810989,
+          "ntp_direction_retention": 0.9499014580875491
+        },
+        "middle": {
+          "cosine": 0.1454267898548016,
+          "norm_ratio": 0.5053362303816648,
+          "ntp_direction_retention": 1.073489425781732
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.6071428656578064,
+          "decoder_transition_relative_js": 1.6787704229354858,
+          "drift": {
+            "early": 0.51903235912323,
+            "late": 1.8663665056228638,
+            "middle": 0.6488276720046997
+          },
+          "faithful_total": 0.03658121079206467,
+          "kl": 0.016045304015278816,
+          "smooth_l1": 0.02053590677678585
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.5625,
+          "decoder_transition_relative_js": 1.8470358848571777,
+          "drift": {
+            "early": 0.7439461946487427,
+            "late": 4.561229228973389,
+            "middle": 0.8462805151939392
+          },
+          "faithful_total": 0.019768405705690384,
+          "kl": 0.010206480510532856,
+          "smooth_l1": 0.009561924263834953
+        }
+      },
+      "cluster_id": "UniRef50_UPI003A8CF258",
+      "id": "UniRef50_UPI003A8CF258",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": 0.08926480387091058,
+          "norm_ratio": 0.15962032088219705,
+          "ntp_direction_retention": 1.0142484766373612
+        },
+        "global": {
+          "cosine": 0.23689146351489918,
+          "norm_ratio": 0.17916076560814395,
+          "ntp_direction_retention": 1.042441655969363
+        },
+        "late": {
+          "cosine": 0.3167808371002568,
+          "norm_ratio": 0.19425844167272557,
+          "ntp_direction_retention": 1.0615373517668774
+        },
+        "middle": {
+          "cosine": 0.2598241310887266,
+          "norm_ratio": 0.16174481071265998,
+          "ntp_direction_retention": 1.0420252049015275
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.6242235898971558,
+          "decoder_transition_relative_js": 5.7582221031188965,
+          "drift": {
+            "early": 0.2168334424495697,
+            "late": 1.4281753301620483,
+            "middle": 0.3286251127719879
+          },
+          "faithful_total": 0.17750680446624756,
+          "kl": 0.13368958234786987,
+          "smooth_l1": 0.04381721839308739
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.695652186870575,
+          "decoder_transition_relative_js": 5.186034202575684,
+          "drift": {
+            "early": 0.3213304579257965,
+            "late": 3.577585220336914,
+            "middle": 0.4420454800128937
+          },
+          "faithful_total": 0.12277527153491974,
+          "kl": 0.10082752257585526,
+          "smooth_l1": 0.021947745233774185
+        }
+      },
+      "cluster_id": "UniRef50_UPI0014701441",
+      "id": "UniRef50_UPI0014701441",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.20419505907942107,
+          "norm_ratio": 0.1932338495882821,
+          "ntp_direction_retention": 0.9605426026671767
+        },
+        "global": {
+          "cosine": -0.3603375718331917,
+          "norm_ratio": 0.2575100304593397,
+          "ntp_direction_retention": 0.9072094609015903
+        },
+        "late": {
+          "cosine": -0.49441363016179124,
+          "norm_ratio": 0.31439402442320663,
+          "ntp_direction_retention": 0.8445593090837475
+        },
+        "middle": {
+          "cosine": -0.2416609284292178,
+          "norm_ratio": 0.22227288991272612,
+          "ntp_direction_retention": 0.9462853270590453
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.6335078477859497,
+          "decoder_transition_relative_js": 1.2099360227584839,
+          "drift": {
+            "early": 0.4340283274650574,
+            "late": 1.7303906679153442,
+            "middle": 0.6011167764663696
+          },
+          "faithful_total": 0.08048438280820847,
+          "kl": 0.04306335374712944,
+          "smooth_l1": 0.037421029061079025
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.6858638525009155,
+          "decoder_transition_relative_js": 1.2711275815963745,
+          "drift": {
+            "early": 0.6158662438392639,
+            "late": 4.185530662536621,
+            "middle": 0.7784985899925232
+          },
+          "faithful_total": 0.04874872416257858,
+          "kl": 0.0314948707818985,
+          "smooth_l1": 0.017253853380680084
+        }
+      },
+      "cluster_id": "UniRef50_A0A1W6N6M4",
+      "id": "UniRef50_A0A1W6N6M4",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": 0.3693200964549803,
+          "norm_ratio": 0.16212561533327144,
+          "ntp_direction_retention": 1.0598762478927068
+        },
+        "global": {
+          "cosine": 0.2504974714014489,
+          "norm_ratio": 0.2321028484556327,
+          "ntp_direction_retention": 1.0581411766432096
+        },
+        "late": {
+          "cosine": 0.22870149922129607,
+          "norm_ratio": 0.28654222528063994,
+          "ntp_direction_retention": 1.0655326365118887
+        },
+        "middle": {
+          "cosine": 0.06806122103751654,
+          "norm_ratio": 0.20732514093670248,
+          "ntp_direction_retention": 1.0141108022439271
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.5875000357627869,
+          "decoder_transition_relative_js": 1.2335275411605835,
+          "drift": {
+            "early": 0.47935739159584045,
+            "late": 1.338110089302063,
+            "middle": 0.6503034830093384
+          },
+          "faithful_total": 0.041654303669929504,
+          "kl": 0.019508177414536476,
+          "smooth_l1": 0.022146126255393028
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.675000011920929,
+          "decoder_transition_relative_js": 1.0941002368927002,
+          "drift": {
+            "early": 0.676671028137207,
+            "late": 4.203375816345215,
+            "middle": 0.8331900835037231
+          },
+          "faithful_total": 0.02394791692495346,
+          "kl": 0.01386919617652893,
+          "smooth_l1": 0.010078719817101955
+        }
+      },
+      "cluster_id": "UniRef50_A0ABD2KY42",
+      "id": "UniRef50_A0ABD2KY42",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.19004418298934103,
+          "norm_ratio": 0.1605228467989136,
+          "ntp_direction_retention": 0.9694935667289774
+        },
+        "global": {
+          "cosine": -0.05224487369915419,
+          "norm_ratio": 0.1628259478463295,
+          "ntp_direction_retention": 0.9914931789198235
+        },
+        "late": {
+          "cosine": 0.028979134129319014,
+          "norm_ratio": 0.1666925871738859,
+          "ntp_direction_retention": 1.0048306068420751
+        },
+        "middle": {
+          "cosine": 0.17325489425248464,
+          "norm_ratio": 0.14802186339241438,
+          "ntp_direction_retention": 1.0256455122891084
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.2694300413131714,
+          "decoder_transition_relative_js": 1.4653390645980835,
+          "drift": {
+            "early": 0.2799713909626007,
+            "late": 1.0223305225372314,
+            "middle": 0.4560506343841553
+          },
+          "faithful_total": 0.8146781921386719,
+          "kl": 0.6899929642677307,
+          "smooth_l1": 0.12468523532152176
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.3316062092781067,
+          "decoder_transition_relative_js": 1.1864572763442993,
+          "drift": {
+            "early": 0.39732295274734497,
+            "late": 1.965572714805603,
+            "middle": 0.5462598204612732
+          },
+          "faithful_total": 0.5840684771537781,
+          "kl": 0.5185601115226746,
+          "smooth_l1": 0.06550835072994232
+        }
+      },
+      "cluster_id": "UniRef50_Q2SK65",
+      "id": "UniRef50_Q2SK65",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": 0.20472222531238976,
+          "norm_ratio": 0.252316641365804,
+          "ntp_direction_retention": 1.0516548243037556
+        },
+        "global": {
+          "cosine": -0.047257091978454104,
+          "norm_ratio": 0.3107965068202244,
+          "ntp_direction_retention": 0.9853126608906144
+        },
+        "late": {
+          "cosine": -0.2699801331728774,
+          "norm_ratio": 0.39094124664730495,
+          "ntp_direction_retention": 0.8944536301673899
+        },
+        "middle": {
+          "cosine": -0.16548883618485985,
+          "norm_ratio": 0.30746171393231686,
+          "ntp_direction_retention": 0.9491185187899386
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.604519784450531,
+          "decoder_transition_relative_js": 2805.4267578125,
+          "drift": {
+            "early": 0.3741445243358612,
+            "late": 2.3918001651763916,
+            "middle": 0.4681857228279114
+          },
+          "faithful_total": 0.0985303744673729,
+          "kl": 0.06646725535392761,
+          "smooth_l1": 0.03206311911344528
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.6638417840003967,
+          "decoder_transition_relative_js": -6713.505859375,
+          "drift": {
+            "early": 0.21733638644218445,
+            "late": 5.387603759765625,
+            "middle": 0.38677871227264404
+          },
+          "faithful_total": 0.05038938298821449,
+          "kl": 0.03768469765782356,
+          "smooth_l1": 0.01270468533039093
+        }
+      },
+      "cluster_id": "UniRef50_X6NBL4",
+      "id": "UniRef50_X6NBL4",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.014034229653819485,
+          "norm_ratio": 0.13112477558954672,
+          "ntp_direction_retention": 0.9981597647860707
+        },
+        "global": {
+          "cosine": -0.17378361783141508,
+          "norm_ratio": 0.2166397503317761,
+          "ntp_direction_retention": 0.9623515604212495
+        },
+        "late": {
+          "cosine": -0.28101184939242896,
+          "norm_ratio": 0.3121203467639029,
+          "ntp_direction_retention": 0.9122904841228694
+        },
+        "middle": {
+          "cosine": -0.25754168681473294,
+          "norm_ratio": 0.17283045414182693,
+          "ntp_direction_retention": 0.9554889533073575
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.5680473446846008,
+          "decoder_transition_relative_js": 1.98773193359375,
+          "drift": {
+            "early": 0.29345080256462097,
+            "late": 1.5496965646743774,
+            "middle": 0.46047860383987427
+          },
+          "faithful_total": 0.13760948181152344,
+          "kl": 0.09789513051509857,
+          "smooth_l1": 0.03971434384584427
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.6153846383094788,
+          "decoder_transition_relative_js": 1.9941574335098267,
+          "drift": {
+            "early": 0.39422592520713806,
+            "late": 3.951807975769043,
+            "middle": 0.5504665970802307
+          },
+          "faithful_total": 0.08176223933696747,
+          "kl": 0.06354469805955887,
+          "smooth_l1": 0.0182175375521183
+        }
+      },
+      "cluster_id": "UniRef50_UPI0013EEE7DE",
+      "id": "UniRef50_UPI0013EEE7DE",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.12412177845597333,
+          "norm_ratio": 0.22891329152903667,
+          "ntp_direction_retention": 0.9715868751432053
+        },
+        "global": {
+          "cosine": -0.21572132513015702,
+          "norm_ratio": 0.2959282847477217,
+          "ntp_direction_retention": 0.936161958270727
+        },
+        "late": {
+          "cosine": -0.3196767932965963,
+          "norm_ratio": 0.36738505422502993,
+          "ntp_direction_retention": 0.8825555239602463
+        },
+        "middle": {
+          "cosine": -0.08601053461085756,
+          "norm_ratio": 0.23518122022046298,
+          "ntp_direction_retention": 0.9797719375184042
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.5350318551063538,
+          "decoder_transition_relative_js": 1.7576855421066284,
+          "drift": {
+            "early": 0.20603950321674347,
+            "late": 1.3217637538909912,
+            "middle": 0.28025829792022705
+          },
+          "faithful_total": 0.06924404203891754,
+          "kl": 0.039152808487415314,
+          "smooth_l1": 0.03009123168885708
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.5796178579330444,
+          "decoder_transition_relative_js": 1.5874605178833008,
+          "drift": {
+            "early": 0.31117767095565796,
+            "late": 3.821154832839966,
+            "middle": 0.4045352041721344
+          },
+          "faithful_total": 0.044344462454319,
+          "kl": 0.030033014714717865,
+          "smooth_l1": 0.01431144867092371
+        }
+      },
+      "cluster_id": "UniRef50_UPI002ED30B1E",
+      "id": "UniRef50_UPI002ED30B1E",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.18430188273568576,
+          "norm_ratio": 0.2055030665248258,
+          "ntp_direction_retention": 0.9621253979315177
+        },
+        "global": {
+          "cosine": -0.24631032525060967,
+          "norm_ratio": 0.26523199001848435,
+          "ntp_direction_retention": 0.9346706222716806
+        },
+        "late": {
+          "cosine": -0.3169160777330112,
+          "norm_ratio": 0.32847690649172706,
+          "ntp_direction_retention": 0.8959003871687687
+        },
+        "middle": {
+          "cosine": -0.1533629566717776,
+          "norm_ratio": 0.1991578963697569,
+          "ntp_direction_retention": 0.9694565561682026
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.10476190596818924,
+          "decoder_transition_relative_js": 13.216365814208984,
+          "drift": {
+            "early": 0.3567536473274231,
+            "late": 1.3243883848190308,
+            "middle": 0.49596717953681946
+          },
+          "faithful_total": 2.538027286529541,
+          "kl": 2.296480655670166,
+          "smooth_l1": 0.24154675006866455
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.16190476715564728,
+          "decoder_transition_relative_js": 4.918941974639893,
+          "drift": {
+            "early": 0.5340335965156555,
+            "late": 2.0910496711730957,
+            "middle": 0.6599718332290649
+          },
+          "faithful_total": 1.8744467496871948,
+          "kl": 1.7419018745422363,
+          "smooth_l1": 0.1325448900461197
+        }
+      },
+      "cluster_id": "UniRef50_A0A9W3H8X0",
+      "id": "UniRef50_A0A9W3H8X0",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.35232070660971004,
+          "norm_ratio": 0.6806357850018201,
+          "ntp_direction_retention": 0.760197919284304
+        },
+        "global": {
+          "cosine": -0.6289629961929061,
+          "norm_ratio": 0.7636351927349332,
+          "ntp_direction_retention": 0.5197017211790891
+        },
+        "late": {
+          "cosine": -0.7503651068256455,
+          "norm_ratio": 0.8011591890056321,
+          "ntp_direction_retention": 0.3988380995574413
+        },
+        "middle": {
+          "cosine": -0.4671277447297825,
+          "norm_ratio": 0.7219297732429453,
+          "ntp_direction_retention": 0.6627665731717397
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.49438202381134033,
+          "decoder_transition_relative_js": 1.019577980041504,
+          "drift": {
+            "early": 0.22992637753486633,
+            "late": 1.0563570261001587,
+            "middle": 0.327537477016449
+          },
+          "faithful_total": 0.28064143657684326,
+          "kl": 0.2279757261276245,
+          "smooth_l1": 0.05266571044921875
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.5692883729934692,
+          "decoder_transition_relative_js": 0.9309422969818115,
+          "drift": {
+            "early": 0.35015568137168884,
+            "late": 3.6473660469055176,
+            "middle": 0.4349123239517212
+          },
+          "faithful_total": 0.2058449536561966,
+          "kl": 0.18034625053405762,
+          "smooth_l1": 0.025498708710074425
+        }
+      },
+      "cluster_id": "UniRef50_V9ILD5",
+      "id": "UniRef50_V9ILD5",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.44947387736193944,
+          "norm_ratio": 0.2088479982779998,
+          "ntp_direction_retention": 0.9061282804347078
+        },
+        "global": {
+          "cosine": -0.493664360189188,
+          "norm_ratio": 0.2660632778192472,
+          "ntp_direction_retention": 0.8686540421855231
+        },
+        "late": {
+          "cosine": -0.5446511408278224,
+          "norm_ratio": 0.3082223691117155,
+          "ntp_direction_retention": 0.8321263350346499
+        },
+        "middle": {
+          "cosine": -0.4299633140811958,
+          "norm_ratio": 0.2464296616613819,
+          "ntp_direction_retention": 0.8940442859841644
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.5208333730697632,
+          "decoder_transition_relative_js": 1.7427114248275757,
+          "drift": {
+            "early": 0.22889845073223114,
+            "late": 2.138404607772827,
+            "middle": 0.34860607981681824
+          },
+          "faithful_total": 0.07996731996536255,
+          "kl": 0.05219510570168495,
+          "smooth_l1": 0.027772217988967896
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.6104167103767395,
+          "decoder_transition_relative_js": 1.572968602180481,
+          "drift": {
+            "early": 0.3204667866230011,
+            "late": 4.744446754455566,
+            "middle": 0.4530892074108124
+          },
+          "faithful_total": 0.056960564106702805,
+          "kl": 0.04374239593744278,
+          "smooth_l1": 0.013218168169260025
+        }
+      },
+      "cluster_id": "UniRef50_A0A5K1JYD7",
+      "id": "UniRef50_A0A5K1JYD7",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": 0.05126107261723863,
+          "norm_ratio": 0.1704264153963925,
+          "ntp_direction_retention": 1.00873624085553
+        },
+        "global": {
+          "cosine": 0.0028734215220215776,
+          "norm_ratio": 0.2128181216276263,
+          "ntp_direction_retention": 1.000611516170961
+        },
+        "late": {
+          "cosine": -0.021420815354129003,
+          "norm_ratio": 0.260656405386991,
+          "ntp_direction_retention": 0.9944165272693343
+        },
+        "middle": {
+          "cosine": -0.025545469179789553,
+          "norm_ratio": 0.1903453103396783,
+          "ntp_direction_retention": 0.9951375397412002
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.6174242496490479,
+          "decoder_transition_relative_js": 1.403568148612976,
+          "drift": {
+            "early": 0.440353661775589,
+            "late": 2.130070209503174,
+            "middle": 0.7405964732170105
+          },
+          "faithful_total": 0.02836015820503235,
+          "kl": 0.010067631490528584,
+          "smooth_l1": 0.01829252578318119
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.7121212482452393,
+          "decoder_transition_relative_js": 0.8467279076576233,
+          "drift": {
+            "early": 0.6159742474555969,
+            "late": 5.2024688720703125,
+            "middle": 0.8668990135192871
+          },
+          "faithful_total": 0.014221558347344398,
+          "kl": 0.006461289711296558,
+          "smooth_l1": 0.00776026863604784
+        }
+      },
+      "cluster_id": "UniRef50_A0A7S0CN39",
+      "id": "UniRef50_A0A7S0CN39",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.6339347177003168,
+          "norm_ratio": 0.11470385495519766,
+          "ntp_direction_retention": 0.9272852440898387
+        },
+        "global": {
+          "cosine": -0.3494147448395926,
+          "norm_ratio": 0.15638624223536335,
+          "ntp_direction_retention": 0.9453563410729078
+        },
+        "late": {
+          "cosine": -0.08226976647036725,
+          "norm_ratio": 0.21599401054191544,
+          "ntp_direction_retention": 0.9822302231937186
+        },
+        "middle": {
+          "cosine": -0.2801761995947676,
+          "norm_ratio": 0.17821699603343474,
+          "ntp_direction_retention": 0.9500678393481565
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.5817307829856873,
+          "decoder_transition_relative_js": 0.7556198239326477,
+          "drift": {
+            "early": 0.32842758297920227,
+            "late": 1.0216925144195557,
+            "middle": 0.5227219462394714
+          },
+          "faithful_total": 0.0991121232509613,
+          "kl": 0.06071537360548973,
+          "smooth_l1": 0.038396745920181274
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.6490384936332703,
+          "decoder_transition_relative_js": 0.743269145488739,
+          "drift": {
+            "early": 0.42330482602119446,
+            "late": 3.541186571121216,
+            "middle": 0.6083366274833679
+          },
+          "faithful_total": 0.06446204334497452,
+          "kl": 0.0460737943649292,
+          "smooth_l1": 0.01838824898004532
+        }
+      },
+      "cluster_id": "UniRef50_A0AAN4W0M4",
+      "id": "UniRef50_A0AAN4W0M4",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.3652327606722334,
+          "norm_ratio": 0.06266267411238627,
+          "ntp_direction_retention": 0.9771135385428287
+        },
+        "global": {
+          "cosine": -0.27137250394509843,
+          "norm_ratio": 0.11732316226527983,
+          "ntp_direction_retention": 0.968161719685314
+        },
+        "late": {
+          "cosine": -0.3072508056705336,
+          "norm_ratio": 0.253136361269532,
+          "ntp_direction_retention": 0.9222236490554291
+        },
+        "middle": {
+          "cosine": -0.2679198631966452,
+          "norm_ratio": 0.17700428354519654,
+          "ntp_direction_retention": 0.9525770365673507
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.47058823704719543,
+          "decoder_transition_relative_js": 0.8909587264060974,
+          "drift": {
+            "early": 0.4172213673591614,
+            "late": 1.6816625595092773,
+            "middle": 0.7281956076622009
+          },
+          "faithful_total": 0.08242402970790863,
+          "kl": 0.05039350315928459,
+          "smooth_l1": 0.03203053027391434
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.6117647290229797,
+          "decoder_transition_relative_js": 0.8652119636535645,
+          "drift": {
+            "early": 0.5911972522735596,
+            "late": 4.13105583190918,
+            "middle": 0.8868027329444885
+          },
+          "faithful_total": 0.0490838997066021,
+          "kl": 0.03509925678372383,
+          "smooth_l1": 0.013984642922878265
+        }
+      },
+      "cluster_id": "UniRef50_UPI002EDA7BE1",
+      "id": "UniRef50_UPI002EDA7BE1",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": 0.32981216862220825,
+          "norm_ratio": 0.10549644801609936,
+          "ntp_direction_retention": 1.0347940123021298
+        },
+        "global": {
+          "cosine": 0.35286273759796133,
+          "norm_ratio": 0.1595404627044593,
+          "ntp_direction_retention": 1.056295884427541
+        },
+        "late": {
+          "cosine": 0.46782910608123196,
+          "norm_ratio": 0.21508191157146414,
+          "ntp_direction_retention": 1.1006215784247206
+        },
+        "middle": {
+          "cosine": 0.05463406905322546,
+          "norm_ratio": 0.1637189351116772,
+          "ntp_direction_retention": 1.0089446316062118
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.6532257795333862,
+          "decoder_transition_relative_js": 1.004418134689331,
+          "drift": {
+            "early": 0.39331087470054626,
+            "late": 1.5055294036865234,
+            "middle": 0.5754149556159973
+          },
+          "faithful_total": 0.08620505779981613,
+          "kl": 0.058869991451501846,
+          "smooth_l1": 0.027335066348314285
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.6774193048477173,
+          "decoder_transition_relative_js": 0.9979368448257446,
+          "drift": {
+            "early": 0.5328238010406494,
+            "late": 4.490484714508057,
+            "middle": 0.6869227886199951
+          },
+          "faithful_total": 0.05828791856765747,
+          "kl": 0.04514108970761299,
+          "smooth_l1": 0.01314682886004448
+        }
+      },
+      "cluster_id": "UniRef50_A0A8B9MHF5",
+      "id": "UniRef50_A0A8B9MHF5",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": 0.004463915553572555,
+          "norm_ratio": 0.23687313168108803,
+          "ntp_direction_retention": 1.0010573816567347
+        },
+        "global": {
+          "cosine": 0.07217037965328608,
+          "norm_ratio": 0.3081539827144311,
+          "ntp_direction_retention": 1.0222395899241727
+        },
+        "late": {
+          "cosine": 0.12695241503961144,
+          "norm_ratio": 0.33818577130526045,
+          "ntp_direction_retention": 1.0429335003992366
+        },
+        "middle": {
+          "cosine": -0.1288660322446837,
+          "norm_ratio": 0.28463767060908945,
+          "ntp_direction_retention": 0.9633198727612374
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.4871794879436493,
+          "decoder_transition_relative_js": 1.2208445072174072,
+          "drift": {
+            "early": 0.43476027250289917,
+            "late": 1.4615132808685303,
+            "middle": 0.5805031061172485
+          },
+          "faithful_total": 0.06825008988380432,
+          "kl": 0.03374731168150902,
+          "smooth_l1": 0.034502774477005005
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.5256410241127014,
+          "decoder_transition_relative_js": 1.360417366027832,
+          "drift": {
+            "early": 0.7366241812705994,
+            "late": 4.280052185058594,
+            "middle": 0.8510112762451172
+          },
+          "faithful_total": 0.03722410649061203,
+          "kl": 0.021763628348708153,
+          "smooth_l1": 0.015460479073226452
+        }
+      },
+      "cluster_id": "UniRef50_UPI001C8431A2",
+      "id": "UniRef50_UPI001C8431A2",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": 0.2926006388259292,
+          "norm_ratio": 0.20356982341696184,
+          "ntp_direction_retention": 1.0595646603774846
+        },
+        "global": {
+          "cosine": 0.3277956924637546,
+          "norm_ratio": 0.23380297407090153,
+          "ntp_direction_retention": 1.0766396077856564
+        },
+        "late": {
+          "cosine": 0.3681304806756349,
+          "norm_ratio": 0.2441132523882399,
+          "ntp_direction_retention": 1.0898655289409753
+        },
+        "middle": {
+          "cosine": 0.27060498619177026,
+          "norm_ratio": 0.25434304875207353,
+          "ntp_direction_retention": 1.0688264971955277
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.4868420958518982,
+          "decoder_transition_relative_js": 0.8200737237930298,
+          "drift": {
+            "early": 0.23682676255702972,
+            "late": 1.2630586624145508,
+            "middle": 0.3395574688911438
+          },
+          "faithful_total": 0.1876932978630066,
+          "kl": 0.13961970806121826,
+          "smooth_l1": 0.04807359352707863
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.5745614171028137,
+          "decoder_transition_relative_js": 0.7957056760787964,
+          "drift": {
+            "early": 0.3416682779788971,
+            "late": 4.178421497344971,
+            "middle": 0.42800724506378174
+          },
+          "faithful_total": 0.12423694133758545,
+          "kl": 0.10249964147806168,
+          "smooth_l1": 0.02173730358481407
+        }
+      },
+      "cluster_id": "UniRef50_W5YFU2",
+      "id": "UniRef50_W5YFU2",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": 0.0566940717177059,
+          "norm_ratio": 0.2139353674030549,
+          "ntp_direction_retention": 1.0121288670625026
+        },
+        "global": {
+          "cosine": -0.3679460168925173,
+          "norm_ratio": 0.26996768621341577,
+          "ntp_direction_retention": 0.9006664651680847
+        },
+        "late": {
+          "cosine": -0.5737723217559255,
+          "norm_ratio": 0.28570189940053264,
+          "ntp_direction_retention": 0.8360721578508785
+        },
+        "middle": {
+          "cosine": -0.16359361884548485,
+          "norm_ratio": 0.29825607279692035,
+          "ntp_direction_retention": 0.9512072097085095
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.31343284249305725,
+          "decoder_transition_relative_js": 0.9485359787940979,
+          "drift": {
+            "early": 0.28730708360671997,
+            "late": 0.888399064540863,
+            "middle": 0.39702919125556946
+          },
+          "faithful_total": 0.47247830033302307,
+          "kl": 0.3852221369743347,
+          "smooth_l1": 0.08725615590810776
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.35820895433425903,
+          "decoder_transition_relative_js": 1.025894045829773,
+          "drift": {
+            "early": 0.4786056578159332,
+            "late": 2.330491304397583,
+            "middle": 0.5773001909255981
+          },
+          "faithful_total": 0.3046025335788727,
+          "kl": 0.24935416877269745,
+          "smooth_l1": 0.05524835363030434
+        }
+      },
+      "cluster_id": "UniRef50_UPI00100A236F",
+      "id": "UniRef50_UPI00100A236F",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.01846857017538662,
+          "norm_ratio": 0.6323622346149083,
+          "ntp_direction_retention": 0.9883211736937503
+        },
+        "global": {
+          "cosine": 0.029080986819374263,
+          "norm_ratio": 0.8821727935017039,
+          "ntp_direction_retention": 1.0256544553802336
+        },
+        "late": {
+          "cosine": 0.01773852170103703,
+          "norm_ratio": 1.0384963519015302,
+          "ntp_direction_retention": 1.018421390074653
+        },
+        "middle": {
+          "cosine": 0.14619680043261732,
+          "norm_ratio": 1.184464348868359,
+          "ntp_direction_retention": 1.1731648980310574
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.4526315927505493,
+          "decoder_transition_relative_js": 1.0759356021881104,
+          "drift": {
+            "early": 0.2842733561992645,
+            "late": 1.4683380126953125,
+            "middle": 0.531039834022522
+          },
+          "faithful_total": 0.235916405916214,
+          "kl": 0.16039171814918518,
+          "smooth_l1": 0.07552468031644821
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.5368421077728271,
+          "decoder_transition_relative_js": 0.872558057308197,
+          "drift": {
+            "early": 0.400953471660614,
+            "late": 2.9989120960235596,
+            "middle": 0.6163377165794373
+          },
+          "faithful_total": 0.15806880593299866,
+          "kl": 0.12030674517154694,
+          "smooth_l1": 0.03776206448674202
+        }
+      },
+      "cluster_id": "UniRef50_UPI0035A5AA48",
+      "id": "UniRef50_UPI0035A5AA48",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.7196947662431835,
+          "norm_ratio": 0.15340499884218117,
+          "ntp_direction_retention": 0.8895952252177406
+        },
+        "global": {
+          "cosine": -0.47062758658150045,
+          "norm_ratio": 0.30350515776114195,
+          "ntp_direction_retention": 0.8571621000878362
+        },
+        "late": {
+          "cosine": -0.4602358343477072,
+          "norm_ratio": 0.6744868489413218,
+          "ntp_direction_retention": 0.6895769823209348
+        },
+        "middle": {
+          "cosine": -0.49424366350700016,
+          "norm_ratio": 0.2968970829878209,
+          "ntp_direction_retention": 0.8532604980195575
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.75,
+          "decoder_transition_relative_js": 5.993198394775391,
+          "drift": {
+            "early": 0.3828293979167938,
+            "late": 0.9970554113388062,
+            "middle": 0.518973708152771
+          },
+          "faithful_total": 0.36302316188812256,
+          "kl": 0.32309260964393616,
+          "smooth_l1": 0.039930544793605804
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.8809524178504944,
+          "decoder_transition_relative_js": 8.214393615722656,
+          "drift": {
+            "early": 0.5643782615661621,
+            "late": 2.0897014141082764,
+            "middle": 0.7350359559059143
+          },
+          "faithful_total": 0.30347970128059387,
+          "kl": 0.2735641300678253,
+          "smooth_l1": 0.029915565624833107
+        }
+      },
+      "cluster_id": "UniRef50_A0A0K9PXH6",
+      "id": "UniRef50_A0A0K9PXH6",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": 0.3696831855581417,
+          "norm_ratio": 1.8301695589380322,
+          "ntp_direction_retention": 1.6765829126597511
+        },
+        "global": {
+          "cosine": 0.48760975302255255,
+          "norm_ratio": 3.0599515246653888,
+          "ntp_direction_retention": 2.492062207203073
+        },
+        "late": {
+          "cosine": 0.6158437938461255,
+          "norm_ratio": 4.479734120695298,
+          "ntp_direction_retention": 3.7588164563109294
+        },
+        "middle": {
+          "cosine": 0.5324604838646989,
+          "norm_ratio": 2.2727167500789816,
+          "ntp_direction_retention": 2.2101318604344606
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.5584415793418884,
+          "decoder_transition_relative_js": 1120.35546875,
+          "drift": {
+            "early": 0.3636013865470886,
+            "late": 1.6455676555633545,
+            "middle": 0.6136541366577148
+          },
+          "faithful_total": 0.044805049896240234,
+          "kl": 0.022971011698246002,
+          "smooth_l1": 0.021834036335349083
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.6103895902633667,
+          "decoder_transition_relative_js": 1106.0172119140625,
+          "drift": {
+            "early": 0.5938510894775391,
+            "late": 4.4596662521362305,
+            "middle": 0.7898587584495544
+          },
+          "faithful_total": 0.0251435749232769,
+          "kl": 0.015324910171329975,
+          "smooth_l1": 0.009818663820624352
+        }
+      },
+      "cluster_id": "UniRef50_A0A916U803",
+      "id": "UniRef50_A0A916U803",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.07817779095931524,
+          "norm_ratio": 0.10100050877589492,
+          "ntp_direction_retention": 0.9921040033381336
+        },
+        "global": {
+          "cosine": 0.01740947927074457,
+          "norm_ratio": 0.14563805855942796,
+          "ntp_direction_retention": 1.0025354827615218
+        },
+        "late": {
+          "cosine": 0.1378341563283888,
+          "norm_ratio": 0.1985589432871354,
+          "ntp_direction_retention": 1.0273682044294388
+        },
+        "middle": {
+          "cosine": -0.20579646996130702,
+          "norm_ratio": 0.13413888432304313,
+          "ntp_direction_retention": 0.9723946911217696
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.4899999797344208,
+          "decoder_transition_relative_js": 1.1455894708633423,
+          "drift": {
+            "early": 0.3684815466403961,
+            "late": 1.1195073127746582,
+            "middle": 0.5164801478385925
+          },
+          "faithful_total": 0.07000450789928436,
+          "kl": 0.03982644900679588,
+          "smooth_l1": 0.03017805516719818
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.5099999904632568,
+          "decoder_transition_relative_js": 1.2052417993545532,
+          "drift": {
+            "early": 0.5349514484405518,
+            "late": 3.0860838890075684,
+            "middle": 0.6689548492431641
+          },
+          "faithful_total": 0.04049009457230568,
+          "kl": 0.02529551461338997,
+          "smooth_l1": 0.015194579027593136
+        }
+      },
+      "cluster_id": "UniRef50_UPI0036072C71",
+      "id": "UniRef50_UPI0036072C71",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.14911814196363926,
+          "norm_ratio": 0.1784128039958384,
+          "ntp_direction_retention": 0.9733954141656176
+        },
+        "global": {
+          "cosine": -0.3032306849183936,
+          "norm_ratio": 0.21072077294010105,
+          "ntp_direction_retention": 0.9361029956948399
+        },
+        "late": {
+          "cosine": -0.4277919123647237,
+          "norm_ratio": 0.23841653147118522,
+          "ntp_direction_retention": 0.8980073360625773
+        },
+        "middle": {
+          "cosine": -0.3925440350779181,
+          "norm_ratio": 0.23401177238782656,
+          "ntp_direction_retention": 0.9081400746111472
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.8073394298553467,
+          "decoder_transition_relative_js": 3.052349090576172,
+          "drift": {
+            "early": 0.370136022567749,
+            "late": 1.3598651885986328,
+            "middle": 0.4972899854183197
+          },
+          "faithful_total": 0.024353686720132828,
+          "kl": 0.01061118021607399,
+          "smooth_l1": 0.013742506504058838
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.8256880640983582,
+          "decoder_transition_relative_js": 3.562290906906128,
+          "drift": {
+            "early": 0.2933270037174225,
+            "late": 3.712881088256836,
+            "middle": 0.4635173976421356
+          },
+          "faithful_total": 0.014728454872965813,
+          "kl": 0.007542858831584454,
+          "smooth_l1": 0.007185596507042646
+        }
+      },
+      "cluster_id": "UniRef50_A0A8H8DG82",
+      "id": "UniRef50_A0A8H8DG82",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": 0.6398998934221256,
+          "norm_ratio": 0.08270413721751174,
+          "ntp_direction_retention": 1.0529223685910547
+        },
+        "global": {
+          "cosine": 0.2855639287105295,
+          "norm_ratio": 0.1305592326337857,
+          "ntp_direction_retention": 1.0372830074003359
+        },
+        "late": {
+          "cosine": 0.10056629160177465,
+          "norm_ratio": 0.17523504810546883,
+          "ntp_direction_retention": 1.0176227389466257
+        },
+        "middle": {
+          "cosine": 0.24137568818918587,
+          "norm_ratio": 0.1284514811313919,
+          "ntp_direction_retention": 1.03100506465701
+        }
+      }
+    },
+    {
+      "arms": {
+        "native": {
+          "decoder_top1_agreement": 0.6263158321380615,
+          "decoder_transition_relative_js": 1.1516098976135254,
+          "drift": {
+            "early": 0.28003114461898804,
+            "late": 1.3941195011138916,
+            "middle": 0.5290607810020447
+          },
+          "faithful_total": 0.025531388819217682,
+          "kl": 0.009180782362818718,
+          "smooth_l1": 0.016350606456398964
+        },
+        "nextlat": {
+          "decoder_top1_agreement": 0.7473684549331665,
+          "decoder_transition_relative_js": 1.0114526748657227,
+          "drift": {
+            "early": 0.4261564016342163,
+            "late": 4.351495265960693,
+            "middle": 0.6333543062210083
+          },
+          "faithful_total": 0.013150501064956188,
+          "kl": 0.005907766055315733,
+          "smooth_l1": 0.007242735009640455
+        }
+      },
+      "cluster_id": "UniRef50_UPI00235AD41A",
+      "id": "UniRef50_UPI00235AD41A",
+      "nextlat_lora_gradient": {
+        "early": {
+          "cosine": -0.09129727305200855,
+          "norm_ratio": 0.15023326376948967,
+          "ntp_direction_retention": 0.9862841126961425
+        },
+        "global": {
+          "cosine": -0.002978342615703831,
+          "norm_ratio": 0.18770645003046274,
+          "ntp_direction_retention": 0.9994409458806318
+        },
+        "late": {
+          "cosine": 0.08749958337589497,
+          "norm_ratio": 0.2173418126372854,
+          "ntp_direction_retention": 1.0190173180559243
+        },
+        "middle": {
+          "cosine": -0.12514642342127769,
+          "norm_ratio": 0.21571768525721202,
+          "ntp_direction_retention": 0.973003703221343
+        }
+      }
+    }
+  ],
+  "replicate": 2,
+  "summary": {
+    "native": {
+      "decoder_top1_agreement": 0.539856192888692,
+      "decoder_transition_relative_js": 124.59545980766416,
+      "faithful_total": 0.2208484939765185,
+      "kl": 0.1762265477445908,
+      "smooth_l1": 0.04462194931693375
+    },
+    "nextlat": {
+      "decoder_top1_agreement": 0.601100065279752,
+      "decoder_transition_relative_js": -173.5774008911103,
+      "faithful_total": 0.1531173577241134,
+      "kl": 0.13071443408261985,
+      "smooth_l1": 0.022402922913897783
+    }
+  }
+}

@@ -11,5 +11,10 @@ runs/**/*.npz
 runs/**/*.npy
 runs/**/*.safetensors
 runs/**/cache/
+runs/causal_pilot/training/
+runs/causal_pilot/evaluation/
+runs/causal_pilot/mechanism/
+runs/causal_pilot/logs/
+runs/causal_pilot/latest_optimizer_state.pt
 __pycache__/
 *.pyc

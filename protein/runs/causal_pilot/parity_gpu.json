@@ -1,0 +1,31 @@
+{
+  "batched_uniform_cached_vs_scalar_full_prefix_generation_exact": true,
+  "batched_vs_official_forward_reverse_fitness_max_abs": 2.384185791015625e-07,
+  "batched_vs_scalar_probe_input_max_abs": 1.9073486328125e-06,
+  "cached_vs_reference_greedy_generation_exact": true,
+  "cached_vs_reference_sampled_generation_exact": true,
+  "hidden_to_live_head_logits_max_abs": 0.0,
+  "optimized_vs_upstream_two_stage": {
+    "kl_abs": 1.4901161193847656e-08,
+    "lora_gradient_max_abs": 3.073364496231079e-08,
+    "ntp_abs": 4.76837158203125e-07,
+    "predictor_gradient_max_abs": 3.725290298461914e-08,
+    "smooth_l1_abs": 1.4901161193847656e-08,
+    "total_loss_abs": 2.384185791015625e-07
+  },
+  "passed": true,
+  "real_checkpoint": {
+    "audited_context_limit": 1024,
+    "dtype": "bfloat16",
+    "experiment_max_residues": 512,
+    "id": "lightonai/RITA_m",
+    "revision": "d819157a3a96d278500232b2cbb2a02d9646bcf6"
+  },
+  "tolerances": {
+    "fitness_abs": 2e-06,
+    "fp32_gradient_abs": 2e-05,
+    "fp32_logits_abs": 2e-06,
+    "fp32_loss_abs": 2e-06,
+    "probe_input_abs": 2e-06
+  }
+}

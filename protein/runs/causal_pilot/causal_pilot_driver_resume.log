@@ -1,0 +1,11 @@
+nohup: ignoring input
+Traceback (most recent call last):
+  File "/workspace/CLM-JEPA/protein/scripts/orchestrate_causal_pilot.py", line 114, in <module>
+    main()
+  File "/workspace/CLM-JEPA/protein/scripts/orchestrate_causal_pilot.py", line 110, in main
+    stage("summary", command, summary)
+  File "/workspace/CLM-JEPA/protein/scripts/orchestrate_causal_pilot.py", line 49, in stage
+    run_stage(name, command, expected, logs, ledger)
+  File "/workspace/CLM-JEPA/protein/scripts/orchestrate_causal_pilot.py", line 32, in run_stage
+    raise RuntimeError(record)
+RuntimeError: {'stage': 'summary', 'status': 'failed', 'returncode': 1, 'elapsed_seconds': 4.754021883010864, 'output': '/workspace/CLM-JEPA/protein/runs/causal_pilot/causal_pilot_summary.json', 'log': '/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/summary.log', 'command': ['/workspace/CLM-JEPA/.venv/bin/python', '/workspace/CLM-JEPA/protein/scripts/summarize_causal_pilot.py', '/workspace/CLM-JEPA/protein/runs/causal_pilot', '/workspace/CLM-JEPA/protein/runs/causal_pilot/causal_pilot_summary.json', '--esmfold', '/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/esmfold.json']}

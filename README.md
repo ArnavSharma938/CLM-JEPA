@@ -1,15 +1,26 @@
-# Repository map
+# CLM-JEPA
+
+This repository contains two deliberately separated research surfaces:
+
+- `protein/`: the completed frozen RITA-M diagnostic and paired rank-32
+  Native-versus-NextLat causal pilot. Start with
+  `protein/docs/reports/RITA_STP_NEXTLAT_DIAGNOSTIC_REPORT.md`; exact
+  regeneration commands are in `protein/docs/REPRODUCE.md`.
+- `docs/reports/`: the consolidated ChemFM experimental record. The reusable
+  ChemFM model, objective, and training code remains in `src/`.
+
+## Repository map
 
 | Path | Contents |
 |---|---|
-| [AGENTS.md](AGENTS.md) | Workspace, token-budget, compute, and artifact preservation rules |
-| [data/](data/) | Local datasets, frozen evaluation panels, and split metadata |
-| [docs/reports/](docs/reports/) | Consolidated scientific reports (00–03) |
-| [models/](models/) | Local base model weights |
-| [references/](references/) | Pinned upstream reference sources |
-| [requirements.txt](requirements.txt) | Python dependencies |
-| [runs/](runs/) | Checkpoints, hidden state caches, fitted probes, raw evidence, and compact summaries |
-| [scripts/](scripts/) | Experiment runners and saved-artifact analyses |
-| [src/](src/) | Core library for model loading ([src/chemfm.py](src/chemfm.py)), training ([src/train.py](src/train.py), [src/stp.py](src/stp.py)), and latent/geometry analysis ([src/latent_predictability.py](src/latent_predictability.py), [src/frozen_geometry.py](src/frozen_geometry.py)) |
-| [tests/](tests/) | Synthetic unit tests and optional real-model integration tests |
+| `data/` | Preserved chemistry datasets, locked panels, and split metadata |
+| `docs/reports/` | Consolidated ChemFM reports 00-08 |
+| `protein/` | Protein source, scripts, tests, manifests, compact results, and final report |
+| `references/` | Pinned ChemFM reference implementation and tokenizer |
+| `scripts/download_chemfm_model.py` | The remaining reusable chemistry utility |
+| `src/` | ChemFM loading, training, STP, NextLat, decoder-projected, and metric primitives |
+| `tests/` | Focused tests for the retained chemistry core |
 
+Large model weights, checkpoints, hidden-state caches, downloaded archives,
+temporary outputs, and local experiment logs are intentionally ignored and
+must be regenerated when needed.

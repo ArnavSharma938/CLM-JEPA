@@ -1,0 +1,3095 @@
+[
+  {
+    "stage": "parity",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/parity_gpu.json"
+  },
+  {
+    "stage": "benchmark",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/benchmark.json"
+  },
+  {
+    "stage": "train_r0_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 737.9655015468597,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/native/training.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/train_r0_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_causal_pilot.py",
+      "train",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot/train_replicate_0.jsonl",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training",
+      "--replicate",
+      "0",
+      "--arm",
+      "native"
+    ]
+  },
+  {
+    "stage": "train_r0_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 762.2894914150238,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/nextlat/training.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/train_r0_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_causal_pilot.py",
+      "train",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot/train_replicate_0.jsonl",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training",
+      "--replicate",
+      "0",
+      "--arm",
+      "nextlat"
+    ]
+  },
+  {
+    "stage": "train_r1_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 752.4599134922028,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1/nextlat/training.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/train_r1_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_causal_pilot.py",
+      "train",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot/train_replicate_1.jsonl",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training",
+      "--replicate",
+      "1",
+      "--arm",
+      "nextlat"
+    ]
+  },
+  {
+    "stage": "train_r1_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 660.993617773056,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1/native/training.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/train_r1_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_causal_pilot.py",
+      "train",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot/train_replicate_1.jsonl",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training",
+      "--replicate",
+      "1",
+      "--arm",
+      "native"
+    ]
+  },
+  {
+    "stage": "train_r2_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 644.3975760936737,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2/native/training.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/train_r2_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_causal_pilot.py",
+      "train",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot/train_replicate_2.jsonl",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training",
+      "--replicate",
+      "2",
+      "--arm",
+      "native"
+    ]
+  },
+  {
+    "stage": "train_r2_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 759.2128691673279,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2/nextlat/training.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/train_r2_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_causal_pilot.py",
+      "train",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot/train_replicate_2.jsonl",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training",
+      "--replicate",
+      "2",
+      "--arm",
+      "nextlat"
+    ]
+  },
+  {
+    "stage": "train_r3_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 761.05650806427,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3/nextlat/training.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/train_r3_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_causal_pilot.py",
+      "train",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot/train_replicate_3.jsonl",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training",
+      "--replicate",
+      "3",
+      "--arm",
+      "nextlat"
+    ]
+  },
+  {
+    "stage": "train_r3_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 694.9341716766357,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3/native/training.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/train_r3_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_causal_pilot.py",
+      "train",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot/train_replicate_3.jsonl",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training",
+      "--replicate",
+      "3",
+      "--arm",
+      "native"
+    ]
+  },
+  {
+    "stage": "train_r4_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 663.6577055454254,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4/native/training.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/train_r4_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_causal_pilot.py",
+      "train",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot/train_replicate_4.jsonl",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training",
+      "--replicate",
+      "4",
+      "--arm",
+      "native"
+    ]
+  },
+  {
+    "stage": "train_r4_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 746.793200969696,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4/nextlat/training.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/train_r4_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_causal_pilot.py",
+      "train",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot/train_replicate_4.jsonl",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training",
+      "--replicate",
+      "4",
+      "--arm",
+      "nextlat"
+    ]
+  },
+  {
+    "stage": "train_r5_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 739.0120542049408,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5/nextlat/training.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/train_r5_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_causal_pilot.py",
+      "train",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot/train_replicate_5.jsonl",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training",
+      "--replicate",
+      "5",
+      "--arm",
+      "nextlat"
+    ]
+  },
+  {
+    "stage": "train_r5_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 679.9702055454254,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5/native/training.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/train_r5_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_causal_pilot.py",
+      "train",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot/train_replicate_5.jsonl",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training",
+      "--replicate",
+      "5",
+      "--arm",
+      "native"
+    ]
+  },
+  {
+    "stage": "train_r6_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 640.1282532215118,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6/native/training.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/train_r6_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_causal_pilot.py",
+      "train",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot/train_replicate_6.jsonl",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training",
+      "--replicate",
+      "6",
+      "--arm",
+      "native"
+    ]
+  },
+  {
+    "stage": "train_r6_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 746.4747443199158,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6/nextlat/training.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/train_r6_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_causal_pilot.py",
+      "train",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot/train_replicate_6.jsonl",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training",
+      "--replicate",
+      "6",
+      "--arm",
+      "nextlat"
+    ]
+  },
+  {
+    "stage": "train_r7_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 745.782543182373,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7/nextlat/training.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/train_r7_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_causal_pilot.py",
+      "train",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot/train_replicate_7.jsonl",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training",
+      "--replicate",
+      "7",
+      "--arm",
+      "nextlat"
+    ]
+  },
+  {
+    "stage": "train_r7_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 634.6916799545288,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7/native/training.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/train_r7_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_causal_pilot.py",
+      "train",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot/train_replicate_7.jsonl",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training",
+      "--replicate",
+      "7",
+      "--arm",
+      "native"
+    ]
+  },
+  {
+    "stage": "parity",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/parity_gpu.json"
+  },
+  {
+    "stage": "benchmark",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/benchmark.json"
+  },
+  {
+    "stage": "train_r0_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/native/training.json"
+  },
+  {
+    "stage": "train_r0_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/nextlat/training.json"
+  },
+  {
+    "stage": "train_r1_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1/nextlat/training.json"
+  },
+  {
+    "stage": "train_r1_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1/native/training.json"
+  },
+  {
+    "stage": "train_r2_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2/native/training.json"
+  },
+  {
+    "stage": "train_r2_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2/nextlat/training.json"
+  },
+  {
+    "stage": "train_r3_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3/nextlat/training.json"
+  },
+  {
+    "stage": "train_r3_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3/native/training.json"
+  },
+  {
+    "stage": "train_r4_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4/native/training.json"
+  },
+  {
+    "stage": "train_r4_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4/nextlat/training.json"
+  },
+  {
+    "stage": "train_r5_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5/nextlat/training.json"
+  },
+  {
+    "stage": "train_r5_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5/native/training.json"
+  },
+  {
+    "stage": "train_r6_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6/native/training.json"
+  },
+  {
+    "stage": "train_r6_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6/nextlat/training.json"
+  },
+  {
+    "stage": "train_r7_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7/nextlat/training.json"
+  },
+  {
+    "stage": "train_r7_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7/native/training.json"
+  },
+  {
+    "stage": "primary_r0_native_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 144.0522608757019,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_025_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r0_native_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/native/checkpoint_025/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_025_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r0_native_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 145.12727975845337,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_050_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r0_native_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/native/checkpoint_050/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_050_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r0_native_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 142.9014060497284,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_100_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r0_native_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_100_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "representations_r0_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 79.01019191741943,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_100_representations.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/representations_r0_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "representations",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_100_representations.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "generation_r0_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 13.727346897125244,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_100_generation.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/generation_r0_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "generation",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_100_generation.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r0_nextlat_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 168.25069379806519,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/nextlat/checkpoint_025_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r0_nextlat_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/nextlat/checkpoint_025/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/nextlat/checkpoint_025_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r0_nextlat_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 144.42796921730042,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/nextlat/checkpoint_050_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r0_nextlat_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/nextlat/checkpoint_050/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/nextlat/checkpoint_050_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r0_nextlat_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 166.55460572242737,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/nextlat/checkpoint_100_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r0_nextlat_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/nextlat/checkpoint_100_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "representations_r0_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 99.08529758453369,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/nextlat/checkpoint_100_representations.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/representations_r0_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "representations",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/nextlat/checkpoint_100_representations.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "generation_r0_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 13.052642345428467,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/nextlat/checkpoint_100_generation.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/generation_r0_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "generation",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/nextlat/checkpoint_100_generation.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r0_0",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 46.61048722267151,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_0/checkpoint_000.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r0_0.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_0/checkpoint_000.json",
+      "--replicate",
+      "0",
+      "--fraction",
+      "0",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r0_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 40.43196654319763,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_0/checkpoint_025.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r0_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_0/checkpoint_025.json",
+      "--replicate",
+      "0",
+      "--fraction",
+      "25",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r0_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 41.39600396156311,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_0/checkpoint_050.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r0_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_0/checkpoint_050.json",
+      "--replicate",
+      "0",
+      "--fraction",
+      "50",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r0_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 51.442222595214844,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_0/checkpoint_100.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r0_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_0/checkpoint_100.json",
+      "--replicate",
+      "0",
+      "--fraction",
+      "100",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r1_native_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 145.52738499641418,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/native/checkpoint_025_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r1_native_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1/native/checkpoint_025/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/native/checkpoint_025_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r1_native_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 142.71206068992615,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/native/checkpoint_050_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r1_native_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1/native/checkpoint_050/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/native/checkpoint_050_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r1_native_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 172.188547372818,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/native/checkpoint_100_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r1_native_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/native/checkpoint_100_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "representations_r1_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 96.1798894405365,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/native/checkpoint_100_representations.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/representations_r1_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "representations",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/native/checkpoint_100_representations.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "generation_r1_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 15.231039762496948,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/native/checkpoint_100_generation.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/generation_r1_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "generation",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/native/checkpoint_100_generation.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r1_nextlat_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 171.6139054298401,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/nextlat/checkpoint_025_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r1_nextlat_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1/nextlat/checkpoint_025/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/nextlat/checkpoint_025_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r1_nextlat_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 174.06934452056885,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/nextlat/checkpoint_050_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r1_nextlat_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1/nextlat/checkpoint_050/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/nextlat/checkpoint_050_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r1_nextlat_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 169.22723484039307,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/nextlat/checkpoint_100_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r1_nextlat_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/nextlat/checkpoint_100_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "representations_r1_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 83.17654156684875,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/nextlat/checkpoint_100_representations.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/representations_r1_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "representations",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/nextlat/checkpoint_100_representations.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "generation_r1_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 15.948622226715088,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/nextlat/checkpoint_100_generation.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/generation_r1_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "generation",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/nextlat/checkpoint_100_generation.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r1_0",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 41.05634117126465,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_1/checkpoint_000.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r1_0.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_1/checkpoint_000.json",
+      "--replicate",
+      "1",
+      "--fraction",
+      "0",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r1_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 50.883466958999634,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_1/checkpoint_025.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r1_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_1/checkpoint_025.json",
+      "--replicate",
+      "1",
+      "--fraction",
+      "25",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r1_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 37.612961530685425,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_1/checkpoint_050.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r1_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_1/checkpoint_050.json",
+      "--replicate",
+      "1",
+      "--fraction",
+      "50",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r1_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 51.06074500083923,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_1/checkpoint_100.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r1_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_1/checkpoint_100.json",
+      "--replicate",
+      "1",
+      "--fraction",
+      "100",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r2_native_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 169.52266097068787,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/native/checkpoint_025_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r2_native_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2/native/checkpoint_025/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/native/checkpoint_025_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r2_native_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 168.49673652648926,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/native/checkpoint_050_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r2_native_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2/native/checkpoint_050/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/native/checkpoint_050_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r2_native_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 170.46398401260376,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/native/checkpoint_100_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r2_native_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/native/checkpoint_100_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "representations_r2_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 102.41745114326477,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/native/checkpoint_100_representations.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/representations_r2_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "representations",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/native/checkpoint_100_representations.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "generation_r2_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 16.06235957145691,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/native/checkpoint_100_generation.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/generation_r2_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "generation",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/native/checkpoint_100_generation.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r2_nextlat_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 167.94309735298157,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/nextlat/checkpoint_025_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r2_nextlat_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2/nextlat/checkpoint_025/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/nextlat/checkpoint_025_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r2_nextlat_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 164.49381399154663,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/nextlat/checkpoint_050_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r2_nextlat_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2/nextlat/checkpoint_050/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/nextlat/checkpoint_050_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r2_nextlat_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 147.92923069000244,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/nextlat/checkpoint_100_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r2_nextlat_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/nextlat/checkpoint_100_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "representations_r2_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 89.23303747177124,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/nextlat/checkpoint_100_representations.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/representations_r2_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "representations",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/nextlat/checkpoint_100_representations.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "generation_r2_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 15.499605894088745,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/nextlat/checkpoint_100_generation.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/generation_r2_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "generation",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/nextlat/checkpoint_100_generation.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r2_0",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 40.88430070877075,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_2/checkpoint_000.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r2_0.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_2/checkpoint_000.json",
+      "--replicate",
+      "2",
+      "--fraction",
+      "0",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r2_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 39.416295766830444,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_2/checkpoint_025.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r2_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_2/checkpoint_025.json",
+      "--replicate",
+      "2",
+      "--fraction",
+      "25",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r2_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 41.63641428947449,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_2/checkpoint_050.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r2_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_2/checkpoint_050.json",
+      "--replicate",
+      "2",
+      "--fraction",
+      "50",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r2_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 41.03437852859497,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_2/checkpoint_100.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r2_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_2/checkpoint_100.json",
+      "--replicate",
+      "2",
+      "--fraction",
+      "100",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r3_native_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 147.5714373588562,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/native/checkpoint_025_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r3_native_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3/native/checkpoint_025/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/native/checkpoint_025_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r3_native_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 150.70658564567566,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/native/checkpoint_050_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r3_native_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3/native/checkpoint_050/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/native/checkpoint_050_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r3_native_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 150.69787979125977,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/native/checkpoint_100_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r3_native_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/native/checkpoint_100_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "representations_r3_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 81.8912250995636,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/native/checkpoint_100_representations.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/representations_r3_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "representations",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/native/checkpoint_100_representations.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "generation_r3_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 13.698519468307495,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/native/checkpoint_100_generation.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/generation_r3_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "generation",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/native/checkpoint_100_generation.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r3_nextlat_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 149.39606380462646,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/nextlat/checkpoint_025_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r3_nextlat_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3/nextlat/checkpoint_025/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/nextlat/checkpoint_025_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r3_nextlat_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 149.95724654197693,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/nextlat/checkpoint_050_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r3_nextlat_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3/nextlat/checkpoint_050/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/nextlat/checkpoint_050_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r3_nextlat_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 146.995263338089,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/nextlat/checkpoint_100_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r3_nextlat_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/nextlat/checkpoint_100_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "representations_r3_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 94.98430800437927,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/nextlat/checkpoint_100_representations.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/representations_r3_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "representations",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/nextlat/checkpoint_100_representations.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "generation_r3_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 14.294355630874634,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/nextlat/checkpoint_100_generation.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/generation_r3_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "generation",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/nextlat/checkpoint_100_generation.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r3_0",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 38.792983293533325,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_3/checkpoint_000.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r3_0.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_3/checkpoint_000.json",
+      "--replicate",
+      "3",
+      "--fraction",
+      "0",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r3_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 41.60511040687561,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_3/checkpoint_025.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r3_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_3/checkpoint_025.json",
+      "--replicate",
+      "3",
+      "--fraction",
+      "25",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r3_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 42.33525586128235,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_3/checkpoint_050.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r3_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_3/checkpoint_050.json",
+      "--replicate",
+      "3",
+      "--fraction",
+      "50",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r3_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 40.084030628204346,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_3/checkpoint_100.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r3_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_3/checkpoint_100.json",
+      "--replicate",
+      "3",
+      "--fraction",
+      "100",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r4_native_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 147.40918064117432,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/native/checkpoint_025_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r4_native_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4/native/checkpoint_025/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/native/checkpoint_025_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r4_native_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 149.21892523765564,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/native/checkpoint_050_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r4_native_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4/native/checkpoint_050/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/native/checkpoint_050_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r4_native_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 149.94061589241028,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/native/checkpoint_100_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r4_native_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/native/checkpoint_100_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "representations_r4_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 87.06654787063599,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/native/checkpoint_100_representations.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/representations_r4_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "representations",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/native/checkpoint_100_representations.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "generation_r4_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 13.386089324951172,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/native/checkpoint_100_generation.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/generation_r4_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "generation",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/native/checkpoint_100_generation.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r4_nextlat_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 146.40510988235474,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/nextlat/checkpoint_025_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r4_nextlat_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4/nextlat/checkpoint_025/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/nextlat/checkpoint_025_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r4_nextlat_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 149.36739206314087,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/nextlat/checkpoint_050_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r4_nextlat_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4/nextlat/checkpoint_050/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/nextlat/checkpoint_050_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r4_nextlat_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 152.04569745063782,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/nextlat/checkpoint_100_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r4_nextlat_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/nextlat/checkpoint_100_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "representations_r4_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 94.7544813156128,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/nextlat/checkpoint_100_representations.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/representations_r4_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "representations",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/nextlat/checkpoint_100_representations.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "generation_r4_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 13.958775281906128,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/nextlat/checkpoint_100_generation.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/generation_r4_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "generation",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/nextlat/checkpoint_100_generation.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r4_0",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 39.69966983795166,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_4/checkpoint_000.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r4_0.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_4/checkpoint_000.json",
+      "--replicate",
+      "4",
+      "--fraction",
+      "0",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r4_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 40.78230690956116,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_4/checkpoint_025.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r4_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_4/checkpoint_025.json",
+      "--replicate",
+      "4",
+      "--fraction",
+      "25",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r4_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 39.146156787872314,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_4/checkpoint_050.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r4_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_4/checkpoint_050.json",
+      "--replicate",
+      "4",
+      "--fraction",
+      "50",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r4_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 37.99372696876526,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_4/checkpoint_100.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r4_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_4/checkpoint_100.json",
+      "--replicate",
+      "4",
+      "--fraction",
+      "100",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r5_native_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 147.34715819358826,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/native/checkpoint_025_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r5_native_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5/native/checkpoint_025/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/native/checkpoint_025_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r5_native_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 150.63935804367065,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/native/checkpoint_050_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r5_native_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5/native/checkpoint_050/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/native/checkpoint_050_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r5_native_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 149.68673610687256,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/native/checkpoint_100_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r5_native_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/native/checkpoint_100_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "representations_r5_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 87.03656792640686,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/native/checkpoint_100_representations.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/representations_r5_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "representations",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/native/checkpoint_100_representations.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "generation_r5_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 14.029905319213867,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/native/checkpoint_100_generation.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/generation_r5_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "generation",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/native/checkpoint_100_generation.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r5_nextlat_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 144.31870436668396,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/nextlat/checkpoint_025_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r5_nextlat_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5/nextlat/checkpoint_025/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/nextlat/checkpoint_025_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r5_nextlat_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 148.33906316757202,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/nextlat/checkpoint_050_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r5_nextlat_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5/nextlat/checkpoint_050/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/nextlat/checkpoint_050_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r5_nextlat_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 145.96750330924988,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/nextlat/checkpoint_100_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r5_nextlat_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/nextlat/checkpoint_100_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "representations_r5_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 86.9528546333313,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/nextlat/checkpoint_100_representations.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/representations_r5_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "representations",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/nextlat/checkpoint_100_representations.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "generation_r5_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 13.255614042282104,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/nextlat/checkpoint_100_generation.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/generation_r5_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "generation",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/nextlat/checkpoint_100_generation.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r5_0",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 38.08134341239929,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_5/checkpoint_000.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r5_0.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_5/checkpoint_000.json",
+      "--replicate",
+      "5",
+      "--fraction",
+      "0",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r5_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 42.65621614456177,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_5/checkpoint_025.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r5_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_5/checkpoint_025.json",
+      "--replicate",
+      "5",
+      "--fraction",
+      "25",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r5_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 40.695467472076416,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_5/checkpoint_050.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r5_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_5/checkpoint_050.json",
+      "--replicate",
+      "5",
+      "--fraction",
+      "50",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r5_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 39.22181248664856,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_5/checkpoint_100.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r5_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_5/checkpoint_100.json",
+      "--replicate",
+      "5",
+      "--fraction",
+      "100",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r6_native_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 144.9242069721222,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/native/checkpoint_025_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r6_native_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6/native/checkpoint_025/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/native/checkpoint_025_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r6_native_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 149.18745064735413,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/native/checkpoint_050_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r6_native_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6/native/checkpoint_050/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/native/checkpoint_050_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r6_native_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 149.29124760627747,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/native/checkpoint_100_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r6_native_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/native/checkpoint_100_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "representations_r6_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 91.92153811454773,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/native/checkpoint_100_representations.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/representations_r6_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "representations",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/native/checkpoint_100_representations.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "generation_r6_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 13.751530885696411,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/native/checkpoint_100_generation.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/generation_r6_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "generation",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/native/checkpoint_100_generation.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r6_nextlat_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 146.6597023010254,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/nextlat/checkpoint_025_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r6_nextlat_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6/nextlat/checkpoint_025/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/nextlat/checkpoint_025_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r6_nextlat_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 146.22937774658203,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/nextlat/checkpoint_050_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r6_nextlat_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6/nextlat/checkpoint_050/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/nextlat/checkpoint_050_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r6_nextlat_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 151.7107391357422,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/nextlat/checkpoint_100_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r6_nextlat_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/nextlat/checkpoint_100_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "representations_r6_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 90.74847054481506,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/nextlat/checkpoint_100_representations.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/representations_r6_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "representations",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/nextlat/checkpoint_100_representations.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "generation_r6_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 13.98215913772583,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/nextlat/checkpoint_100_generation.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/generation_r6_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "generation",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/nextlat/checkpoint_100_generation.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r6_0",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 40.24983334541321,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_6/checkpoint_000.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r6_0.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_6/checkpoint_000.json",
+      "--replicate",
+      "6",
+      "--fraction",
+      "0",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r6_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 40.04366970062256,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_6/checkpoint_025.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r6_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_6/checkpoint_025.json",
+      "--replicate",
+      "6",
+      "--fraction",
+      "25",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r6_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 41.19226670265198,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_6/checkpoint_050.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r6_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_6/checkpoint_050.json",
+      "--replicate",
+      "6",
+      "--fraction",
+      "50",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r6_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 39.241743087768555,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_6/checkpoint_100.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r6_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_6/checkpoint_100.json",
+      "--replicate",
+      "6",
+      "--fraction",
+      "100",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r7_native_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 147.8464937210083,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/native/checkpoint_025_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r7_native_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7/native/checkpoint_025/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/native/checkpoint_025_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r7_native_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 145.78301882743835,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/native/checkpoint_050_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r7_native_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7/native/checkpoint_050/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/native/checkpoint_050_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r7_native_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 139.17831587791443,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/native/checkpoint_100_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r7_native_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/native/checkpoint_100_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "representations_r7_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 100.41247034072876,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/native/checkpoint_100_representations.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/representations_r7_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "representations",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/native/checkpoint_100_representations.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "generation_r7_native",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 13.472716808319092,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/native/checkpoint_100_generation.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/generation_r7_native.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "generation",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7/native/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/native/checkpoint_100_generation.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r7_nextlat_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 139.89079785346985,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/nextlat/checkpoint_025_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r7_nextlat_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7/nextlat/checkpoint_025/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/nextlat/checkpoint_025_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r7_nextlat_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 147.1165256500244,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/nextlat/checkpoint_050_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r7_nextlat_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7/nextlat/checkpoint_050/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/nextlat/checkpoint_050_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "primary_r7_nextlat_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 139.5954716205597,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/nextlat/checkpoint_100_primary.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/primary_r7_nextlat_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "primary",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/nextlat/checkpoint_100_primary.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "representations_r7_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 100.49518632888794,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/nextlat/checkpoint_100_representations.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/representations_r7_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "representations",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/nextlat/checkpoint_100_representations.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "generation_r7_nextlat",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 15.42050552368164,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/nextlat/checkpoint_100_generation.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/generation_r7_nextlat.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_pilot.py",
+      "generation",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7/nextlat/checkpoint_100/adapter",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/nextlat/checkpoint_100_generation.json",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r7_0",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 40.9898157119751,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_7/checkpoint_000.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r7_0.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_7/checkpoint_000.json",
+      "--replicate",
+      "7",
+      "--fraction",
+      "0",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r7_25",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 53.198312282562256,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_7/checkpoint_025.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r7_25.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_7/checkpoint_025.json",
+      "--replicate",
+      "7",
+      "--fraction",
+      "25",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r7_50",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 63.74248504638672,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_7/checkpoint_050.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r7_50.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_7/checkpoint_050.json",
+      "--replicate",
+      "7",
+      "--fraction",
+      "50",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "mechanism_r7_100",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 46.65478253364563,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_7/checkpoint_100.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/mechanism_r7_100.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/evaluate_causal_mechanism.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_7/checkpoint_100.json",
+      "--replicate",
+      "7",
+      "--fraction",
+      "100",
+      "--data",
+      "/workspace/CLM-JEPA/protein/data/causal_pilot"
+    ]
+  },
+  {
+    "stage": "esmfold",
+    "status": "complete",
+    "returncode": 0,
+    "elapsed_seconds": 538.238498210907,
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/esmfold.json",
+    "log": "/workspace/CLM-JEPA/protein/runs/causal_pilot/logs/esmfold.log",
+    "command": [
+      "/workspace/CLM-JEPA/.venv/bin/python",
+      "/workspace/CLM-JEPA/protein/scripts/run_esmfold_pilot.py",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/esmfold.json",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_100_generation.json",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/nextlat/checkpoint_100_generation.json",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/native/checkpoint_100_generation.json",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/nextlat/checkpoint_100_generation.json",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/native/checkpoint_100_generation.json",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/nextlat/checkpoint_100_generation.json",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/native/checkpoint_100_generation.json",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/nextlat/checkpoint_100_generation.json",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/native/checkpoint_100_generation.json",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/nextlat/checkpoint_100_generation.json",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/native/checkpoint_100_generation.json",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/nextlat/checkpoint_100_generation.json",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/native/checkpoint_100_generation.json",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/nextlat/checkpoint_100_generation.json",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/native/checkpoint_100_generation.json",
+      "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/nextlat/checkpoint_100_generation.json"
+    ]
+  },
+  {
+    "stage": "parity",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/parity_gpu.json"
+  },
+  {
+    "stage": "benchmark",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/benchmark.json"
+  },
+  {
+    "stage": "train_r0_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/native/training.json"
+  },
+  {
+    "stage": "train_r0_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_0/nextlat/training.json"
+  },
+  {
+    "stage": "train_r1_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1/nextlat/training.json"
+  },
+  {
+    "stage": "train_r1_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_1/native/training.json"
+  },
+  {
+    "stage": "train_r2_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2/native/training.json"
+  },
+  {
+    "stage": "train_r2_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_2/nextlat/training.json"
+  },
+  {
+    "stage": "train_r3_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3/nextlat/training.json"
+  },
+  {
+    "stage": "train_r3_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_3/native/training.json"
+  },
+  {
+    "stage": "train_r4_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4/native/training.json"
+  },
+  {
+    "stage": "train_r4_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_4/nextlat/training.json"
+  },
+  {
+    "stage": "train_r5_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5/nextlat/training.json"
+  },
+  {
+    "stage": "train_r5_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_5/native/training.json"
+  },
+  {
+    "stage": "train_r6_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6/native/training.json"
+  },
+  {
+    "stage": "train_r6_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_6/nextlat/training.json"
+  },
+  {
+    "stage": "train_r7_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7/nextlat/training.json"
+  },
+  {
+    "stage": "train_r7_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/training/replicate_7/native/training.json"
+  },
+  {
+    "stage": "primary_r0_native_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_025_primary.json"
+  },
+  {
+    "stage": "primary_r0_native_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_050_primary.json"
+  },
+  {
+    "stage": "primary_r0_native_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_100_primary.json"
+  },
+  {
+    "stage": "representations_r0_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_100_representations.json"
+  },
+  {
+    "stage": "generation_r0_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/native/checkpoint_100_generation.json"
+  },
+  {
+    "stage": "primary_r0_nextlat_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/nextlat/checkpoint_025_primary.json"
+  },
+  {
+    "stage": "primary_r0_nextlat_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/nextlat/checkpoint_050_primary.json"
+  },
+  {
+    "stage": "primary_r0_nextlat_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/nextlat/checkpoint_100_primary.json"
+  },
+  {
+    "stage": "representations_r0_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/nextlat/checkpoint_100_representations.json"
+  },
+  {
+    "stage": "generation_r0_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_0/nextlat/checkpoint_100_generation.json"
+  },
+  {
+    "stage": "mechanism_r0_0",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_0/checkpoint_000.json"
+  },
+  {
+    "stage": "mechanism_r0_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_0/checkpoint_025.json"
+  },
+  {
+    "stage": "mechanism_r0_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_0/checkpoint_050.json"
+  },
+  {
+    "stage": "mechanism_r0_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_0/checkpoint_100.json"
+  },
+  {
+    "stage": "primary_r1_native_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/native/checkpoint_025_primary.json"
+  },
+  {
+    "stage": "primary_r1_native_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/native/checkpoint_050_primary.json"
+  },
+  {
+    "stage": "primary_r1_native_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/native/checkpoint_100_primary.json"
+  },
+  {
+    "stage": "representations_r1_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/native/checkpoint_100_representations.json"
+  },
+  {
+    "stage": "generation_r1_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/native/checkpoint_100_generation.json"
+  },
+  {
+    "stage": "primary_r1_nextlat_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/nextlat/checkpoint_025_primary.json"
+  },
+  {
+    "stage": "primary_r1_nextlat_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/nextlat/checkpoint_050_primary.json"
+  },
+  {
+    "stage": "primary_r1_nextlat_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/nextlat/checkpoint_100_primary.json"
+  },
+  {
+    "stage": "representations_r1_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/nextlat/checkpoint_100_representations.json"
+  },
+  {
+    "stage": "generation_r1_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_1/nextlat/checkpoint_100_generation.json"
+  },
+  {
+    "stage": "mechanism_r1_0",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_1/checkpoint_000.json"
+  },
+  {
+    "stage": "mechanism_r1_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_1/checkpoint_025.json"
+  },
+  {
+    "stage": "mechanism_r1_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_1/checkpoint_050.json"
+  },
+  {
+    "stage": "mechanism_r1_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_1/checkpoint_100.json"
+  },
+  {
+    "stage": "primary_r2_native_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/native/checkpoint_025_primary.json"
+  },
+  {
+    "stage": "primary_r2_native_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/native/checkpoint_050_primary.json"
+  },
+  {
+    "stage": "primary_r2_native_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/native/checkpoint_100_primary.json"
+  },
+  {
+    "stage": "representations_r2_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/native/checkpoint_100_representations.json"
+  },
+  {
+    "stage": "generation_r2_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/native/checkpoint_100_generation.json"
+  },
+  {
+    "stage": "primary_r2_nextlat_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/nextlat/checkpoint_025_primary.json"
+  },
+  {
+    "stage": "primary_r2_nextlat_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/nextlat/checkpoint_050_primary.json"
+  },
+  {
+    "stage": "primary_r2_nextlat_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/nextlat/checkpoint_100_primary.json"
+  },
+  {
+    "stage": "representations_r2_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/nextlat/checkpoint_100_representations.json"
+  },
+  {
+    "stage": "generation_r2_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_2/nextlat/checkpoint_100_generation.json"
+  },
+  {
+    "stage": "mechanism_r2_0",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_2/checkpoint_000.json"
+  },
+  {
+    "stage": "mechanism_r2_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_2/checkpoint_025.json"
+  },
+  {
+    "stage": "mechanism_r2_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_2/checkpoint_050.json"
+  },
+  {
+    "stage": "mechanism_r2_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_2/checkpoint_100.json"
+  },
+  {
+    "stage": "primary_r3_native_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/native/checkpoint_025_primary.json"
+  },
+  {
+    "stage": "primary_r3_native_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/native/checkpoint_050_primary.json"
+  },
+  {
+    "stage": "primary_r3_native_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/native/checkpoint_100_primary.json"
+  },
+  {
+    "stage": "representations_r3_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/native/checkpoint_100_representations.json"
+  },
+  {
+    "stage": "generation_r3_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/native/checkpoint_100_generation.json"
+  },
+  {
+    "stage": "primary_r3_nextlat_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/nextlat/checkpoint_025_primary.json"
+  },
+  {
+    "stage": "primary_r3_nextlat_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/nextlat/checkpoint_050_primary.json"
+  },
+  {
+    "stage": "primary_r3_nextlat_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/nextlat/checkpoint_100_primary.json"
+  },
+  {
+    "stage": "representations_r3_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/nextlat/checkpoint_100_representations.json"
+  },
+  {
+    "stage": "generation_r3_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_3/nextlat/checkpoint_100_generation.json"
+  },
+  {
+    "stage": "mechanism_r3_0",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_3/checkpoint_000.json"
+  },
+  {
+    "stage": "mechanism_r3_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_3/checkpoint_025.json"
+  },
+  {
+    "stage": "mechanism_r3_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_3/checkpoint_050.json"
+  },
+  {
+    "stage": "mechanism_r3_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_3/checkpoint_100.json"
+  },
+  {
+    "stage": "primary_r4_native_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/native/checkpoint_025_primary.json"
+  },
+  {
+    "stage": "primary_r4_native_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/native/checkpoint_050_primary.json"
+  },
+  {
+    "stage": "primary_r4_native_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/native/checkpoint_100_primary.json"
+  },
+  {
+    "stage": "representations_r4_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/native/checkpoint_100_representations.json"
+  },
+  {
+    "stage": "generation_r4_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/native/checkpoint_100_generation.json"
+  },
+  {
+    "stage": "primary_r4_nextlat_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/nextlat/checkpoint_025_primary.json"
+  },
+  {
+    "stage": "primary_r4_nextlat_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/nextlat/checkpoint_050_primary.json"
+  },
+  {
+    "stage": "primary_r4_nextlat_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/nextlat/checkpoint_100_primary.json"
+  },
+  {
+    "stage": "representations_r4_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/nextlat/checkpoint_100_representations.json"
+  },
+  {
+    "stage": "generation_r4_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_4/nextlat/checkpoint_100_generation.json"
+  },
+  {
+    "stage": "mechanism_r4_0",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_4/checkpoint_000.json"
+  },
+  {
+    "stage": "mechanism_r4_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_4/checkpoint_025.json"
+  },
+  {
+    "stage": "mechanism_r4_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_4/checkpoint_050.json"
+  },
+  {
+    "stage": "mechanism_r4_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_4/checkpoint_100.json"
+  },
+  {
+    "stage": "primary_r5_native_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/native/checkpoint_025_primary.json"
+  },
+  {
+    "stage": "primary_r5_native_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/native/checkpoint_050_primary.json"
+  },
+  {
+    "stage": "primary_r5_native_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/native/checkpoint_100_primary.json"
+  },
+  {
+    "stage": "representations_r5_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/native/checkpoint_100_representations.json"
+  },
+  {
+    "stage": "generation_r5_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/native/checkpoint_100_generation.json"
+  },
+  {
+    "stage": "primary_r5_nextlat_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/nextlat/checkpoint_025_primary.json"
+  },
+  {
+    "stage": "primary_r5_nextlat_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/nextlat/checkpoint_050_primary.json"
+  },
+  {
+    "stage": "primary_r5_nextlat_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/nextlat/checkpoint_100_primary.json"
+  },
+  {
+    "stage": "representations_r5_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/nextlat/checkpoint_100_representations.json"
+  },
+  {
+    "stage": "generation_r5_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_5/nextlat/checkpoint_100_generation.json"
+  },
+  {
+    "stage": "mechanism_r5_0",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_5/checkpoint_000.json"
+  },
+  {
+    "stage": "mechanism_r5_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_5/checkpoint_025.json"
+  },
+  {
+    "stage": "mechanism_r5_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_5/checkpoint_050.json"
+  },
+  {
+    "stage": "mechanism_r5_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_5/checkpoint_100.json"
+  },
+  {
+    "stage": "primary_r6_native_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/native/checkpoint_025_primary.json"
+  },
+  {
+    "stage": "primary_r6_native_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/native/checkpoint_050_primary.json"
+  },
+  {
+    "stage": "primary_r6_native_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/native/checkpoint_100_primary.json"
+  },
+  {
+    "stage": "representations_r6_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/native/checkpoint_100_representations.json"
+  },
+  {
+    "stage": "generation_r6_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/native/checkpoint_100_generation.json"
+  },
+  {
+    "stage": "primary_r6_nextlat_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/nextlat/checkpoint_025_primary.json"
+  },
+  {
+    "stage": "primary_r6_nextlat_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/nextlat/checkpoint_050_primary.json"
+  },
+  {
+    "stage": "primary_r6_nextlat_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/nextlat/checkpoint_100_primary.json"
+  },
+  {
+    "stage": "representations_r6_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/nextlat/checkpoint_100_representations.json"
+  },
+  {
+    "stage": "generation_r6_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_6/nextlat/checkpoint_100_generation.json"
+  },
+  {
+    "stage": "mechanism_r6_0",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_6/checkpoint_000.json"
+  },
+  {
+    "stage": "mechanism_r6_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_6/checkpoint_025.json"
+  },
+  {
+    "stage": "mechanism_r6_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_6/checkpoint_050.json"
+  },
+  {
+    "stage": "mechanism_r6_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_6/checkpoint_100.json"
+  },
+  {
+    "stage": "primary_r7_native_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/native/checkpoint_025_primary.json"
+  },
+  {
+    "stage": "primary_r7_native_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/native/checkpoint_050_primary.json"
+  },
+  {
+    "stage": "primary_r7_native_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/native/checkpoint_100_primary.json"
+  },
+  {
+    "stage": "representations_r7_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/native/checkpoint_100_representations.json"
+  },
+  {
+    "stage": "generation_r7_native",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/native/checkpoint_100_generation.json"
+  },
+  {
+    "stage": "primary_r7_nextlat_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/nextlat/checkpoint_025_primary.json"
+  },
+  {
+    "stage": "primary_r7_nextlat_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/nextlat/checkpoint_050_primary.json"
+  },
+  {
+    "stage": "primary_r7_nextlat_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/nextlat/checkpoint_100_primary.json"
+  },
+  {
+    "stage": "representations_r7_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/nextlat/checkpoint_100_representations.json"
+  },
+  {
+    "stage": "generation_r7_nextlat",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/replicate_7/nextlat/checkpoint_100_generation.json"
+  },
+  {
+    "stage": "mechanism_r7_0",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_7/checkpoint_000.json"
+  },
+  {
+    "stage": "mechanism_r7_25",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_7/checkpoint_025.json"
+  },
+  {
+    "stage": "mechanism_r7_50",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_7/checkpoint_050.json"
+  },
+  {
+    "stage": "mechanism_r7_100",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/mechanism/replicate_7/checkpoint_100.json"
+  },
+  {
+    "stage": "esmfold",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/evaluation/esmfold.json"
+  },
+  {
+    "stage": "summary",
+    "status": "reused",
+    "output": "/workspace/CLM-JEPA/protein/runs/causal_pilot/causal_pilot_summary.json"
+  }
+]

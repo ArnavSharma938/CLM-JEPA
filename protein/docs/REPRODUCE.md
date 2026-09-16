@@ -66,9 +66,10 @@ predictor rather than replacing the SmoothL1-only checkpoint.
 .venv/Scripts/python.exe -m pytest protein/tests/test_nextlat.py protein/tests/test_residual_probe.py protein/tests/test_real_rita_parity.py -q
 ```
 
-`protein/runs/amendment/decision.json` records why the conditional rank-32
-LoRA-subspace audit was not run. Full-backbone gradient values must not be used
-as LoRA coefficients.
+`protein/runs/amendment/decision.json` preserves the earlier conditional gate.
+The subsequently requested gradient-only rank-32 LoRA audit is recorded
+separately below. Full-backbone gradient values must not be used as LoRA
+coefficients.
 
 The final uncertainty controls add full-state conditioning, dense cached-state
 fitting, stable relative decoder JS, and artifact-level BH q-values:
@@ -92,3 +93,35 @@ The gradient-only rank-32 attention-LoRA audit (no optimizer or updates) is:
 Bulk archives, hidden-state shards, and the warmed predictor checkpoint are
 ignored. Their source hashes, compact manifests, output JSON, and all IDs needed
 to reconstruct them are retained.
+
+## Preregistered rank-32 causal pilot
+
+The completed causal protocol was frozen in `protein/configs/causal_pilot.json`. Prepare
+all locked panels and eight nonoverlapping training-cluster manifests before
+training:
+
+```bash
+python protein/scripts/prepare_causal_pilot.py all
+python protein/scripts/validate_causal_pilot_parity.py protein/runs/causal_pilot/parity_local.json --device cpu
+```
+
+Preparation requires MMseqs2. Candidate clustering and evaluation exclusion
+both apply the explicit local-alignment rule `identity >= 0.30` and
+`max(qcov,tcov) >= 0.80`, i.e. at least 80% coverage of the shorter sequence.
+The resulting `protein/data/causal_pilot/manifest.json` records every locked
+artifact hash, exact MMseqs version, and repository commit.
+
+On the single GPU host, one resumable sequential driver runs the real-checkpoint
+GPU parity certificate, the fixed 200-step-per-arm benchmark, all 16 paired
+trainings, predefined checkpoint evaluations, mechanisms, ESMFold subset, and
+the final paired summary:
+
+```bash
+python protein/scripts/orchestrate_causal_pilot.py protein/runs/causal_pilot
+```
+
+The driver counterbalances arm execution order by replicate and never selects
+a checkpoint. Completed stage outputs are reused after interruption. Raw public
+archives are regenerable; locked IDs, manifests, checkpoints, logs, per-model
+evaluations, and the aggregate summary are experiment artifacts that must be
+ported off the temporary compute host before deletion.

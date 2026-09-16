@@ -1,12 +1,12 @@
 # RITA-M STP and NextLat diagnostic report
 
-Date: 2026-09-14  
+Date: 2026-09-16
 Checkpoint: `lightonai/RITA_m` at `d819157a3a96d278500232b2cbb2a02d9646bcf6`  
-Status: frozen diagnostic complete and NextLat validity amendment incorporated; no RITA parameters were optimized
+Status: frozen diagnostic and locked eight-pair causal pilot complete; STP remained frozen, while the causal pilot optimized rank-32 RITA attention LoRA adapters
 
 ## Executive decision
 
-Neither released STP nor faithful NextLat merits a rank-32 LoRA experiment on the present evidence.
+STP remains closed. The subsequently authorized faithful-NextLat rank-32 causal pilot is a **mechanistically informative failure**, not a broad or narrow success, and does not justify further NextLat training or a post-hoc rescue search.
 
 RITA-M does not exhibit the straight, locally persistent native trajectory assumed by a literal tube/geodesic account of STP: mean adjacent tangent correlation is `-0.4045` (protein bootstrap 95% CI `[-0.4055,-0.4034]`). Structural differences exist but are small and internally inconsistent, the primary geometry survives sequence reversal, and removing only 10% of the chord-orthogonal component harms the correct-residue margin. Some local straightness correlates with native prediction quality, but longer-scale tube radius and path efficiency relate to ProteinGym fitness and free-running quality in the opposite direction from the STP premise. Released STP also requests a large and variable gradient (`2.99x` NTP, 95% CI `[1.74,4.51]`). These results do not overturn ChemFM's small, inconclusive positive behavioral signal; they say that RITA supplies no stronger mechanistic reason to repeat it.
 
@@ -14,11 +14,15 @@ The amended NextLat evidence is more precise. Direct full-1024D ridge prediction
 
 Raw latent error was indeed scale-confounded. A denser predictor fitted on 130,682 train transitions reduces held-out latent loss, but does not change the faithful ordering. Most importantly, decoder error normalized by the actual decoder transition remains adverse on UniRef (`rho=+.528` versus correct probability, CI `[+.453,+.592]`) and ProteinGym (`macro rho=+.170` versus DMS, `[+.108,+.230]`); it is null in the generation replay. Absolute decoder JS and the complete faithful loss remain adverse on all three views. Thus “latent predictability is intrinsically adverse” remains withdrawn, but predictor underfitting and decoder-transition magnitude do not explain the behavior mismatch of the implemented faithful objective.
 
-A dense predictor optimized under unit `SmoothL1 + KL` lowers validation latent/KL/total from `.1756/.5762/.7518` to `.04705/.1985/.2456` with RITA frozen. Relative to the earlier 24,504-example full-objective predictor, latent validation error improves by 8.37% and total by 0.98%, while KL worsens slightly; a large train/validation gap remains. The subsequent explicitly requested rank-32 LoRA audit finds ratio `.500` (CI `[.439,.564]`), cosine `+.213` (`[+.096,+.329]`), and retention `1.080` (`[1.021,1.138]`). Thus ChemFM-style adapter-gradient domination does not reappear, but no LoRA training was run and gradient compatibility does not repair adverse behavior coupling.
+A dense predictor optimized under unit `SmoothL1 + KL` lowers validation latent/KL/total from `.1756/.5762/.7518` to `.04705/.1985/.2456` with RITA frozen. Relative to the earlier 24,504-example full-objective predictor, latent validation error improves by 8.37% and total by 0.98%, while KL worsens slightly; a large train/validation gap remains. The subsequent initialization-only rank-32 LoRA audit finds ratio `.500` (CI `[.439,.564]`), cosine `+.213` (`[+.096,+.329]`), and retention `1.080` (`[1.021,1.138]`). ChemFM-style adapter-gradient domination did not appear in that frozen audit; Section 7 subsequently tests the objective causally.
+
+The causal pilot changes the evidentiary status from association to intervention. Across eight rigorously paired replicates, NextLat worsens the prespecified bidirectional held-out loss in every pair: Native `2.72160`, NextLat `2.72499`, difference `+0.003398` (95% CI `[+0.003208,+0.003591]`, exact sign-flip `p=.0078125`, two-primary BH `q=.015625`). ProteinGym is null overall: macro Spearman changes by `+0.000377` (CI `[-0.000687,+0.001323]`, `q=.515625`). The faithful transition loss nevertheless improves substantially (`.20429 -> .13967` at full budget). Hence the central outcome is **predictability improves while language modeling worsens and mutation fitness does not improve**.
+
+Broader effects are mixed but do not constitute a narrow success: secondary-structure accuracy rises `+0.002712`, contact average precision falls `-0.007207`, SwissProt-EC is unchanged at a ceiling-level `.9961`, and official RITA fitness of generated sequences falls `-0.06417`. At full budget the learned auxiliary is modest in the actual trained LoRA subspace (ratio `.2345`) but slightly opposing (cosine `-.0286`; 49.6% negative across the fixed mechanism proteins). Therefore simple gradient domination is not the explanation. The pilot causally reproduces the deeper ChemFM concern: faithful NextLat can optimize its intended surrogate without delivering broad useful behavior.
 
 ## 1. Scope and preregistered exclusions
 
-This study characterized one frozen 300M-parameter autoregressive protein LM. It performed no STP fine-tuning, NextLat backbone fine-tuning, matched Native LoRA training, objective sweep, rank sweep, full continued pretraining, RITA-L confirmation, broad geometry suite, or large generation/structure campaign. Predictor-only fitting was used for faithful NextLat exactly so that its learned auxiliary gradient could be measured without changing RITA.
+The original diagnostic characterized one frozen 300M-parameter autoregressive protein LM and performed no STP or NextLat backbone fine-tuning. A later, separately locked causal pilot trained matched Native and faithful-NextLat rank-32 attention LoRA adapters, as documented in Section 7. Across both phases there was no STP training, objective or rank sweep, rescue variant, full continued pretraining, RITA-L confirmation, broad geometry suite, or large generation/structure campaign. Predictor-only fitting in the frozen phase remained separate from the fresh jointly trained predictor in every causal-pilot NextLat replicate.
 
 The independent resampling unit is a protein or MMseqs cluster, not a residue. Reported intervals use whole-cluster/protein bootstrap resampling. Paired biological contrasts use proteins present in both strata and sign-flip tests. ProteinGym uncertainty is across assays. Families of related structural and generation comparisons were interpreted with Benjamini-Hochberg correction.
 
@@ -273,7 +277,7 @@ The sample is 32 deterministic length-stratified test proteins from 32 distinct 
 
 Relative to the existing RITA full-backbone audit, projection into the actual adapters raises the mean ratio from about `.365` to `.500` and cosine from `+.165` to `+.213`. It exposes mild localized opposition in early/middle layers, especially middle retention below one, but the global update remains aligned and moderate. This is qualitatively unlike ChemFM's trained-LoRA ratios of roughly `2.8--4.6x` with substantial middle/late conflict. **ChemFM-style gradient conflict does not reappear in RITA's initialized rank-32 attention-LoRA subspace.**
 
-This answers gradient compatibility only. It does not overturn the behavioral stop: dense faithful and decoder-transition-relative quantities still provide no evidence that reducing the objective improves Native NTP, ProteinGym fitness, or generation quality. Therefore no Native or NextLat adapter training is recommended or performed.
+This answered gradient compatibility only. It did not overturn the frozen-stage behavioral stop: dense faithful and decoder-transition-relative quantities provided no evidence that reducing the objective would improve Native NTP, ProteinGym fitness, or generation quality. No adapter optimization occurred in this diagnostic stage; the later user-authorized, separately locked causal pilot is reported in Section 7.
 
 ### 6.7 Direct answers after amendment
 
@@ -286,13 +290,110 @@ This answers gradient compatibility only. It does not overturn the behavioral st
 7. **Did dense fitting change the result?** No materially. It uses 130,682 transitions and improves validation latent loss 8.37% over the sparse full-objective checkpoint, but faithful behavior correlations remain adverse.
 8. **What is the gradient evidence?** The actual attention-LoRA ratio is `.500`, cosine `+.213`, and retention `1.080`; global geometry is compatible, with mild early/middle conflict.
 9. **Is the ChemFM mechanism reproduced?** Partially: faithful-objective behavioral decoupling survives state-, predictor-, and decoder-transition-scale controls; ChemFM-style LoRA gradient domination is absent.
-10. **Is rank-32 LoRA training justified?** No. The gradient audit removes incompatibility as a blocker but cannot supply the missing positive behavioral rationale.
+10. **Was rank-32 LoRA training justified by the frozen evidence alone?** No. The gradient audit removed incompatibility as a blocker but could not supply the missing positive behavioral rationale. Section 7 reports the later causal pilot requested despite that frozen-stage recommendation.
 
-## 7. Cross-modality conclusion
+## 7. Paired rank-32 LoRA causal pilot
+
+### 7.1 Locked design, parity, and execution integrity
+
+This section is a later causal experiment, not a replacement for the frozen results above. The protocol was hashed and locked before any real seed: eight paired replicates used seeds `711, 1291, 2027, 3253, 4441, 5503, 6679, 7919`; arm order alternated by replicate; and Native and NextLat shared the checkpoint, rank-32 attention-LoRA initialization, manifest and directional ordering, optimizer, schedule, precision, batching, clipping, and residue budget. Every paired-field assertion passed. Each arm saw 3,000,282--3,001,847 unique primary residues and exactly twice that many directional exposures because every canonical sequence and its exact pre-tokenization reversal were included. Optimizer-step counts were 1,888--1,922. No checkpoint selection was performed.
+
+The locked optimizer was fused AdamW (`lr=2e-4`, betas `.9/.95`, epsilon `1e-8`, weight decay `.01`), cosine decay with 3% warmup and minimum-LR ratio `.1`, BF16 autocast, microbatch eight directional sequences, accumulation two (effective 16), and global gradient clipping at 1.0. Checkpoints were fixed at 25%, 50%, and 100% of directional residue exposure. LoRA targeted the audited RITA modules `transformer.layers.{0..23}.self_attention.{query,key,value,proj}` with rank/alpha `32/32`, zero dropout, and no bias. Native optimized NTP; NextLat optimized unit `NTP + SmoothL1 + teacher-to-student KL` with a fresh jointly trained faithful predictor per replicate. EOS/PAD and transitions into EOS were excluded from NextLat.
+
+The implementation was checked directly against NextLat commit `3770be6009cea2b3c455a9ce7f2ca88b504bb955`: input order is `[next-token embedding, current state]`; prediction is a current-state residual; the target future state and teacher-head path are detached; and the KL direction is teacher to student. The optimized one-forward/VJP path matched the literal two-stage reference on fixed examples for losses, logits, and gradients. Real RITA checks also matched the live hidden-state head logits exactly, the official forward-plus-reverse fitness calculation, probe inputs, cached generation, and batched inverse-CDF sampling. The GPU benchmark measured 7,959 directional residues/s for Native and 7,707/s for NextLat over 200 steps, with 20.56/20.92 GB peak allocation. The requested A6000 was unavailable; the explicitly allowed one-GPU fallback was an NVIDIA L40 with 6 vCPU and 100 GB storage.
+
+Training sequences came from the pinned UniRef50 release, were canonical and length 64--512, and were filtered against all evaluation targets by MMseqs2 at 30% identity and at least 80% shorter-sequence coverage. The qualifying pool contained 122,112 non-evaluation clusters; each replicate used about 15,000 proteins from nonoverlapping training clusters. Evaluation was locked to 2,000 held-out proteins, 24 ProteinGym assays capped at 256 phenotype-blind variants, fixed low-data SwissProt-EC, TAPE secondary structure, one ProteinNet long-range-contact task, 128 paired generations per model, 16 ESMFold sequences per model, and 32 fixed mechanism proteins.
+
+### 7.2 Primary efficacy endpoints
+
+Positive loss differences are worse for NextLat; positive ProteinGym differences are better. Every replicate is shown because the paired model-training replicate, not a protein or mutation, is the primary inferential unit.
+
+| Replicate | Native LM loss | NextLat LM loss | Difference | Native ProteinGym | NextLat ProteinGym | Difference |
+|---:|---:|---:|---:|---:|---:|---:|
+| 0 | 2.721428 | 2.725140 | +0.003712 | .381621 | .381940 | +.000320 |
+| 1 | 2.721399 | 2.724757 | +0.003358 | .378698 | .380630 | +.001932 |
+| 2 | 2.721734 | 2.725004 | +0.003270 | .379623 | .380732 | +.001109 |
+| 3 | 2.721423 | 2.725026 | +0.003603 | .382039 | .380056 | -.001983 |
+| 4 | 2.721670 | 2.724752 | +0.003083 | .374578 | .376283 | +.001705 |
+| 5 | 2.721691 | 2.725509 | +0.003818 | .379642 | .379747 | +.000105 |
+| 6 | 2.721645 | 2.724637 | +0.002992 | .379562 | .381297 | +.001735 |
+| 7 | 2.721782 | 2.725127 | +0.003345 | .379073 | .377169 | -.001904 |
+
+The prespecified bidirectional per-protein NTP endpoint is Native `2.721597` versus NextLat `2.724994`, a NextLat-minus-Native change of `+0.003398` (paired-replicate bootstrap 95% CI `[+0.003208,+0.003591]`; exact two-sided sign-flip `p=.0078125`; BH across the two primary tests `q=.015625`). The magnitude is small--about a 0.125% relative loss increase--but perfectly replicated in direction. Corresponding perplexity rises `15.2046 -> 15.2563` (`+0.05175`, CI `[+.04886,+.05469]`), correct-residue probability falls `.094962 -> .092576` (`-.002386`, `[-.002468,-.002307]`), and top-1 falls `.156829 -> .155750` (`-.001079`, `[-.001165,-.000978]`). Forward and reverse losses both worsen: `+0.003262` (`[+.003048,+.003461]`) and `+0.003533` (`[+.003354,+.003726]`), respectively; their perplexities rise `+.05005` and `+.05341`. Length-bin effects are also uniformly adverse and increase from `+.002585` at length 64--159 to `+.004959` at 320--512.
+
+The 24-assay official forward-plus-reverse ProteinGym macro Spearman is Native `.379354` versus NextLat `.379732`, difference `+.000377` (replicate CI `[-.000687,+.001323]`, exact `p=.515625`, BH `q=.515625`; hierarchical replicate/assay CI `[-.002638,+.003366]`). This is a genuine null at the practical scale of the experiment, not evidence of benefit. Prespecified assay categories are heterogeneous: OrganismalFitness falls `-.00991`, Stability rises `+.02201`, Expression falls `-.00334`, and Activity/Binding cross zero. These category results are secondary and were not used to overturn the null primary macro-average.
+
+### 7.3 Learning curves and data efficiency
+
+| Budget | LM loss difference (95% CI) | ProteinGym difference (95% CI) |
+|---:|---:|---:|
+| 25% | +.004147 `[+.003753,+.004542]` | +.001153 `[+.000290,+.001981]` |
+| 50% | +.003567 `[+.003259,+.003902]` | +.000324 `[-.001464,+.002059]` |
+| 100% | +.003398 `[+.003208,+.003591]` | +.000377 `[-.000687,+.001323]` |
+
+NextLat is behind Native in language modeling at every fixed checkpoint and never reaches the matched Native final LM loss in any replicate. Several NextLat ProteinGym curves cross the corresponding Native final score at 50% or 100%, but the paired macro effect is unstable and null at completion. There is therefore no supported sample-efficiency success.
+
+### 7.4 Biological representations
+
+| Frozen representation endpoint | Native | NextLat | Difference (95% CI) | Exact `p` |
+|---|---:|---:|---:|---:|
+| SwissProt-EC accuracy | .99609 | .99609 | .00000 `[.00000,.00000]` | 1.000 |
+| SwissProt-EC top-5 | .99870 | .99854 | -.000163 `[-.000488,.000000]` | 1.000 |
+| secondary-structure macro accuracy | .66324 | .66595 | +.002712 `[+.001707,+.003807]` | .0078125 |
+| long-range-contact macro AP | .22866 | .22145 | -.007207 `[-.010298,-.003627]` | .0234375 |
+
+The small secondary-structure gain is real across these pairs, but contact representation degrades by a larger relative amount and function classification is saturated. Primary-versus-reverse SwissProt-EC orientation change differs by only `-.000326` (CI `[-.000977,+.000488]`). This mixed profile is not a coherent representation success.
+
+### 7.5 Generation and structure
+
+Across 1,024 paired samples per arm, termination, length, entropy, homopolymer length, unique-bigram fraction, and composition distance all have replicate and hierarchical intervals crossing zero. Official RITA bidirectional fitness is worse under NextLat: Native `-5.31874`, NextLat `-5.38291`, difference `-.06417` (replicate CI `[-.09023,-.03518]`, exact `p=.015625`; hierarchical sequence-within-replicate CI `[-.10289,-.02490]`). Thus the independent generation replay contains a selective adverse signal rather than a general collapse in surface composition or repetition.
+
+The corrected ESMFold pass uses the predefined 16 sequences per model. Mean pLDDT is Native `.4434` versus NextLat `.4328`, difference `-.0105` (CI `[-.0424,+.0170]`, `p=.602`), and nonlocal CA clashes are effectively zero in both arms. The originally saved fraction-above-70 statistic used `70` against Transformers' `[0,1]` pLDDT scale; that invalid output is preserved and explicitly superseded by `.70`. The corrected high-confidence fraction is `.0770` versus `.0422`, difference `-.0349` (CI `[-.0768,+.0010]`, `p=.133`), so it is directionally lower but unresolved.
+
+### 7.6 Proximal effect and trained-subspace mechanism
+
+The auxiliary achieved its intended proximal effect. At full budget the same fixed transition set gives faithful loss `.20429` for Native states and `.13967` for NextLat states, difference `-.06462` (CI `[-.06650,-.06281]`, exact `p=.0078125`). Its components both improve: SmoothL1 `.04226 -> .01874` (difference `-.02352`, CI `[-.02371,-.02332]`) and KL `.16202 -> .12092` (`-.04110`, `[-.04285,-.03939]`). Stable decoder-transition-relative residual JS falls `.46277 -> .39714` (`-.06562`, `[-.06891,-.06251]`), and predicted-state decoder top-1 agreement rises `.62085 -> .68070` (`+.05985`, `[+.05487,+.06551]`); all exact `p=.0078125`. These complete and decoder-functional results, rather than a raw hidden-scale proxy, establish that jointly trained NextLat made its intended transition target substantially easier.
+
+The first causal mechanism export mistakenly averaged per-transition JS ratios, which is unstable when the native decoder transition is nearly zero and produced impossible negative/very large aggregates. It was rejected before interpretation. `mechanism_unstable_relative_js/` preserves those outputs; the reported mechanism directory recomputes all 32 fixed evaluations using `sum residual JS / (sum actual-transition JS + epsilon)` per protein. No other metric changed.
+
+Full-budget secondary/mechanism differences by replicate are:
+
+| Replicate | SS accuracy | contact AP | generation fitness | faithful loss | gradient ratio | gradient cosine |
+|---:|---:|---:|---:|---:|---:|---:|
+| 0 | +.00491 | -.01258 | -.08815 | -.06167 | .232 | -.033 |
+| 1 | +.00119 | +.00325 | -.05419 | -.06173 | .232 | -.037 |
+| 2 | +.00284 | -.01239 | -.11730 | -.06522 | .236 | -.013 |
+| 3 | +.00244 | -.00867 | -.09411 | -.06843 | .233 | -.018 |
+| 4 | +.00248 | -.00698 | -.05788 | -.06367 | .243 | -.026 |
+| 5 | +.00056 | -.00982 | -.01816 | -.06734 | .217 | -.058 |
+| 6 | +.00521 | -.00325 | +.00994 | -.06148 | .236 | -.029 |
+| 7 | +.00205 | -.00722 | -.09349 | -.06743 | .247 | -.015 |
+
+The proximal loss improves in all eight pairs; secondary accuracy rises in all eight, while contact AP and generation fitness worsen in seven of eight. This is why the report treats the biological-representation result as mixed rather than averaging away its reproducibility.
+
+| Budget | auxiliary/NTP norm ratio | cosine | NTP-direction retention | negative-cosine fraction |
+|---:|---:|---:|---:|---:|
+| initialization | 1.848 | +.242 | 1.285 | 28.9% |
+| 25% | .346 | -.089 | .969 | 60.9% |
+| 50% | .301 | -.030 | .985 | 54.3% |
+| 100% | .235 | -.029 | .988 | 49.6% |
+
+The fresh random predictor initially exerts a large but globally aligned gradient. Once learned, its pressure becomes modest, while the cosine becomes slightly negative. At 100%, broad-depth cosines are early `+.0088`, middle `-.0329`, and late `-.0460`; this is mild distributed opposition, not ChemFM's `2.8--4.6x` domination. Relative to the frozen initialization-only LoRA audit (`.500`, `+.213`), actual joint training reduces norm pressure and changes the mean angle's sign. Late hidden-state RMS drift from base is much larger under NextLat than Native (`5.0002` versus `1.8396`, difference `+3.1606`, CI `[+3.0103,+3.3084]`), whereas early/middle differences cross zero. The intervention therefore reaches the intended final-state representation without an overwhelming auxiliary gradient.
+
+Across the eight final checkpoints, larger faithful-loss improvement is associated with worse ProteinGym change (`rho=-.810`, exact permutation `p=.0218`), while its associations with LM gain (`rho=-.357`, `p=.389`), contact gain (`-.238`, `p=.582`), secondary gain (`-.595`, `p=.132`), and generation-fitness gain (`-.571`, `p=.151`) remain too uncertain at `n=8`. Across all 24 replicate/checkpoint observations, predictability improvement correlates `-.277` with LM gain and `+.234` with ProteinGym gain. These mechanism correlations are exploratory; the direct paired endpoint comparison carries the causal conclusion.
+
+### 7.7 Causal classification
+
+The prespecified pattern is **predictability improves + useful behavior partly worsens**. It is not a broad success: one primary endpoint worsens consistently and the other is null. It is not a narrow representation or efficiency success: secondary structure improves slightly, but contact transfer and generated-sequence fitness worsen, EC is ceiling-limited, and LM sample efficiency is absent. It is not statistically inconclusive because the adverse LM result and proximal NextLat effect are both replicated across all eight pairs. The best classification is **mechanistically informative failure**.
+
+This sharpens the frozen conclusion. ChemFM-style gradient domination is not required for failure: after training, RITA's auxiliary is only `.235x` NTP and mildly opposing, yet the surrogate improves while NTP degrades and ProteinGym does not move. Protein serialization and raw state scale cannot explain that causal dissociation. The experiment does not prove every possible latent-transition auxiliary is harmful; it directly rejects this faithful unit-weight objective under the locked rank-32 RITA protocol.
+
+## 8. Cross-modality conclusion
 
 ### Evidence for chemistry/SMILES specificity
 
 - RITA's faithful NextLat gradient is `.365x` NTP in the full backbone and `.500x` in the initialized rank-32 attention-LoRA subspace, both with positive global mean cosine. ChemFM reported `2.8--4.6x` in its trained LoRA subspace. Severe gradient domination is therefore not modality-general.
+- During the causal pilot, RITA's trained LoRA-subspace ratio falls further to `.235x`; the mean cosine is only mildly negative (`-.029`). The protein failure therefore occurs without ChemFM's dominant auxiliary pressure.
 - The realized next amino acid adds a small reproducible amount of future-state information after conditioning on `h_t`; it is not a useless input.
 - Several state-scale-free latent metrics reverse the originally adverse raw-error ordering on UniRef. Raw hidden-state magnitude, rather than latent predictability alone, explains an important part of the first protein result.
 
@@ -300,6 +401,7 @@ This answers gradient compatibility only. It does not overturn the behavioral st
 
 - Both ChemFM and RITA have negative adjacent tangent correlation and decoder-functional chord-orthogonal components, undermining literal straight/geodesic assumptions across token modalities.
 - In both modalities, a transition objective can become substantially more predictable without establishing behavioral usefulness.
+- The paired RITA intervention now makes this causal rather than merely correlational: faithful loss improves by `.0646`, while held-out NTP worsens in all eight pairs, ProteinGym is null, and generated-sequence fitness worsens.
 - RITA reproduces the narrower surrogate-decoupling concern in the actual faithful loss: lower decoder JS and lower SmoothL1+KL consistently order Native NTP, DMS fitness, and free-running quality in the undesired direction, even after substantially denser predictor fitting.
 - Decoder-transition-relative JS remains adverse on UniRef and ProteinGym, so absolute transition magnitude does not explain those two functional results.
 - Full-state conditioning leaves a small amount of linearly recoverable latent information in layer 12, but no decoder-functional gain. This is weak evidence for distributed future-state detail, not proof of a functionally inadequate final recurrent state.
@@ -308,27 +410,29 @@ This answers gradient compatibility only. It does not overturn the behavioral st
 ### Ambiguous results
 
 - RITA local tangent persistence has a modest favorable association with native token probability, and secondary-structure transitions are slightly more curved. These show sensitivity to protein organization but do not establish causality or a trainable STP mechanism.
-- The full-backbone audit uses 12 prefixes and the LoRA-subspace audit uses 32 distinct test clusters. The adapter result is an initialization-time tangent-space diagnostic, not evidence about gradients after LoRA parameters have trained away from their standard no-op initialization.
+- The frozen full-backbone audit uses 12 prefixes and the initialization-only LoRA audit uses 32 distinct clusters. The causal pilot resolves the main uncertainty by measuring the same 32-protein mechanism set at initialization, 25%, 50%, and 100%, but those gradient snapshots still do not describe every minibatch encountered during training.
 - Scale-free results are not uniform: normalized/cosine latent predictability is favorable on UniRef, while decoder-transition-relative JS is adverse on UniRef and ProteinGym but null in generated sequences. The adverse conclusion applies to the decoder-functional/full faithful objective, not to an intrinsic universal value of latent predictability.
 - Dense fitting reduced validation latent error but left a large train/validation gap. An even denser or differently regularized predictor might generalize better, although the requested 100k-plus control did not alter the ordering.
 - TAPE and ProteinGym targets cannot be certified absent from RITA's original UniRef100 pretraining. This limits absolute generalization claims, though it does not invalidate within-checkpoint surrogate comparisons.
 - The generation quality composite is deliberately simple and independent, not a substitute for a broad protein-design benchmark or structure prediction.
 
-## 8. Recommendation
+## 9. Recommendation
 
-Do not launch Native/STP/NextLat rank-32 LoRA training from this result. STP remains closed. Faithful NextLat learns the intended transition mapping and its actual initialized attention-LoRA gradients are globally moderate and compatible, but its decoder-functional/full objective remains behaviorally reversed after dense fitting, and decoder-transition normalization preserves that reversal on UniRef and ProteinGym. Full-state conditioning weakens the distributed-state objection to a small latent-only effect, so neither state sufficiency nor gradient conflict is now the decisive blocker. The ChemFM mechanism is therefore **partially reproduced**: behavioral surrogate decoupling survives, while severe LoRA gradient domination does not. The chemistry-specific contribution is raw latent-scale confounding; the modality-general concern is optimizing a tractable transition surrogate without evidence that it selects useful behavior.
+Do not run additional faithful-NextLat training, coefficient/rank sweeps, or post-hoc rescue variants from this result. STP remains closed. The requested Native-versus-NextLat rank-32 pilot has now been completed, and its classification is **mechanistically informative failure**.
 
-**Final question:** after controlling for full final-state conditioning, a 130k-transition predictor fit, actual decoder-transition magnitude, and the actual initialized rank-32 attention-LoRA trainable subspace, there is still strong associational evidence that faithful NextLat is behaviorally misaligned enough to stop before training. The LoRA audit is reassuring on optimization safety: it does not reproduce ChemFM-style domination. That removes a negative argument but cannot supply the missing positive relationship between the objective and useful protein-model behavior.
+The decisive evidence is causal: the faithful objective becomes substantially easier, but the primary held-out LM endpoint worsens in every replicate and ProteinGym is null. A small secondary-structure gain is offset by worse contact transfer and generated-sequence fitness, with no LM data-efficiency gain. Full-state conditioning and dense-predictor controls weakened two proposed mismatch explanations, while trained-subspace measurements show that severe gradient domination is absent. The remaining conclusion is deeper: under this faithful unit-weight implementation, improving the transition surrogate does not improve broad protein-model behavior.
 
-Reconsider training only after a new frozen diagnostic identifies a transition quantity with preregistered positive coupling to Native NTP, ProteinGym fitness, and free-running quality. The rank-32 attention target set and initialization-time gradient geometry are now established; any future pilot should still remain one A6000, matched Native and auxiliary arms, a fixed modest residue budget, predictor learning unscaled, and adapter pressure monitored during training. That is a gate for future work, not a recommendation to run it now.
+This does not establish that all future-state objectives are intrinsically harmful. It does establish a stopping point for faithful NextLat on RITA-M. Any new effort would require a distinct, prospectively motivated objective and a new preregistration; it should not be described as continuation or rescue of this pilot.
 
-## 9. Reproducibility and artifact map
+## 10. Reproducibility and artifact map
 
-Random seed is `20260914`. Local extraction used PyTorch 2.3.0+cu121, Transformers 4.45.2, NumPy 1.26.4, SciPy 1.14.1, scikit-learn 1.5.2, and pandas 2.2.3 on an NVIDIA RTX 4050 Laptop GPU. Frozen-state caching required 84.5 s for UniRef, 23.5 s for TAPE, and 6.3 s for reversals, with measured peak allocation about 747 MB. A requested Thunder A6000 was unavailable; an L40/6-vCPU/100-GB instance was used only to run MMseqs2, then deleted. No diagnostic inference result came from a substituted model.
+Random seed is `20260914`. Local frozen-state extraction used PyTorch 2.3.0+cu121, Transformers 4.45.2, NumPy 1.26.4, SciPy 1.14.1, scikit-learn 1.5.2, and pandas 2.2.3 on an NVIDIA RTX 4050 Laptop GPU. Frozen-state caching required 84.5 s for UniRef, 23.5 s for TAPE, and 6.3 s for reversals, with measured peak allocation about 747 MB. The original diagnostic's temporary L40 host was used only for MMseqs2. The later causal pilot used a separate single NVIDIA L40/6-vCPU/100-GB Thunder instance because the requested A6000 was unavailable and L40 fallback was authorized. The model checkpoint remained exactly the pinned RITA-M revision.
 
 The amendment reused the same local environment, checkpoint, cached states, manifests, ProteinGym variants and fitness scores, and generated sequences/quality labels. It did not regenerate or relabel data. The new predictor checkpoint is separate from the old one. The LoRA decision is machine-readable and records that adapters were instantiated for gradients only, with neither optimization nor parameter updates.
 
 The latest coupling artifact computes and stores Benjamini-Hochberg q-values directly for the UniRef outcome families, ProteinGym DMS/RITA-fitness families, and generation family. The report no longer relies on prose-only multiplicity calculations.
+
+The causal protocol SHA256 is `7bc42086ea157fd3bd808938dafd3e4ca74914e7fad3e868db4139d1381d0763`; source commit at launch was `e2ba2dfe7495b12ca724a8eafa88fcc47c1c74bf`. The benchmark, full package freeze, GPU record, paired manifests, checkpoint hashes, execution ledger, and per-file artifact inventory are retained. The ported archive SHA256 was `412126e02c549c37109b164b4236e90923351a47c6365e5d6b30d5d2de34f85c`; after extraction, all 566 original inventoried files were present and matched their hashes. After the relative-JS correction, the final 622-file inventory also passed with zero missing or mismatched files. Both transfer archives were removed as redundant local copies, and Thunder confirmed successful instance deletion with an empty status list.
 
 Primary artifacts:
 
@@ -349,6 +453,12 @@ Primary artifacts:
 - `protein/runs/amendment/scale_free_coupling_dense.json`: dense-predictor coupling, stable decoder-transition-relative JS, and saved BH q-values.
 - `protein/runs/amendment/nextlat_lora_r32_gradient.json`: 32-cluster rank-32 attention-LoRA gradient geometry and no-update audit.
 - `protein/runs/amendment/decision.json`: prespecified LoRA-gate outcome and explicit non-execution record.
+- `protein/configs/causal_pilot.json`: locked eight-pair causal protocol.
+- `protein/data/causal_pilot/`: exact train/evaluation IDs, homology exclusions, phenotype-blind panels, and manifests.
+- `protein/runs/causal_pilot/training/`: all 25/50/100% LoRA and faithful-predictor checkpoints plus paired training records.
+- `protein/runs/causal_pilot/evaluation/` and `mechanism/`: primary, probe, generation, corrected ESMFold, transition, gradient, and drift outputs.
+- `protein/runs/causal_pilot/causal_pilot_summary.json`: eight-replicate estimates, exact sign-flip tests, CIs, primary BH q-values, hierarchical intervals, and every per-replicate value.
+- `protein/runs/causal_pilot/artifact_inventory.sha256`, `final_artifact_inventory.sha256`, `benchmark.json`, `parity_gpu.json`, and `remote_environment.txt`: original transfer integrity, post-correction integrity, throughput/VRAM, numerical parity, hardware, and package provenance.
 - `protein/runs/summary.json`: compact estimates and output hashes.
 - `protein/runs/reproducibility.json`: package, hardware, command, revision, manifest, and archive provenance.
 
