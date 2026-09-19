@@ -1,5 +1,6 @@
 .venv/
 models/
+data/external/
 
 # Generated run state stays local. Compact summaries already committed remain
 # tracked, but new checkpoints, logs, prediction shards, and archives are ignored.

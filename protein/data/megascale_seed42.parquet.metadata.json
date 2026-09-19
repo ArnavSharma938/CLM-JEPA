@@ -1,0 +1,43 @@
+{
+  "cluster_tsv_sha256": "6ed34ab4337fa5538fa3d05769457f28362ddcebf19073c0be4dd5218e897d89",
+  "clustering_backend": {
+    "backend": "tmtools-tmalign-fallback",
+    "cluster_count": 69,
+    "cluster_rule": "deterministic-greedy-set-cover; closest exhaustive analogue of FoldSeek 8 default SET_COVER",
+    "cluster_tsv_sha256": "6ed34ab4337fa5538fa3d05769457f28362ddcebf19073c0be4dd5218e897d89",
+    "coverage_matrix_sha256": "673e88ca075d3c37db9b007de33639e139fee2f813d80e04f0e42fd195847e00",
+    "coverage_threshold": 0.8,
+    "edge_rule": "max(query-normalized-TM-score-in-either-direction)>=threshold",
+    "limitation": "Strong Windows fallback; not FoldSeek 8.ef4e960 and not method-identical to ProteinDPO.",
+    "qtm_tsv_sha256": "dcdb4767ad788d51d06fc4d779757387911cf69d448a8d0b908bffa339934e63",
+    "row_schema": 2,
+    "score_matrix_sha256": "3357d0aafa7e05564210bab116d9ecae51c938c84a38dd53ca51f8014706c889",
+    "seed": 42,
+    "structure_count": 862,
+    "structure_inventory_sha256": "cd84860711008378396d23e841b618c7904213148863ae941dc39952be43b130",
+    "threshold": 0.5,
+    "tmalign_version": "20210224",
+    "tmtools_version": "0.3.0"
+  },
+  "counts": {
+    "test": 50861,
+    "train": 474246,
+    "validation": 2097
+  },
+  "dataset": "ProteinDPO curated Megascale v2 2023-04-20",
+  "foldseek_metric": "query-normalized-tm-score",
+  "foldseek_version": null,
+  "heldout_to_train_qtm_tsv_sha256": "dcdb4767ad788d51d06fc4d779757387911cf69d448a8d0b908bffa339934e63",
+  "limitation": "The authors did not release their curated split; this is a deterministic reconstruction.",
+  "manifest_sha256": "d08036e833603dcdd1f6e23d15de075e41fa58af07ca07a5764a42b5f39f52e3",
+  "source": "Zenodo 7992926; ProteinDPO Methods reconstruction",
+  "source_csv_sha256": "0c7b2bf1f162122d83d5bb39b901cc446e436b5643684ca268f934be145d8398",
+  "split_algorithm": "lexicographic-cluster-ids; python-random-v1-seed-42-shuffle; floor-90%-floor-5%-remainder",
+  "split_fractions": [
+    0.9,
+    0.05,
+    0.05
+  ],
+  "split_provenance": "reconstructed-tmalign-fallback",
+  "split_seed": 42
+}

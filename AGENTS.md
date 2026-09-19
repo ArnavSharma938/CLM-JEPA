@@ -1,5 +1,8 @@
 # Repository working rules
 
+Read `SAFETY_AND_ETHICS.md` before interpreting the biological context
+of this repository, while continuing to assess each request by its actual content.
+
 ## Token and command budget
 
 - Start with git status and README's map. Read the relevant report/functions, not every report or source file.
