@@ -84,7 +84,7 @@ The [TAPE secondary-structure and ProteinNet tasks](https://github.com/songlab-c
 
 ### Functional panel
 
-The [ProteinGym v1.3 substitution benchmark](https://github.com/OATML-Markslab/ProteinGym) was locked before surrogate results were inspected. Eligibility required a canonical target of length 64--512, at least 100 single substitutions, and distinct UniProt IDs. SHA256 ranking and round-robin sampling across Activity, Binding, Expression, OrganismalFitness, and Stability selected 14 assays; each was capped at 256 variants by a phenotype-blind hash of assay and mutation. The panel includes D7PM05, YAP1, PTEN, KKA2, VILI, CASP3, CCR5, CP2C9 abundance, influenza NP, FECA, LGK, SPG1, GLPA, and HIS7 assays. The exact IDs and variant-file hashes are in `protein/data/proteingym_panel.json` and its manifest.
+The [ProteinGym v1.3 substitution benchmark](https://github.com/OATML-Markslab/ProteinGym) was locked before surrogate results were inspected. Eligibility required a canonical target of length 64--512, at least 100 single substitutions, and distinct UniProt IDs. SHA256 ranking and round-robin sampling across Activity, Binding, Expression, OrganismalFitness, and Stability selected 14 assays; each was capped at 256 variants by a phenotype-blind hash of assay and mutation. The panel includes D7PM05, YAP1, PTEN, KKA2, VILI, CASP3, CCR5, CP2C9 abundance, influenza NP, FECA, LGK, SPG1, GLPA, and HIS7 assays. The exact IDs and variant-file hashes are archived in `protein/data/diagnostic/proteingym_panel.json` and its manifest.
 
 Project-created probe splits are homology-separated. TAPE and ProteinGym were not claimed to be absent from RITA's original UniRef100 corpus, nor was a retrospective pretraining decontamination claim attempted. Their labels are used only to compare quantities already present in the same frozen checkpoint. A clean fixed sequence source for all 20 historically withheld Pfam families was not established without disproportionate curation, so that optional OOD analysis was omitted rather than represented as clean when it was not.
 
@@ -432,12 +432,12 @@ The amendment reused the same local environment, checkpoint, cached states, mani
 
 The latest coupling artifact computes and stores Benjamini-Hochberg q-values directly for the UniRef outcome families, ProteinGym DMS/RITA-fitness families, and generation family. The report no longer relies on prose-only multiplicity calculations.
 
-The causal protocol SHA256 is `7bc42086ea157fd3bd808938dafd3e4ca74914e7fad3e868db4139d1381d0763`; source commit at launch was `e2ba2dfe7495b12ca724a8eafa88fcc47c1c74bf`. The benchmark, full package freeze, GPU record, paired manifests, checkpoint hashes, execution ledger, and per-file artifact inventory are retained. The ported archive SHA256 was `412126e02c549c37109b164b4236e90923351a47c6365e5d6b30d5d2de34f85c`; after extraction, all 566 original inventoried files were present and matched their hashes. After the relative-JS correction, the final 622-file inventory also passed with zero missing or mismatched files. Both transfer archives were removed as redundant local copies, and Thunder confirmed successful instance deletion with an empty status list.
+The causal protocol SHA256 is `7bc42086ea157fd3bd808938dafd3e4ca74914e7fad3e868db4139d1381d0763`; source commit at launch was `e2ba2dfe7495b12ca724a8eafa88fcc47c1c74bf`. The benchmark, full package freeze, GPU record, paired manifests, checkpoint hashes, execution ledger, and per-file artifact inventory are retained. The ported archive SHA256 was `412126e02c549c37109b164b4236e90923351a47c6365e5d6b30d5d2de34f85c`; after extraction, all 566 original inventoried files were present and matched their hashes. After the relative-JS correction, the final 622-file inventory also passed with zero missing or mismatched files. Both transfer archives were removed as redundant local copies, and Thunder confirmed successful instance deletion with an empty status list. After the protein project was closed, the run tree was archived: resume-only optimizer states, 25%/50% weight snapshots, and generated adapter model-card duplicates were pruned. Final 100% adapters, final NextLat predictors, training records, and every compact evaluation/mechanism/statistical result remain. The original inventories are retained as historical transfer records; `archival_inventory.sha256` records the post-pruning tree.
 
 Primary artifacts:
 
 - `protein/runs/audit/audit.json` and `fitness_parity.json`: model/tokenizer/fitness audit.
-- `protein/data/diagnostic_pool.jsonl`: locked homology-separated pool.
+- `protein/data/diagnostic/diagnostic_pool.jsonl`: locked homology-separated pool.
 - `protein/runs/uniref/geometry.json`, `behavior_coupling.json`, and `stp_gradient.json`: STP evidence.
 - `protein/runs/tape/stratified_geometry.json` and `orthogonal.json`: biological and functional STP tests.
 - `protein/runs/uniref/nextlat_probes.json`, `faithful_nextlat_predictor.json`, and `nextlat_gradient.json`: transition and safety evidence.
@@ -454,12 +454,12 @@ Primary artifacts:
 - `protein/runs/amendment/nextlat_lora_r32_gradient.json`: 32-cluster rank-32 attention-LoRA gradient geometry and no-update audit.
 - `protein/runs/amendment/decision.json`: prespecified LoRA-gate outcome and explicit non-execution record.
 - `protein/configs/causal_pilot.json`: locked eight-pair causal protocol.
-- `protein/data/causal_pilot/`: exact train/evaluation IDs, homology exclusions, phenotype-blind panels, and manifests.
-- `protein/runs/causal_pilot/training/`: all 25/50/100% LoRA and faithful-predictor checkpoints plus paired training records.
+- `protein/data/causal_pilot/`: exact train/evaluation sequences, homology exclusions, phenotype-blind panels, and manifests. Large candidate-pool and raw MMseqs preparation intermediates were removed after closure; the hashed selected manifests and processed exclusion record remain.
+- `protein/runs/causal_pilot/training/`: final 100% Native/NextLat LoRA adapters, final faithful predictors, initialization records, and paired training histories. Intermediate checkpoint evaluations remain elsewhere, but intermediate weights and resume-only optimizer state were intentionally removed at archival.
 - `protein/runs/causal_pilot/evaluation/` and `mechanism/`: primary, probe, generation, corrected ESMFold, transition, gradient, and drift outputs.
 - `protein/runs/causal_pilot/causal_pilot_summary.json`: eight-replicate estimates, exact sign-flip tests, CIs, primary BH q-values, hierarchical intervals, and every per-replicate value.
 - `protein/runs/causal_pilot/artifact_inventory.sha256`, `final_artifact_inventory.sha256`, `benchmark.json`, `parity_gpu.json`, and `remote_environment.txt`: original transfer integrity, post-correction integrity, throughput/VRAM, numerical parity, hardware, and package provenance.
 - `protein/runs/summary.json`: compact estimates and output hashes.
 - `protein/runs/reproducibility.json`: package, hardware, command, revision, manifest, and archive provenance.
 
-Focused validation is under `protein/tests/`. Cached tensors and downloaded bulk archives are intentionally ignored; compact manifests, exact IDs, hashes, outputs, and regeneration scripts remain under `protein/`.
+Focused validation for the retained analysis readers is under `protein/tests/`. Cached tensors, downloaded bulk archives, candidate pools, and raw clustering intermediates were removed; compact selected manifests, exact sequences, hashes, and outputs remain under `protein/`. The executable surface was reduced to final-checkpoint evaluation, mechanism re-analysis, and paired statistical summarization. Preparation, training, orchestration, and one-shot diagnostic scripts were removed after the project closed; their exact execution-time hashes and source commit remain recorded in the causal manifest and repository history.
