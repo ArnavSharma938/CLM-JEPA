@@ -23,9 +23,12 @@ class TrainConfig:
     validation_fraction: float = 0.5
     precision: str = "bf16"
     adapter_weight_decay: float = 0.0
-    compile_training: bool = True
+    compile_training: bool = False
     compile_mode: str = "max-autotune"
     instrument_checkpoints: bool = True
+    save_checkpoints: bool = True
+    early_stopping_patience_checks: int | None = None
+    minimum_epochs: float = 0.0
 
     def validate(self) -> None:
         if self.batch_size != 32:
@@ -42,6 +45,10 @@ class TrainConfig:
             raise ValueError("Unsupported torch.compile mode")
         if self.seed == 7 and "evidence" in self.output_dir.parts:
             raise ValueError("HPO seed 7 cannot be used for uncertainty estimates")
+        if self.early_stopping_patience_checks is not None and self.early_stopping_patience_checks < 1:
+            raise ValueError("Early-stopping patience must be at least one validation check")
+        if not 0 <= self.minimum_epochs <= self.epochs:
+            raise ValueError("minimum_epochs must be between zero and the epoch cap")
 
     def serializable(self) -> dict:
         payload = asdict(self)

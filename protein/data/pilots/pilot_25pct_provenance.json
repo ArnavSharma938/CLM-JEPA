@@ -1,0 +1,14 @@
+{
+  "full_stabilizing_fraction": 0.827012596111896,
+  "full_training_domains": 394,
+  "full_training_structures": 354,
+  "manifest_sha256": "aeebf9599aa5482ce35f99b44835747b81335d4016b2de09529e3c892be5a7fb",
+  "parent_manifest_sha256": "7fed569afa6b6941ba6480994555840602e4960aa0e15614887120f13fd6409f",
+  "sampled_sequence_ids_sha256": "3c1538444adcadf6eee9747df028b560700d7623f3d13532370770eb399caba1",
+  "seed": 42,
+  "stabilizing_fraction": 0.8267831266462248,
+  "training_domains": 394,
+  "training_fraction_observed": 0.2499749838896249,
+  "training_records": 124907,
+  "training_structures": 354
+}

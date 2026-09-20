@@ -1,0 +1,106 @@
+{
+  "device": "NVIDIA RTX A6000",
+  "batch_size": 32,
+  "results": [
+    {
+      "legacy": {
+        "mode": "ft",
+        "forced_legacy_token_sync": true,
+        "steps": 12,
+        "seconds": 7.644029663875699,
+        "seconds_per_step": 0.6370024719896415,
+        "sequences_per_second": 50.23528386012348,
+        "peak_allocated_bytes": 14530002432,
+        "peak_reserved_bytes": 17022582784,
+        "trainable_scalars": 141662150
+      },
+      "optimized": {
+        "mode": "ft",
+        "forced_legacy_token_sync": false,
+        "steps": 12,
+        "seconds": 7.594383766874671,
+        "seconds_per_step": 0.6328653139062226,
+        "sequences_per_second": 50.563681239673265,
+        "peak_allocated_bytes": 14523340800,
+        "peak_reserved_bytes": 17559453696,
+        "trainable_scalars": 141662150,
+        "speedup_vs_legacy_sync": 1.0065371857052543
+      }
+    },
+    {
+      "legacy": {
+        "mode": "dtft",
+        "forced_legacy_token_sync": true,
+        "steps": 12,
+        "seconds": 6.569588522426784,
+        "seconds_per_step": 0.547465710202232,
+        "sequences_per_second": 58.4511493663764,
+        "peak_allocated_bytes": 3864971264,
+        "peak_reserved_bytes": 6247415808,
+        "trainable_scalars": 58720256
+      },
+      "optimized": {
+        "mode": "dtft",
+        "forced_legacy_token_sync": false,
+        "steps": 12,
+        "seconds": 6.080073595046997,
+        "seconds_per_step": 0.5066727995872498,
+        "sequences_per_second": 63.157130254610315,
+        "peak_allocated_bytes": 3865511936,
+        "peak_reserved_bytes": 6413090816,
+        "trainable_scalars": 58720256,
+        "speedup_vs_legacy_sync": 1.0805113490367222
+      }
+    },
+    {
+      "legacy": {
+        "mode": "lora8",
+        "forced_legacy_token_sync": true,
+        "steps": 12,
+        "seconds": 9.177201876416802,
+        "seconds_per_step": 0.7647668230347335,
+        "sequences_per_second": 41.84281932238927,
+        "peak_allocated_bytes": 3411609600,
+        "peak_reserved_bytes": 5876219904,
+        "trainable_scalars": 1441792
+      },
+      "optimized": {
+        "mode": "lora8",
+        "forced_legacy_token_sync": false,
+        "steps": 12,
+        "seconds": 9.256092167459428,
+        "seconds_per_step": 0.7713410139549524,
+        "sequences_per_second": 41.486190181854965,
+        "peak_allocated_bytes": 3407111168,
+        "peak_reserved_bytes": 5863636992,
+        "trainable_scalars": 1441792,
+        "speedup_vs_legacy_sync": 0.9914769332872493
+      }
+    },
+    {
+      "legacy": {
+        "mode": "lora64",
+        "forced_legacy_token_sync": true,
+        "steps": 12,
+        "seconds": 8.807273550890386,
+        "seconds_per_step": 0.7339394625741988,
+        "sequences_per_second": 43.60032622822064,
+        "peak_allocated_bytes": 3528221696,
+        "peak_reserved_bytes": 6039797760,
+        "trainable_scalars": 11534336
+      },
+      "optimized": {
+        "mode": "lora64",
+        "forced_legacy_token_sync": false,
+        "steps": 12,
+        "seconds": 8.349753103218973,
+        "seconds_per_step": 0.6958127586015811,
+        "sequences_per_second": 45.989383788122005,
+        "peak_allocated_bytes": 3528221696,
+        "peak_reserved_bytes": 6039797760,
+        "trainable_scalars": 11534336,
+        "speedup_vs_legacy_sync": 1.0547944881741511
+      }
+    }
+  ]
+}

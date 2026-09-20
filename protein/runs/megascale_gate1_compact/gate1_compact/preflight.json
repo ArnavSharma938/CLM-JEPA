@@ -1,0 +1,28 @@
+{
+  "bf16": true,
+  "compile_enabled": false,
+  "cuda": "12.1",
+  "dtft_trainable_scalars": 58720256,
+  "free_storage_gib": 71.9656982421875,
+  "gpu": "NVIDIA RTX A6000",
+  "loaded_parameter_count": 141662150,
+  "lora_trainable_scalars": {
+    "8": 1441792,
+    "64": 11534336
+  },
+  "manifest_domains": 51,
+  "manifest_records": 13416,
+  "model_checkpoint": "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+  "model_checkpoint_sha256": "be4ba36edec22a9bfaa4946ff6b2815f1f19d8a3d7e0eada8b796d5a0eae9fd4",
+  "preflight_peak_cuda_memory_gib": 0.8350634574890137,
+  "reference_forward_exercised": true,
+  "shared_encoder_reuse_enabled": false,
+  "target_matrix_count": 128,
+  "versions": {
+    "fair-esm": "2.0.0",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "scipy": "1.14.1",
+    "torch": "2.3.0"
+  }
+}

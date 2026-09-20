@@ -18,15 +18,19 @@ from protein.calibration.data import (
     BackboneBatchSampler,
     SequenceRecord,
     VariantRecord,
+    _manifest_path,
     load_manifest,
     validate_records,
 )
 from protein.calibration.diagnostics import checkpoint_diagnostics
 from protein.calibration.gate import coverage_gate
 from protein.calibration.lora import LoRALinear
-from protein.calibration.optimized_forward import OptimizedIF1Forward, batch_backbone_indices, model_logits
+from protein.calibration.optimized_forward import (
+    OptimizedIF1Forward, batch_backbone_indices, enable_if1_training_optimizations, model_logits,
+)
 from protein.calibration.queue_stage1 import _run
 from protein.calibration.queue_stage1 import _train_command
+from protein.calibration.queue_pilot import LRS as PILOT_LRS
 from protein.calibration.prepare_megascale import (
     _domain_key,
     _structure_key,
@@ -34,8 +38,10 @@ from protein.calibration.prepare_megascale import (
     assign_cluster_splits,
     build_manifest,
     extract_published_data,
+    materialize_eligible_structures,
     materialize_search_directories,
 )
+from protein.calibration.prepare_pilot_subsets import build_proportional_subset
 
 
 def test_megascale_domain_and_structure_keys_preserve_derived_wildtypes() -> None:
@@ -44,6 +50,110 @@ def test_megascale_domain_and_structure_keys_preserve_derived_wildtypes() -> Non
     assert _structure_key("1A0N.pdb_L7S") == "1A0N"
     assert _domain_key("EA|run2_0325_0005.pdb") == "EA__SEP__run2_0325_0005"
     assert _structure_key("EA|run2_0325_0005.pdb") == "EA__SEP__run2_0325_0005"
+
+
+def test_manifest_paths_are_portable_across_path_separators(tmp_path: Path) -> None:
+    expected = (tmp_path / "external" / "source" / "pdbs" / "1A0N.pdb").resolve()
+    assert _manifest_path(tmp_path, r"external\source\pdbs\1A0N.pdb") == expected
+    assert _manifest_path(tmp_path, "external/source/pdbs/1A0N.pdb") == expected
+
+
+def test_pilot_subsamples_within_every_domain_and_keeps_heldout_rows() -> None:
+    rows = []
+    for backbone in range(40):
+        for variant in range(10 + backbone % 3):
+            rows.append(
+                {
+                    "sequence_id": f"train-{backbone}-{variant}",
+                    "domain_id": f"domain-{backbone}",
+                    "backbone_path": f"b{backbone}.pdb",
+                    "target_sequence": "A" * (40 + backbone % 8),
+                    "ddg": -1.0 if variant % 3 else 1.0,
+                    "mutation_count": 1 if variant % 2 else 2,
+                    "split": "train",
+                }
+            )
+    rows += [
+        {
+            "sequence_id": f"heldout-{split}", "domain_id": f"heldout-{split}",
+            "backbone_path": f"heldout-{split}.pdb", "target_sequence": "A" * 50,
+            "ddg": 0.5, "mutation_count": 1, "split": split,
+        }
+        for split in ("validation", "test")
+    ]
+    frame = pd.DataFrame(rows)
+    subset = build_proportional_subset(frame)
+    selected = subset[subset.split == "train"]
+    full = frame[frame.split == "train"]
+    assert set(selected.domain_id) == set(full.domain_id)
+    assert set(selected.backbone_path) == set(full.backbone_path)
+    for domain, group in full.groupby("domain_id"):
+        assert len(selected[selected.domain_id == domain]) == round(len(group) * 0.25)
+    assert set(subset[subset.split != "train"].sequence_id) == {
+        "heldout-validation", "heldout-test"
+    }
+
+
+def test_target_token_count_uses_records_without_tensor_reduction(tmp_path: Path) -> None:
+    records = [
+        SequenceRecord("d", f"s{i}", "train", tmp_path / "b.pdb", "A", "A" * length,
+                       "A" * length, -1.0, 1, 0.5)
+        for i, length in enumerate((4, 7))
+    ]
+    assert target_token_count({"records": records}) == (4 + 1) + (7 + 1)
+
+
+def test_fixed_padding_decoder_fastpath_preserves_outputs_and_gradients() -> None:
+    class Layer(nn.Module):
+        def forward(self, x, enc, padding_mask, incremental_state, **kwargs):
+            del padding_mask, incremental_state, kwargs
+            return x + enc, None, None
+
+    class Decoder(nn.Module):
+        padding_idx = 0
+        embed_scale = 1.0
+        project_in_dim = None
+        layer_norm = None
+        def __init__(self):
+            super().__init__()
+            self.embed_tokens = nn.Embedding(8, 3)
+            self.dropout_module = nn.Dropout(0.0)
+            self.layers = nn.ModuleList([Layer()])
+        def embed_positions(self, tokens):
+            return torch.zeros((*tokens.shape, 3))
+        def buffered_future_mask(self, x):
+            return torch.zeros((x.shape[0], x.shape[0]))
+        def extract_features(self, tokens, encoder_out, incremental_state=None):
+            x = (self.embed_tokens(tokens) + self.embed_positions(tokens)).transpose(0, 1)
+            mask = tokens.eq(0) if tokens.eq(0).any() else None
+            x, _, _ = self.layers[0](x, encoder_out["encoder_out"][0], encoder_out["encoder_padding_mask"][0], incremental_state, self_attn_padding_mask=mask)
+            return x.transpose(0, 1), {"inner_states": [x]}
+
+    tokens = torch.tensor([[1, 2, 0], [1, 3, 0]])
+    encoded = {"encoder_out": [torch.randn(3, 2, 3)], "encoder_padding_mask": [tokens.eq(0)]}
+    reference = Decoder()
+    candidate = deepcopy(reference)
+    expected, _ = reference.extract_features(tokens, encoded)
+    enable_if1_training_optimizations(type("Model", (), {"decoder": candidate})())
+    actual, _ = candidate.extract_features(tokens, encoded)
+    torch.testing.assert_close(expected, actual, rtol=0, atol=0)
+    expected.sum().backward(); actual.sum().backward()
+    torch.testing.assert_close(reference.embed_tokens.weight.grad, candidate.embed_tokens.weight.grad, rtol=0, atol=0)
+
+
+def test_validation_nll_bulk_transfer_preserves_batch_accumulation(monkeypatch) -> None:
+    import protein.calibration.training as training
+
+    values = iter((torch.tensor(1.25), torch.tensor(2.5)))
+    monkeypatch.setattr(training, "sequence_nll", lambda *args, **kwargs: (next(values), 5))
+    result = training.validation_nll(
+        nn.Linear(1, 1), [{}, {}], type("Alphabet", (), {})(), torch.device("cpu")
+    )
+    assert result == (1.25 + 2.5) / 10
+
+
+def test_pilot_uses_fixed_registered_learning_rates() -> None:
+    assert PILOT_LRS == {"ft": 1e-7, "dtft": 1e-7, "lora8": 3e-5, "lora64": 3e-5}
 
 
 def test_tmalign_fallback_uses_deterministic_set_cover_not_transitive_components() -> None:
@@ -57,7 +167,7 @@ def test_tmalign_fallback_uses_deterministic_set_cover_not_transitive_components
     coverage[0, 1] = coverage[1, 0] = 0.7
     covered = _set_cover_clusters(scores, 0.5, ["a", "b", "c", "d"], coverage, 0.8)
     assert sorted(sorted(group) for group in covered) == [[0], [1, 2, 3]]
-from protein.calibration.training import save_checkpoint
+from protein.calibration.training import save_checkpoint, target_token_count
 from protein.calibration.targets import (
     EXPECTED_DENSE_WEIGHTS,
     EXPECTED_LORA,
@@ -319,7 +429,10 @@ def test_checkpoint_diagnostics_collects_dense_gradient_and_bounded_pcs() -> Non
         "confidence": torch.ones(2, 4),
         "padding_mask": torch.zeros(2, 4, dtype=torch.bool),
         "tokens": torch.tensor([[1, 2, 3, 1], [1, 3, 2, 0]]),
-        "records": [object(), object()],
+        "records": [
+            type("Record", (), {"sequence_length": 3})(),
+            type("Record", (), {"sequence_length": 2})(),
+        ],
     }
     result = checkpoint_diagnostics(model, [batch], Alphabet(), torch.device("cpu"))
     module = result["modules"]["projection"]
@@ -423,7 +536,10 @@ def test_seed42_split_materialization_and_manifest_round_trip(tmp_path: Path) ->
     source = tmp_path / "megascale.csv"
     pd.DataFrame(rows).to_csv(source, index=False)
     qtm = tmp_path / "qtm.tsv"
-    qtm.write_text("".join(f"d{i}.pdb\td0.pdb\t0.4\n" for i in range(20)), encoding="utf-8")
+    qtm.write_text(
+        "".join(f"{name}.pdb\td0.pdb\t0.4\n" for name, label in split.items() if label != "train"),
+        encoding="utf-8",
+    )
     manifest = tmp_path / "manifest.parquet"
     counts = build_manifest(source, pdb_dir, cluster_tsv, qtm, manifest)
     assert counts == {"test": 1, "train": 18, "validation": 1}
@@ -437,6 +553,35 @@ def test_seed42_split_materialization_and_manifest_round_trip(tmp_path: Path) ->
     assert metadata["split_seed"] == 42
     assert metadata["source_csv_sha256"]
     assert metadata["cluster_tsv_sha256"]
+    assert metadata["eligible_structure_count"] == 20
+    assert metadata["population_order"].startswith("final eligibility filtering")
+
+
+def test_excluded_structures_cannot_enter_clustering_population(tmp_path: Path) -> None:
+    pdb_dir = tmp_path / "pdbs"
+    pdb_dir.mkdir()
+    for name in ("eligible", "invalid", "unreferenced"):
+        (pdb_dir / f"{name}.pdb").write_text("MODEL\nEND\n", encoding="utf-8")
+    source = tmp_path / "megascale.csv"
+    pd.DataFrame([
+        {"WT_name": "eligible.pdb", "aa_seq": "AAA", "mut_type": "wt", "ddG_ML": 0.0},
+        {"WT_name": "eligible.pdb", "aa_seq": "ACA", "mut_type": "A2C", "ddG_ML": -1.0},
+        {"WT_name": "invalid.pdb", "aa_seq": "AAA", "mut_type": "wt", "ddG_ML": 0.0},
+        {"WT_name": "invalid.pdb", "aa_seq": "AAC", "mut_type": "A2C", "ddG_ML": -1.0},
+    ]).to_csv(source, index=False)
+    eligible_dir = tmp_path / "eligible_pdbs"
+    inventory = materialize_eligible_structures(source, pdb_dir, eligible_dir)
+    assert inventory["eligible_structure_count"] == 1
+    assert sorted(path.name for path in eligible_dir.glob("*.pdb")) == ["eligible.pdb"]
+
+    bad_clusters = tmp_path / "bad_clusters.tsv"
+    bad_clusters.write_text(
+        "eligible.pdb\teligible.pdb\neligible.pdb\tunreferenced.pdb\n", encoding="utf-8"
+    )
+    qtm = tmp_path / "qtm.tsv"
+    qtm.write_text("", encoding="utf-8")
+    with pytest.raises(RuntimeError, match="exactly the final eligible population"):
+        build_manifest(source, pdb_dir, bad_clusters, qtm, tmp_path / "bad.parquet")
 
 
 def test_selective_archive_extraction_is_checksum_guarded(tmp_path: Path, monkeypatch) -> None:
@@ -489,6 +634,7 @@ def test_evaluate_sequences_produces_neutral_and_legacy_metrics(tmp_path: Path) 
     class DummyModel(nn.Module):
         def __init__(self):
             super().__init__()
+
             class Encoder(nn.Module):
                 def forward(self, coords, padding_mask, confidence):
                     del confidence
@@ -501,6 +647,10 @@ def test_evaluate_sequences_produces_neutral_and_legacy_metrics(tmp_path: Path) 
 
             self.encoder = Encoder()
             self.decoder = Decoder()
+
+        def forward(self, coords, padding_mask, confidence, previous):
+            encoded = self.encoder(coords, padding_mask, confidence)
+            return self.decoder(previous, encoded)
 
     record = SequenceRecord(
         domain_id="d0",

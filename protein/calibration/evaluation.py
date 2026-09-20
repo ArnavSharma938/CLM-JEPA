@@ -22,7 +22,7 @@ def teacher_forced_scores(
     alphabet: Any,
     device: torch.device,
     *,
-    reuse_backbones: bool = True,
+    reuse_backbones: bool = False,
 ) -> dict[str, Any]:
     tokens = batch["tokens"].to(device, non_blocking=True)
     target = tokens[:, 1:]
@@ -34,12 +34,25 @@ def teacher_forced_scores(
     token_count = valid.sum(dim=1)
     predicted = logits.argmax(dim=1)
     correct = ((predicted == target) & valid).sum(dim=1)
-    # One bulk device-to-host transfer avoids a synchronization per sequence.
-    host_nll, host_valid = token_nll.detach().cpu(), valid.detach().cpu()
+    # One packed transfer replaces five device synchronizations per batch.
+    # Token counts are exactly representable at all supported sequence lengths.
+    packed = torch.cat(
+        (
+            sequence_logp[:, None],
+            token_count[:, None].to(sequence_logp.dtype),
+            correct[:, None].to(sequence_logp.dtype),
+            token_nll,
+            valid.to(token_nll.dtype),
+        ),
+        dim=1,
+    ).detach().cpu()
+    width = token_nll.shape[1]
+    host_nll = packed[:, 3 : 3 + width]
+    host_valid = packed[:, 3 + width :].bool()
     return {
-        "sequence_logp": sequence_logp.detach().cpu(),
-        "token_count": token_count.detach().cpu(),
-        "correct": correct.detach().cpu(),
+        "sequence_logp": packed[:, 0],
+        "token_count": packed[:, 1].to(torch.long),
+        "correct": packed[:, 2].to(torch.long),
         "token_nll": [x[m].tolist() for x, m in zip(host_nll, host_valid)],
     }
 

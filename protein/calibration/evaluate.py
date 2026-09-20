@@ -10,7 +10,6 @@ from .checkpointing import restore_trainables
 from .data import load_manifest, preload_coordinate_cache
 from .evaluation import evaluate_sequences, evaluate_variants
 from .modeling import configure_adaptation, load_if1
-from .optimized_forward import enable_if1_evaluation_optimizations
 from .training import _make_loader, seed_everything
 
 
@@ -33,7 +32,6 @@ def main() -> None:
         if args.checkpoint is None:
             raise ValueError("Adapted modes require --checkpoint")
         restore_trainables(model, args.checkpoint)
-    enable_if1_evaluation_optimizations(model)
     device = torch.device("cuda")
     model.to(device).eval()
     test = [record for record in load_manifest(args.manifest) if record.split == "test"]

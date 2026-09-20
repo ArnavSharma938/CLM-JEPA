@@ -27,6 +27,81 @@
     "tmalign_version": "20210224",
     "tmtools_version": "0.3.0"
   },
+  "compact_cluster_tsv_sha256": "62aab5a3f4ae447f0ff05f27fb63d414e9a8171115b76cb20f8c2580a100311c",
+  "compact_counts": {
+    "test": 1440,
+    "train": 11016,
+    "validation": 960
+  },
+  "compact_parent_manifest_sha256": "7fed569afa6b6941ba6480994555840602e4960aa0e15614887120f13fd6409f",
+  "compact_seed": 42,
+  "compact_selection": {
+    "cluster_counts": {
+      "test": 3,
+      "train": 36,
+      "validation": 2
+    },
+    "domains": {
+      "test": [
+        "r10_490_TrROS_Hall",
+        "5JRT",
+        "HHH_rd1_0142",
+        "1A32",
+        "6NS8.pdb_L8K",
+        "HHH_rd1_0244",
+        "1F0M",
+        "HHH_rd1_0949",
+        "2KVS"
+      ],
+      "train": [
+        "2GP8",
+        "2M8J",
+        "HEEH_KT_rd6_0746",
+        "HEEH_KT_rd6_0793",
+        "EHEE_rd2_0372",
+        "6OBK",
+        "1I6C",
+        "1VII",
+        "EEHEE_rd3_0019",
+        "2WQG",
+        "2JVD",
+        "2LHC",
+        "2MKX.pdb_N29S",
+        "2HBB.pdb_pross4",
+        "EA__SEP__run7_1572_0002",
+        "2WXC",
+        "r11_1081_TrROS_Hall",
+        "1IFY",
+        "r4_412_TrROS_Hall",
+        "2N88",
+        "HHH_rd1_0493",
+        "2M7O.pdb_I21A",
+        "2KYB.pdb_G2S",
+        "7JJK",
+        "1I2T",
+        "2EXD",
+        "6EWS",
+        "2MXD",
+        "2MLB.pdb_L43D",
+        "2L33",
+        "1OPS.pdb_V44A",
+        "2MC5",
+        "2LC2",
+        "v2R14S__SEP__R16S_2L3X",
+        "2K2A",
+        "2M2J"
+      ],
+      "validation": [
+        "2LYQ",
+        "1QKH",
+        "1R69",
+        "2LYR",
+        "1ORC",
+        "2LYP.pdb_P41A"
+      ]
+    }
+  },
+  "compact_sequence_ids_sha256": "dad8df9d673659c76a43270c987b83b3b7e327d6a9f7233a68dbfeec5d96821b",
   "counts": {
     "test": 16737,
     "train": 499678,
@@ -40,7 +115,7 @@
   "foldseek_version": null,
   "heldout_to_train_qtm_tsv_sha256": "65557cd5027c77438c5e3728cd512adefe6c87af0dfc4f5ab9d0e7d9e23c34c5",
   "limitation": "The authors did not release their curated split; this is a deterministic reconstruction.",
-  "manifest_sha256": "7fed569afa6b6941ba6480994555840602e4960aa0e15614887120f13fd6409f",
+  "manifest_sha256": "944a0283100205b7e203d4b3cbb87d83d8c27ed3d5464a4f6b9a30ba437a3f2e",
   "population_order": "final eligibility filtering precedes clustering, splitting, and heldout-to-train search",
   "source": "Zenodo 7992926; ProteinDPO Methods reconstruction",
   "source_csv_sha256": "0c7b2bf1f162122d83d5bb39b901cc446e436b5643684ca268f934be145d8398",

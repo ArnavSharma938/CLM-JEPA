@@ -1,0 +1,590 @@
+[
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.prepare_compact_benchmark",
+      "--manifest",
+      "protein/data/megascale_seed42.parquet",
+      "--cluster-tsv",
+      "protein/data/external/foldseek_eligible/clusters_cluster.tsv",
+      "--output-dir",
+      "protein/data/compact_gate1"
+    ],
+    "duration_seconds": 7.617910146713257,
+    "finished_unix": 1789874554.7639668,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/data/compact_gate1/compact_gate1_provenance.json"
+    ],
+    "started_unix": 1789874547.1460574,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.preflight",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--model-checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--output",
+      "protein/runs/megascale_gate1_compact/gate1_compact/preflight.json"
+    ],
+    "duration_seconds": 21.18965220451355,
+    "finished_unix": 1789874575.9545422,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/preflight.json"
+    ],
+    "started_unix": 1789874554.7648907,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.evaluate",
+      "--mode",
+      "base",
+      "--seed",
+      "11",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--model-checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evaluation/base",
+      "--batch-size",
+      "64"
+    ],
+    "duration_seconds": 35.59688854217529,
+    "finished_unix": 1789874611.5527253,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evaluation/base/summary.json"
+    ],
+    "started_unix": 1789874575.9558377,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.training",
+      "--mode",
+      "ft",
+      "--seed",
+      "11",
+      "--lr",
+      "1e-07",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evidence/ft/seed_11",
+      "--checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--epochs",
+      "10",
+      "--no-diagnostics",
+      "--early-stopping-patience-checks",
+      "4",
+      "--minimum-epochs",
+      "2"
+    ],
+    "duration_seconds": 1287.7308239936829,
+    "finished_unix": 1789875899.2845688,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/ft/seed_11/result.json",
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/ft/seed_11/history.json",
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/ft/seed_11/checkpoints/best.pt"
+    ],
+    "started_unix": 1789874611.5537455,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.evaluate",
+      "--mode",
+      "ft",
+      "--seed",
+      "11",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--checkpoint",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evidence/ft/seed_11/checkpoints/best.pt",
+      "--model-checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evaluation/ft/seed_11",
+      "--batch-size",
+      "64"
+    ],
+    "duration_seconds": 37.998613357543945,
+    "finished_unix": 1789875937.284157,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evaluation/ft/seed_11/summary.json"
+    ],
+    "started_unix": 1789875899.2855442,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.training",
+      "--mode",
+      "ft",
+      "--seed",
+      "23",
+      "--lr",
+      "1e-07",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evidence/ft/seed_23",
+      "--checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--epochs",
+      "10",
+      "--no-diagnostics",
+      "--early-stopping-patience-checks",
+      "4",
+      "--minimum-epochs",
+      "2"
+    ],
+    "duration_seconds": 1693.6034898757935,
+    "finished_unix": 1789877630.888833,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/ft/seed_23/result.json",
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/ft/seed_23/history.json",
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/ft/seed_23/checkpoints/best.pt"
+    ],
+    "started_unix": 1789875937.285344,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.evaluate",
+      "--mode",
+      "ft",
+      "--seed",
+      "23",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--checkpoint",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evidence/ft/seed_23/checkpoints/best.pt",
+      "--model-checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evaluation/ft/seed_23",
+      "--batch-size",
+      "64"
+    ],
+    "duration_seconds": 37.9120078086853,
+    "finished_unix": 1789877668.8018413,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evaluation/ft/seed_23/summary.json"
+    ],
+    "started_unix": 1789877630.8898342,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.training",
+      "--mode",
+      "dtft",
+      "--seed",
+      "11",
+      "--lr",
+      "1e-07",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evidence/dtft/seed_11",
+      "--checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--epochs",
+      "10",
+      "--no-diagnostics",
+      "--early-stopping-patience-checks",
+      "4",
+      "--minimum-epochs",
+      "2"
+    ],
+    "duration_seconds": 914.9367122650146,
+    "finished_unix": 1789878583.7397685,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/dtft/seed_11/result.json",
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/dtft/seed_11/history.json",
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/dtft/seed_11/checkpoints/best.pt"
+    ],
+    "started_unix": 1789877668.8030572,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.evaluate",
+      "--mode",
+      "dtft",
+      "--seed",
+      "11",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--checkpoint",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evidence/dtft/seed_11/checkpoints/best.pt",
+      "--model-checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evaluation/dtft/seed_11",
+      "--batch-size",
+      "64"
+    ],
+    "duration_seconds": 35.68041133880615,
+    "finished_unix": 1789878619.4214404,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evaluation/dtft/seed_11/summary.json"
+    ],
+    "started_unix": 1789878583.7410302,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.training",
+      "--mode",
+      "dtft",
+      "--seed",
+      "23",
+      "--lr",
+      "1e-07",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evidence/dtft/seed_23",
+      "--checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--epochs",
+      "10",
+      "--no-diagnostics",
+      "--early-stopping-patience-checks",
+      "4",
+      "--minimum-epochs",
+      "2"
+    ],
+    "duration_seconds": 968.4964246749878,
+    "finished_unix": 1789879587.919346,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/dtft/seed_23/result.json",
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/dtft/seed_23/history.json",
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/dtft/seed_23/checkpoints/best.pt"
+    ],
+    "started_unix": 1789878619.4229226,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.evaluate",
+      "--mode",
+      "dtft",
+      "--seed",
+      "23",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--checkpoint",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evidence/dtft/seed_23/checkpoints/best.pt",
+      "--model-checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evaluation/dtft/seed_23",
+      "--batch-size",
+      "64"
+    ],
+    "duration_seconds": 34.86380100250244,
+    "finished_unix": 1789879622.7848969,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evaluation/dtft/seed_23/summary.json"
+    ],
+    "started_unix": 1789879587.9210966,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.training",
+      "--mode",
+      "lora8",
+      "--seed",
+      "11",
+      "--lr",
+      "3e-05",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora8/seed_11",
+      "--checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--epochs",
+      "10",
+      "--no-diagnostics",
+      "--early-stopping-patience-checks",
+      "4",
+      "--minimum-epochs",
+      "2"
+    ],
+    "duration_seconds": 613.2505724430084,
+    "finished_unix": 1789880236.0367398,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora8/seed_11/result.json",
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora8/seed_11/history.json",
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora8/seed_11/checkpoints/best.pt"
+    ],
+    "started_unix": 1789879622.786168,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.evaluate",
+      "--mode",
+      "lora8",
+      "--seed",
+      "11",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--checkpoint",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora8/seed_11/checkpoints/best.pt",
+      "--model-checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evaluation/lora8/seed_11",
+      "--batch-size",
+      "64"
+    ],
+    "duration_seconds": 35.40031695365906,
+    "finished_unix": 1789880271.4381275,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evaluation/lora8/seed_11/summary.json"
+    ],
+    "started_unix": 1789880236.0378115,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.training",
+      "--mode",
+      "lora8",
+      "--seed",
+      "23",
+      "--lr",
+      "3e-05",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora8/seed_23",
+      "--checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--epochs",
+      "10",
+      "--no-diagnostics",
+      "--early-stopping-patience-checks",
+      "4",
+      "--minimum-epochs",
+      "2"
+    ],
+    "duration_seconds": 592.1402773857117,
+    "finished_unix": 1789880863.5796607,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora8/seed_23/result.json",
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora8/seed_23/history.json",
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora8/seed_23/checkpoints/best.pt"
+    ],
+    "started_unix": 1789880271.4393837,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.evaluate",
+      "--mode",
+      "lora8",
+      "--seed",
+      "23",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--checkpoint",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora8/seed_23/checkpoints/best.pt",
+      "--model-checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evaluation/lora8/seed_23",
+      "--batch-size",
+      "64"
+    ],
+    "duration_seconds": 37.0146586894989,
+    "finished_unix": 1789880900.595473,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evaluation/lora8/seed_23/summary.json"
+    ],
+    "started_unix": 1789880863.5808153,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.training",
+      "--mode",
+      "lora64",
+      "--seed",
+      "11",
+      "--lr",
+      "3e-05",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora64/seed_11",
+      "--checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--epochs",
+      "10",
+      "--no-diagnostics",
+      "--early-stopping-patience-checks",
+      "4",
+      "--minimum-epochs",
+      "2"
+    ],
+    "duration_seconds": 613.292051076889,
+    "finished_unix": 1789881513.8888688,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora64/seed_11/result.json",
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora64/seed_11/history.json",
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora64/seed_11/checkpoints/best.pt"
+    ],
+    "started_unix": 1789880900.5968184,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.evaluate",
+      "--mode",
+      "lora64",
+      "--seed",
+      "11",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--checkpoint",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora64/seed_11/checkpoints/best.pt",
+      "--model-checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evaluation/lora64/seed_11",
+      "--batch-size",
+      "64"
+    ],
+    "duration_seconds": 34.581958532333374,
+    "finished_unix": 1789881548.4720247,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evaluation/lora64/seed_11/summary.json"
+    ],
+    "started_unix": 1789881513.8900669,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.training",
+      "--mode",
+      "lora64",
+      "--seed",
+      "23",
+      "--lr",
+      "3e-05",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora64/seed_23",
+      "--checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--epochs",
+      "10",
+      "--no-diagnostics",
+      "--early-stopping-patience-checks",
+      "4",
+      "--minimum-epochs",
+      "2"
+    ],
+    "duration_seconds": 600.1170935630798,
+    "finished_unix": 1789882148.5906742,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora64/seed_23/result.json",
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora64/seed_23/history.json",
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora64/seed_23/checkpoints/best.pt"
+    ],
+    "started_unix": 1789881548.4735813,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.evaluate",
+      "--mode",
+      "lora64",
+      "--seed",
+      "23",
+      "--manifest",
+      "protein/data/compact_gate1/megascale_gate1_compact_seed42.parquet",
+      "--checkpoint",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evidence/lora64/seed_23/checkpoints/best.pt",
+      "--model-checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--output-dir",
+      "protein/runs/megascale_gate1_compact/gate1_compact/evaluation/lora64/seed_23",
+      "--batch-size",
+      "64"
+    ],
+    "duration_seconds": 36.53622364997864,
+    "finished_unix": 1789882185.128163,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/evaluation/lora64/seed_23/summary.json"
+    ],
+    "started_unix": 1789882148.5919404,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.summarize_compact_gate1",
+      "--root",
+      "protein/runs/megascale_gate1_compact/gate1_compact",
+      "--output",
+      "protein/runs/megascale_gate1_compact/gate1_compact/gate1_summary.json"
+    ],
+    "duration_seconds": 0.199080228805542,
+    "finished_unix": 1789882185.329323,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_gate1_compact/gate1_compact/gate1_summary.json"
+    ],
+    "started_unix": 1789882185.1302438,
+    "status": "complete"
+  }
+]

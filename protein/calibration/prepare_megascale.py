@@ -306,6 +306,72 @@ def _load_tm_structures(pdb_dir: Path) -> list[tuple[str, np.ndarray, str]]:
     return result
 
 
+def seed_tmalign_subset_cache(
+    pdb_dir: Path,
+    work_dir: Path,
+    parent_pdb_dir: Path,
+    parent_work_dir: Path,
+) -> dict[str, int | str]:
+    """Reuse exact independent pairwise scores for a strict population subset."""
+    paths = sorted(
+        path for path in pdb_dir.iterdir()
+        if path.suffix.lower() in {".pdb", ".cif", ".mmcif"}
+    )
+    parent_paths = sorted(
+        path for path in parent_pdb_dir.iterdir()
+        if path.suffix.lower() in {".pdb", ".cif", ".mmcif"}
+    )
+    names = [_domain_key(path.name) for path in paths]
+    parent_names = [_domain_key(path.name) for path in parent_paths]
+    parent_index = {name: index for index, name in enumerate(parent_names)}
+    if len(parent_index) != len(parent_names) or not set(names) <= set(parent_names):
+        raise RuntimeError("Eligible structures are not an unambiguous subset of parent TM-align inputs")
+    indices = np.asarray([parent_index[name] for name in names], dtype=np.int64)
+    parent_scores_path = parent_work_dir / "tmalign_query_normalized_scores.npy"
+    parent_coverage_path = parent_work_dir / "tmalign_minimum_span_coverage.npy"
+    parent_scores = np.load(parent_scores_path, allow_pickle=False, mmap_mode="r")
+    parent_coverage = np.load(parent_coverage_path, allow_pickle=False, mmap_mode="r")
+    expected_shape = (len(parent_names), len(parent_names))
+    if parent_scores.shape != expected_shape or parent_coverage.shape != expected_shape:
+        raise RuntimeError("Parent TM-align matrices disagree with parent structure inventory")
+    scores = np.asarray(parent_scores[np.ix_(indices, indices)], dtype=np.float32)
+    coverage = np.asarray(parent_coverage[np.ix_(indices, indices)], dtype=np.float32)
+    work_dir.mkdir(parents=True, exist_ok=True)
+    rows_dir = work_dir / "tmalign_rows_v2"
+    rows_dir.mkdir(exist_ok=True)
+    state = {
+        "structure_inventory_sha256": _structure_inventory_sha256(paths),
+        "structure_count": len(paths),
+        "tmtools_version": importlib.metadata.version("tmtools"),
+        "row_schema": 2,
+    }
+    (rows_dir / "state.json").write_text(
+        json.dumps(state, indent=2, sort_keys=True), encoding="utf-8"
+    )
+    for index in range(len(paths) - 1):
+        temporary = rows_dir / f"{index:04}.npz.tmp"
+        with temporary.open("wb") as handle:
+            np.savez_compressed(
+                handle,
+                forward=scores[index, index + 1 :],
+                reverse=scores[index + 1 :, index],
+                minimum_coverage=coverage[index, index + 1 :],
+            )
+        os.replace(temporary, rows_dir / f"{index:04}.npz")
+    provenance = {
+        "method": "exact principal submatrix of independently computed all-pairs TM-align scores",
+        "parent_structure_count": len(parent_names),
+        "eligible_structure_count": len(names),
+        "parent_score_matrix_sha256": _sha256(parent_scores_path),
+        "parent_coverage_matrix_sha256": _sha256(parent_coverage_path),
+        "eligible_structure_inventory_sha256": state["structure_inventory_sha256"],
+    }
+    (work_dir / "pairwise_subset_provenance.json").write_text(
+        json.dumps(provenance, indent=2, sort_keys=True), encoding="utf-8"
+    )
+    return provenance
+
+
 def _init_tm_workers(structures: list[tuple[str, np.ndarray, str]]) -> None:
     global _TM_STRUCTURES
     _TM_STRUCTURES = structures
@@ -483,6 +549,11 @@ def tmalign_fallback_cluster(
         "coverage_matrix_sha256": _sha256(coverage_path),
         "limitation": "Strong Windows fallback; not FoldSeek 8.ef4e960 and not method-identical to ProteinDPO.",
     }
+    subset_provenance = work_dir / "pairwise_subset_provenance.json"
+    if subset_provenance.exists():
+        metadata["pairwise_score_provenance"] = json.loads(
+            subset_provenance.read_text(encoding="utf-8")
+        )
     cluster_path.with_suffix(cluster_path.suffix + ".metadata.json").write_text(
         json.dumps(metadata, indent=2, sort_keys=True), encoding="utf-8"
     )
@@ -500,15 +571,8 @@ def _parse_substitutions(value: str) -> list[re.Match[str]] | None:
 _mutations = _parse_substitutions
 
 
-def build_manifest(
-    source_csv: Path,
-    pdb_dir: Path,
-    cluster_tsv: Path,
-    qtm_tsv: Path,
-    output: Path,
-    *,
-    seed: int = 42,
-) -> dict[str, int]:
+def curate_eligible_rows(source_csv: Path, pdb_dir: Path) -> pd.DataFrame:
+    """Apply every study eligibility rule before structural operations."""
     required = {"WT_name", "aa_seq", "mut_type", "ddG_ML"}
     frame = pd.read_csv(source_csv, usecols=sorted(required), low_memory=False)
     missing = required - set(frame.columns)
@@ -520,34 +584,38 @@ def build_manifest(
         .set_index("WT_name")["aa_seq"]
         .to_dict()
     )
+    native_by_domain = {_domain_key(str(key)): str(value) for key, value in native.items()}
+    if len(native_by_domain) != len(native):
+        raise RuntimeError("Native domain identifiers collide after filename normalization")
     frame["ddG_ML"] = pd.to_numeric(frame["ddG_ML"], errors="coerce")
     frame = frame.dropna(subset=["WT_name", "aa_seq", "mut_type", "ddG_ML"]).copy()
-    # The released table uses availability of the ML-qualified value to mark
-    # measurements considered reliable for machine learning.
     frame["parsed_substitutions"] = frame["mut_type"].map(_parse_substitutions)
     frame = frame[frame["parsed_substitutions"].notna()].copy()
     frame = frame.drop_duplicates(subset=["WT_name", "aa_seq"], keep="first")
-    native_by_domain = {_domain_key(str(key)): value for key, value in native.items()}
-    if len(native_by_domain) != len(native):
-        raise RuntimeError("Native domain identifiers collide after filename normalization")
-    splits = assign_cluster_splits(cluster_tsv, seed)
-    qtm = read_query_tm(qtm_tsv)
-    rows = []
+    structures: dict[str, Path] = {}
+    for path in pdb_dir.iterdir():
+        if path.suffix.lower() not in {".pdb", ".cif", ".mmcif"}:
+            continue
+        key = _domain_key(path.name)
+        if key in structures:
+            raise RuntimeError(f"Ambiguous structure basename after normalization: {key}")
+        structures[key] = path.resolve()
+    rows: list[dict[str, object]] = []
     for item in frame.itertuples(index=False):
         raw_domain = str(item.WT_name)
         domain = _domain_key(raw_domain)
         structure_domain = _structure_key(raw_domain)
-        if domain not in native_by_domain or structure_domain not in splits:
+        if domain not in native_by_domain:
             continue
         variant = str(item.aa_seq)
-        wildtype = str(native_by_domain[domain])
+        wildtype = native_by_domain[domain]
         matches = item.parsed_substitutions
         if len(variant) != len(wildtype) or any(match is None for match in matches):
             continue
         observed = sum(a != b for a, b in zip(wildtype, variant))
         if observed != len(matches) or observed not in (1, 2):
             continue
-        substitution_positions = set()
+        substitution_positions: set[int] = set()
         valid_substitutions = True
         for match in matches:
             assert match is not None
@@ -561,32 +629,118 @@ def build_manifest(
                 valid_substitutions = False
                 break
             substitution_positions.add(position)
-        changed_positions = {index for index, (left, right) in enumerate(zip(wildtype, variant)) if left != right}
+        changed_positions = {
+            index for index, (left, right) in enumerate(zip(wildtype, variant)) if left != right
+        }
         if not valid_substitutions or substitution_positions != changed_positions:
             continue
-        structure = pdb_dir / structure_domain
-        if not structure.is_file():
-            alternatives = list(pdb_dir.glob(f"{structure_domain}.*"))
-            if len(alternatives) != 1:
-                raise FileNotFoundError(f"Could not uniquely resolve structure for {structure_domain}")
-            structure = alternatives[0]
-        split = splits[structure_domain]
-        maximum = 1.0 if split == "train" else qtm.get(structure_domain)
-        if maximum is None:
-            raise RuntimeError(f"Missing query-normalized train similarity for held-out domain {domain}")
-        identifier = hashlib.sha256(f"{domain}\0{variant}".encode()).hexdigest()[:24]
+        structure = structures.get(structure_domain)
+        if structure is None:
+            raise FileNotFoundError(f"Could not uniquely resolve structure for {structure_domain}")
         rows.append({
             "domain_id": domain,
-            "sequence_id": identifier,
-            "split": split,
-            "backbone_path": str(Path(os.path.relpath(structure, output.parent))),
-            "chain_id": "A",
+            "structure_domain": structure_domain,
+            "structure_path": structure.resolve(),
             "native_sequence": wildtype,
             "target_sequence": variant,
-            "variant_sequence": variant,
             "ddg": float(item.ddG_ML),
             "substitution_count": observed,
-            "mutation_count": observed,
+        })
+    if not rows:
+        raise RuntimeError("Curation produced no valid single/double-substitution records")
+    return pd.DataFrame(rows)
+
+
+def materialize_eligible_structures(
+    source_csv: Path, pdb_dir: Path, output_dir: Path
+) -> dict[str, int | str]:
+    """Create the exact structure population that may influence clustering."""
+    eligible = curate_eligible_rows(source_csv, pdb_dir)
+    structures = (
+        eligible[["structure_domain", "structure_path"]]
+        .drop_duplicates()
+        .sort_values("structure_domain")
+    )
+    if structures["structure_domain"].duplicated().any():
+        raise RuntimeError("Eligible structure identifiers are ambiguous")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    expected_names: set[str] = set()
+    for row in structures.itertuples(index=False):
+        source = Path(row.structure_path)
+        destination = output_dir / source.name
+        expected_names.add(source.name)
+        if destination.exists():
+            if not os.path.samefile(destination, source):
+                raise RuntimeError(f"Refusing to replace eligible structure input: {destination}")
+        else:
+            try:
+                os.link(source, destination)
+            except OSError:
+                destination.symlink_to(source)
+    unexpected = sorted(
+        path.name for path in output_dir.iterdir()
+        if path.name not in expected_names and path.name != "eligibility.json"
+    )
+    if unexpected:
+        raise RuntimeError(f"Eligible structure directory contains excluded entries: {unexpected[:5]}")
+    structure_paths = sorted(output_dir / name for name in expected_names)
+    result: dict[str, int | str] = {
+        "eligible_record_count": len(eligible),
+        "eligible_domain_count": int(eligible["domain_id"].nunique()),
+        "eligible_structure_count": len(structure_paths),
+        "eligible_structure_inventory_sha256": _structure_inventory_sha256(structure_paths),
+        "source_csv_sha256": _sha256(source_csv),
+    }
+    (output_dir / "eligibility.json").write_text(
+        json.dumps(result, indent=2, sort_keys=True), encoding="utf-8"
+    )
+    return result
+
+
+def build_manifest(
+    source_csv: Path,
+    pdb_dir: Path,
+    cluster_tsv: Path,
+    qtm_tsv: Path,
+    output: Path,
+    *,
+    seed: int = 42,
+) -> dict[str, int]:
+    frame = curate_eligible_rows(source_csv, pdb_dir)
+    splits = assign_cluster_splits(cluster_tsv, seed)
+    eligible_structures = set(frame["structure_domain"])
+    if set(splits) != eligible_structures:
+        raise RuntimeError(
+            "Structural clusters must contain exactly the final eligible population; "
+            f"excluded={sorted(set(splits) - eligible_structures)[:5]}, "
+            f"missing={sorted(eligible_structures - set(splits))[:5]}"
+        )
+    qtm = read_query_tm(qtm_tsv)
+    heldout = {name for name, split in splits.items() if split != "train"}
+    if set(qtm) != heldout:
+        raise RuntimeError(
+            "Held-out structural distances must contain exactly eligible held-out structures; "
+            f"extra={sorted(set(qtm) - heldout)[:5]}, missing={sorted(heldout - set(qtm))[:5]}"
+        )
+    rows = []
+    for item in frame.itertuples(index=False):
+        split = splits[item.structure_domain]
+        maximum = 1.0 if split == "train" else qtm.get(item.structure_domain)
+        if maximum is None:
+            raise RuntimeError(f"Missing query-normalized train similarity for held-out domain {item.domain_id}")
+        identifier = hashlib.sha256(f"{item.domain_id}\0{item.target_sequence}".encode()).hexdigest()[:24]
+        rows.append({
+            "domain_id": item.domain_id,
+            "sequence_id": identifier,
+            "split": split,
+            "backbone_path": str(Path(os.path.relpath(item.structure_path, output.parent))),
+            "chain_id": "A",
+            "native_sequence": item.native_sequence,
+            "target_sequence": item.target_sequence,
+            "variant_sequence": item.target_sequence,
+            "ddg": item.ddg,
+            "substitution_count": item.substitution_count,
+            "mutation_count": item.substitution_count,
             "foldseek_qtm_max_to_train": float(maximum),
         })
     if not rows:
@@ -619,6 +773,10 @@ def build_manifest(
         "cluster_tsv_sha256": _sha256(cluster_tsv),
         "heldout_to_train_qtm_tsv_sha256": _sha256(qtm_tsv),
         "counts": counts,
+        "eligible_record_count": len(frame),
+        "eligible_domain_count": int(frame["domain_id"].nunique()),
+        "eligible_structure_count": len(eligible_structures),
+        "population_order": "final eligibility filtering precedes clustering, splitting, and heldout-to-train search",
         "limitation": "The authors did not release their curated split; this is a deterministic reconstruction.",
     }
     output.with_suffix(output.suffix + ".metadata.json").write_text(
@@ -635,6 +793,10 @@ def main() -> None:
     extract = commands.add_parser("extract")
     extract.add_argument("--download-dir", type=Path, required=True)
     extract.add_argument("--output-dir", type=Path, required=True)
+    eligible = commands.add_parser("eligible")
+    eligible.add_argument("--source-csv", type=Path, required=True)
+    eligible.add_argument("--pdb-dir", type=Path, required=True)
+    eligible.add_argument("--output-dir", type=Path, required=True)
     plan = commands.add_parser("foldseek-plan")
     plan.add_argument("--pdb-dir", type=Path, required=True)
     plan.add_argument("--work-dir", type=Path, required=True)
@@ -647,6 +809,11 @@ def main() -> None:
     fallback.add_argument("--pdb-dir", type=Path, required=True)
     fallback.add_argument("--work-dir", type=Path, required=True)
     fallback.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 2) - 1))
+    subset = commands.add_parser("tmalign-subset-cache")
+    subset.add_argument("--pdb-dir", type=Path, required=True)
+    subset.add_argument("--work-dir", type=Path, required=True)
+    subset.add_argument("--parent-pdb-dir", type=Path, required=True)
+    subset.add_argument("--parent-work-dir", type=Path, required=True)
     manifest = commands.add_parser("manifest")
     manifest.add_argument("--source-csv", type=Path, required=True)
     manifest.add_argument("--pdb-dir", type=Path, required=True)
@@ -658,12 +825,18 @@ def main() -> None:
         download_published_data(args.output_dir)
     elif args.command == "extract":
         print(extract_published_data(args.download_dir, args.output_dir))
+    elif args.command == "eligible":
+        print(materialize_eligible_structures(args.source_csv, args.pdb_dir, args.output_dir))
     elif args.command == "foldseek-plan":
         write_foldseek_plan(args.pdb_dir, args.work_dir, args.output)
     elif args.command == "materialize-search-dirs":
         print(materialize_search_directories(args.pdb_dir, args.cluster_tsv, args.work_dir))
     elif args.command == "tmalign-fallback":
         print(tmalign_fallback_cluster(args.pdb_dir, args.work_dir, workers=args.workers))
+    elif args.command == "tmalign-subset-cache":
+        print(seed_tmalign_subset_cache(
+            args.pdb_dir, args.work_dir, args.parent_pdb_dir, args.parent_work_dir
+        ))
     else:
         print(build_manifest(args.source_csv, args.pdb_dir, args.cluster_tsv, args.qtm_tsv, args.output))
 

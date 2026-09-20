@@ -70,6 +70,12 @@ def _read_rows(path: Path) -> list[dict[str, Any]]:
     raise ValueError("Calibration manifest must be .jsonl or .parquet")
 
 
+def _manifest_path(root: Path, value: Any) -> Path:
+    """Resolve manifest-relative paths written on either Windows or POSIX."""
+    relative = str(value).replace("\\", "/")
+    return (root / Path(relative)).resolve()
+
+
 def load_manifest(path: Path, *, require_protein_dpo_provenance: bool = True) -> list[SequenceRecord]:
     metadata_path = path.with_suffix(path.suffix + ".metadata.json")
     if not metadata_path.exists():
@@ -112,12 +118,16 @@ def load_manifest(path: Path, *, require_protein_dpo_provenance: bool = True) ->
             unmet.add("substitution_count|mutation_count")
         raise ValueError(f"Manifest is missing columns: {sorted(unmet)}")
     root = path.parent
+    resolved_backbones = {
+        value: _manifest_path(root, value)
+        for value in {str(row["backbone_path"]) for row in rows}
+    }
     records = [
         SequenceRecord(
             domain_id=str(row["domain_id"]),
             sequence_id=str(row["sequence_id"]),
             split=str(row["split"]),
-            backbone_path=(root / str(row["backbone_path"])).resolve(),
+            backbone_path=resolved_backbones[str(row["backbone_path"])],
             chain_id=str(row["chain_id"]),
             native_sequence=str(row["native_sequence"]),
             target_sequence=str(row.get("target_sequence", row.get("variant_sequence"))),
@@ -140,6 +150,7 @@ def validate_records(records: Sequence[SequenceRecord]) -> None:
         split: set() for split in ALLOWED_SPLITS
     }
     seen_ids: set[str] = set()
+    checked_backbone_paths: set[Path] = set()
     for record in records:
         if record.sequence_id in seen_ids:
             raise ValueError(f"Duplicate sequence_id: {record.sequence_id}")
@@ -157,8 +168,10 @@ def validate_records(records: Sequence[SequenceRecord]) -> None:
             raise ValueError(f"Only valid single/double substitutions are allowed: {record.sequence_id}")
         if not 0.0 <= record.foldseek_qtm_max_to_train <= 1.0:
             raise ValueError(f"Invalid query-normalized TM-score: {record.sequence_id}")
-        if not record.backbone_path.is_file():
-            raise FileNotFoundError(record.backbone_path)
+        if record.backbone_path not in checked_backbone_paths:
+            if not record.backbone_path.is_file():
+                raise FileNotFoundError(record.backbone_path)
+            checked_backbone_paths.add(record.backbone_path)
     for left in ALLOWED_SPLITS:
         for right in ALLOWED_SPLITS:
             if left < right and domains_by_split[left] & domains_by_split[right]:

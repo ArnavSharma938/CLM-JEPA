@@ -40,7 +40,16 @@
   "foldseek_version": null,
   "heldout_to_train_qtm_tsv_sha256": "65557cd5027c77438c5e3728cd512adefe6c87af0dfc4f5ab9d0e7d9e23c34c5",
   "limitation": "The authors did not release their curated split; this is a deterministic reconstruction.",
-  "manifest_sha256": "7fed569afa6b6941ba6480994555840602e4960aa0e15614887120f13fd6409f",
+  "manifest_sha256": "b97cddbb523b58c8a897032c5b59bb71f02ab7ce6c63a42bd7ecfdc6f7e9563f",
+  "pilot_parent_manifest_sha256": "7fed569afa6b6941ba6480994555840602e4960aa0e15614887120f13fd6409f",
+  "pilot_seed": 42,
+  "pilot_selection_unit": "whole_backbone_with_all_associated_domains",
+  "pilot_stratification": [
+    "record_count_quartile",
+    "sequence_length_quartile",
+    "stabilizing_fraction_quartile"
+  ],
+  "pilot_training_fraction_target": 0.1,
   "population_order": "final eligibility filtering precedes clustering, splitting, and heldout-to-train search",
   "source": "Zenodo 7992926; ProteinDPO Methods reconstruction",
   "source_csv_sha256": "0c7b2bf1f162122d83d5bb39b901cc446e436b5643684ca268f934be145d8398",

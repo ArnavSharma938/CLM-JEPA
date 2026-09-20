@@ -1,0 +1,1038 @@
+{
+  "device": "NVIDIA RTX A6000",
+  "batch_size": 32,
+  "results": [
+    {
+      "mode": "ft",
+      "steps": 8,
+      "wall_seconds": 5.064981734380126,
+      "seconds_per_step": 0.6331227167975157,
+      "sequences_per_second": 50.543124027934994,
+      "data_wait_seconds_per_step": 0.0012816725065931678,
+      "stage_ms_per_step": {
+        "forward": 275.25632095336914,
+        "backward": 334.34675216674805,
+        "optimizer": 18.863871812820435
+      },
+      "peak_allocated_bytes": 15840853504,
+      "peak_reserved_bytes": 18071158784,
+      "trainable_scalars": 141662150,
+      "top_operators": [
+        {
+          "name": "aten::randperm",
+          "calls": 2,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 2.716,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::empty",
+          "calls": 5096,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 29.903,
+          "cuda_memory_bytes": 25110960128
+        },
+        {
+          "name": "aten::scalar_tensor",
+          "calls": 161,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.826,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::resize_",
+          "calls": 447,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 2.751,
+          "cuda_memory_bytes": 15742446080
+        },
+        {
+          "name": "aten::resolve_conj",
+          "calls": 1,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.001,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::resolve_neg",
+          "calls": 1,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.0,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "[memory]",
+          "calls": 7488,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.0,
+          "cuda_memory_bytes": -114605643264
+        },
+        {
+          "name": "enumerate(DataLoader)#_MultiProcessingDataLoaderIter.__next__",
+          "calls": 6,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 104.878,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::to",
+          "calls": 6951,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 24.821,
+          "cuda_memory_bytes": 85488335872
+        },
+        {
+          "name": "aten::_to_copy",
+          "calls": 6256,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 75.881,
+          "cuda_memory_bytes": 85488335872
+        },
+        {
+          "name": "aten::empty_strided",
+          "calls": 6966,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 54.307,
+          "cuda_memory_bytes": 86912266240
+        },
+        {
+          "name": "aten::copy_",
+          "calls": 8286,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 797.169,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::record_stream",
+          "calls": 30,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.084,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::slice",
+          "calls": 1695,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 11.24,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::as_strided",
+          "calls": 11680,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 17.755,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::isfinite",
+          "calls": 130,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 3.35,
+          "cuda_memory_bytes": 32302080
+        },
+        {
+          "name": "aten::abs",
+          "calls": 270,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 10.942,
+          "cuda_memory_bytes": 132275200
+        },
+        {
+          "name": "aten::ne",
+          "calls": 145,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 9.554,
+          "cuda_memory_bytes": 16581120
+        },
+        {
+          "name": "aten::eq",
+          "calls": 135,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 5.7,
+          "cuda_memory_bytes": 16225280
+        },
+        {
+          "name": "aten::mul",
+          "calls": 1495,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 77.384,
+          "cuda_memory_bytes": 46806845440
+        },
+        {
+          "name": "aten::all",
+          "calls": 10,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 1.361,
+          "cuda_memory_bytes": 48640
+        },
+        {
+          "name": "aten::lift_fresh",
+          "calls": 135,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.016,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::detach_",
+          "calls": 125,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.331,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "detach_",
+          "calls": 125,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.162,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::bitwise_not",
+          "calls": 170,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 7.41,
+          "cuda_memory_bytes": 19297280
+        },
+        {
+          "name": "aten::where",
+          "calls": 125,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 7.573,
+          "cuda_memory_bytes": 65489920
+        },
+        {
+          "name": "aten::add",
+          "calls": 980,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 50.325,
+          "cuda_memory_bytes": 15173859840
+        },
+        {
+          "name": "aten::embedding",
+          "calls": 10,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.322,
+          "cuda_memory_bytes": 47841280
+        },
+        {
+          "name": "aten::reshape",
+          "calls": 3610,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 18.421,
+          "cuda_memory_bytes": 15169346560
+        },
+        {
+          "name": "aten::view",
+          "calls": 5900,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 29.576,
+          "cuda_memory_bytes": 0
+        }
+      ]
+    },
+    {
+      "mode": "dtft",
+      "steps": 8,
+      "wall_seconds": 4.2533367751166224,
+      "seconds_per_step": 0.5316670968895778,
+      "sequences_per_second": 60.188039070332195,
+      "data_wait_seconds_per_step": 0.0011831416049972177,
+      "stage_ms_per_step": {
+        "forward": 405.0177345275879,
+        "backward": 115.12652778625488,
+        "optimizer": 6.520191967487335
+      },
+      "peak_allocated_bytes": 4163127296,
+      "peak_reserved_bytes": 6757023744,
+      "trainable_scalars": 58720256,
+      "top_operators": [
+        {
+          "name": "aten::randperm",
+          "calls": 2,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 3.772,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::empty",
+          "calls": 4146,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 26.505,
+          "cuda_memory_bytes": 11658984960
+        },
+        {
+          "name": "aten::scalar_tensor",
+          "calls": 161,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 1.034,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::resize_",
+          "calls": 427,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 2.634,
+          "cuda_memory_bytes": 15900862976
+        },
+        {
+          "name": "aten::resolve_conj",
+          "calls": 1,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.001,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::resolve_neg",
+          "calls": 1,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.0,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "[memory]",
+          "calls": 7811,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.0,
+          "cuda_memory_bytes": -135768786432
+        },
+        {
+          "name": "enumerate(DataLoader)#_MultiProcessingDataLoaderIter.__next__",
+          "calls": 6,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 159.082,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::to",
+          "calls": 5031,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 18.034,
+          "cuda_memory_bytes": 40599103488
+        },
+        {
+          "name": "aten::_to_copy",
+          "calls": 4506,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 58.355,
+          "cuda_memory_bytes": 40599103488
+        },
+        {
+          "name": "aten::empty_strided",
+          "calls": 5216,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 43.185,
+          "cuda_memory_bytes": 42036397568
+        },
+        {
+          "name": "aten::copy_",
+          "calls": 6186,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 1380.815,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::record_stream",
+          "calls": 30,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.073,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::slice",
+          "calls": 1015,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 7.712,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::as_strided",
+          "calls": 8705,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 13.093,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::isfinite",
+          "calls": 130,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 3.521,
+          "cuda_memory_bytes": 26168832
+        },
+        {
+          "name": "aten::abs",
+          "calls": 270,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 10.085,
+          "cuda_memory_bytes": 126213120
+        },
+        {
+          "name": "aten::ne",
+          "calls": 145,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 9.216,
+          "cuda_memory_bytes": 20165120
+        },
+        {
+          "name": "aten::eq",
+          "calls": 135,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 6.335,
+          "cuda_memory_bytes": 20362240
+        },
+        {
+          "name": "aten::mul",
+          "calls": 645,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 31.934,
+          "cuda_memory_bytes": 5011933184
+        },
+        {
+          "name": "aten::all",
+          "calls": 10,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.606,
+          "cuda_memory_bytes": 48640
+        },
+        {
+          "name": "aten::lift_fresh",
+          "calls": 135,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.025,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::detach_",
+          "calls": 125,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.52,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "detach_",
+          "calls": 125,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.212,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::bitwise_not",
+          "calls": 170,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 8.021,
+          "cuda_memory_bytes": 22881280
+        },
+        {
+          "name": "aten::where",
+          "calls": 125,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 8.242,
+          "cuda_memory_bytes": 62458880
+        },
+        {
+          "name": "aten::add",
+          "calls": 860,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 47.62,
+          "cuda_memory_bytes": 8130545152
+        },
+        {
+          "name": "aten::embedding",
+          "calls": 10,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.223,
+          "cuda_memory_bytes": 52183040
+        },
+        {
+          "name": "aten::reshape",
+          "calls": 2985,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 16.994,
+          "cuda_memory_bytes": 3416400896
+        },
+        {
+          "name": "aten::view",
+          "calls": 4505,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 26.092,
+          "cuda_memory_bytes": 0
+        }
+      ]
+    },
+    {
+      "mode": "lora8",
+      "steps": 8,
+      "wall_seconds": 6.772514657117426,
+      "seconds_per_step": 0.8465643321396783,
+      "sequences_per_second": 37.79984436518899,
+      "data_wait_seconds_per_step": 0.001225541578605771,
+      "stage_ms_per_step": {
+        "forward": 516.9562911987305,
+        "backward": 319.399808883667,
+        "optimizer": 5.1477760672569275
+      },
+      "peak_allocated_bytes": 3706764288,
+      "peak_reserved_bytes": 6184501248,
+      "trainable_scalars": 1441792,
+      "top_operators": [
+        {
+          "name": "aten::randperm",
+          "calls": 2,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 3.278,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::empty",
+          "calls": 3336,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 26.62,
+          "cuda_memory_bytes": 9855280640
+        },
+        {
+          "name": "aten::scalar_tensor",
+          "calls": 1,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.01,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::resize_",
+          "calls": 427,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 3.104,
+          "cuda_memory_bytes": 15735050752
+        },
+        {
+          "name": "aten::resolve_conj",
+          "calls": 1,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.001,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::resolve_neg",
+          "calls": 1,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.0,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "[memory]",
+          "calls": 10648,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.0,
+          "cuda_memory_bytes": -143119901184
+        },
+        {
+          "name": "enumerate(DataLoader)#_MultiProcessingDataLoaderIter.__next__",
+          "calls": 6,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 158.482,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::to",
+          "calls": 8201,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 30.87,
+          "cuda_memory_bytes": 43973856768
+        },
+        {
+          "name": "aten::_to_copy",
+          "calls": 7596,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 109.237,
+          "cuda_memory_bytes": 43973856768
+        },
+        {
+          "name": "aten::empty_strided",
+          "calls": 8346,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 75.924,
+          "cuda_memory_bytes": 45684556800
+        },
+        {
+          "name": "aten::copy_",
+          "calls": 8946,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 1520.932,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::record_stream",
+          "calls": 30,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.195,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::slice",
+          "calls": 695,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 5.609,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::as_strided",
+          "calls": 12715,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 23.426,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::isfinite",
+          "calls": 130,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 4.093,
+          "cuda_memory_bytes": 28499456
+        },
+        {
+          "name": "aten::abs",
+          "calls": 270,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 11.063,
+          "cuda_memory_bytes": 126213120
+        },
+        {
+          "name": "aten::ne",
+          "calls": 145,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 10.108,
+          "cuda_memory_bytes": 19038720
+        },
+        {
+          "name": "aten::eq",
+          "calls": 135,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 6.976,
+          "cuda_memory_bytes": 15754240
+        },
+        {
+          "name": "aten::mul",
+          "calls": 2085,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 129.115,
+          "cuda_memory_bytes": 9872541184
+        },
+        {
+          "name": "aten::all",
+          "calls": 10,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.891,
+          "cuda_memory_bytes": 48640
+        },
+        {
+          "name": "aten::lift_fresh",
+          "calls": 135,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.02,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::detach_",
+          "calls": 125,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.433,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "detach_",
+          "calls": 125,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.283,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::bitwise_not",
+          "calls": 170,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 9.334,
+          "cuda_memory_bytes": 19194880
+        },
+        {
+          "name": "aten::where",
+          "calls": 125,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 9.307,
+          "cuda_memory_bytes": 62458880
+        },
+        {
+          "name": "aten::add",
+          "calls": 1660,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 97.624,
+          "cuda_memory_bytes": 11115793920
+        },
+        {
+          "name": "aten::embedding",
+          "calls": 10,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.249,
+          "cuda_memory_bytes": 47841280
+        },
+        {
+          "name": "aten::reshape",
+          "calls": 6805,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 30.893,
+          "cuda_memory_bytes": 3016550400
+        },
+        {
+          "name": "aten::view",
+          "calls": 8215,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 52.65,
+          "cuda_memory_bytes": 0
+        }
+      ]
+    },
+    {
+      "mode": "lora64",
+      "steps": 8,
+      "wall_seconds": 6.6930743381381035,
+      "seconds_per_step": 0.8366342922672629,
+      "sequences_per_second": 38.248491958512254,
+      "data_wait_seconds_per_step": 0.0012559236492961645,
+      "stage_ms_per_step": {
+        "forward": 526.2351264953613,
+        "backward": 298.83993339538574,
+        "optimizer": 6.76800000667572
+      },
+      "peak_allocated_bytes": 3824752640,
+      "peak_reserved_bytes": 6341787648,
+      "trainable_scalars": 11534336,
+      "top_operators": [
+        {
+          "name": "aten::randperm",
+          "calls": 2,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 3.039,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::empty",
+          "calls": 3336,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 24.005,
+          "cuda_memory_bytes": 9680356864
+        },
+        {
+          "name": "aten::scalar_tensor",
+          "calls": 1,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.011,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::resize_",
+          "calls": 427,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 2.784,
+          "cuda_memory_bytes": 15721400832
+        },
+        {
+          "name": "aten::resolve_conj",
+          "calls": 1,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.002,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::resolve_neg",
+          "calls": 1,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.0,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "[memory]",
+          "calls": 10631,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.0,
+          "cuda_memory_bytes": -143352280064
+        },
+        {
+          "name": "enumerate(DataLoader)#_MultiProcessingDataLoaderIter.__next__",
+          "calls": 6,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 141.645,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::to",
+          "calls": 8201,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 28.287,
+          "cuda_memory_bytes": 44138448896
+        },
+        {
+          "name": "aten::_to_copy",
+          "calls": 7596,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 95.823,
+          "cuda_memory_bytes": 44138448896
+        },
+        {
+          "name": "aten::empty_strided",
+          "calls": 8346,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 67.741,
+          "cuda_memory_bytes": 45843592704
+        },
+        {
+          "name": "aten::copy_",
+          "calls": 8946,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 1463.186,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::record_stream",
+          "calls": 30,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.074,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::slice",
+          "calls": 695,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 5.558,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::as_strided",
+          "calls": 12715,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 21.49,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::isfinite",
+          "calls": 130,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 3.979,
+          "cuda_memory_bytes": 18008064
+        },
+        {
+          "name": "aten::abs",
+          "calls": 270,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 10.259,
+          "cuda_memory_bytes": 126213120
+        },
+        {
+          "name": "aten::ne",
+          "calls": 145,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 9.125,
+          "cuda_memory_bytes": 16478720
+        },
+        {
+          "name": "aten::eq",
+          "calls": 135,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 6.274,
+          "cuda_memory_bytes": 18805760
+        },
+        {
+          "name": "aten::mul",
+          "calls": 2085,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 115.395,
+          "cuda_memory_bytes": 9812573696
+        },
+        {
+          "name": "aten::all",
+          "calls": 10,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.834,
+          "cuda_memory_bytes": 48640
+        },
+        {
+          "name": "aten::lift_fresh",
+          "calls": 135,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.024,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::detach_",
+          "calls": 125,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.448,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "detach_",
+          "calls": 125,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.166,
+          "cuda_memory_bytes": 0
+        },
+        {
+          "name": "aten::bitwise_not",
+          "calls": 170,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 8.704,
+          "cuda_memory_bytes": 19194880
+        },
+        {
+          "name": "aten::where",
+          "calls": 125,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 8.551,
+          "cuda_memory_bytes": 62458880
+        },
+        {
+          "name": "aten::add",
+          "calls": 1660,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 86.483,
+          "cuda_memory_bytes": 11103346176
+        },
+        {
+          "name": "aten::embedding",
+          "calls": 10,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 0.249,
+          "cuda_memory_bytes": 47841280
+        },
+        {
+          "name": "aten::reshape",
+          "calls": 6805,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 28.745,
+          "cuda_memory_bytes": 2967285760
+        },
+        {
+          "name": "aten::view",
+          "calls": 8215,
+          "self_cuda_ms": 0.0,
+          "cuda_total_ms": 0.0,
+          "self_cpu_ms": 45.437,
+          "cuda_memory_bytes": 0
+        }
+      ]
+    }
+  ]
+}

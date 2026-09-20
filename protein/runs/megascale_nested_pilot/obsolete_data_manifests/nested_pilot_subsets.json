@@ -1,0 +1,33 @@
+{
+  "parent_manifest": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\protein\\data\\megascale_seed42.parquet",
+  "parent_manifest_sha256": "7fed569afa6b6941ba6480994555840602e4960aa0e15614887120f13fd6409f",
+  "seed": 42,
+  "selection_unit": "whole_backbone_with_all_associated_domains",
+  "stratification": [
+    "record_count_quartile",
+    "sequence_length_quartile",
+    "stabilizing_fraction_quartile"
+  ],
+  "subsets": {
+    "10pct": {
+      "path": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\protein\\data\\pilots\\megascale_seed42_train_10pct.parquet",
+      "sha256": "b97cddbb523b58c8a897032c5b59bb71f02ab7ce6c63a42bd7ecfdc6f7e9563f",
+      "stabilizing_training_records": 40621,
+      "total_records": 77273,
+      "training_backbones": 41,
+      "training_domains": 46,
+      "training_fraction_observed": 0.09955811542633455,
+      "training_records": 49747
+    },
+    "25pct": {
+      "path": "C:\\Users\\arnav.DHEERAJACER\\CLM-JEPA\\protein\\data\\pilots\\megascale_seed42_train_25pct.parquet",
+      "sha256": "8273a93b8b77a6b13717e26210c958fef3cb51ef652e30ea77dca3be4c6699f9",
+      "stabilizing_training_records": 103444,
+      "total_records": 152388,
+      "training_backbones": 98,
+      "training_domains": 106,
+      "training_fraction_observed": 0.24988492589227462,
+      "training_records": 124862
+    }
+  }
+}

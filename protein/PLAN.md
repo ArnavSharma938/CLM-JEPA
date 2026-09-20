@@ -1193,7 +1193,32 @@ coordinate sensitivity under Adam
 
 This is more informative than simply comparing final Adam and RITE performance.
 
-# 14. Statistical hierarchy and valid units of evidence
+## 14. Cross-model adaptation and weight-space analysis
+
+In addition to testing whether LoRA underperforms dense adaptation, characterize **how LoRA and dense fine-tuning alter each protein language model internally**, including cases where their downstream performance is similar.
+
+For every model and adaptation condition, analyze the geometry of the learned update and the resulting weights using:
+
+* singular-value spectra, effective rank, and spectral entropy of \(\Delta W\);
+* layerwise distribution of update magnitude and spectral energy;
+* principal-angle/subspace overlap between LoRA, DTFT, and full-FT updates;
+* alignment of each learned update with the dominant gradient and dense-update directions already measured under H1–H3;
+* changes in the singular spectrum of the final adapted weights \(W+\Delta W\), including whether adaptation introduces new dominant singular directions relative to the pretrained model;
+* functional agreement between methods on the same examples, so similar predictions can be distinguished from similar internal adaptation.
+
+Treat **functional similarity and weight-space similarity as separate outcomes**. In particular, do not infer that LoRA and dense fine-tuning learn equivalent solutions merely because their task performance is similar.
+
+When the study is extended across PLMs, apply these diagnostics consistently across model architectures and scales. Use them to determine whether architecture, parameter scale, or adaptation regime changes:
+
+1. the intrinsic rank and compressibility of useful fine-tuning updates;
+2. where adaptation capacity is required across the network;
+3. which subspaces LoRA can access relative to dense fine-tuning;
+4. whether similar downstream behavior is reached through substantially different weight-space solutions.
+
+These analyses extend H1–H4 from explaining a performance gap to characterizing the broader **adaptation geometry of protein language models**, including regimes where no substantial LoRA performance deficit is observed.
+
+
+# 15. Statistical hierarchy and valid units of evidence
 
 The highest-level independent replication is training run/seed.
 
@@ -1254,7 +1279,7 @@ Never copy one run-level diagnostic across many domains and treat that as domain
 
 Use hierarchical/mixed or cluster-robust analyses where appropriate.
 
-# 15. Instrumentation
+# 16. Instrumentation
 
 At every saved checkpoint:
 
@@ -1351,7 +1376,7 @@ Store:
 * nearest-training sequence identity
 * diversity metrics
 
-# 16. Preregistered decision rules
+# 17. Preregistered decision rules
 
 ## Gate 0: target coverage
 
@@ -1399,7 +1424,7 @@ Support H4 if invertibly equivalent LoRA coordinates follow reproducibly differe
 
 Reject as major mechanism if equivalent coordinate systems remain geometrically/functionally indistinguishable under controlled continuation.
 
-# 17. Exact execution order
+# 18. Exact execution order
 
 Follow this order because later tests depend on earlier identifiability gates.
 
@@ -1466,7 +1491,7 @@ Stage 10 — OOD and temporal analysis
 * whether early diagnostics predict later failure
 * how mechanism severity evolves during training
 
-# 18. Compute plan
+# 19. Compute plan
 
 Primary trained adaptation runs:
 
@@ -1507,7 +1532,7 @@ Only mechanisms that survive pilot causal tests receive:
 * seeds 53 and 71
 * larger intervention studies
 
-# 19. Pilot implementation requirements
+# 20. Pilot implementation requirements
 
 Implement only the infrastructure required to run this calibration study cleanly in the current repository. Reuse existing dataset loading, model wrappers, training loops, evaluation utilities, checkpoint infrastructure, external-tool integrations, and logging wherever they already exist; do not build production-grade preprocessing, orchestration, generalized frameworks, or abstractions that are unnecessary for this pilot.
 
@@ -1543,7 +1568,7 @@ Add lightweight correctness checks for the mechanistically important invariants,
 
 Store results in a structured format sufficient for later scientific analysis. Provide concise commands/documentation for running the pilot stages that are actually implemented; do not turn this into a production experiment-management project.
 
-# 20. Results report
+# 21. Results report
 
 At the end, produce a purely scientific and objective report of the observed results, measurements, comparisons, uncertainty, and any experimental limitations. Do not provide an overall interpretation, narrative conclusion, mechanistic verdict, or speculative explanation beyond what is directly established by the measured results and preregistered statistical comparisons.
 

@@ -29,7 +29,7 @@ from .lora import adapter_state
 from .modeling import autocast_context, configure_adaptation, load_if1
 from .optimized_forward import (
     OptimizedIF1Forward,
-    enable_if1_evaluation_optimizations,
+    enable_if1_training_optimizations,
     model_logits,
     prefetch_batches,
 )
@@ -51,6 +51,11 @@ def _worker_seed(worker_id: int) -> None:
     np.random.seed(seed)
 
 
+def target_token_count(batch: dict[str, Any]) -> int:
+    """Count residue and EOS targets without synchronizing an accelerator."""
+    return sum(record.sequence_length + 1 for record in batch["records"])
+
+
 def sequence_nll(
     model: torch.nn.Module,
     batch: dict[str, Any],
@@ -66,21 +71,28 @@ def sequence_nll(
         loss_sum = F.cross_entropy(
             logits.float(), target, reduction="sum", ignore_index=alphabet.padding_idx
         )
-    token_count = int(target.ne(alphabet.padding_idx).sum())
+    # Teacher forcing predicts every residue plus EOS. Deriving this from the
+    # immutable records avoids a device synchronization on every train step.
+    token_count = target_token_count(batch)
     return loss_sum, token_count
 
 
 @torch.inference_mode()
 def validation_nll(model: torch.nn.Module, loader: Iterable[dict[str, Any]], alphabet: Any, device: torch.device) -> float:
     model.eval()
-    loss_sum = 0.0
+    losses: list[torch.Tensor] = []
     token_count = 0
     for batch in prefetch_batches(loader, device):
-        loss, count = sequence_nll(model, batch, alphabet, device, reuse_backbones=True)
-        loss_sum += float(loss)
+        # Keep the exact full-batch encoder arithmetic.  Deduplicating identical
+        # backbones changes BF16 GEMM shapes and is not bit-identical on A6000.
+        loss, count = sequence_nll(model, batch, alphabet, device, reuse_backbones=False)
+        losses.append(loss.detach())
         token_count += count
     if token_count == 0:
         raise RuntimeError("Validation set has zero target tokens")
+    # Transfer scalar batch losses together, then preserve the reference
+    # Python-float summation order exactly.
+    loss_sum = sum(torch.stack(losses).cpu().tolist())
     return loss_sum / token_count
 
 
@@ -189,12 +201,16 @@ def train(config: TrainConfig, checkpoint: Path | None = None) -> dict[str, Any]
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
     model, alphabet = load_if1(checkpoint)
-    initial_targets = {
-        item.name: item.module.weight.detach().to(device="cpu").clone()
-        for item in target_matrices(model)
-    }
+    initial_targets = (
+        {
+            item.name: item.module.weight.detach().to(device="cpu").clone()
+            for item in target_matrices(model)
+        }
+        if config.save_checkpoints else {}
+    )
     counts = configure_adaptation(model, config.mode)
-    enable_if1_evaluation_optimizations(model)
+    if config.mode in {"ft", "dtft", "lora64"}:
+        enable_if1_training_optimizations(model)
     model.to(device)
     records = load_manifest(config.manifest)
     if config.mode != "base" and config.instrument_checkpoints and config.diagnostic_panel is None:
@@ -305,7 +321,7 @@ def train(config: TrainConfig, checkpoint: Path | None = None) -> dict[str, Any]
     global_step = 0
     initial_nll = validation_nll(model, validation_loader, alphabet, device)
     history.append({"step": 0, "epoch": 0.0, "validation_nll": initial_nll})
-    if config.instrument_checkpoints:
+    if config.save_checkpoints:
         save_checkpoint(
             run_dir / "checkpoints" / "epoch_0.pt",
             model,
@@ -314,10 +330,14 @@ def train(config: TrainConfig, checkpoint: Path | None = None) -> dict[str, Any]
             history[-1],
             include_optimizer=config.mode.startswith("lora"),
         )
-        instrument(run_dir / "checkpoints" / "epoch_0.pt")
+        if config.instrument_checkpoints:
+            instrument(run_dir / "checkpoints" / "epoch_0.pt")
     best_nll = initial_nll
+    best_step = 0
+    checks_without_improvement = 0
+    stopped_early = False
     best_path = run_dir / "checkpoints" / "best.pt"
-    if config.instrument_checkpoints:
+    if config.save_checkpoints:
         save_checkpoint(
             best_path,
             model,
@@ -345,7 +365,7 @@ def train(config: TrainConfig, checkpoint: Path | None = None) -> dict[str, Any]
             global_step += 1
             fractional_epoch = epoch_index + batch_index / steps_per_epoch
             label = milestone_steps.get(global_step)
-            if label and config.instrument_checkpoints:
+            if label and config.save_checkpoints:
                 save_checkpoint(
                     run_dir / "checkpoints" / f"{label}.pt",
                     model,
@@ -354,14 +374,17 @@ def train(config: TrainConfig, checkpoint: Path | None = None) -> dict[str, Any]
                     {"step": global_step, "epoch": fractional_epoch},
                     include_optimizer=config.mode.startswith("lora"),
                 )
-                instrument(run_dir / "checkpoints" / f"{label}.pt")
+                if config.instrument_checkpoints:
+                    instrument(run_dir / "checkpoints" / f"{label}.pt")
             if batch_index % validation_interval == 0 or batch_index == steps_per_epoch:
                 value = validation_nll(model, validation_loader, alphabet, device)
                 event = {"step": global_step, "epoch": fractional_epoch, "validation_nll": value}
                 history.append(event)
                 if value < best_nll:
                     best_nll = value
-                    if config.instrument_checkpoints:
+                    best_step = global_step
+                    checks_without_improvement = 0
+                    if config.save_checkpoints:
                         save_checkpoint(
                             best_path,
                             model,
@@ -370,10 +393,22 @@ def train(config: TrainConfig, checkpoint: Path | None = None) -> dict[str, Any]
                             event,
                             include_optimizer=True,
                         )
+                else:
+                    checks_without_improvement += 1
                 model.train()
+                if (
+                    config.early_stopping_patience_checks is not None
+                    and fractional_epoch >= config.minimum_epochs
+                    and checks_without_improvement >= config.early_stopping_patience_checks
+                ):
+                    stopped_early = True
+                    break
         (run_dir / "history.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
-    terminal = {"step": global_step, "epoch": float(config.epochs), "validation_nll": history[-1]["validation_nll"]}
-    if config.epochs == 30 and config.instrument_checkpoints:
+        if stopped_early:
+            break
+    completed_epochs = global_step / steps_per_epoch
+    terminal = {"step": global_step, "epoch": completed_epochs, "validation_nll": history[-1]["validation_nll"]}
+    if config.epochs == 30 and not stopped_early and config.save_checkpoints:
         save_checkpoint(
             run_dir / "checkpoints" / "terminal_epoch_30.pt",
             model,
@@ -382,13 +417,22 @@ def train(config: TrainConfig, checkpoint: Path | None = None) -> dict[str, Any]
             terminal,
             include_optimizer=True,
         )
-        instrument(run_dir / "checkpoints" / "terminal_epoch_30.pt")
-    if config.instrument_checkpoints:
+        if config.instrument_checkpoints:
+            instrument(run_dir / "checkpoints" / "terminal_epoch_30.pt")
+    if config.save_checkpoints:
         from .checkpointing import restore_trainables
 
         restore_trainables(model, best_path)
-        instrument(best_path)
-    result = {"best_validation_nll": best_nll, "steps": global_step, "parameter_counts": counts}
+        if config.instrument_checkpoints:
+            instrument(best_path)
+    result = {
+        "best_validation_nll": best_nll,
+        "best_step": best_step,
+        "steps": global_step,
+        "epochs_completed": completed_epochs,
+        "stopped_early": stopped_early,
+        "parameter_counts": counts,
+    }
     (run_dir / "result.json").write_text(json.dumps(result, indent=2, sort_keys=True), encoding="utf-8")
     return result
 
@@ -403,8 +447,11 @@ def parse_args() -> tuple[TrainConfig, Path | None]:
     parser.add_argument("--checkpoint", type=Path)
     parser.add_argument("--diagnostic-panel", type=Path)
     parser.add_argument("--epochs", type=int, default=30)
-    parser.add_argument("--no-compile", action="store_true")
+    parser.add_argument("--compile", action="store_true")
     parser.add_argument("--no-diagnostics", action="store_true")
+    parser.add_argument("--no-checkpoints", action="store_true")
+    parser.add_argument("--early-stopping-patience-checks", type=int)
+    parser.add_argument("--minimum-epochs", type=float, default=0.0)
     args = parser.parse_args()
     config = TrainConfig(
         mode=args.mode,
@@ -414,8 +461,11 @@ def parse_args() -> tuple[TrainConfig, Path | None]:
         output_dir=args.output_dir,
         diagnostic_panel=args.diagnostic_panel,
         epochs=args.epochs,
-        compile_training=not args.no_compile,
+        compile_training=args.compile,
         instrument_checkpoints=not args.no_diagnostics,
+        save_checkpoints=not args.no_checkpoints,
+        early_stopping_patience_checks=args.early_stopping_patience_checks,
+        minimum_epochs=args.minimum_epochs,
     )
     return config, args.checkpoint
 

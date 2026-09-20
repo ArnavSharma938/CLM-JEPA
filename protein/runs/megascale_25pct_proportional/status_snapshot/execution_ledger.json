@@ -1,0 +1,58 @@
+[
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.prepare_pilot_subsets",
+      "--manifest",
+      "protein/data/megascale_seed42.parquet",
+      "--output-dir",
+      "protein/data/pilots"
+    ],
+    "duration_seconds": 16.27139949798584,
+    "finished_unix": 1789871276.5542066,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/data/pilots/pilot_25pct_provenance.json"
+    ],
+    "started_unix": 1789871260.282807,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.preflight",
+      "--manifest",
+      "protein/data/pilots/megascale_seed42_train_25pct.parquet",
+      "--model-checkpoint",
+      "/home/ubuntu/models/esm_if1_gvp4_t16_142M_UR50.pt",
+      "--output",
+      "protein/runs/megascale_25pct_proportional/pilot_25pct_proportional/preflight.json"
+    ],
+    "duration_seconds": 25.373584747314453,
+    "finished_unix": 1789871301.9286635,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_25pct_proportional/pilot_25pct_proportional/preflight.json"
+    ],
+    "started_unix": 1789871276.5550787,
+    "status": "complete"
+  },
+  {
+    "command": [
+      "/home/ubuntu/CLM-JEPA/.venv/bin/python",
+      "-m",
+      "protein.calibration.panels",
+      "--manifest",
+      "protein/data/pilots/megascale_seed42_train_25pct.parquet",
+      "--output",
+      "protein/runs/megascale_25pct_proportional/pilot_25pct_proportional/fixed_panels.json"
+    ],
+    "error": "CalledProcessError(1, ['/home/ubuntu/CLM-JEPA/.venv/bin/python', '-m', 'protein.calibration.panels', '--manifest', 'protein/data/pilots/megascale_seed42_train_25pct.parquet', '--output', 'protein/runs/megascale_25pct_proportional/pilot_25pct_proportional/fixed_panels.json'])",
+    "finished_unix": 1789871308.9098349,
+    "outputs": [
+      "/home/ubuntu/CLM-JEPA/protein/runs/megascale_25pct_proportional/pilot_25pct_proportional/fixed_panels.json"
+    ],
+    "started_unix": 1789871301.9298513,
+    "status": "failed"
+  }
+]

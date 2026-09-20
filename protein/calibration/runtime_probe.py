@@ -10,9 +10,9 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 
-from .data import IF1Collator, SequenceRecord
+from .data import IF1Collator, SequenceRecord, _manifest_path
 from .modeling import autocast_context, configure_adaptation, load_if1
-from .optimized_forward import enable_if1_evaluation_optimizations, model_logits
+from .optimized_forward import OptimizedIF1Forward, enable_if1_evaluation_optimizations, model_logits
 
 
 def _records(manifest: Path, size: int) -> list[SequenceRecord]:
@@ -23,7 +23,7 @@ def _records(manifest: Path, size: int) -> list[SequenceRecord]:
     return [
         SequenceRecord(
             domain_id=str(row.domain_id), sequence_id=str(row.sequence_id), split=str(row.split),
-            backbone_path=(root / str(row.backbone_path)).resolve(), chain_id=str(row.chain_id),
+            backbone_path=_manifest_path(root, row.backbone_path), chain_id=str(row.chain_id),
             native_sequence=str(row.native_sequence), target_sequence=str(row.target_sequence),
             ddg=float(row.ddg), substitution_count=int(row.substitution_count),
             foldseek_qtm_max_to_train=float(row.foldseek_qtm_max_to_train),
@@ -36,11 +36,13 @@ def _run(model, batch, alphabet, device, *, reuse: bool, backward: bool, iterati
     tokens = batch["tokens"].to(device)
     target = tokens[:, 1:]
     model.train(backward)
-    torch.cuda.empty_cache()
-    torch.cuda.reset_peak_memory_stats(device)
-    started = time.perf_counter()
+    started = 0.0
     final_logits = final_loss = None
-    for _ in range(iterations):
+    for index in range(iterations + 2):
+        if index == 2:
+            torch.cuda.synchronize(device)
+            torch.cuda.reset_peak_memory_stats(device)
+            started = time.perf_counter()
         model.zero_grad(set_to_none=True)
         with torch.set_grad_enabled(backward), autocast_context(device):
             final_logits = model_logits(model, batch, device, reuse_backbones=reuse, tokens=tokens)
@@ -50,8 +52,13 @@ def _run(model, batch, alphabet, device, *, reuse: bool, backward: bool, iterati
         if backward:
             final_loss.backward()
     torch.cuda.synchronize(device)
+    def canonical(name: str) -> str:
+        for prefix in ("_orig_mod.model.", "_orig_mod.", "model."):
+            if name.startswith(prefix):
+                return name[len(prefix):]
+        return name
     gradients = {
-        name: parameter.grad.detach().cpu().clone()
+        canonical(name): parameter.grad.detach().cpu().clone()
         for name, parameter in model.named_parameters()
         if parameter.requires_grad and parameter.grad is not None
     }
@@ -78,23 +85,36 @@ def main() -> None:
     configure_adaptation(model, "lora8")
     records = _records(args.manifest, args.eval_batch)
     batch = IF1Collator(alphabet, training=False)(records)
-    train_batch = {key: (value[:4] if torch.is_tensor(value) else value[:4]) for key, value in batch.items()}
+    train_batch = {key: (value[:32] if torch.is_tensor(value) else value[:32]) for key, value in batch.items()}
     train_batch["backbone_unique"] = torch.tensor([0])
-    train_batch["backbone_inverse"] = torch.zeros(4, dtype=torch.long)
+    train_batch["backbone_inverse"] = torch.zeros(32, dtype=torch.long)
     model.to(device)
 
     with torch.inference_mode():
-        reference_eval = _run(model, batch, alphabet, device, reuse=False, backward=False, iterations=2)
-    cpu_rng = torch.get_rng_state()
-    rng = torch.cuda.get_rng_state_all()
-    reference_train = _run(model, train_batch, alphabet, device, reuse=False, backward=True, iterations=1)
+        reference_eval = _run(model, batch, alphabet, device, reuse=False, backward=False, iterations=5)
+        repeated_eval = _run(model, batch, alphabet, device, reuse=False, backward=False, iterations=5)
+    cpu_rng, cuda_rng = torch.get_rng_state(), torch.cuda.get_rng_state_all()
+    reference_train = _run(model, train_batch, alphabet, device, reuse=False, backward=True, iterations=3)
     torch.set_rng_state(cpu_rng)
-    torch.cuda.set_rng_state_all(rng)
-    optimized_train = _run(model, train_batch, alphabet, device, reuse=False, backward=True, iterations=1)
-
+    torch.cuda.set_rng_state_all(cuda_rng)
+    repeated_train = _run(model, train_batch, alphabet, device, reuse=False, backward=True, iterations=3)
+    torch.set_rng_state(cpu_rng)
+    torch.cuda.set_rng_state_all(cuda_rng)
+    compile_error = None
+    try:
+        compiled = torch.compile(
+            OptimizedIF1Forward(model), backend="cudagraphs", dynamic=False, fullgraph=False
+        )
+        compiled_train = _run(
+            compiled, train_batch, alphabet, device, reuse=False, backward=True, iterations=3
+        )
+    except Exception as error:
+        compiled_train = None
+        compile_error = f"{type(error).__name__}: {error}"
     enable_if1_evaluation_optimizations(model)
     with torch.inference_mode():
-        optimized_eval = _run(model, batch, alphabet, device, reuse=True, backward=False, iterations=2)
+        exact_eval = _run(model, batch, alphabet, device, reuse=False, backward=False, iterations=5)
+        shared_eval = _run(model, batch, alphabet, device, reuse=True, backward=False, iterations=5)
     def parity(left, right):
         gradient_error = max(
             (left["gradients"][name] - right["gradients"][name]).abs().max().item()
@@ -108,16 +128,29 @@ def main() -> None:
         }
 
     result = {"device": torch.cuda.get_device_name(device), "eval_batch": len(records)}
-    for label, reference, optimized in (
-        ("evaluation", reference_eval, optimized_eval), ("training", reference_train, optimized_train)
-    ):
-        result[label] = {
+    comparisons = [
+        ("reference_repeatability", reference_eval, repeated_eval),
+        ("training_repeatability", reference_train, repeated_train),
+        ("candidate_attention_suppression", reference_eval, exact_eval),
+        ("rejected_shared_encoder", reference_eval, shared_eval),
+    ]
+    if compiled_train is not None:
+        comparisons.append(("candidate_compiled_training", reference_train, compiled_train))
+    for label, reference, optimized in comparisons:
+        comparison = {
             "speedup": reference["seconds"] / optimized["seconds"],
             "reference_seconds": reference["seconds"], "optimized_seconds": optimized["seconds"],
             "reference_peak_bytes": reference["peak_bytes"], "optimized_peak_bytes": optimized["peak_bytes"],
             "memory_reduction_fraction": 1 - optimized["peak_bytes"] / reference["peak_bytes"],
             "parity": parity(reference, optimized),
         }
+        comparison["bit_exact"] = bool(
+            torch.equal(reference["logits"], optimized["logits"])
+            and torch.equal(reference["loss"], optimized["loss"])
+        )
+        result[label] = comparison
+    if compile_error is not None:
+        result["candidate_compiled_training"] = {"accepted": False, "reason": compile_error}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(json.dumps(result, indent=2))

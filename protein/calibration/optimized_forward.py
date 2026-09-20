@@ -7,6 +7,48 @@ from typing import Any, Iterable, Iterator
 import torch
 
 
+def _fixed_padded_extract_features(self, prev_output_tokens, encoder_out, incremental_state=None):
+    """Equivalent IF1 decoder path when fixed-length teacher forcing is padded."""
+    bs, _ = prev_output_tokens.size()
+    enc = encoder_out["encoder_out"][0]
+    if enc.size(1) != bs:
+        raise RuntimeError(f"Unexpected encoder batch: {enc.shape}")
+    padding_mask = encoder_out["encoder_padding_mask"][0]
+    positions = self.embed_positions(prev_output_tokens)
+    if incremental_state is not None:
+        prev_output_tokens = prev_output_tokens[:, -1:]
+        positions = positions[:, -1:]
+    x = self.embed_scale * self.embed_tokens(prev_output_tokens)
+    if self.project_in_dim is not None:
+        x = self.project_in_dim(x)
+    x += positions
+    x = self.dropout_module(x).transpose(0, 1)
+    # The length-72 sentinel guarantees padding in every calibration batch.
+    # Avoid the upstream .any() device synchronization and duplicate equality.
+    self_attn_padding_mask = prev_output_tokens.eq(self.padding_idx)
+    inner_states = [x]
+    for layer in self.layers:
+        self_attn_mask = self.buffered_future_mask(x) if incremental_state is None else None
+        x, _, _ = layer(
+            x, enc, padding_mask, incremental_state,
+            self_attn_mask=self_attn_mask,
+            self_attn_padding_mask=self_attn_padding_mask,
+            need_attn=False,
+            need_head_weights=False,
+        )
+        inner_states.append(x)
+    if self.layer_norm is not None:
+        x = self.layer_norm(x)
+    return x.transpose(0, 1), {"inner_states": inner_states}
+
+
+def enable_if1_training_optimizations(model: torch.nn.Module) -> None:
+    decoder = model.decoder
+    if not getattr(decoder, "_if1_fixed_padded_extract", False):
+        decoder.extract_features = MethodType(_fixed_padded_extract_features, decoder)
+        decoder._if1_fixed_padded_extract = True
+
+
 def prefetch_batches(
     loader: Iterable[dict[str, Any]], device: torch.device
 ) -> Iterator[dict[str, Any]]:
