@@ -51,19 +51,25 @@ def _balanced_train_domains(stats: pd.DataFrame, seed: int) -> list[str]:
         key: sorted(group.to_dict("records"), key=lambda row: _stable(row["domain_id"], seed))
         for key, group in stats.groupby(strata_cols, sort=True)
     }
-    selected, clusters = [], set()
-    while len(selected) < TRAIN_DOMAINS:
+    ordered = []
+    while True:
         progress = False
         for key in sorted(groups):
-            while groups[key] and groups[key][0]["cluster"] in clusters:
-                groups[key].pop(0)
-            if groups[key] and len(selected) < TRAIN_DOMAINS:
-                row = groups[key].pop(0)
-                selected.append(row["domain_id"]); clusters.add(row["cluster"]); progress = True
+            if groups[key]:
+                ordered.append(groups[key].pop(0)); progress = True
         if not progress:
             break
+    selected, clusters = [], set()
+    for row in ordered:
+        if row["cluster"] not in clusters:
+            selected.append(row["domain_id"]); clusters.add(row["cluster"])
+    selected.extend(
+        row["domain_id"] for row in ordered
+        if row["domain_id"] not in selected
+    )
+    selected = selected[:TRAIN_DOMAINS]
     if len(selected) != TRAIN_DOMAINS:
-        raise RuntimeError(f"Could select only {len(selected)} unique-cluster training domains")
+        raise RuntimeError(f"Could select only {len(selected)} qualifying training domains")
     return selected
 
 

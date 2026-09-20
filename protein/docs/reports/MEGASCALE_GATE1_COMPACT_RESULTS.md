@@ -1,86 +1,120 @@
-# MegaScale compact Gate 1 results report
+# MegaScale corrected-sign compact Stage-1 results
 
 ## Reporting scope
 
-This report records measurements from the fixed compact MegaScale Gate 1 surrogate. It reports observed results, comparisons, uncertainty, preregistered gate outputs, and limitations. It does not assign a mechanistic explanation or treat the compact surrogate as the definitive full-data Gate 1 experiment.
+This report records the corrected-sign compact MegaScale pilot. It is not the definitive full-data experiment. It reports observed measurements, comparisons, uncertainty, preregistered gate outputs, and limitations without adding a mechanistic interpretation.
 
-## Data and provenance
+## Stability convention and provenance
 
-The benchmark contained 11,016 training variants from 36 domains and 36 structural clusters, 960 validation variants from 6 domains and 2 held-out clusters, and 1,440 test variants from 9 domains and 3 held-out clusters. No structural cluster occurred in more than one split. Every training domain contributed 306 stabilizing variants. The training set contained 8,835 single and 2,181 double mutants; validation contained 776 single and 184 double mutants; test contained 1,160 single and 280 double mutants.
+The source is the original Tsuboyama MegaScale dataset. The original paper defines sufficiently positive ΔΔG values as stabilizing ([Tsuboyama et al., Nature 2023](https://www.nature.com/articles/s41586-023-06328-6)). Its raw `ddG_ML` convention therefore treats positive values as stabilizing. `PLAN.md` registers the opposite canonical convention: canonical `ddg < 0` is stabilizing and fitness is `-ddg`. Preprocessing performs exactly one conversion, `ddg = -ddG_ML`, at ingestion. Training, evaluation, and reporting consume only canonical `ddg` and apply no further sign correction.
 
-The compact manifest SHA-256 was `944a0283100205b7e203d4b3cbb87d83d8c27ed3d5464a4f6b9a30ba437a3f2e`. The ordered sequence-ID record SHA-256 was `dad8df9d673659c76a43270c987b83b3b7e327d6a9f7233a68dbfeec5d96821b`. The eligible full manifest from which it was constructed had SHA-256 `7fed569afa6b6941ba6480994555840602e4960aa0e15614887120f13fd6409f`.
+The ingestion invariant found 3,583 eligible source rows with `ddG_ML >= 1`; all mapped to canonical `ddg <= -1`. All nonzero raw/canonical pairs had opposite signs. The SFT predicate `ddg < 0` selected 90,849 variants with positive source `ddG_ML`.
 
-Final study eligibility was applied before structural clustering, split assignment, and held-out structural-distance calculation. Because native FoldSeek 8.ef4e960 was unavailable on the Windows host, the eligible-population structural partition used the recorded deterministic TM-align fallback. This differs from the planned FoldSeek implementation and is an experimental limitation.
+- Source CSV SHA-256: `0c7b2bf1f162122d83d5bb39b901cc446e436b5643684ca268f934be145d8398`
+- Corrected eligible manifest SHA-256: `79278f2f6f668c94fcbe9be2281593bc216dc2de4bed3a594d3658bc1b181a2f`
+- Corrected compact manifest SHA-256: `2827221cffff221d36200e4234c4cd1b358047b1c658b037896c6eaea71d1e44`
+- Ordered compact sequence-ID SHA-256: `c6149717b91bc88b1587ddadbb2350b019d018c11be2c732dd304305f6212eda`
+
+The eligible manifest contained 499,678 train, 10,789 validation, and 16,737 test records across 412 domains and 371 structures. Eligibility preceded structural clustering, split construction, and held-out structural-distance calculation.
+
+The compact benchmark contained 11,016 training variants from 36 domains and 30 structural clusters, 960 validation variants from 6 domains and 2 held-out clusters, and 1,440 test variants from 9 domains and 3 held-out clusters. No cluster crossed splits. Every training domain contributed 306 canonical stabilizing variants; these comprised 10,319 single and 697 double mutants.
 
 ## Experimental configuration
 
-The four trained conditions were full fine-tuning (FT), dense-target fine-tuning (DTFT), LoRA rank 8, and LoRA rank 64. Evidence seeds were 11 and 23. FT and DTFT used learning rate `1e-7`; both LoRA conditions used `3e-5`. Training used the same objective, effective batch size 32, 0.1 Å coordinate noise, and paired ordering. Validation was evaluated every 0.5 epoch. Runs had a minimum of 2 epochs, a maximum of 10 epochs, and stopped after four validation checks without a new optimum. Checkpoints were selected only by validation NLL. The unadapted base model was evaluated once.
+Evidence conditions were FT, DTFT, LoRA-r8, and LoRA-r64, each with seeds 11 and 23. Training retained the registered objective, effective batch size 32, paired ordering, 0.1 Å coordinate noise, bf16 execution, validation-based checkpoint selection, and minimum two epochs. Validation ran every 0.5 epoch; early stopping used four validation checks without a new optimum and a ten-epoch safety cap.
 
-All eight training runs and all nine evaluations completed with exit code 0 on one NVIDIA A6000. End-to-end queue time, including benchmark reconstruction, preflight, base evaluation, training, evaluation, and summarization, was 7,638.18 seconds (2 h 7 min 18 s).
+FT and DTFT used learning rate `1e-7`. LoRA learning rates were selected separately with HPO seed 7 from `1e-6`, `3e-6`, `1e-5`, and `3e-5`: all candidates ran one epoch, the best two per rank continued to three epochs, and selection used minimum validation autoregressive NLL.
+
+| Condition | Selected learning rate |
+|---|---:|
+| FT | `1e-7` |
+| DTFT | `1e-7` |
+| LoRA-r8 | `3e-5` |
+| LoRA-r64 | `1e-5` |
+
+## LoRA LR-screen trajectories
+
+Entries list validation NLL at epochs 0, 0.5, 1.0 and, for finalists, 1.5, 2.0, 2.5, and 3.0.
+
+| Rank | LR | Continued | Validation-NLL trajectory | Minimum |
+|---|---:|:---:|---|---:|
+| r8 | `1e-6` | no | 1.066259, 1.066278, 1.066217 | 1.066217 |
+| r8 | `3e-6` | no | 1.066233, 1.066141, 1.065596 | 1.065596 |
+| r8 | `1e-5` | yes | 1.066200, 1.064046, 1.062495, 1.061950, 1.062247, 1.063530, 1.065907 | 1.061950 |
+| r8 | `3e-5` | yes | 1.066276, 1.061837, 1.065595, 1.088577, 1.155711, 1.257748, 1.348393 | 1.061837 |
+| r64 | `1e-6` | no | 1.066289, 1.065958, 1.065187 | 1.065187 |
+| r64 | `3e-6` | yes | 1.066246, 1.063906, 1.062204, 1.061324, 1.061379, 1.061251, 1.061299 | 1.061251 |
+| r64 | `1e-5` | yes | 1.066228, 1.061075, 1.062287, 1.078234, 1.130592, 1.219842, 1.314219 | 1.061075 |
+| r64 | `3e-5` | no | 1.066283, 1.071243, 1.271186 | 1.066283 |
+
+Under the registered minimum-NLL rule, r8 selected `3e-5` and r64 selected `1e-5`. Both selected HPO trajectories subsequently deteriorated; this observation is recorded separately from checkpoint selection.
 
 ## Held-out measurements
 
-Values for trained conditions are mean ± sample standard deviation across two independent training seeds. Base was evaluated once. NLL is lower-is-better; the remaining metrics are higher-is-better as registered by the evaluation implementation.
+Trained-condition values are mean ± sample standard deviation across seeds 11 and 23. Base was evaluated once. NLL is lower-is-better; the other metrics are higher-is-better.
 
 | Condition | Held-out NLL | Mean domain Spearman | Mean domain AUROC | Sequence recovery |
 |---|---:|---:|---:|---:|
-| Base | 1.454950 | -0.644060 | 0.225032 | 0.592254 |
-| FT | 1.403049 ± 0.009813 | -0.651548 ± 0.000487 | 0.220484 ± 0.000613 | 0.587937 ± 0.005418 |
-| DTFT | 1.437105 ± 0.000026 | -0.646738 ± 0.000270 | 0.223249 ± 0.000446 | 0.587571 ± 0.001190 |
-| LoRA-r8 | 1.454946 ± 0.000031 | -0.644275 ± 0.000784 | 0.224183 ± 0.000345 | 0.591425 ± 0.001173 |
-| LoRA-r64 | 1.454874 ± 0.000025 | -0.643719 ± 0.000278 | 0.224745 ± 0.000076 | 0.591425 ± 0.001173 |
+| Base | 1.456673 | 0.648275 | 0.782394 | 0.592254 |
+| FT | 1.403119 ± 0.005902 | 0.663595 ± 0.001049 | 0.790407 ± 0.000451 | 0.586874 ± 0.000058 |
+| DTFT | 1.411758 ± 0.000036 | 0.665845 ± 0.000312 | 0.791637 ± 0.000168 | 0.587600 ± 0.000340 |
+| LoRA-r8 | 1.408387 ± 0.000107 | 0.666505 ± 0.000644 | 0.793562 ± 0.000246 | 0.591643 ± 0.001190 |
+| LoRA-r64 | 1.400673 ± 0.012763 | 0.668259 ± 0.002482 | 0.794000 ± 0.001505 | 0.587485 ± 0.002309 |
 
-Relative to base, mean held-out NLL changed by -0.051901 for FT, -0.017845 for DTFT, -0.000004 for LoRA-r8, and -0.000076 for LoRA-r64. FT minus DTFT on the higher-is-better negative-NLL scale was 0.034056.
+The individual held-out NLL values were FT 1.407292/1.398946, DTFT 1.411733/1.411783, LoRA-r8 1.408463/1.408311, and LoRA-r64 1.409698/1.391648 for seeds 11/23 respectively.
 
 ## Validation trajectories and checkpoint selection
 
-| Condition | Seed | Selected step | Completed epochs | Selected validation NLL | Early stop |
-|---|---:|---:|---:|---:|---:|
-| FT | 11 | 1,035 | 5.0 | 1.055411 | yes |
-| FT | 23 | 1,725 | 7.0 | 1.057226 | yes |
-| DTFT | 11 | 863 | 4.50 | 1.063468 | yes |
-| DTFT | 23 | 863 | 4.50 | 1.063442 | yes |
-| LoRA-r8 | 11 | 0 | 2.0 | 1.064827 | yes |
-| LoRA-r8 | 23 | 0 | 2.0 | 1.064831 | yes |
-| LoRA-r64 | 11 | 0 | 2.0 | 1.064835 | yes |
-| LoRA-r64 | 23 | 0 | 2.0 | 1.064836 | yes |
+| Condition | Seed | Best step | Best epoch | Completed epochs | Best validation NLL | Recorded status |
+|---|---:|---:|---:|---:|---:|---|
+| FT | 11 | 1,208 | 3.5 | 5.5 | 1.053599 | mixed |
+| FT | 23 | 1,553 | 4.5 | 6.5 | 1.054544 | deteriorating |
+| DTFT | 11 | 3,450 | 10.0 | 10.0 | 1.059872 | improving |
+| DTFT | 23 | 3,450 | 10.0 | 10.0 | 1.059973 | improving |
+| LoRA-r8 | 11 | 173 | 0.5 | 2.5 | 1.062034 | deteriorating |
+| LoRA-r8 | 23 | 173 | 0.5 | 2.5 | 1.063111 | deteriorating |
+| LoRA-r64 | 11 | 173 | 0.5 | 2.5 | 1.061323 | deteriorating |
+| LoRA-r64 | 23 | 345 | 1.0 | 3.0 | 1.062169 | deteriorating |
 
-For both LoRA ranks and both seeds, every post-update validation measurement was worse than step 0. At epoch 2, LoRA-r8 validation NLL was 1.157115 and 1.153775; LoRA-r64 validation NLL was 1.557304 and 1.574119. Consequently, validation selection restored the step-0 checkpoint for all four LoRA runs. None of the four LoRA trajectories was still improving at termination under the recorded three-delta diagnostic.
+Neither LoRA rank was classified as plateaued. Both DTFT runs remained improving at the ten-epoch cap. Consequently, `lora_gap_interpretable` is false for both ranks; the measured checkpoint outcomes and convergence classifications are reported separately.
 
 ## Preregistered gap decomposition
 
-The implementation converted NLL to negative NLL before applying the higher-is-better gap definitions.
+The implementation converted NLL to negative NLL before applying the higher-is-better definitions in `PLAN.md`.
 
 | LoRA condition | Outcome | `G_total` | `G_coverage` | `G_LoRA` | Coverage fraction |
 |---|---|---:|---:|---:|---:|
-| LoRA-r8 | Held-out likelihood | 0.051897 | 0.034056 | 0.017841 | 0.656222 |
-| LoRA-r8 | Stability ranking | -0.007272 | -0.004810 | -0.002462 | 0.661407 |
-| LoRA-r64 | Held-out likelihood | 0.051825 | 0.034056 | 0.017769 | 0.657134 |
-| LoRA-r64 | Stability ranking | -0.007829 | -0.004810 | -0.003019 | 0.614379 |
+| LoRA-r8 | Held-out likelihood | 0.005269 | 0.008639 | -0.003371 | 1.639804 |
+| LoRA-r8 | Stability ranking | -0.002911 | -0.002250 | -0.000661 | 0.772956 |
+| LoRA-r64 | Held-out likelihood | -0.002446 | 0.008639 | -0.011085 | -3.532747 |
+| LoRA-r64 | Stability ranking | -0.004664 | -0.002250 | -0.002414 | 0.482376 |
 
-The preregistered stop rule requires positive `G_total`, positive `G_coverage`, and coverage fraction above 0.5 on both primary cheap outcomes. The stability-ranking gaps were negative for both LoRA comparisons. Therefore, the generated `stop_h1_h4` value was `false` for LoRA-r8 and LoRA-r64, and no registered stop statement was emitted.
+`G_LoRA` was negative for both registered outcomes and both LoRA ranks: the selected LoRA checkpoints did not exhibit a DTFT advantage on either outcome. Therefore the Stage-1 rule to stop LoRA-specific mechanism diagnosis applies, the Stage-2 target-coverage stop statement is not emitted, and Stage 3/H1–H4 are not triggered by this compact pilot.
 
-## Runtime and memory measurements
+## Runtime and optimization measurements
 
-Observed training durations were 1,287.73 and 1,693.60 seconds for FT; 914.94 and 968.50 seconds for DTFT; 613.25 and 592.14 seconds for LoRA-r8; and 613.29 and 600.12 seconds for LoRA-r64. The LoRA runs were shorter because all four stopped at the two-epoch minimum with step 0 selected.
+The end-to-end ledger covered 16,930.45 seconds (4 h 42 min 10 s), including preprocessing/preflight, the complete HPO screen, base evaluation, eight evidence runs, evaluations, and summarization.
 
-Prequeue A6000 forward/backward/optimizer smoke measurements at batch size 32 were 0.610 s/step and 13.62 GiB peak for FT, 0.542 s/step and 3.62 GiB for DTFT, 0.824 s/step and 3.20 GiB for LoRA-r8, and 0.888 s/step and 3.31 GiB for LoRA-r64. Exact accepted training-path changes included manifest path caching, pinned persistent workers, asynchronous CUDA prefetch, fused AdamW, removal of a target-token GPU synchronization, and a fixed-padding decoder path enabled only where its measured throughput improved.
+| Condition | Seed 11 training | Seed 23 training |
+|---|---:|---:|
+| FT | 1,509.47 s | 1,757.87 s |
+| DTFT | 2,298.98 s | 2,272.98 s |
+| LoRA-r8 | 797.40 s | 801.40 s |
+| LoRA-r64 | 811.61 s | 958.21 s |
 
-On matched fixed-padding benchmarks, the decoder fast path changed FT from 0.6495 to 0.6331 s/step (2.5%), DTFT from 0.5599 to 0.5317 s/step (5.0%), and LoRA-r64 from 0.8721 to 0.8366 s/step (4.1%). It was disabled for LoRA-r8 after a 3.6% regression. CUDA graphs, compiled GVP execution, frozen-BF16 precasting, persistent autocast, and shared-backbone evaluation were not accepted because they either failed, regressed, or did not retain the required numerical behavior.
+Accepted training-path changes retained the parity tests and included manifest path caching, pinned persistent workers, asynchronous CUDA prefetch, fused AdamW, removal of a target-token GPU synchronization, and a selectively enabled fixed-padding decoder path. On matched fixed-padding A6000 measurements, that decoder path changed FT from 0.6495 to 0.6331 s/step (2.5%), DTFT from 0.5599 to 0.5317 s/step (5.0%), and LoRA-r64 from 0.8721 to 0.8366 s/step (4.1%). It was disabled for LoRA-r8 after a measured 3.6% regression. CUDA graphs, compiled GVP execution, frozen-bf16 precasting, persistent autocast, and shared-backbone evaluation were not accepted because they failed, regressed, or did not retain required numerical behavior.
 
-## Verification and reproducibility artifacts
+## Verification and retained artifacts
 
-The local and A6000 test suites each completed with 23 passing tests and one NumPy empty-slice warning. The final summary SHA-256 was `9280886ba65caad59b31049dbb1f3d8fa56f7ea8bc4bab69e905127450893ba5`.
+The complete local and A6000 protein test suites each passed 28 tests, with one NumPy empty-slice warning. The corrected full/compact manifest hashes matched across machines. The transfer archive matched SHA-256 `77d6db0365109d278bdb582c09add075bef47b33b765a8320795bc44962997b0` before extraction. The retained artifact set contains all result, history, evaluation, preflight, HPO-selection, ledger, and log files; the exact calibration/test source; corrected manifests and provenance; and all eight `best.pt` checkpoints (every condition and evidence seed). The redundant compressed transfer archive and redundant epoch/terminal checkpoints were not retained.
 
-The transferred key-artifact archive contains the repository source and configuration, tests, exact data manifests and provenance, execution ledger, logs, profiles, all result/history/evaluation JSON, and the selected `best.pt` checkpoint for every condition and seed. Its SHA-256 is `e163f7892a1d1ace94a33b58ee8ca6c08a051d29561c8abcf1dd9588640ff230`.
+## Limitations
 
-## Experimental limitations
-
-- The benchmark is a compact surrogate rather than the full eligible MegaScale training population.
-- Each trained condition has two seeds; reported standard deviations therefore have one degree of freedom, and no confidence interval or formal multi-seed significance test is reported.
-- Base was evaluated once and has no between-seed uncertainty estimate.
-- Both LoRA learning rates produced validation deterioration from the initial checkpoint; the held-out LoRA measurements are consequently measurements of the selected step-0 checkpoints.
-- The compact workflow did not run the full generative sampling and expensive diagnostic suite specified for a definitive full-data stage.
-- Structural partitioning used the recorded TM-align fallback rather than pinned FoldSeek 8.ef4e960.
-- The accepted optimizations were constrained to transformations that retained the repository's parity checks; GPU scatter operations retain the underlying implementation's intrinsic atomic nondeterminism.
-
+- This is a compact 11,016-example pilot, not the definitive full-data MegaScale experiment.
+- Each trained condition has two evidence seeds; sample standard deviations have one degree of freedom, and no formal multi-seed significance test is reported.
+- Base was evaluated once.
+- Both selected LoRA trajectories deteriorated after early validation optima, and neither was plateaued.
+- Both DTFT runs were still improving at the ten-epoch safety cap.
+- The compact workflow did not run expensive generation, Rosetta, ESMFold, or later H1–H4 experiments.
+- Structural partitioning used the recorded deterministic TM-align fallback rather than pinned FoldSeek 8.ef4e960 because the execution hosts lacked an authorized FoldSeek route.
+- GPU scatter operations retain the underlying implementation's intrinsic atomic nondeterminism.

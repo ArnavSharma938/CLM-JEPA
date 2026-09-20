@@ -1,0 +1,30 @@
+{
+  "domain_auroc_mean": 0.7915180590980788,
+  "domain_spearman_mean": 0.6656236571741084,
+  "domain_spearman_median": 0.6622729403492323,
+  "heldout_nll": 1.4117834221103234,
+  "n_domains": 9,
+  "n_sequences": 1440,
+  "n_variants": 1440,
+  "ood_tertiles": {
+    "far": {
+      "domain_auroc_mean": 0.7741117908436905,
+      "domain_spearman_mean": 0.6180563693894293,
+      "heldout_nll": 1.4129616282556368,
+      "n_domains": 3
+    },
+    "middle": {
+      "domain_auroc_mean": 0.8301994510626654,
+      "domain_spearman_mean": 0.6973094652134849,
+      "heldout_nll": 1.4060749104682435,
+      "n_domains": 3
+    },
+    "near": {
+      "domain_auroc_mean": 0.7702429353878811,
+      "domain_spearman_mean": 0.6815051369194108,
+      "heldout_nll": 1.4184222613194193,
+      "n_domains": 3
+    }
+  },
+  "sequence_recovery": 0.5878407187766511
+}

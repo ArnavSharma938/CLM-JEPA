@@ -8,8 +8,10 @@ import sys
 import time
 from pathlib import Path
 
-LRS = {"ft": 1e-7, "dtft": 1e-7, "lora8": 3e-5, "lora64": 3e-5}
+FIXED_LRS = {"ft": 1e-7, "dtft": 1e-7}
+LORA_HPO_LRS = (1e-6, 3e-6, 1e-5, 3e-5)
 COMPACT_EVIDENCE_SEEDS = (11, 23)
+HPO_SEED = 7
 
 
 def _write(path: Path, value) -> None:
@@ -35,6 +37,68 @@ def _run(command: list[str], ledger: list[dict], ledger_path: Path, outputs: lis
     event.update(status="complete", finished_unix=time.time(), duration_seconds=time.time() - event["started_unix"]); _write(ledger_path, ledger)
 
 
+def _minimum_nll(path: Path) -> float:
+    history = json.loads(path.read_text(encoding="utf-8"))
+    values = [float(event["validation_nll"]) for event in history]
+    if not values or not all(value == value and abs(value) != float("inf") for value in values):
+        return float("inf")
+    return min(values)
+
+
+def _rank_candidates(candidates: dict[float, Path]) -> list[float]:
+    # Six decimal places is the explicit effective-tie resolution; lower LR wins.
+    return sorted(candidates, key=lambda lr: (round(_minimum_nll(candidates[lr]), 6), lr))
+
+
+def _lora_hpo(
+    mode: str,
+    manifest: Path,
+    root: Path,
+    model_checkpoint: Path,
+    ledger: list[dict],
+    ledger_path: Path,
+) -> tuple[float, dict]:
+    histories: dict[float, Path] = {}
+    for lr in LORA_HPO_LRS:
+        output = root / "hpo" / mode / f"lr_{lr:g}"
+        history = output / "history.json"
+        epoch_one = output / "checkpoints" / "epoch_1.pt"
+        _run([
+            sys.executable, "-m", "protein.calibration.training", "--mode", mode,
+            "--seed", str(HPO_SEED), "--lr", str(lr), "--manifest", str(manifest),
+            "--output-dir", str(output), "--checkpoint", str(model_checkpoint),
+            "--epochs", "1", "--no-diagnostics",
+        ], ledger, ledger_path, [output / "result.json", history, epoch_one])
+        histories[lr] = history
+    finalists = _rank_candidates(histories)[:2]
+    for lr in finalists:
+        output = root / "hpo" / mode / f"lr_{lr:g}"
+        _run([
+            sys.executable, "-m", "protein.calibration.training", "--mode", mode,
+            "--seed", str(HPO_SEED), "--lr", str(lr), "--manifest", str(manifest),
+            "--output-dir", str(output), "--checkpoint", str(model_checkpoint),
+            "--epochs", "3", "--no-diagnostics", "--resume-checkpoint",
+            str(output / "checkpoints" / "epoch_1.pt"),
+        ], ledger, ledger_path, [output / "result.json", output / "history.json", output / "checkpoints" / "best.pt"])
+    selected = _rank_candidates({lr: histories[lr] for lr in finalists})[0]
+    payload = {
+        "mode": mode,
+        "seed": HPO_SEED,
+        "candidates": {
+            str(lr): {
+                "continued_to_epoch_3": lr in finalists,
+                "minimum_validation_nll": _minimum_nll(path),
+                "history": json.loads(path.read_text(encoding="utf-8")),
+            }
+            for lr, path in histories.items()
+        },
+        "finalists": finalists,
+        "selected_lr": selected,
+        "selection_rule": "minimum validation NLL; values tied at 6 decimals prefer lower LR",
+    }
+    return selected, payload
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Compact balanced Gate-1 queue")
     parser.add_argument("--manifest", required=True, type=Path)
@@ -54,7 +118,15 @@ def main() -> None:
     _run([sys.executable, "-m", "protein.calibration.preflight", "--manifest", str(manifest), "--model-checkpoint", str(args.model_checkpoint), "--output", str(preflight)], ledger, ledger_path, [preflight])
     base_eval = root / "evaluation" / "base"
     _run([sys.executable, "-m", "protein.calibration.evaluate", "--mode", "base", "--seed", "11", "--manifest", str(manifest), "--model-checkpoint", str(args.model_checkpoint), "--output-dir", str(base_eval), "--batch-size", "64"], ledger, ledger_path, [base_eval / "summary.json"])
-    for mode, lr in LRS.items():
+    selected_lrs = dict(FIXED_LRS)
+    hpo = {}
+    for mode in ("lora8", "lora64"):
+        selected_lrs[mode], hpo[mode] = _lora_hpo(
+            mode, manifest, root, args.model_checkpoint, ledger, ledger_path
+        )
+    hpo_path = root / "hpo_selection.json"
+    _write(hpo_path, {"selected_lrs": selected_lrs, "rank_specific_lora_search": hpo})
+    for mode, lr in selected_lrs.items():
         for seed in COMPACT_EVIDENCE_SEEDS:
             output = root / "evidence" / mode / f"seed_{seed}"
             _run([sys.executable, "-m", "protein.calibration.training", "--mode", mode, "--seed", str(seed), "--lr", str(lr), "--manifest", str(manifest), "--output-dir", str(output), "--checkpoint", str(args.model_checkpoint), "--epochs", "10", "--no-diagnostics", "--early-stopping-patience-checks", "4", "--minimum-epochs", "2"], ledger, ledger_path, [output / "result.json", output / "history.json", output / "checkpoints" / "best.pt"])

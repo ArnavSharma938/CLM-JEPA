@@ -10,6 +10,27 @@ from .queue_pilot import COMPACT_EVIDENCE_SEEDS
 from .gate import coverage_gate
 
 MODES = ("ft", "dtft", "lora8", "lora64")
+CONVERGENCE_TOLERANCE = 1e-4
+
+
+def classify_trajectory(history: list[dict]) -> tuple[str, list[float]]:
+    tail = history[-4:]
+    deltas = [
+        float(tail[index]["validation_nll"] - tail[index - 1]["validation_nll"])
+        for index in range(1, len(tail))
+    ]
+    if len(deltas) < 3:
+        return "insufficient", deltas
+    if all(delta < -CONVERGENCE_TOLERANCE for delta in deltas):
+        return "improving", deltas
+    if (
+        all(delta > CONVERGENCE_TOLERANCE for delta in deltas)
+        and history[-1]["validation_nll"] > min(event["validation_nll"] for event in history) + CONVERGENCE_TOLERANCE
+    ):
+        return "deteriorating", deltas
+    if all(abs(delta) <= CONVERGENCE_TOLERANCE for delta in deltas):
+        return "plateaued", deltas
+    return "mixed", deltas
 
 
 def summarize(root: Path) -> dict:
@@ -23,13 +44,12 @@ def summarize(root: Path) -> dict:
             history = json.loads((root / "evidence" / mode / f"seed_{seed}" / "history.json").read_text(encoding="utf-8"))
             result = json.loads((root / "evidence" / mode / f"seed_{seed}" / "result.json").read_text(encoding="utf-8"))
             runs.append(summary)
-            tail = history[-4:]
-            deltas = [tail[index]["validation_nll"] - tail[index - 1]["validation_nll"] for index in range(1, len(tail))]
+            status, deltas = classify_trajectory(history)
             curves.append({
                 "seed": seed, "best_step": result["best_step"], "epochs_completed": result["epochs_completed"],
                 "stopped_early": result["stopped_early"], "history": history,
                 "last_validation_deltas": deltas,
-                "still_clearly_improving": len(deltas) == 3 and all(delta < 0 for delta in deltas),
+                "optimization_status": status,
             })
         keys = ("heldout_nll", "domain_spearman_mean", "domain_auroc_mean", "sequence_recovery")
         metrics[mode] = {
@@ -38,15 +58,24 @@ def summarize(root: Path) -> dict:
         }
         convergence[mode] = curves
     compact = lambda mode: {key: metrics[mode][key]["mean"] for key in metrics[mode]}
-    plateau = {
-        mode: {"all_runs_near_plateau": not any(run["still_clearly_improving"] for run in convergence[mode]), "runs": convergence[mode]}
+    trajectories = {
+        mode: {
+            "all_runs_plateaued": all(run["optimization_status"] == "plateaued" for run in convergence[mode]),
+            "status_counts": {
+                status: sum(run["optimization_status"] == status for run in convergence[mode])
+                for status in ("improving", "plateaued", "deteriorating", "mixed", "insufficient")
+            },
+            "runs": convergence[mode],
+        }
         for mode in MODES
     }
+    hpo = json.loads((root / "hpo_selection.json").read_text(encoding="utf-8"))
     return {
         "metrics": metrics,
-        "convergence": plateau,
+        "convergence": trajectories,
+        "hpo": hpo,
         "lora_gap_interpretable": {
-            mode: plateau[mode]["all_runs_near_plateau"] for mode in ("lora8", "lora64")
+            mode: trajectories[mode]["all_runs_plateaued"] for mode in ("lora8", "lora64")
         },
         "coverage_gates": {
             mode: coverage_gate(compact("ft"), compact("dtft"), compact(mode))

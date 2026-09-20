@@ -1,0 +1,15 @@
+{
+  "best_step": 1553,
+  "best_validation_nll": 1.0545440179696355,
+  "epochs_completed": 6.501449275362319,
+  "parameter_counts": {
+    "diagnostic_merged_update_scalars": 0,
+    "in_memory_state_scalars": 141662152,
+    "intrinsic_dimension": 141662150,
+    "loaded": 141662150,
+    "serialized_trainable_scalars": 141662150,
+    "trainable_scalars": 141662150
+  },
+  "steps": 2243,
+  "stopped_early": true
+}

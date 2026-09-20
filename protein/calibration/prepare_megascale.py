@@ -643,12 +643,28 @@ def curate_eligible_rows(source_csv: Path, pdb_dir: Path) -> pd.DataFrame:
             "structure_path": structure.resolve(),
             "native_sequence": wildtype,
             "target_sequence": variant,
-            "ddg": float(item.ddG_ML),
+            # Tsuboyama et al. define positive ddG_ML as increased stability;
+            # PLAN.md registers the opposite canonical sign (ddg < 0 stable).
+            # This is the repository's single convention boundary.
+            "source_ddG_ML": float(item.ddG_ML),
+            "ddg": -float(item.ddG_ML),
             "substitution_count": observed,
         })
     if not rows:
         raise RuntimeError("Curation produced no valid single/double-substitution records")
-    return pd.DataFrame(rows)
+    curated = pd.DataFrame(rows)
+    strongly_stabilizing = curated[curated["source_ddG_ML"] >= 1.0]
+    if strongly_stabilizing.empty:
+        raise RuntimeError("No source-convention strongly stabilizing examples (ddG_ML >= 1) survived curation")
+    if not (strongly_stabilizing["ddg"] <= -1.0).all():
+        raise RuntimeError("Tsuboyama-to-canonical stability sign invariant failed")
+    nonzero = curated["source_ddG_ML"] != 0
+    if not (
+        np.sign(curated.loc[nonzero, "source_ddG_ML"])
+        == -np.sign(curated.loc[nonzero, "ddg"])
+    ).all():
+        raise RuntimeError("Canonical ddg is not the exact sign inverse of source ddG_ML")
+    return curated
 
 
 def materialize_eligible_structures(
@@ -776,6 +792,16 @@ def build_manifest(
         "eligible_record_count": len(frame),
         "eligible_domain_count": int(frame["domain_id"].nunique()),
         "eligible_structure_count": len(eligible_structures),
+        "stability_convention": {
+            "source_field": "ddG_ML",
+            "source_semantics": "positive values indicate increased stability relative to wild type",
+            "canonical_field": "ddg",
+            "canonical_semantics": "negative values indicate increased stability relative to wild type",
+            "conversion": "ddg = -ddG_ML at ingestion",
+            "source_strongly_stabilizing_count": int((frame["source_ddG_ML"] >= 1.0).sum()),
+            "canonical_sft_eligible_count": int((frame["ddg"] < 0).sum()),
+            "invariant": "source ddG_ML >= 1 maps to canonical ddg <= -1",
+        },
         "population_order": "final eligibility filtering precedes clustering, splitting, and heldout-to-train search",
         "limitation": "The authors did not release their curated split; this is a deterministic reconstruction.",
     }

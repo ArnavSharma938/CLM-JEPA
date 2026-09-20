@@ -30,7 +30,7 @@ from protein.calibration.optimized_forward import (
 )
 from protein.calibration.queue_stage1 import _run
 from protein.calibration.queue_stage1 import _train_command
-from protein.calibration.queue_pilot import LRS as PILOT_LRS
+from protein.calibration.queue_pilot import FIXED_LRS, LORA_HPO_LRS, _rank_candidates
 from protein.calibration.prepare_megascale import (
     _domain_key,
     _structure_key,
@@ -42,6 +42,7 @@ from protein.calibration.prepare_megascale import (
     materialize_search_directories,
 )
 from protein.calibration.prepare_pilot_subsets import build_proportional_subset
+from protein.calibration.summarize_compact_gate1 import classify_trajectory
 
 
 def test_megascale_domain_and_structure_keys_preserve_derived_wildtypes() -> None:
@@ -152,8 +153,32 @@ def test_validation_nll_bulk_transfer_preserves_batch_accumulation(monkeypatch) 
     assert result == (1.25 + 2.5) / 10
 
 
-def test_pilot_uses_fixed_registered_learning_rates() -> None:
-    assert PILOT_LRS == {"ft": 1e-7, "dtft": 1e-7, "lora8": 3e-5, "lora64": 3e-5}
+def test_compact_pilot_uses_fixed_dense_lrs_and_tiny_lora_grid() -> None:
+    assert FIXED_LRS == {"ft": 1e-7, "dtft": 1e-7}
+    assert LORA_HPO_LRS == (1e-6, 3e-6, 1e-5, 3e-5)
+
+
+def test_lora_hpo_effective_ties_prefer_lower_lr(tmp_path: Path) -> None:
+    histories = {}
+    for lr, nll in ((1e-6, 1.0000004), (3e-6, 1.0000001), (1e-5, 1.01)):
+        path = tmp_path / f"{lr}.json"
+        path.write_text(json.dumps([{"validation_nll": nll}]), encoding="utf-8")
+        histories[lr] = path
+    assert _rank_candidates(histories)[:2] == [1e-6, 3e-6]
+
+
+@pytest.mark.parametrize(
+    ("values", "expected"),
+    [
+        ([1.0, 0.9, 0.8, 0.7], "improving"),
+        ([1.0, 1.2, 1.4, 1.6], "deteriorating"),
+        ([1.0, 1.00001, 0.99999, 1.00002], "plateaued"),
+        ([1.0, 0.9, 0.95, 0.92], "mixed"),
+    ],
+)
+def test_convergence_classifier_separates_trajectory_states(values, expected) -> None:
+    history = [{"validation_nll": value} for value in values]
+    assert classify_trajectory(history)[0] == expected
 
 
 def test_tmalign_fallback_uses_deterministic_set_cover_not_transitive_components() -> None:
@@ -529,7 +554,7 @@ def test_seed42_split_materialization_and_manifest_round_trip(tmp_path: Path) ->
         rows.extend(
             [
                 {"WT_name": f"d{i}.pdb", "aa_seq": "AAA", "mut_type": "wt", "ddG_ML": 0.0},
-                {"WT_name": f"d{i}.pdb", "aa_seq": "ACA", "mut_type": "A2C", "ddG_ML": -1.0},
+                {"WT_name": f"d{i}.pdb", "aa_seq": "ACA", "mut_type": "A2C", "ddG_ML": 1.0},
             ]
         )
     rows.append({"WT_name": "d0.pdb", "aa_seq": "AAC", "mut_type": "A3C", "ddG_ML": "-"})
@@ -549,12 +574,16 @@ def test_seed42_split_materialization_and_manifest_round_trip(tmp_path: Path) ->
     assert loaded[0].substitution_count == 1
     assert loaded[0].variant_sequence == "ACA"
     assert loaded[0].mutation_count == 1
+    assert loaded[0].ddg == -1.0
     metadata = json.loads(manifest.with_suffix(".parquet.metadata.json").read_text(encoding="utf-8"))
     assert metadata["split_seed"] == 42
     assert metadata["source_csv_sha256"]
     assert metadata["cluster_tsv_sha256"]
     assert metadata["eligible_structure_count"] == 20
     assert metadata["population_order"].startswith("final eligibility filtering")
+    assert metadata["stability_convention"]["conversion"] == "ddg = -ddG_ML at ingestion"
+    assert metadata["stability_convention"]["source_strongly_stabilizing_count"] == 20
+    assert metadata["stability_convention"]["canonical_sft_eligible_count"] == 20
 
 
 def test_excluded_structures_cannot_enter_clustering_population(tmp_path: Path) -> None:
@@ -565,7 +594,7 @@ def test_excluded_structures_cannot_enter_clustering_population(tmp_path: Path) 
     source = tmp_path / "megascale.csv"
     pd.DataFrame([
         {"WT_name": "eligible.pdb", "aa_seq": "AAA", "mut_type": "wt", "ddG_ML": 0.0},
-        {"WT_name": "eligible.pdb", "aa_seq": "ACA", "mut_type": "A2C", "ddG_ML": -1.0},
+        {"WT_name": "eligible.pdb", "aa_seq": "ACA", "mut_type": "A2C", "ddG_ML": 1.0},
         {"WT_name": "invalid.pdb", "aa_seq": "AAA", "mut_type": "wt", "ddG_ML": 0.0},
         {"WT_name": "invalid.pdb", "aa_seq": "AAC", "mut_type": "A2C", "ddG_ML": -1.0},
     ]).to_csv(source, index=False)

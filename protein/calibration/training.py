@@ -192,7 +192,11 @@ def _make_loader(
     return loader, sampler
 
 
-def train(config: TrainConfig, checkpoint: Path | None = None) -> dict[str, Any]:
+def train(
+    config: TrainConfig,
+    checkpoint: Path | None = None,
+    resume_checkpoint: Path | None = None,
+) -> dict[str, Any]:
     config.validate()
     seed_everything(config.seed)
     if not torch.cuda.is_available():
@@ -282,7 +286,12 @@ def train(config: TrainConfig, checkpoint: Path | None = None) -> dict[str, Any]
         fused=True,
     )
     execution_model: torch.nn.Module = model
-    compile_status = {"requested": config.compile_training, "enabled": False, "mode": config.compile_mode}
+    compile_status = {
+        "requested": config.compile_training,
+        "enabled": False,
+        "mode": config.compile_mode,
+        "resume_checkpoint": str(resume_checkpoint) if resume_checkpoint else None,
+    }
     if config.compile_training and platform.system() != "Windows":
         # Fixed length-72 batches bound graph compilation shapes without truncating the
         # ProteinDPO MegaScale proteins (reported range 40--72 residues).
@@ -319,9 +328,32 @@ def train(config: TrainConfig, checkpoint: Path | None = None) -> dict[str, Any]
     }
     history: list[dict[str, Any]] = []
     global_step = 0
-    initial_nll = validation_nll(model, validation_loader, alphabet, device)
-    history.append({"step": 0, "epoch": 0.0, "validation_nll": initial_nll})
-    if config.save_checkpoints:
+    start_epoch = 0
+    if resume_checkpoint is not None:
+        payload = torch.load(resume_checkpoint, map_location="cpu", weights_only=False)
+        parameters_by_name = dict(model.named_parameters())
+        expected = {name for name, value in parameters_by_name.items() if value.requires_grad}
+        if set(payload["trainable_state"]) != expected:
+            raise RuntimeError("Resume checkpoint trainables do not match configured adaptation")
+        with torch.no_grad():
+            for name, value in payload["trainable_state"].items():
+                parameter = parameters_by_name[name]
+                parameter.copy_(value.to(device=parameter.device, dtype=parameter.dtype))
+        optimizer.load_state_dict(payload["optimizer"])
+        random.setstate(payload["rng"]["python"])
+        np.random.set_state(payload["rng"]["numpy"])
+        torch.set_rng_state(payload["rng"]["torch"])
+        torch.cuda.set_rng_state_all(payload["rng"]["cuda"])
+        history = json.loads((run_dir / "history.json").read_text(encoding="utf-8"))
+        global_step = int(payload["metadata"]["step"])
+        resumed_epoch = float(payload["metadata"]["epoch"])
+        start_epoch = int(round(resumed_epoch))
+        if start_epoch != resumed_epoch or global_step != start_epoch * steps_per_epoch:
+            raise RuntimeError("Compact HPO resume must occur at an exact epoch boundary")
+    else:
+        initial_nll = validation_nll(model, validation_loader, alphabet, device)
+        history.append({"step": 0, "epoch": 0.0, "validation_nll": initial_nll})
+    if config.save_checkpoints and resume_checkpoint is None:
         save_checkpoint(
             run_dir / "checkpoints" / "epoch_0.pt",
             model,
@@ -332,12 +364,14 @@ def train(config: TrainConfig, checkpoint: Path | None = None) -> dict[str, Any]
         )
         if config.instrument_checkpoints:
             instrument(run_dir / "checkpoints" / "epoch_0.pt")
-    best_nll = initial_nll
-    best_step = 0
-    checks_without_improvement = 0
+    best_event = min(history, key=lambda event: event["validation_nll"])
+    best_nll = float(best_event["validation_nll"])
+    best_step = int(best_event["step"])
+    best_index = history.index(best_event)
+    checks_without_improvement = len(history) - best_index - 1
     stopped_early = False
     best_path = run_dir / "checkpoints" / "best.pt"
-    if config.save_checkpoints:
+    if config.save_checkpoints and resume_checkpoint is None:
         save_checkpoint(
             best_path,
             model,
@@ -347,7 +381,7 @@ def train(config: TrainConfig, checkpoint: Path | None = None) -> dict[str, Any]
             include_optimizer=True,
         )
     validation_interval = max(1, math.ceil(config.validation_fraction * steps_per_epoch))
-    for epoch_index in range(config.epochs):
+    for epoch_index in range(start_epoch, config.epochs):
         assert sampler is not None
         sampler.set_epoch(epoch_index)
         model.train()
@@ -437,7 +471,7 @@ def train(config: TrainConfig, checkpoint: Path | None = None) -> dict[str, Any]
     return result
 
 
-def parse_args() -> tuple[TrainConfig, Path | None]:
+def parse_args() -> tuple[TrainConfig, Path | None, Path | None]:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", required=True, choices=("base", "ft", "dtft", "lora8", "lora64"))
     parser.add_argument("--seed", required=True, type=int)
@@ -452,6 +486,7 @@ def parse_args() -> tuple[TrainConfig, Path | None]:
     parser.add_argument("--no-checkpoints", action="store_true")
     parser.add_argument("--early-stopping-patience-checks", type=int)
     parser.add_argument("--minimum-epochs", type=float, default=0.0)
+    parser.add_argument("--resume-checkpoint", type=Path)
     args = parser.parse_args()
     config = TrainConfig(
         mode=args.mode,
@@ -467,7 +502,7 @@ def parse_args() -> tuple[TrainConfig, Path | None]:
         early_stopping_patience_checks=args.early_stopping_patience_checks,
         minimum_epochs=args.minimum_epochs,
     )
-    return config, args.checkpoint
+    return config, args.checkpoint, args.resume_checkpoint
 
 
 if __name__ == "__main__":
