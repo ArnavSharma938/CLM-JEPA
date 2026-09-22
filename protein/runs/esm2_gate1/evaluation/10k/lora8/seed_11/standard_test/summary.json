@@ -1,0 +1,16 @@
+{
+  "checkpoint": "/home/ubuntu/CLM-JEPA/protein/runs/esm2_gate1/evidence/10k/lora8/seed_11/best.pt",
+  "manifest": "/home/ubuntu/CLM-JEPA/protein/data/esm2_gate1/standard_test.jsonl",
+  "masked_token_nll": 1.7921714260746604,
+  "masked_tokens": 185046,
+  "mean_protein_nll": 1.7725005112363623,
+  "mode": "lora8",
+  "num_workers": 2,
+  "peak_vram_bytes": 3740902912,
+  "proteins": 2000,
+  "realizations": 3,
+  "residues_per_second": 18898.19298038292,
+  "token_budget": 16384,
+  "torch_compile": false,
+  "wall_seconds": 65.27989217173308
+}

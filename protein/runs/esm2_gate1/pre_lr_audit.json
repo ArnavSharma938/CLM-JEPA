@@ -1,0 +1,102 @@
+{
+  "checked_contracts": [
+    "pinned revisions and released row/accession counts",
+    "accession grouping semantics and one-sequence-per-backbone manifests",
+    "canonical alphabet, length, sequence hashes, exact duplicate removal",
+    "BRn novelty, nested loads, residue/length balance, split leakage",
+    "structure archive/accession correspondence and 0.5 TM-score definitions",
+    "MMseqs identity/coverage fields for both nested loads",
+    "Fair-ESM parity, attention backend parity, profiling VRAM headroom",
+    "exact ESM-2 dense target family and trainable counts"
+  ],
+  "cross_backbone_exact_duplicates": 0,
+  "dataset_revision": "7f6771db1bfad58011fcadf72f86eacbef39a482",
+  "manifest_checks": {
+    "heldout_candidates": {
+      "backbones": 4266,
+      "maximum_length": 509,
+      "minimum_length": 53,
+      "residues": 900539
+    },
+    "natural_test": {
+      "backbones": 2000,
+      "maximum_length": 491,
+      "minimum_length": 63,
+      "residues": 420689
+    },
+    "remote_ood_test": {
+      "backbones": 111,
+      "maximum_length": 472,
+      "minimum_length": 123,
+      "residues": 34212
+    },
+    "standard_test": {
+      "backbones": 2000,
+      "maximum_length": 504,
+      "minimum_length": 53,
+      "residues": 411224
+    },
+    "train_10k": {
+      "backbones": 10000,
+      "maximum_length": 512,
+      "minimum_length": 51,
+      "residues": 2107974
+    },
+    "train_50k": {
+      "backbones": 50000,
+      "maximum_length": 512,
+      "minimum_length": 51,
+      "residues": 10542729
+    },
+    "validation": {
+      "backbones": 555,
+      "maximum_length": 502,
+      "minimum_length": 76,
+      "residues": 118837
+    }
+  },
+  "maximum_101_quantile_length_difference": 2.0,
+  "model_revision": "08e4846e537177426273712802403f7ba8261b6c",
+  "nested_residue_ratio": 0.1999457635684271,
+  "passed": true,
+  "selected_backend": "sdpa",
+  "selected_evaluation": {
+    "backend": "sdpa",
+    "compile_model": false,
+    "measured_batches": 6,
+    "padding_fraction": 0.05281614761200881,
+    "passed": true,
+    "peak_vram_bytes": 3701837312,
+    "residues_per_second": 32054.74320320681,
+    "sequences_per_second": 281.9025582881573,
+    "token_budget": 16384,
+    "wall_seconds": 2.848501996137202,
+    "workers": 2
+  },
+  "selected_training": {
+    "backend": "sdpa",
+    "compile_model": false,
+    "gradient_checkpointing": false,
+    "measured_batches": 6,
+    "padding_fraction": 0.07557996220317165,
+    "passed": true,
+    "peak_vram_bytes": 39127655936,
+    "residues_per_second": 10137.901581460563,
+    "sequences_per_second": 53.115362386587385,
+    "token_budget": 12288,
+    "wall_seconds": 6.589430708438158,
+    "workers": 2
+  },
+  "target_check": {
+    "layers": 33,
+    "matrices": 198,
+    "suffixes": [
+      "attention.output.dense",
+      "attention.self.key",
+      "attention.self.query",
+      "attention.self.value",
+      "intermediate.dense",
+      "output.dense"
+    ]
+  }
+}

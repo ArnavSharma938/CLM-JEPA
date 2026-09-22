@@ -1,0 +1,7 @@
+Collecting flash-attn==2.8.3.post1
+  Using cached flash_attn-2.8.3.post1.tar.gz (8.5 MB)
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: flash-attn
+  Building wheel for flash-attn (pyproject.toml): started
+  Building wheel for flash-attn (pyproject.toml): still running...

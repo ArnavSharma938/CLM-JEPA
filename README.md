@@ -2,8 +2,8 @@
 
 This repository contains two deliberately separated research surfaces:
 
-- `protein/`: the ESM-IF1 parameter-efficient calibration study, including
-  MegaScale preparation, adaptation, evaluation, and launch tooling.
+- `protein/`: protein adaptation studies: the ESM-IF1 MegaScale calibration
+  and the separate ESM-2 BackboneRef Gate-1 screen.
 - `docs/reports/`: the consolidated ChemFM experimental record. The reusable
   ChemFM model, objective, and training code remains in `src/`.
 
@@ -14,6 +14,7 @@ This repository contains two deliberately separated research surfaces:
 | `data/` | Preserved chemistry datasets, locked panels, and split metadata |
 | `docs/reports/` | Consolidated ChemFM reports 00-08 |
 | `protein/` | ESM-IF1 calibration code, tests, frozen split metadata, and launch plan |
+| `protein/esm2_gate1/` | ESM-2 BackboneRef Gate-1 data, MLM, adaptation, evaluation, and reporting code |
 | `references/` | Pinned ChemFM reference implementation and tokenizer |
 | `scripts/download_chemfm_model.py` | The remaining reusable chemistry utility |
 | `src/` | ChemFM loading, training, STP, NextLat, decoder-projected, and metric primitives |

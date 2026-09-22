@@ -1,0 +1,26 @@
+[
+  {
+    "epoch": 0,
+    "batch": 163,
+    "optimizer_step": 50,
+    "validation_nll": 1.8523177339593087
+  },
+  {
+    "epoch": 1,
+    "batch": 137,
+    "optimizer_step": 100,
+    "validation_nll": 1.814524079909309
+  },
+  {
+    "epoch": 2,
+    "batch": 113,
+    "optimizer_step": 150,
+    "validation_nll": 1.7965036904638725
+  },
+  {
+    "epoch": 3,
+    "batch": 86,
+    "optimizer_step": 200,
+    "validation_nll": 1.7853338503298795
+  }
+]

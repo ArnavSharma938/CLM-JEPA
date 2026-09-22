@@ -1,0 +1,16 @@
+{
+  "checkpoint": null,
+  "manifest": "/home/ubuntu/CLM-JEPA/protein/data/esm2_gate1/natural_test.jsonl",
+  "masked_token_nll": 1.9395851558544628,
+  "masked_tokens": 189345,
+  "mean_protein_nll": 1.9695378389397136,
+  "mode": "base",
+  "num_workers": 2,
+  "peak_vram_bytes": 3704266752,
+  "proteins": 2000,
+  "realizations": 3,
+  "residues_per_second": 25532.805713705995,
+  "token_budget": 16384,
+  "torch_compile": false,
+  "wall_seconds": 49.42923289164901
+}

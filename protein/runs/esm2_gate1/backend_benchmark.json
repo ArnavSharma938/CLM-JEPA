@@ -1,0 +1,65 @@
+{
+  "benchmarks": [
+    {
+      "backend": "eager",
+      "nll": 0.002279715146869421,
+      "passed": true,
+      "peak_vram_bytes": 2633090560,
+      "tokens_per_second": 1087.6985774782077,
+      "torch_compile": false
+    },
+    {
+      "backend": "sdpa",
+      "nll": 0.00235741981305182,
+      "parity": {
+        "centered_logits_max_abs": 0.12849140167236328,
+        "gradient_cosine": 0.999049723148346,
+        "gradient_relative_l2": 0.06867128610610962,
+        "logits_max_abs": 0.125,
+        "nll_abs": 7.77046661823988e-05,
+        "probability_max_abs": 0.0002815723419189453,
+        "reference_to_candidate_kl": 3.606874088291079e-06,
+        "top1_agreement": 1.0
+      },
+      "passed": true,
+      "peak_vram_bytes": 2632926720,
+      "tokens_per_second": 1101.5989156149312,
+      "torch_compile": false
+    },
+    {
+      "backend": "flash_attention_2",
+      "error": "ImportError(\"FlashAttention2 has been toggled on, but it cannot be used due to the following error: the package for FlashAttention2 doesn't seem to be installed.\")",
+      "passed": false
+    }
+  ],
+  "bf16_parity_tolerances": {
+    "centered_logits_max_abs": 0.15,
+    "gradient_cosine_min": 0.9985,
+    "gradient_relative_l2": 0.08,
+    "nll_abs": 0.0002,
+    "probability_max_abs": 0.002,
+    "reference_to_candidate_kl": 5e-05,
+    "top1_agreement": 1.0
+  },
+  "compile_minimum_improvement_fraction": 0.05,
+  "selected_backend": "sdpa",
+  "torch_compile_benchmark": {
+    "backend": "sdpa",
+    "nll": 0.002298796083778143,
+    "parity": {
+      "centered_logits_max_abs": 0.13044452667236328,
+      "gradient_cosine": 0.9987796545028687,
+      "gradient_relative_l2": 0.0570765845477581,
+      "logits_max_abs": 0.125,
+      "nll_abs": 1.9080936908721924e-05,
+      "probability_max_abs": 0.00012159347534179688,
+      "reference_to_candidate_kl": 1.3025429552726564e-06,
+      "top1_agreement": 1.0
+    },
+    "passed": true,
+    "peak_vram_bytes": 2613060608,
+    "tokens_per_second": 8258.091028883993,
+    "torch_compile": true
+  },
+  "use_torch_compile": true
+}

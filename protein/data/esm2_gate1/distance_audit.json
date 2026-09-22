@@ -1,0 +1,290 @@
+{
+  "distance_cache_key": "8ff822e23f036105",
+  "distance_workspace": "/home/ubuntu/CLM-JEPA/protein/data/esm2_gate1/distance_cache/8ff822e23f036105",
+  "foldseek_search": {
+    "alignment_type": 1,
+    "exact_tmscore": true,
+    "max_seqs": 1000,
+    "metric": "global query-normalized TM-score; nested-set pruning restricts the 40k increment search to qTM10 < 0.5 candidates",
+    "remote10_candidates_searched_against_train40": 282,
+    "sensitivity": 9.5,
+    "similarity_50k_semantics": "exact maximum for qTM10<0.5 candidates; qTM10 certified lower bound for already-standard backbones, sufficient for the fixed 0.5 split",
+    "threads": 6,
+    "train40_structures": 40000
+  },
+  "heldout_candidates": 4266,
+  "intersection_structure_coverage": {
+    "expected": 54324,
+    "missing": 0
+  },
+  "outputs": {
+    "remote_ood_test": {
+      "dataset": "microsoft/Dayhoff",
+      "dataset_revision": "7f6771db1bfad58011fcadf72f86eacbef39a482",
+      "manifest_sha256": "cad76067d55777fd35b5215016792d9a1907e7ba1537d83ab254104915db1d00",
+      "split": "remote_ood_test",
+      "statistics": {
+        "amino_acid_frequencies": {
+          "A": 0.12609610662925289,
+          "C": 0.005173623290073658,
+          "D": 0.040161346895826025,
+          "E": 0.14705366538056822,
+          "F": 0.02238980474687244,
+          "G": 0.03411083830235005,
+          "H": 0.007921197240734245,
+          "I": 0.06298959429439963,
+          "K": 0.07751666082076464,
+          "L": 0.1578393546124167,
+          "M": 0.011604115515023968,
+          "N": 0.014322459955571144,
+          "P": 0.030047936396585994,
+          "Q": 0.011341049924003274,
+          "R": 0.05910206944931603,
+          "S": 0.03402314977200982,
+          "T": 0.04966093768268444,
+          "V": 0.08751315327955103,
+          "W": 0.003975213375423828,
+          "Y": 0.017157722436571963
+        },
+        "backbones": 111,
+        "entropy_bits": {
+          "maximum": 3.893253824917814,
+          "mean": 3.652057060260761,
+          "median": 3.6725023244939816,
+          "minimum": 3.1741820874262805,
+          "q01": 3.329938481432208,
+          "q25": 3.5909056757315154,
+          "q75": 3.748622395850253,
+          "q99": 3.8460552098311984
+        },
+        "length": {
+          "maximum": 472.0,
+          "mean": 308.2162162162162,
+          "median": 314.0,
+          "minimum": 123.0,
+          "q01": 159.7,
+          "q25": 267.0,
+          "q75": 355.5,
+          "q99": 454.30000000000007
+        },
+        "maximum_homopolymer_fraction": {
+          "maximum": 0.02926829268292683,
+          "mean": 0.012608627815415158,
+          "median": 0.01107011070110701,
+          "minimum": 0.006355932203389831,
+          "q01": 0.006607466607466608,
+          "q25": 0.009448842330813643,
+          "q75": 0.014679343873730707,
+          "q99": 0.026019810416444786
+        },
+        "maximum_residue_fraction": {
+          "maximum": 0.2723735408560311,
+          "mean": 0.18189839676056108,
+          "median": 0.18021978021978022,
+          "minimum": 0.12420382165605096,
+          "q01": 0.12769426751592358,
+          "q25": 0.15751074579594299,
+          "q75": 0.19860440736453577,
+          "q99": 0.2576558011739728
+        },
+        "residues": 34212,
+        "sequences": 111,
+        "unique_residue_fraction": {
+          "maximum": 1.0,
+          "mean": 0.9527027027027027,
+          "median": 0.95,
+          "minimum": 0.8,
+          "q01": 0.805,
+          "q25": 0.95,
+          "q75": 1.0,
+          "q99": 1.0
+        }
+      },
+      "structural_metric": "global query-normalized TM-score over Foldseek 3Di shortlist",
+      "structural_threshold": 0.5
+    },
+    "standard_test": {
+      "dataset": "microsoft/Dayhoff",
+      "dataset_revision": "7f6771db1bfad58011fcadf72f86eacbef39a482",
+      "manifest_sha256": "1d5b73f6d7ef8cab9446ebb52e1a0f192a53c90935afaf0f919cb7e8ac14e531",
+      "split": "standard_test",
+      "statistics": {
+        "amino_acid_frequencies": {
+          "A": 0.11913458358461568,
+          "C": 0.005174795245413692,
+          "D": 0.03768505729237593,
+          "E": 0.16281150905589167,
+          "F": 0.020708908040386748,
+          "G": 0.03540649378440947,
+          "H": 0.007557924634748945,
+          "I": 0.06924206758360407,
+          "K": 0.09129087796432114,
+          "L": 0.13823852693422564,
+          "M": 0.01123475283543762,
+          "N": 0.01879510923486956,
+          "P": 0.02676157033636169,
+          "Q": 0.009639515203392799,
+          "R": 0.054279419489134874,
+          "S": 0.03399850203295528,
+          "T": 0.05047613952493045,
+          "V": 0.09004581444662763,
+          "W": 0.0030591599712079063,
+          "Y": 0.014459272805089197
+        },
+        "backbones": 2000,
+        "entropy_bits": {
+          "maximum": 3.9251441226644004,
+          "mean": 3.5418032274733844,
+          "median": 3.5853616466654152,
+          "minimum": 2.641423956745022,
+          "q01": 2.901814075244172,
+          "q25": 3.435187019989244,
+          "q75": 3.6926661909795895,
+          "q99": 3.8608657450300137
+        },
+        "length": {
+          "maximum": 504.0,
+          "mean": 205.612,
+          "median": 196.0,
+          "minimum": 53.0,
+          "q01": 83.99000000000001,
+          "q25": 156.0,
+          "q75": 248.0,
+          "q99": 381.03999999999996
+        },
+        "maximum_homopolymer_fraction": {
+          "maximum": 0.08053691275167785,
+          "mean": 0.018830424503616414,
+          "median": 0.017045454545454544,
+          "minimum": 0.004962779156327543,
+          "q01": 0.007462133775566611,
+          "q25": 0.013043478260869565,
+          "q75": 0.02210555908668655,
+          "q99": 0.04878913682753848
+        },
+        "maximum_residue_fraction": {
+          "maximum": 0.42657342657342656,
+          "mean": 0.19821510826569191,
+          "median": 0.18969938107869141,
+          "minimum": 0.09615384615384616,
+          "q01": 0.12352564474065489,
+          "q25": 0.16316507908246536,
+          "q75": 0.22448979591836735,
+          "q99": 0.3375489130434782
+        },
+        "residues": 411224,
+        "sequences": 2000,
+        "unique_residue_fraction": {
+          "maximum": 1.0,
+          "mean": 0.89955,
+          "median": 0.9,
+          "minimum": 0.55,
+          "q01": 0.65,
+          "q25": 0.85,
+          "q75": 0.95,
+          "q99": 1.0
+        }
+      },
+      "structural_metric": "global query-normalized TM-score over Foldseek 3Di shortlist",
+      "structural_threshold": 0.5
+    },
+    "validation": {
+      "dataset": "microsoft/Dayhoff",
+      "dataset_revision": "7f6771db1bfad58011fcadf72f86eacbef39a482",
+      "manifest_sha256": "a28bc79104272db0c276db45b1608082906f1927774818dd9702ab33c472d772",
+      "split": "validation",
+      "statistics": {
+        "amino_acid_frequencies": {
+          "A": 0.12002995699992426,
+          "C": 0.005082592121982211,
+          "D": 0.037589302994858506,
+          "E": 0.16295429874534026,
+          "F": 0.020507081127931537,
+          "G": 0.035460336427207015,
+          "H": 0.007337782003921337,
+          "I": 0.06709189898768902,
+          "K": 0.08672383180322626,
+          "L": 0.14176561172025548,
+          "M": 0.011376928061125743,
+          "N": 0.017031732541211913,
+          "P": 0.027878522682329578,
+          "Q": 0.009828588739197388,
+          "R": 0.05734745912468339,
+          "S": 0.03316307210717201,
+          "T": 0.049765645379805955,
+          "V": 0.09167178572330166,
+          "W": 0.0029199660038540186,
+          "Y": 0.014473606704982454
+        },
+        "backbones": 555,
+        "entropy_bits": {
+          "maximum": 3.8890183413392334,
+          "mean": 3.540307193489443,
+          "median": 3.576790687101676,
+          "minimum": 2.750202703818724,
+          "q01": 2.9803220315184515,
+          "q25": 3.4162985510481416,
+          "q75": 3.6903395307745512,
+          "q99": 3.84758429985453
+        },
+        "length": {
+          "maximum": 502.0,
+          "mean": 214.12072072072073,
+          "median": 206.0,
+          "minimum": 76.0,
+          "q01": 85.54,
+          "q25": 160.0,
+          "q75": 258.0,
+          "q99": 413.22000000000025
+        },
+        "maximum_homopolymer_fraction": {
+          "maximum": 0.10309278350515463,
+          "mean": 0.018071095172916524,
+          "median": 0.016339869281045753,
+          "minimum": 0.0058309037900874635,
+          "q01": 0.007170606372045221,
+          "q25": 0.012685046127440463,
+          "q75": 0.021443899448191292,
+          "q99": 0.04714404817044929
+        },
+        "maximum_residue_fraction": {
+          "maximum": 0.36538461538461536,
+          "mean": 0.19735899733497766,
+          "median": 0.18779342723004694,
+          "minimum": 0.11351351351351352,
+          "q01": 0.1276699117129856,
+          "q25": 0.1646700143472023,
+          "q75": 0.22431386347642507,
+          "q99": 0.33111111111111124
+        },
+        "residues": 118837,
+        "sequences": 555,
+        "unique_residue_fraction": {
+          "maximum": 1.0,
+          "mean": 0.8982882882882883,
+          "median": 0.9,
+          "minimum": 0.6,
+          "q01": 0.7,
+          "q25": 0.85,
+          "q75": 0.95,
+          "q99": 1.0
+        }
+      },
+      "structural_metric": "global query-normalized TM-score over Foldseek 3Di shortlist",
+      "structural_threshold": 0.5
+    }
+  },
+  "released_structure_accessions": 240811,
+  "remote_candidates": 166,
+  "standard_candidates": 3984,
+  "structure_mapping": {
+    "missing": 0,
+    "requested": 54266,
+    "resolved": 54266
+  },
+  "structure_zip_sha256": "5c75396fe6e0229f4e4a8dbeab7b88b95cd8e89c47137cf83f9e33d3fb40270a",
+  "tool_versions": {
+    "foldseek": "463739e0014a1549a527de589102cde98f802f37",
+    "mmseqs": "d401e78c2d18a822cdb1527d7464a043f6035a15"
+  }
+}

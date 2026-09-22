@@ -1,0 +1,149 @@
+{
+  "backend": "sdpa",
+  "evaluation": [
+    {
+      "backend": "sdpa",
+      "compile_model": false,
+      "measured_batches": 6,
+      "padding_fraction": 0.05281614761200881,
+      "passed": true,
+      "peak_vram_bytes": 3701837312,
+      "residues_per_second": 32054.74320320681,
+      "sequences_per_second": 281.9025582881573,
+      "token_budget": 16384,
+      "wall_seconds": 2.848501996137202,
+      "workers": 2
+    },
+    {
+      "backend": "sdpa",
+      "compile_model": false,
+      "measured_batches": 6,
+      "padding_fraction": 0.08287157424677671,
+      "passed": true,
+      "peak_vram_bytes": 4207887360,
+      "residues_per_second": 31360.791336262442,
+      "sequences_per_second": 255.96976725080688,
+      "token_budget": 24576,
+      "wall_seconds": 4.22706170193851,
+      "workers": 2
+    },
+    {
+      "backend": "sdpa",
+      "compile_model": false,
+      "measured_batches": 6,
+      "padding_fraction": 0.10371268590177962,
+      "passed": true,
+      "peak_vram_bytes": 4713748480,
+      "residues_per_second": 30786.534890283794,
+      "sequences_per_second": 238.3164100087775,
+      "token_budget": 32768,
+      "wall_seconds": 5.626972980797291,
+      "workers": 2
+    },
+    {
+      "backend": "sdpa",
+      "compile_model": true,
+      "measured_batches": 6,
+      "padding_fraction": 0.05281614761200881,
+      "passed": true,
+      "peak_vram_bytes": 3114149888,
+      "residues_per_second": 54209.70794958119,
+      "sequences_per_second": 476.7424046470594,
+      "token_budget": 16384,
+      "wall_seconds": 1.6843477571383119,
+      "workers": 2
+    }
+  ],
+  "manifest": "protein/data/esm2_gate1/train_10k.jsonl",
+  "manifest_sha256": "9e7012dd4f3cd757f8fe224c7755f891b11e03462831410042ab3f03002d790d",
+  "profiled_backends": [
+    "sdpa"
+  ],
+  "selected_evaluation": {
+    "backend": "sdpa",
+    "compile_model": true,
+    "measured_batches": 6,
+    "padding_fraction": 0.05281614761200881,
+    "passed": true,
+    "peak_vram_bytes": 3114149888,
+    "residues_per_second": 54209.70794958119,
+    "sequences_per_second": 476.7424046470594,
+    "token_budget": 16384,
+    "wall_seconds": 1.6843477571383119,
+    "workers": 2
+  },
+  "selected_training": {
+    "backend": "sdpa",
+    "compile_model": true,
+    "gradient_checkpointing": false,
+    "measured_batches": 6,
+    "padding_fraction": 0.07557996220317165,
+    "passed": true,
+    "peak_vram_bytes": 28276296704,
+    "residues_per_second": 12638.365033587952,
+    "sequences_per_second": 66.21600469673193,
+    "token_budget": 12288,
+    "wall_seconds": 5.285731170326471,
+    "workers": 2
+  },
+  "selection_rule": "highest end-to-end residue throughput among candidates retaining 10% VRAM headroom; torch.compile requires at least 5% improvement",
+  "training": [
+    {
+      "backend": "sdpa",
+      "compile_model": false,
+      "gradient_checkpointing": false,
+      "measured_batches": 6,
+      "padding_fraction": 0.050672869247383234,
+      "passed": true,
+      "peak_vram_bytes": 29134166016,
+      "residues_per_second": 9895.667273817413,
+      "sequences_per_second": 36.418009491989686,
+      "token_budget": 8192,
+      "wall_seconds": 4.585643266327679,
+      "workers": 2
+    },
+    {
+      "backend": "sdpa",
+      "compile_model": false,
+      "gradient_checkpointing": false,
+      "measured_batches": 6,
+      "padding_fraction": 0.07557996220317165,
+      "passed": true,
+      "peak_vram_bytes": 39127655936,
+      "residues_per_second": 10137.901581460563,
+      "sequences_per_second": 53.115362386587385,
+      "token_budget": 12288,
+      "wall_seconds": 6.589430708438158,
+      "workers": 2
+    },
+    {
+      "backend": "sdpa",
+      "compile_model": false,
+      "gradient_checkpointing": false,
+      "measured_batches": 6,
+      "padding_fraction": 0.10107329923747388,
+      "passed": true,
+      "peak_vram_bytes": 49115319808,
+      "residues_per_second": 9807.851352477213,
+      "sequences_per_second": 33.574207900850986,
+      "token_budget": 16384,
+      "wall_seconds": 8.846076156944036,
+      "workers": 2
+    },
+    {
+      "backend": "sdpa",
+      "compile_model": true,
+      "gradient_checkpointing": false,
+      "measured_batches": 6,
+      "padding_fraction": 0.07557996220317165,
+      "passed": true,
+      "peak_vram_bytes": 28276296704,
+      "residues_per_second": 12638.365033587952,
+      "sequences_per_second": 66.21600469673193,
+      "token_budget": 12288,
+      "wall_seconds": 5.285731170326471,
+      "workers": 2
+    }
+  ],
+  "vram_headroom_fraction": 0.1
+}

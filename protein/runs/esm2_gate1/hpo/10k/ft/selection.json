@@ -1,0 +1,42 @@
+{
+  "applies_to": [
+    "ft",
+    "dtft"
+  ],
+  "candidates": [
+    {
+      "deterioration_from_minimum": 0.0,
+      "learning_rate": 1e-06,
+      "minimum_validation_nll": 1.9853762466908973,
+      "terminal_validation_nll": 1.9853762466908973,
+      "trajectory": [
+        2.003237633979749,
+        1.9853762466908973
+      ]
+    },
+    {
+      "deterioration_from_minimum": 0.0,
+      "learning_rate": 3e-06,
+      "minimum_validation_nll": 1.9349786076256665,
+      "terminal_validation_nll": 1.9349786076256665,
+      "trajectory": [
+        1.9760544449149449,
+        1.9349786076256665
+      ]
+    },
+    {
+      "deterioration_from_minimum": 0.0,
+      "learning_rate": 1e-05,
+      "minimum_validation_nll": 1.8688645565268476,
+      "terminal_validation_nll": 1.8688645565268476,
+      "trajectory": [
+        1.909390696004323,
+        1.8688645565268476
+      ]
+    }
+  ],
+  "equivalence_tolerance_nll": 0.0001,
+  "representative_method": "dtft",
+  "selected_learning_rate": 1e-05,
+  "selection_rule": "minimum validation NLL; within tolerance choose lower LR"
+}
