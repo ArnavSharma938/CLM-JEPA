@@ -1,0 +1,11 @@
+4c6b84dbbd1a5d25b39c480f7cad300baa0aec4f1e6ac2f30018cd54a957e54d  evidence/10k/ft/seed_11/best.trainable.pt
+6c2050c6015aa2e4e0d9cc6b53353a454ead27d7836dbe299d8badfef945235a  evidence/10k/dtft/seed_11/best.trainable.pt
+15d0fea22ceb97bc17c996f581d38587cd4d08497a6fe575578e83d6de7f8888  evidence/10k/dtft/seed_23/best.trainable.pt
+71e51b02d75f73bac487ab80ae766fcf4cea228b55a695d4de4ff92a15ba2b43  evidence/10k/lora64/seed_11/best.trainable.pt
+7f5368157b41e2cdcc17d28ae94291dc22bd2f2ded91e2ae84c129f96d80c238  evidence/10k/lora8/seed_11/best.trainable.pt
+c9d100a06065a9d44ebf1a652425bd8608481220a28ee7acc633ae7ba39a8d1b  evidence/10k/lora8/seed_23/best.trainable.pt
+de2a416f5af2d22e7c952ad649038fe096b8728c0cd415c7a9a35ac8ae773219  evidence/50k/dtft/seed_11/best.trainable.pt
+d80319ead5a8c612f6df0408d10358fe88609406643e067d1e9fa6f17e9b3c7e  evidence/50k/lora64/seed_11/best.trainable.pt
+714586f2d3cf717c1e8e02b6f9adfbc29780b246e76dd21b228946408f8d3735  evidence/50k/lora8/seed_11/best.trainable.pt
+3e8fd1da91c1b8abce8c322c2188decef1f58b6fc625cfbea8ef3542c667d147  ../../../../ThunderBackups/r9xiha5y_20260922/esm2_gate1_results.tar.gz
+19c9a561047bd69f0f2cec76a19490556a5067bf28bbed9bfe4ccc6905e2b731  ../../../../ThunderBackups/r9xiha5y_20260922/compact_lora.tar.gz
