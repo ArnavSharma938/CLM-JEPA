@@ -1,0 +1,24 @@
+{
+  "added_clusters_have_no_pairs_in_train_validation_or_test_manifests": true,
+  "added_pair_count": 889,
+  "added_receptor_cluster_count": 326,
+  "expanded_test_pair_count": 3252,
+  "expanded_test_receptor_cluster_count": 853,
+  "expanded_test_sha256": "1a318c2266c05689fae54947e9312041e80292bbca9911b012753ae1443b9826",
+  "fixed_decoys": {
+    "decoy_evaluations": 13008,
+    "decoys_per_pair": 4,
+    "fixed_decoy_manifest_sha256": "acdd5c880c41e33e4f7dbd499d11682f12c35091448859dbd84ac54414ac48d9",
+    "manifest": "test_expanded_unused_clusters_decoys.jsonl",
+    "mean_relative_length_difference": 0.09981345574167429,
+    "pair_count": 3252,
+    "seed": 20260926,
+    "source_test_sha256": "1a318c2266c05689fae54947e9312041e80292bbca9911b012753ae1443b9826"
+  },
+  "manifest": "test_expanded_unused_clusters.jsonl",
+  "source_cluster_manifest_sha256": "a620c33962e2449bd7599032c2c40a99ebfb234680e672632b366028cb6208c5",
+  "source_pair_manifest_sha256": "f3f7d9e5c501e29fa2412cf67e281fff06956dedb88b8fc5f357f16547ac9492",
+  "source_test_sha256": "3144b6b6f8a05bbd3fc47d517071efdfe1f0dd971d20a7a2b6bf5330c254d830",
+  "source_train_sha256": "5f2fe8e783470b1e90fe2a1b528ca18da92d6800ef2539f13d34e63c57cc2859",
+  "train_test_peptide_overlap": 0
+}

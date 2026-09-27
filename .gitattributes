@@ -21,3 +21,4 @@ data/clm_jepa_uspto_mit_stp_confirmation/*.json -text -whitespace
 data/clm_jepa_uspto_mit_stp_confirmation/*.jsonl -text -whitespace
 data/clm_jepa_uspto_mit_latent_audit/*.json -text -whitespace
 data/chemistry/uspto_mit_synthesis/train_r_smiles.csv filter=lfs diff=lfs merge=lfs -text
+data/protein/propedia26/clustering/receptor_all_vs_all.tsv filter=lfs diff=lfs merge=lfs -text

@@ -11,6 +11,7 @@ This repository has two explicitly separated research surfaces:
 |---|---|
 | `src/esm_if1/` | Reusable ESM-IF1 core, with one-shot workflows and profilers isolated in subpackages |
 | `src/esm2_gate1/` | ESM-2 BackboneRef Gate-1 implementation |
+| `src/esm2_peptide_generation/` | Leakage-controlled Propedia target-conditioned ESM-2 peptide-generation Gate-0 implementation |
 | `scripts/` | Thin executable launchers only |
 | `tests/` | Focused protein tests |
 | `data/protein/esm_if1/` | Canonical corrected-sign MegaScale manifest and compact Gate-1 data |

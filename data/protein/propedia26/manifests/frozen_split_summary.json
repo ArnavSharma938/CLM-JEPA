@@ -1,0 +1,39 @@
+{
+  "cluster_counts": {
+    "test": 527,
+    "train": 1757,
+    "validation": 369
+  },
+  "cluster_overlap_checks_passed": true,
+  "cluster_source_sha256": "a620c33962e2449bd7599032c2c40a99ebfb234680e672632b366028cb6208c5",
+  "manifest_sha256": {
+    "test": "3144b6b6f8a05bbd3fc47d517071efdfe1f0dd971d20a7a2b6bf5330c254d830",
+    "train": "5f2fe8e783470b1e90fe2a1b528ca18da92d6800ef2539f13d34e63c57cc2859",
+    "validation": "dfd3fad9bc84001ba1967cfec031f4283515dcef715ab8b683d7b9c018c8faa5"
+  },
+  "manifests_frozen": true,
+  "nearest_train_test_receptor_similarity": {
+    "coverage_filter_percent_both_sequences": 80.0,
+    "evalue": 1000,
+    "identity_cluster_cutoff_percent": 30.0,
+    "max_target_sequences": 0,
+    "nearest_query_coverage_percent": 96.6,
+    "nearest_subject_coverage_percent": 97.9,
+    "nearest_train_test_identity_percent": 29.6,
+    "qualifying_alignments": 1261,
+    "search": "test receptors against train receptors",
+    "sensitivity": "very-sensitive"
+  },
+  "pair_source_sha256": "f3f7d9e5c501e29fa2412cf67e281fff06956dedb88b8fc5f357f16547ac9492",
+  "receptor_cluster_count": 2979,
+  "seed": 20260926,
+  "split_counts": {
+    "test": 2363,
+    "train": 16573,
+    "validation": 2363
+  },
+  "train_heldout_peptide_collisions_removed": 2342,
+  "train_test_peptide_overlap": 0,
+  "train_validation_peptide_overlap": 0,
+  "usable_unique_pair_count_before_split": 23641
+}

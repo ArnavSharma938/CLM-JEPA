@@ -1,0 +1,21 @@
+{
+  "fixed_decoys": {
+    "decoy_evaluations": 9452,
+    "decoys_per_pair": 4,
+    "fixed_decoy_manifest_sha256": "c8e5c9c7db6e2cd17c88d9707f07e937f99258fee79430fa617365eedec1368a",
+    "manifest": "test_decoys.jsonl",
+    "mean_relative_length_difference": 0.10165730235609037,
+    "pair_count": 2363,
+    "seed": 20260926,
+    "source_test_sha256": "3144b6b6f8a05bbd3fc47d517071efdfe1f0dd971d20a7a2b6bf5330c254d830"
+  },
+  "hpo_subset": {
+    "hpo_manifest_sha256": "e9592bcf4790c82bd4b6fc4efedfc8dd03636fd748b39e44c31083d06379fca4",
+    "manifest": "hpo_4096.jsonl",
+    "receptor_clusters_represented": 1757,
+    "requested_pairs": 4096,
+    "seed": 7,
+    "selected_pairs": 4096,
+    "source_train_sha256": "5f2fe8e783470b1e90fe2a1b528ca18da92d6800ef2539f13d34e63c57cc2859"
+  }
+}

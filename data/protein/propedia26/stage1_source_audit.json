@@ -1,0 +1,22 @@
+{
+  "filters_and_collapses": {
+    "duplicate_pair_rows_collapsed": 19141,
+    "exceeds_model_context": 541,
+    "noncanonical_sequence": 30069,
+    "rows": 73392,
+    "valid_rows": 42782
+  },
+  "raw_rows": 73392,
+  "receptor_fasta": "receptors.fasta",
+  "receptor_fasta_sha256": "f5c4697b224ebbf4d6f8553d5eb3e641b3509b0a90dff375df9281a924a2a657",
+  "release": "v17",
+  "source": "https://bioinfo.dcc.ufmg.br/propedia26/data/propedia26_v17.csv",
+  "source_file": "propedia26_v17.csv",
+  "source_sha256": "22ba847c52ca4f6e6a4aa111c45032d25cfbee376a6218237e19ca2516437d8d",
+  "unique_pairs_manifest": "unique_pairs.jsonl",
+  "unique_pairs_manifest_sha256": "f3f7d9e5c501e29fa2412cf67e281fff06956dedb88b8fc5f357f16547ac9492",
+  "unique_peptide_sequence_count": 11023,
+  "unique_receptor_sequence_count": 16178,
+  "usable_unique_pair_count": 23641,
+  "valid_rows_before_pair_collapse": 42782
+}
