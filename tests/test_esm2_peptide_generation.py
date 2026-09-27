@@ -3,8 +3,10 @@ from __future__ import annotations
 import torch
 import torch.nn.functional as F
 import copy
+import json
 
 from esm2_peptide_generation.attention import patch_esm_sdpa
+from esm2_peptide_generation.analyze_conditioning import _cluster_means, analyze, planning_proxy_detectability
 from esm2_peptide_generation.batching import GenerationCollator, length_bucket_batches
 from esm2_peptide_generation.cluster_receptors import UnionFind
 from esm2_peptide_generation.masking import (
@@ -93,6 +95,54 @@ def test_split_assignment_keeps_each_cluster_whole() -> None:
     for cluster_id in {item["receptor_cluster_id"] for item in clusters}:
         members = [item["receptor_id"] for item in clusters if item["receptor_cluster_id"] == cluster_id]
         assert len({assigned[member] for member in members}) == 1
+
+
+def test_receptor_clusters_receive_equal_weight_regardless_of_pair_count() -> None:
+    means = _cluster_means([
+        {"cluster_id": "large", "gain": 0.0},
+        {"cluster_id": "large", "gain": 0.0},
+        {"cluster_id": "large", "gain": 0.0},
+        {"cluster_id": "small", "gain": 1.0},
+    ], "gain")
+    assert means == {"large": 0.0, "small": 1.0}
+    assert sum(means.values()) / len(means) == 0.5
+
+
+def test_stage6_material_threshold_uses_primary_stage4_equal_cluster_gain(tmp_path) -> None:
+    base_dir, dtft_dir = tmp_path / "base", tmp_path / "dtft"
+    base_dir.mkdir()
+    dtft_dir.mkdir()
+    base_true, dtft_true, base_decoy, dtft_decoy = [], [], [], []
+    for pair_id, cluster_id, dtft_nll in (("p1", "c1", 0.5), ("p2", "c2", 0.8)):
+        base_true.append({"pair_id": pair_id, "receptor_cluster_id": cluster_id, "supervised_tokens": 1, "loss_sum": 1.0})
+        dtft_true.append({"pair_id": pair_id, "receptor_cluster_id": cluster_id, "supervised_tokens": 1, "loss_sum": dtft_nll})
+        for index in range(4):
+            base_decoy.append({"pair_id": pair_id, "supervised_tokens": 1, "loss_sum": 1.1, "receptor_cluster_id": f"d{index}"})
+            dtft_decoy.append({"pair_id": pair_id, "supervised_tokens": 1, "loss_sum": dtft_nll + 0.2, "receptor_cluster_id": f"d{index}"})
+    for directory, name, rows in (
+        (base_dir, "test_true.jsonl", base_true),
+        (dtft_dir, "test_true.jsonl", dtft_true),
+        (base_dir, "test_decoy.jsonl", base_decoy),
+        (dtft_dir, "test_decoy.jsonl", dtft_decoy),
+    ):
+        (directory / name).write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+
+    report = analyze(base_dir, dtft_dir, bootstrap_replicates=100, primary_a_dtft=0.8)
+    assert abs(report["A_DTFT"] - 0.35) < 1e-12
+    assert report["primary_A_DTFT_for_material_threshold"] == 0.8
+    proxy = report["stage6_planning_proxy"]
+    assert abs(proxy["delta_material_0.10_A_DTFT"] - 0.08) < 1e-12
+    assert proxy["actual_dtft_vs_lora_paired_variance"] is None
+    assert proxy["informational_only_not_a_gate0_stopping_criterion"] is True
+
+
+def test_stage6_proxy_never_claims_actual_lora_precision() -> None:
+    result = planning_proxy_detectability(
+        {"c1": 0.1, "c2": 0.2, "c3": 0.3}, material_effect=0.02
+    )
+    assert result["proxy_mde_alpha_0.05_power_0.80"] > 0
+    assert result["actual_dtft_vs_lora_paired_variance"] is None
+    assert result["informational_only_not_a_gate0_stopping_criterion"] is True
 
 
 def test_esm_sdpa_matches_eager_outputs_and_gradients() -> None:

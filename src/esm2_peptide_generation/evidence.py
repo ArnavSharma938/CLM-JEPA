@@ -23,13 +23,15 @@ def run_evidence(
     *, manifest_dir: Path, cache_path: Path, hpo_report_path: Path,
     base_evaluation_path: Path, output_dir: Path,
     token_budget: int = 8_192, supervised_budget: int = 8_192, workers: int = 2,
+    peak_learning_rate_override: float | None = None,
 ) -> dict:
     hpo = json.loads(hpo_report_path.read_text(encoding="utf-8"))
     base = json.loads(base_evaluation_path.read_text(encoding="utf-8"))
     initial_validation = base["validation_true"]
     if initial_validation["manifest_sha256"] != sha256_file(manifest_dir / "validation.jsonl"):
         raise RuntimeError("Base validation was not evaluated on the frozen validation manifest")
-    selected_lr = float(hpo["selected_peak_learning_rate"])
+    hpo_selected_lr = float(hpo["selected_peak_learning_rate"])
+    selected_lr = hpo_selected_lr if peak_learning_rate_override is None else float(peak_learning_rate_override)
     train_manifest = manifest_dir / "train.jsonl"
     validation_manifest = manifest_dir / "validation.jsonl"
     executions = []
@@ -127,6 +129,11 @@ def run_evidence(
         "status": "UNRESOLVED" if classification == "hard_unresolved_ceiling" else "converged",
         "convergence_classification": classification,
         "selected_learning_rate": selected_lr,
+        "learning_rate_selection": {
+            "method": "hpo_selected" if peak_learning_rate_override is None else "requested_sensitivity_override",
+            "hpo_selected_peak_learning_rate": hpo_selected_lr,
+            "selected_peak_learning_rate": selected_lr,
+        },
         "hpo_report_sha256": sha256_file(hpo_report_path),
         "evidence_seed": 11,
         "training_manifest_sha256": sha256_file(train_manifest),
@@ -159,12 +166,14 @@ def main() -> None:
     parser.add_argument("--token-budget", type=int, default=8_192)
     parser.add_argument("--supervised-budget", type=int, default=8_192)
     parser.add_argument("--workers", type=int, default=2)
+    parser.add_argument("--peak-learning-rate-override", type=float, default=None)
     args = parser.parse_args()
     print(json.dumps(run_evidence(
         manifest_dir=args.manifest_dir, cache_path=args.cache,
         hpo_report_path=args.hpo_report, base_evaluation_path=args.base_evaluation,
         output_dir=args.output_dir, token_budget=args.token_budget,
         supervised_budget=args.supervised_budget, workers=args.workers,
+        peak_learning_rate_override=args.peak_learning_rate_override,
     ), indent=2, sort_keys=True))
 
 

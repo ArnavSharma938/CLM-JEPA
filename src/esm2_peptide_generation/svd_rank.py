@@ -129,6 +129,50 @@ def evaluate_rank(
     return summary
 
 
+def summarize_existing_rank_evaluations(
+    *, base_eval_dir: Path, stage4: dict, output_dir: Path,
+    factor_provenance_sha256: str | None = None, factors_sha256: str | None = None,
+) -> dict:
+    """Recompute rank retention from frozen score files using cluster-equal estimands."""
+    if not stage4["stage4_passed"]:
+        raise RuntimeError("rank truncation is prohibited because Stage 4 failed")
+    rank_reports = {}
+    for rank in (8, 64):
+        comparison = analyze(base_eval_dir, output_dir / f"svd_r{rank}")
+        c_rank = comparison["C_DTFT"]
+        rank_reports[f"r{rank}"] = {
+            "true_pair_peptide_nll": comparison["dtft_true_peptide_nll"],
+            "adaptation_gain_equal_cluster": comparison["A_DTFT"],
+            "specificity_increment_over_Base": c_rank,
+            "conditional_signal_equal_cluster": c_rank,
+            "R_rank_adaptation_gain_retained": (
+                comparison["A_DTFT"] / stage4["A_DTFT"]
+                if stage4["A_DTFT"] != 0 else None
+            ),
+            "Q_rank_conditional_signal_retained": (
+                c_rank / stage4["C_DTFT"] if stage4["C_DTFT"] != 0 else None
+            ),
+        }
+    r64 = rank_reports["r64"]["R_rank_adaptation_gain_retained"]
+    q64 = rank_reports["r64"]["Q_rank_conditional_signal_retained"]
+    low_rank_easy = bool(r64 is not None and q64 is not None and r64 >= 0.90 and q64 >= 0.90)
+    result = {
+        "primary_estimand": "equal-receptor-cluster-weighted mean peptide-NLL gain",
+        "rank8_rank64": rank_reports,
+        "rank64_preserves_at_least_90_percent_of_both": low_rank_easy,
+        "classification": "LOW-RANK-EASY" if low_rank_easy else "passes_rank64_screen",
+        "factor_provenance_sha256": factor_provenance_sha256,
+        "factors_sha256": factors_sha256,
+        "svd_method": "best truncated SVD independently on each of the 198 DTFT delta matrices; no optimization after truncation",
+        "retention_estimand": "rank-specific equal-cluster gain/signal divided by Stage-4 equal-cluster gain/signal",
+    }
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "rank_screen_report.json").write_text(
+        json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    return result
+
+
 def run_svd_screen(
     *, checkpoint_path: Path, manifest_dir: Path, cache_path: Path,
     base_eval_dir: Path, dtft_eval_dir: Path, stage4_path: Path, output_dir: Path,
@@ -141,8 +185,6 @@ def run_svd_screen(
     factor_report_path = output_dir / "svd_factor_provenance.json"
     factor_report = construct_rank64_factors(checkpoint_path, factors_path)
     factor_report_path.write_text(json.dumps(factor_report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    rank_reports = {}
-    base_stage4 = stage4
     for rank in (8, 64):
         rank_dir = output_dir / f"svd_r{rank}"
         evaluate_rank(
@@ -150,34 +192,11 @@ def run_svd_screen(
             manifest_dir=manifest_dir, cache_path=cache_path,
             output_dir=rank_dir, token_budget=token_budget, workers=workers,
         )
-        comparison = analyze(base_eval_dir, rank_dir)
-        base_nll = comparison["base_true_peptide_nll"]
-        rank_nll = comparison["dtft_true_peptide_nll"]
-        c_rank = comparison["C_DTFT"]
-        rank_reports[f"r{rank}"] = {
-            "true_pair_peptide_nll": rank_nll,
-            "specificity_increment_over_Base": c_rank,
-            "R_rank_adaptation_gain_retained": (
-                (base_nll - rank_nll) / base_stage4["A_DTFT_token_pooled"]
-                if base_stage4["A_DTFT_token_pooled"] != 0 else None
-            ),
-            "Q_rank_conditional_signal_retained": (
-                c_rank / base_stage4["C_DTFT"] if base_stage4["C_DTFT"] != 0 else None
-            ),
-        }
-    r64 = rank_reports["r64"]["R_rank_adaptation_gain_retained"]
-    q64 = rank_reports["r64"]["Q_rank_conditional_signal_retained"]
-    low_rank_easy = bool(r64 is not None and q64 is not None and r64 >= 0.90 and q64 >= 0.90)
-    result = {
-        "rank8_rank64": rank_reports,
-        "rank64_preserves_at_least_90_percent_of_both": low_rank_easy,
-        "classification": "LOW-RANK-EASY" if low_rank_easy else "passes_rank64_screen",
-        "factor_provenance_sha256": sha256_file(factor_report_path),
-        "factors_sha256": sha256_file(factors_path),
-        "svd_method": "best truncated SVD independently on each of the 198 DTFT delta matrices; no optimization after truncation",
-    }
-    (output_dir / "rank_screen_report.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    return result
+    return summarize_existing_rank_evaluations(
+        base_eval_dir=base_eval_dir, stage4=stage4, output_dir=output_dir,
+        factor_provenance_sha256=sha256_file(factor_report_path),
+        factors_sha256=sha256_file(factors_path),
+    )
 
 
 def main() -> None:

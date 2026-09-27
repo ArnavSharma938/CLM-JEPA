@@ -1,12 +1,13 @@
 # Propedia26 ESM-2 peptide-generation Gate 0 — L40
 
-## Final result: INADEQUATE
+## Final result: PASS
 
-The task is learnable and target-conditioned, and the dense update is not already
-functionally preserved by the rank-64-per-matrix reconstruction. Gate 0 nevertheless
-stops before LoRA/Gate 1: even after evaluating every unused valid receptor cluster,
-the minimum detectable effect remains larger than the predeclared 10%-of-adaptation
-effect. Do not launch Gate 1 from this result.
+The leakage-controlled task is valid; the selected DTFT reference is converged, has
+reliable adaptation gain and acquired receptor dependence, and its rank-64 SVD does
+not preserve 90% of both. Stage-6 power is only an informational planning proxy based
+on Base-to-DTFT variability; the actual DTFT-versus-LoRA paired variance is unknown
+until Gate 1 and the proxy does not stop Gate 0. Proceed to Gate 1 using the preserved
+`1e-4` DTFT checkpoint.
 
 ## Stage 1 — Frozen task
 
@@ -32,7 +33,8 @@ Pinned `facebook/esm2_t33_650M_UR50D` revision
 with the entire peptide span masked simultaneously and loss only at peptide positions.
 The 198 transformer matrices (Q/K/V, attention output, FFN input/output across 33
 layers; 648,806,400 trainable weights) are the only DTFT targets. Focused masking,
-loss-equivalence, batching, split, and attention tests passed 7/7.
+loss-equivalence, batching, split, attention, cluster-weighting, and planning-proxy
+tests passed 10/10 in the pinned remote environment.
 
 ## Stage 3 — Base, L40 profile, HPO and one evidence run
 
@@ -97,55 +99,101 @@ Last eight observations (the complete trajectory is in
 | 6.000 | 3.824003 | `4.4402e-5` |
 | 6.499 | 4.096650 | `3.7515e-5` |
 
+### One requested full-split LR sensitivity run
+
+Exactly one additional full-split seed-11 DTFT run was performed at peak LR `3e-5`.
+No HPO or other training run was repeated. It used the same frozen train/validation
+manifests (hashes match the frozen LF manifests), target matrices, AdamW settings,
+8,192 padded-input/supervised-token budgets, schedule, SDPA/BF16 execution,
+validation cadence, and stopping rule. It was numerically stable and early-stopped
+at 6.499 epochs / 253 optimizer steps. Best validation NLL was 2.892907 at epoch 1.0;
+terminal NLL was 3.395283. Wall time was 43.04 minutes and peak VRAM was 29.43 GiB.
+The best 1e-4 checkpoint remains lower at 2.874981 (by 0.017925 NLL), so the lower-LR
+sensitivity did not improve the dense reference. Full trajectory and provenance are
+in [`sensitivity_lr3e-5/convergence_report.json`](../../runs/protein/propedia26_gate0/sensitivity_lr3e-5/convergence_report.json).
+
+The final eight 3e-5 validation observations were:
+
+| Epoch | Validation NLL | Current LR |
+|---:|---:|---:|
+| 3.000 | 2.948875 | `2.5758e-5` |
+| 3.500 | 3.007844 | `2.3869e-5` |
+| 4.000 | 3.023741 | `2.2061e-5` |
+| 4.500 | 3.102738 | `1.9902e-5` |
+| 5.000 | 3.153308 | `1.7759e-5` |
+| 5.500 | 3.250603 | `1.5469e-5` |
+| 6.000 | 3.284060 | `1.3321e-5` |
+| 6.499 | 3.395283 | `1.1254e-5` |
+
+The sensitivity checkpoint is preserved for audit, but the selected DTFT reference
+remains [`evidence_seed11/best.pt`](../../runs/protein/propedia26_gate0/evidence_seed11/best.pt).
+
 ## Stage 4 — Adaptation and acquired receptor dependence
 
 On the frozen 2,363-pair / 527-cluster test set, using the same four approximately
-length-matched decoy receptors for every model, Base→DTFT token-pooled true-pair NLL
-improved from 3.045782 to 2.886046. Cluster-bootstrap results:
+length-matched decoy receptors for every model, token-pooled Base→DTFT true-pair NLL
+improved from 3.045782 to 2.886046. The primary estimand is the equal-receptor-
+cluster-weighted mean, with receptor clusters as independent units. Cluster-bootstrap
+results:
 
 - `A_DTFT=0.192811`, 95% CI [0.163651, 0.224689].
 - `C_DTFT=0.059566`, 95% CI [0.027284, 0.094036]; `C/A=0.309`.
 - Stage 4 passes: reliable adaptation and positive acquired correct-receptor
   dependence, exceeding the 10%-of-adaptation conditional-signal threshold.
+- Recomputed cluster-level score and bootstrap details:
+  [`stage4_selected_1e-4.json`](../../runs/protein/propedia26_gate0/sensitivity_lr3e-5/analysis/stage4_selected_1e-4.json).
 
 ## Stage 5 — Rank-64 reconstruction
 
 Independent best truncated SVDs were applied to each of the 198 actual DTFT updates;
-neither reconstruction was trained. Rank-64 retained `R64=1.0150` of the adaptation
-gain but only `Q64=0.7495` of the acquired conditional signal. Rank-8 retained
-`R8=0.9971`, `Q8=0.4536`. Rank-64 therefore does not preserve >=90% of both signals;
+neither reconstruction was trained. Using the same equal-cluster estimand in each
+numerator and denominator, rank-64 retained `R64=0.9677` of the adaptation gain and
+`Q64=0.7495` of the acquired conditional signal. Rank-8 retained `R8=0.9128`,
+`Q8=0.4536`. Rank-64 therefore does not preserve >=90% of both signals;
 the task passes Stage 5 and is not `LOW-RANK-EASY`. This only shows that this dense
 update is not functionally preserved by its own rank-64 truncation; it does not
 establish that vanilla LoRA would fail. Details:
-[`rank_screen_report.json`](../../runs/protein/propedia26_gate0/rank_screen_report.json).
+[`rank_screen_report_equal_cluster.json`](../../runs/protein/propedia26_gate0/sensitivity_lr3e-5/analysis/rank_screen_report_equal_cluster.json).
 
-## Stage 6 — Detectability after maximal valid expansion
+## Stage 6 — Informational detectability planning proxy
 
-Initially, with 527 clusters, the MDE was 0.043859 versus material effect
-`0.10*A=0.019281` (estimated power 0.190). All 326 receptor clusters unused by the
+On the original 527-cluster panel, the Base-to-DTFT variability proxy gave MDE
+0.043859 and proxy power 0.1897 at the primary material effect `0.10*A=0.019281`.
+All 326 receptor clusters unused by the
 frozen splits were then added: 889 pairs, zero train-test peptide overlap. On the
 expanded 3,252-pair / 853-cluster set:
 
 - `A_DTFT=0.180367`, 95% CI [0.157984, 0.203993].
 - `C_DTFT=0.053267`, 95% CI [0.030108, 0.077853]; `C/A=0.295` (Stage 4 still passes).
-- Material effect `0.10*A=0.018037`; MDE `0.032926`; estimated power `0.311`.
+- The Gate-1 material threshold remains anchored to the Stage-4 primary estimand:
+  `delta_material=0.10*A_DTFT=0.019281` (not 10% of the expanded-panel estimate).
+- Proxy MDE at alpha 0.05 / 80% power is `0.032926`; proxy power at the material
+  threshold is `0.3535` across 853 clusters.
+- This proxy substitutes Base→DTFT adaptation-gain variability for a future paired
+  DTFT-versus-LoRA variance. The actual paired variance is unknown until LoRA exists;
+  the proxy is not validated as conservative. It flags a precision risk for planning
+  and does not make Gate 0 inadequate or block Gate 1.
 
-No further unused valid receptor clusters remain. Since the 10%-of-adaptation
-effect is still not detectable at alpha 0.05 / 80% power, Gate 0 is **INADEQUATE**.
-Preserve the evidence checkpoint and stop; do not launch LoRA or Gate 1.
+No further unused valid receptor clusters remain. Gate 1 must estimate the actual
+paired cluster-level difference `G_cluster = mean-within-cluster(NLL_LoRA -
+NLL_DTFT)` on the same held-out panel. Compare its cluster-bootstrap confidence
+interval against `delta_material=0.10*A_DTFT`: entirely above means a meaningful
+LoRA deficit; entirely below means no materially meaningful deficit; substantial
+overlap means `UNRESOLVED` for insufficient precision. Do not substitute the Gate-0
+proxy for that test.
 
 Expanded-set report and pair scores:
-[`stage6_expanded_conditioning.json`](../../runs/protein/propedia26_gate0/stage6_expanded_conditioning.json).
+[`stage6_proxy_selected_1e-4.json`](../../runs/protein/propedia26_gate0/sensitivity_lr3e-5/analysis/stage6_proxy_selected_1e-4.json).
 
 ## Artifact transfer
 
-The complete 100-file Gate-0 run tree (72.9 GB), including the six HPO best/latest
-states, evidence best/latest checkpoints, logs, profiles, reports, evaluation scores,
-and SVD factors, is preserved locally under `runs/protein/propedia26_gate0/`.
-All 100 files passed SHA-256 verification against
-[`remote_sha256.txt`](../../runs/protein/propedia26_gate0/remote_sha256.txt), both
-in staging and at their final paths. The expanded Stage-6 manifests are under
-`data/protein/propedia26/manifests_stage6/` and matched their remote hashes. The
-19 remote Python source files matched `src/esm2_peptide_generation/` byte-for-byte.
-After verification, the sole Thunder instance (`ilcn1zu3`, 1x L40) was deleted;
-Thunder reported no remaining instances.
+The prior Gate-0 run tree remains locally preserved under `runs/protein/propedia26_gate0/`;
+its 100 files were SHA-256 verified. This sensitivity run's 2,595,291,238-byte
+`best.pt`, convergence/history/configuration, optimizer-step log, run ledger, and
+updated Stage-4/5/6 analysis JSONs are also local under
+`runs/protein/propedia26_gate0/sensitivity_lr3e-5/`. The best checkpoint SHA-256 is
+`ebba120ed0560de5f204e3298c8e0da042acc306a31936853b34c136f19efb08`; copied artifacts
+and analysis reports matched their remote hashes. Since the run converged, only the
+selected best model checkpoint—not a redundant resumable optimizer-state checkpoint—
+was retained from this run. After verification, the sole Thunder instance (`keqktlpk`,
+1x L40) was deleted; `tnr status` reported no remaining instances.

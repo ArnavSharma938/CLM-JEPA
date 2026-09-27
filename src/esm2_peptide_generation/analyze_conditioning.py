@@ -90,7 +90,7 @@ def _bootstrap(values: dict[str, float], *, replicates: int, seed: int) -> dict:
     }
 
 
-def detectability(values: dict[str, float], *, material_effect: float, seed: int = 9381) -> dict:
+def planning_proxy_detectability(values: dict[str, float], *, material_effect: float, seed: int = 9381) -> dict:
     clusters = sorted(values)
     array = np.asarray([values[key] for key in clusters], dtype=np.float64)
     n = len(array)
@@ -104,17 +104,25 @@ def detectability(values: dict[str, float], *, material_effect: float, seed: int
     standard_errors = sampled.std(axis=1, ddof=1) / np.sqrt(n)
     power = float(np.mean(np.abs(means / np.maximum(standard_errors, 1e-15)) > norm.ppf(0.975)))
     return {
-        "paired_cluster_sd": sd,
-        "minimum_detectable_effect_alpha_0.05_power_0.80": mde,
-        "material_effect_0.10_A_DTFT": material_effect,
-        "estimated_power_at_material_effect": power,
+        "variance_proxy_source": "Base-to-DTFT adaptation-gain variability across receptor clusters; not DTFT-versus-LoRA paired-difference variance",
+        "proxy_cluster_sd_base_to_dtft_adaptation_gain": sd,
+        "proxy_mde_alpha_0.05_power_0.80": mde,
+        "delta_material_0.10_A_DTFT": material_effect,
+        "proxy_power_at_delta_material": power,
         "independent_clusters": n,
         "simulation_replicates": replicates,
-        "adequate_power": bool(mde <= material_effect and power >= 0.80),
+        "actual_dtft_vs_lora_paired_variance": None,
+        "informational_only_not_a_gate0_stopping_criterion": True,
     }
 
 
-def analyze(base_dir: Path, dtft_dir: Path, *, bootstrap_replicates: int = 20_000) -> dict:
+def analyze(
+    base_dir: Path,
+    dtft_dir: Path,
+    *,
+    bootstrap_replicates: int = 20_000,
+    primary_a_dtft: float | None = None,
+) -> dict:
     rows, metadata = _metric_rows(base_dir, dtft_dir)
     by_cluster = {
         "A_DTFT": _cluster_means(rows, "adaptation_gain"),
@@ -130,8 +138,14 @@ def analyze(base_dir: Path, dtft_dir: Path, *, bootstrap_replicates: int = 20_00
     c = uncertainty["C_DTFT"]["cluster_equal_weight_mean"]
     ci_a = uncertainty["A_DTFT"]["ci95_cluster_bootstrap"]
     ci_c = uncertainty["C_DTFT"]["ci95_cluster_bootstrap"]
-    # Use the receptor-cluster paired variability in DTFT's true-pair gain as the planning proxy.
-    power = detectability(by_cluster["A_DTFT"], material_effect=0.10 * max(a, 0.0))
+    # The Gate-1 material threshold stays anchored to the predeclared Stage-4
+    # equal-cluster estimand even when Stage 6 adds unused clusters for precision.
+    primary_a = a if primary_a_dtft is None else float(primary_a_dtft)
+    # Use Base-to-DTFT cluster-gain variability only as an informational proxy;
+    # it is not the future paired DTFT-versus-LoRA variance.
+    power = planning_proxy_detectability(
+        by_cluster["A_DTFT"], material_effect=0.10 * max(primary_a, 0.0)
+    )
     passed = bool(a > 0 and ci_a[0] > 0 and c > 0 and ci_c[0] > 0 and c >= 0.10 * a)
     return {
         **metadata,
@@ -139,9 +153,11 @@ def analyze(base_dir: Path, dtft_dir: Path, *, bootstrap_replicates: int = 20_00
         "A_DTFT": a,
         "C_DTFT": c,
         "C_over_A": c / a if a != 0 else None,
+        "primary_estimand": "equal-receptor-cluster-weighted mean peptide-NLL gain",
+        "primary_A_DTFT_for_material_threshold": primary_a,
         "meaningful_target_dependence_rule": "C_DTFT > 0 with cluster-bootstrap 95% lower bound > 0 and C_DTFT/A_DTFT >= 0.10",
         "stage4_passed": passed,
-        "stage6_detectability": power,
+        "stage6_planning_proxy": power,
         "test_pair_scores": rows,
     }
 
@@ -151,8 +167,12 @@ def main() -> None:
     parser.add_argument("--base-dir", type=Path, required=True)
     parser.add_argument("--dtft-dir", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--primary-a-dtft", type=float,
+        help="Stage-4 equal-cluster A_DTFT used for the Gate-1 material threshold when analyzing an expanded Stage-6 panel",
+    )
     args = parser.parse_args()
-    result = analyze(args.base_dir, args.dtft_dir)
+    result = analyze(args.base_dir, args.dtft_dir, primary_a_dtft=args.primary_a_dtft)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     summary = {key: value for key, value in result.items() if key not in {"test_pair_scores", "uncertainty_by_receptor_cluster"}}
