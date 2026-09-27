@@ -1,0 +1,42 @@
+{
+  "applies_to": [
+    "lora8",
+    "lora64"
+  ],
+  "candidates": [
+    {
+      "deterioration_from_minimum": 0.0,
+      "learning_rate": 1e-05,
+      "minimum_validation_nll": 2.100147629575655,
+      "terminal_validation_nll": 2.100147629575655,
+      "trajectory": [
+        2.102046535412582,
+        2.100147629575655
+      ]
+    },
+    {
+      "deterioration_from_minimum": 0.0,
+      "learning_rate": 3e-05,
+      "minimum_validation_nll": 2.0591133775242056,
+      "terminal_validation_nll": 2.0591133775242056,
+      "trajectory": [
+        2.096468239833815,
+        2.0591133775242056
+      ]
+    },
+    {
+      "deterioration_from_minimum": 0.0,
+      "learning_rate": 0.0001,
+      "minimum_validation_nll": 1.9569047341629906,
+      "terminal_validation_nll": 1.9569047341629906,
+      "trajectory": [
+        2.024564726998573,
+        1.9569047341629906
+      ]
+    }
+  ],
+  "equivalence_tolerance_nll": 0.0001,
+  "representative_method": "lora8",
+  "selected_learning_rate": 0.0001,
+  "selection_rule": "minimum validation NLL; within tolerance choose lower LR"
+}

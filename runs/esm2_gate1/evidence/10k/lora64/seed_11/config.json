@@ -1,0 +1,21 @@
+{
+  "attention_backend": "sdpa",
+  "common_mask_seed": 20250917,
+  "compile_model": false,
+  "early_stopping_checks": 3,
+  "effective_residues_per_step": 32768,
+  "gradient_checkpointing": false,
+  "learning_rate": 0.0001,
+  "maximum_epochs": 4,
+  "maximum_optimizer_steps": null,
+  "microbatch_tokens": 12288,
+  "mode": "lora64",
+  "model_revision": "08e4846e537177426273712802403f7ba8261b6c",
+  "num_workers": 2,
+  "output_dir": "/home/ubuntu/CLM-JEPA/protein/runs/esm2_gate1/evidence/10k/lora64/seed_11",
+  "save_checkpoints": true,
+  "seed": 11,
+  "train_manifest": "/home/ubuntu/CLM-JEPA/protein/data/esm2_gate1/train_10k.jsonl",
+  "validation_every_steps": 50,
+  "validation_manifest": "/home/ubuntu/CLM-JEPA/protein/data/esm2_gate1/validation.jsonl"
+}

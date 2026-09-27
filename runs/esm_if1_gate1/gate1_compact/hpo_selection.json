@@ -1,0 +1,282 @@
+{
+  "rank_specific_lora_search": {
+    "lora64": {
+      "candidates": {
+        "1e-05": {
+          "continued_to_epoch_3": true,
+          "history": [
+            {
+              "epoch": 0.0,
+              "step": 0,
+              "validation_nll": 1.066227558116221
+            },
+            {
+              "epoch": 0.5014492753623189,
+              "step": 173,
+              "validation_nll": 1.0610747302752084
+            },
+            {
+              "epoch": 1.0,
+              "step": 345,
+              "validation_nll": 1.0622868276012993
+            },
+            {
+              "epoch": 1.5014492753623188,
+              "step": 518,
+              "validation_nll": 1.0782341082479052
+            },
+            {
+              "epoch": 2.0,
+              "step": 690,
+              "validation_nll": 1.1305921781866044
+            },
+            {
+              "epoch": 2.5014492753623188,
+              "step": 863,
+              "validation_nll": 1.2198421932872714
+            },
+            {
+              "epoch": 3.0,
+              "step": 1035,
+              "validation_nll": 1.3142193611421733
+            }
+          ],
+          "minimum_validation_nll": 1.0610747302752084
+        },
+        "1e-06": {
+          "continued_to_epoch_3": false,
+          "history": [
+            {
+              "epoch": 0.0,
+              "step": 0,
+              "validation_nll": 1.0662891249582558
+            },
+            {
+              "epoch": 0.5014492753623189,
+              "step": 173,
+              "validation_nll": 1.0659577107800102
+            },
+            {
+              "epoch": 1.0,
+              "step": 345,
+              "validation_nll": 1.0651871992516395
+            }
+          ],
+          "minimum_validation_nll": 1.0651871992516395
+        },
+        "3e-05": {
+          "continued_to_epoch_3": false,
+          "history": [
+            {
+              "epoch": 0.0,
+              "step": 0,
+              "validation_nll": 1.0662829186632226
+            },
+            {
+              "epoch": 0.5014492753623189,
+              "step": 173,
+              "validation_nll": 1.0712426417849843
+            },
+            {
+              "epoch": 1.0,
+              "step": 345,
+              "validation_nll": 1.271185595260383
+            }
+          ],
+          "minimum_validation_nll": 1.0662829186632226
+        },
+        "3e-06": {
+          "continued_to_epoch_3": true,
+          "history": [
+            {
+              "epoch": 0.0,
+              "step": 0,
+              "validation_nll": 1.066246012949573
+            },
+            {
+              "epoch": 0.5014492753623189,
+              "step": 173,
+              "validation_nll": 1.0639063425014674
+            },
+            {
+              "epoch": 1.0,
+              "step": 345,
+              "validation_nll": 1.0622035426797027
+            },
+            {
+              "epoch": 1.5014492753623188,
+              "step": 518,
+              "validation_nll": 1.0613240731194846
+            },
+            {
+              "epoch": 2.0,
+              "step": 690,
+              "validation_nll": 1.0613787517646434
+            },
+            {
+              "epoch": 2.5014492753623188,
+              "step": 863,
+              "validation_nll": 1.0612505621243018
+            },
+            {
+              "epoch": 3.0,
+              "step": 1035,
+              "validation_nll": 1.0612991807374312
+            }
+          ],
+          "minimum_validation_nll": 1.0612505621243018
+        }
+      },
+      "finalists": [
+        1e-05,
+        3e-06
+      ],
+      "mode": "lora64",
+      "seed": 7,
+      "selected_lr": 1e-05,
+      "selection_rule": "minimum validation NLL; values tied at 6 decimals prefer lower LR"
+    },
+    "lora8": {
+      "candidates": {
+        "1e-05": {
+          "continued_to_epoch_3": true,
+          "history": [
+            {
+              "epoch": 0.0,
+              "step": 0,
+              "validation_nll": 1.0662003393617936
+            },
+            {
+              "epoch": 0.5014492753623189,
+              "step": 173,
+              "validation_nll": 1.0640457667217353
+            },
+            {
+              "epoch": 1.0,
+              "step": 345,
+              "validation_nll": 1.0624952345932086
+            },
+            {
+              "epoch": 1.5014492753623188,
+              "step": 518,
+              "validation_nll": 1.0619504424574462
+            },
+            {
+              "epoch": 2.0,
+              "step": 690,
+              "validation_nll": 1.0622469215195414
+            },
+            {
+              "epoch": 2.5014492753623188,
+              "step": 863,
+              "validation_nll": 1.0635296994540357
+            },
+            {
+              "epoch": 3.0,
+              "step": 1035,
+              "validation_nll": 1.0659066472028822
+            }
+          ],
+          "minimum_validation_nll": 1.0619504424574462
+        },
+        "1e-06": {
+          "continued_to_epoch_3": false,
+          "history": [
+            {
+              "epoch": 0.0,
+              "step": 0,
+              "validation_nll": 1.0662591944086737
+            },
+            {
+              "epoch": 0.5014492753623189,
+              "step": 173,
+              "validation_nll": 1.0662776571481338
+            },
+            {
+              "epoch": 1.0,
+              "step": 345,
+              "validation_nll": 1.0662169520719065
+            }
+          ],
+          "minimum_validation_nll": 1.0662169520719065
+        },
+        "3e-05": {
+          "continued_to_epoch_3": true,
+          "history": [
+            {
+              "epoch": 0.0,
+              "step": 0,
+              "validation_nll": 1.0662758090953135
+            },
+            {
+              "epoch": 0.5014492753623189,
+              "step": 173,
+              "validation_nll": 1.0618370313100864
+            },
+            {
+              "epoch": 1.0,
+              "step": 345,
+              "validation_nll": 1.0655949528353201
+            },
+            {
+              "epoch": 1.5014492753623188,
+              "step": 518,
+              "validation_nll": 1.0885774108412352
+            },
+            {
+              "epoch": 2.0,
+              "step": 690,
+              "validation_nll": 1.1557107283043737
+            },
+            {
+              "epoch": 2.5014492753623188,
+              "step": 863,
+              "validation_nll": 1.257747717348405
+            },
+            {
+              "epoch": 3.0,
+              "step": 1035,
+              "validation_nll": 1.3483932040515958
+            }
+          ],
+          "minimum_validation_nll": 1.0618370313100864
+        },
+        "3e-06": {
+          "continued_to_epoch_3": false,
+          "history": [
+            {
+              "epoch": 0.0,
+              "step": 0,
+              "validation_nll": 1.0662331576174404
+            },
+            {
+              "epoch": 0.5014492753623189,
+              "step": 173,
+              "validation_nll": 1.066141326192747
+            },
+            {
+              "epoch": 1.0,
+              "step": 345,
+              "validation_nll": 1.0655960438782688
+            }
+          ],
+          "minimum_validation_nll": 1.0655960438782688
+        }
+      },
+      "finalists": [
+        3e-05,
+        1e-05
+      ],
+      "mode": "lora8",
+      "seed": 7,
+      "selected_lr": 3e-05,
+      "selection_rule": "minimum validation NLL; values tied at 6 decimals prefer lower LR"
+    }
+  },
+  "selected_lrs": {
+    "dtft": 1e-07,
+    "ft": 1e-07,
+    "lora64": 1e-05,
+    "lora8": 3e-05
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "cluster_tsv_sha256": "62aab5a3f4ae447f0ff05f27fb63d414e9a8171115b76cb20f8c2580a100311c",
+  "clustering_backend": {
+    "backend": "tmtools-tmalign-fallback",
+    "cluster_count": 46,
+    "cluster_rule": "deterministic-greedy-set-cover; closest exhaustive analogue of FoldSeek 8 default SET_COVER",
+    "cluster_tsv_sha256": "62aab5a3f4ae447f0ff05f27fb63d414e9a8171115b76cb20f8c2580a100311c",
+    "coverage_matrix_sha256": "d86be62caa51f37c4f65189f4ae31131e8b40c15d3a58800e2458a7cecad97f5",
+    "coverage_threshold": 0.8,
+    "edge_rule": "max(query-normalized-TM-score-in-either-direction)>=threshold",
+    "limitation": "Strong Windows fallback; not FoldSeek 8.ef4e960 and not method-identical to ProteinDPO.",
+    "pairwise_score_provenance": {
+      "eligible_structure_count": 371,
+      "eligible_structure_inventory_sha256": "02f997ec9e2e3e7a62c8629c35cc66591603b530fbc06aca7911b354b3618a7c",
+      "method": "exact principal submatrix of independently computed all-pairs TM-align scores",
+      "parent_coverage_matrix_sha256": "673e88ca075d3c37db9b007de33639e139fee2f813d80e04f0e42fd195847e00",
+      "parent_score_matrix_sha256": "3357d0aafa7e05564210bab116d9ecae51c938c84a38dd53ca51f8014706c889",
+      "parent_structure_count": 862
+    },
+    "qtm_tsv_sha256": "65557cd5027c77438c5e3728cd512adefe6c87af0dfc4f5ab9d0e7d9e23c34c5",
+    "row_schema": 2,
+    "score_matrix_sha256": "54f0de687ffa10719dd30baf9a55554d99bc6a1f40014c190a94384baaad10bb",
+    "seed": 42,
+    "structure_count": 371,
+    "structure_inventory_sha256": "02f997ec9e2e3e7a62c8629c35cc66591603b530fbc06aca7911b354b3618a7c",
+    "threshold": 0.5,
+    "tmalign_version": "20210224",
+    "tmtools_version": "0.3.0"
+  },
+  "counts": {
+    "test": 16737,
+    "train": 499678,
+    "validation": 10789
+  },
+  "dataset": "ProteinDPO curated Megascale v2 2023-04-20",
+  "eligible_domain_count": 412,
+  "eligible_record_count": 527204,
+  "eligible_structure_count": 371,
+  "foldseek_metric": "query-normalized-tm-score",
+  "foldseek_version": null,
+  "heldout_to_train_qtm_tsv_sha256": "65557cd5027c77438c5e3728cd512adefe6c87af0dfc4f5ab9d0e7d9e23c34c5",
+  "limitation": "The authors did not release their curated split; this is a deterministic reconstruction.",
+  "manifest_sha256": "79278f2f6f668c94fcbe9be2281593bc216dc2de4bed3a594d3658bc1b181a2f",
+  "population_order": "final eligibility filtering precedes clustering, splitting, and heldout-to-train search",
+  "source": "Zenodo 7992926; ProteinDPO Methods reconstruction",
+  "source_csv_sha256": "0c7b2bf1f162122d83d5bb39b901cc446e436b5643684ca268f934be145d8398",
+  "split_algorithm": "lexicographic-cluster-ids; python-random-v1-seed-42-shuffle; floor-90%-floor-5%-remainder",
+  "split_fractions": [
+    0.9,
+    0.05,
+    0.05
+  ],
+  "split_provenance": "reconstructed-tmalign-fallback",
+  "split_seed": 42,
+  "stability_convention": {
+    "canonical_field": "ddg",
+    "canonical_semantics": "negative values indicate increased stability relative to wild type",
+    "canonical_sft_eligible_count": 90849,
+    "conversion": "ddg = -ddG_ML at ingestion",
+    "invariant": "source ddG_ML >= 1 maps to canonical ddg <= -1",
+    "source_field": "ddG_ML",
+    "source_semantics": "positive values indicate increased stability relative to wild type",
+    "source_strongly_stabilizing_count": 3583
+  }
+}

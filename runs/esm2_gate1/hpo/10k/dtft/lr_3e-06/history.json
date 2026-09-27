@@ -1,0 +1,14 @@
+[
+  {
+    "epoch": 0,
+    "batch": 63,
+    "optimizer_step": 20,
+    "validation_nll": 1.9760544449149449
+  },
+  {
+    "epoch": 0,
+    "batch": 133,
+    "optimizer_step": 40,
+    "validation_nll": 1.9349786076256665
+  }
+]

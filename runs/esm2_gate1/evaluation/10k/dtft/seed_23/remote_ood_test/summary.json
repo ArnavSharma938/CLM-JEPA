@@ -1,0 +1,16 @@
+{
+  "checkpoint": "/home/ubuntu/CLM-JEPA/protein/runs/esm2_gate1/evidence/10k/dtft/seed_23/best.pt",
+  "manifest": "/home/ubuntu/CLM-JEPA/protein/data/esm2_gate1/remote_ood_test.jsonl",
+  "masked_token_nll": 1.8915208248816415,
+  "masked_tokens": 15411,
+  "mean_protein_nll": 1.8875064213461108,
+  "mode": "dtft",
+  "num_workers": 2,
+  "peak_vram_bytes": 4989602816,
+  "proteins": 111,
+  "realizations": 3,
+  "residues_per_second": 14824.620217210222,
+  "token_budget": 16384,
+  "torch_compile": false,
+  "wall_seconds": 6.923347680829465
+}

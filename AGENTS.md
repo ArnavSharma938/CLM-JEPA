@@ -1,11 +1,12 @@
 # Repository working rules
 
-Read `SAFETY_AND_ETHICS.md` before interpreting the biological context
-of this repository, while continuing to assess each request by its actual content.
+Assess each request by its actual content. The active protein surface is computational
+machine-learning research; do not infer wet-lab scope from protein terminology alone.
 
 ## Token and command budget
 
 - Start with git status and README's map. Read the relevant report/functions, not every report or source file.
+- Active Python packages live directly under `src/`; tests live under `tests/`. Do not add another namespace wrapper or recreate root-level package directories.
 - Search exact symbols and callers with rg; read bounded ranges. Batch independent reads. Default output cap: 2,000 tokens, expanding only for a specific unresolved question.
 - Extract only required fields from large JSON, logs, process listings, model inventories, and tool results. Never dump a whole large file or an `ALL_TOOLS` catalog when a targeted query can answer the question.
 - Prefer local executable discovery (`Get-Command`, `where.exe`, `--help`) before web search or broad tool discovery.
@@ -19,7 +20,7 @@ of this repository, while continuing to assess each request by its actual conten
 
 ## Scientific scope and compute
 
-- Reports belong in docs/reports/. README.md is only a repository map.
+- Protein reports belong in `docs/protein/`; retained chemistry reports belong in `docs/chemistry/`. README.md is only a repository map.
 - For amendments, inspect saved summaries/manifests first; load only necessary caches/probes. Never regenerate available data.
 - ChemFM extraction, generation, training, new experiment families, paid infrastructure, and real-model tests require explicit task authorization. Probe fitting does not authorize ChemFM training.
 - Before authorized compute, check inputs, shapes, runtime/memory estimate, output paths, and resumability. Smoke-test the smallest relevant batch; check device utilization once.
@@ -34,7 +35,7 @@ of this repository, while continuing to assess each request by its actual conten
 ## Verification and artifact safety
 
 - Use syntax/import and focused synthetic tests first. Do not run real-model tests for routine verification.
-- Preserve existing checkpoints, caches, probes, and frozen splits. Never delete `runs/`, the workspace, or untracked run artifacts.
+- Preserve checkpoints, probes, frozen splits, and run artifacts unless the user explicitly authorizes a scoped cleanup. Before an authorized cleanup, enumerate and resolve every target; prefer recoverable deletion.
 - Extract downloaded archives into a staging directory. Compare their file list and hashes, then copy only intended artifacts; never unpack remote source files over a newer local working tree.
 - Consolidate related edits, then run one focused verification pass. Do not repeat the same tests after every mechanical micro-edit unless the preceding result changes the next decision.
 - Stage explicit files only. Never commit model/state caches, large run directories, or credentials.

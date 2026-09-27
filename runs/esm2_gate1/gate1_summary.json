@@ -1,0 +1,903 @@
+{
+  "attention_backend": "sdpa",
+  "candidate_load_rank_pairs": [
+    [
+      "10k",
+      "lora8"
+    ]
+  ],
+  "coverage_10k": {
+    "remote_ood_test": {
+      "base_nll": 2.1652678341847285,
+      "dtft_nll": 1.8920682278747538,
+      "effectively_equivalent_at_10_percent": true,
+      "fraction_of_base_to_ft_gain": 0.00960563252409353,
+      "ft_minus_dtft_nll": 0.002649707136995083,
+      "ft_nll": 1.8894185207377587
+    },
+    "standard_test": {
+      "base_nll": 2.0873696215672775,
+      "dtft_nll": 1.7663081229901023,
+      "effectively_equivalent_at_10_percent": true,
+      "fraction_of_base_to_ft_gain": 0.00842171585230382,
+      "ft_minus_dtft_nll": 0.0027268534974582703,
+      "ft_nll": 1.763581269492644
+    }
+  },
+  "evaluation_token_budget": 16384,
+  "evaluation_torch_compile": false,
+  "evaluation_workers": 2,
+  "ft_50k_triggered": false,
+  "gate1_decision": "No meaningful LoRA gap through 50k",
+  "gradient_checkpointing": false,
+  "microbatch_tokens": 12288,
+  "natural_retention": {
+    "10k": {
+      "dtft": {
+        "delta": 0.06353294876845794,
+        "method_nll": 2.0031181046229207,
+        "reference_nll": 1.9395851558544628
+      },
+      "ft": {
+        "delta": 0.07169912259948719,
+        "method_nll": 2.01128427845395,
+        "reference_nll": 1.9395851558544628
+      },
+      "lora64": {
+        "delta": 0.20425607784136446,
+        "method_nll": 2.1438412336958272,
+        "reference_nll": 1.9395851558544628
+      },
+      "lora8": {
+        "delta": 0.106199924985936,
+        "method_nll": 2.045785080840399,
+        "reference_nll": 1.9395851558544628
+      }
+    },
+    "50k": {
+      "dtft": {
+        "delta": 0.14663224520400364,
+        "method_nll": 2.0862174010584664,
+        "reference_nll": 1.9395851558544628
+      },
+      "lora64": {
+        "delta": 0.4206023511958623,
+        "method_nll": 2.360187507050325,
+        "reference_nll": 1.9395851558544628
+      },
+      "lora8": {
+        "delta": 0.3248657497430032,
+        "method_nll": 2.264450905597466,
+        "reference_nll": 1.9395851558544628
+      }
+    }
+  },
+  "num_workers": 2,
+  "screen_patterns": {
+    "load_dependence": [
+      {
+        "F_gap_10k": 0.0805556044532733,
+        "F_gap_50k": 0.052645973075558065,
+        "dataset": "standard_test",
+        "delta_50k_minus_10k": -0.02790963137771523,
+        "gap_grew": false,
+        "rank": "lora8"
+      },
+      {
+        "F_gap_10k": -0.05584613747766523,
+        "F_gap_50k": -0.006586011430920275,
+        "dataset": "standard_test",
+        "delta_50k_minus_10k": 0.049260126046744956,
+        "gap_grew": true,
+        "rank": "lora64"
+      },
+      {
+        "F_gap_10k": 0.062091574202912565,
+        "F_gap_50k": 0.05336297604014369,
+        "dataset": "remote_ood_test",
+        "delta_50k_minus_10k": -0.008728598162768872,
+        "gap_grew": false,
+        "rank": "lora8"
+      },
+      {
+        "F_gap_10k": -0.05262675264284112,
+        "F_gap_50k": 0.0017881503759769341,
+        "dataset": "remote_ood_test",
+        "delta_50k_minus_10k": 0.05441490301881805,
+        "gap_grew": true,
+        "rank": "lora64"
+      }
+    ],
+    "r64_material_gaps": [],
+    "rank_sensitivity": []
+  },
+  "seed11_combined_distance_trends": {
+    "10k": {
+      "lora64": {
+        "distance_definition": "1 - structural_similarity_10k",
+        "linear_intercept": -0.03002176625068943,
+        "linear_slope": 0.03323837920400764,
+        "quintiles": [
+          {
+            "distance_max": 0.31189999999999996,
+            "distance_min": 0.1352,
+            "mean_G_LoRA": -0.020745976702191565,
+            "proteins": 422
+          },
+          {
+            "distance_max": 0.35860000000000003,
+            "distance_min": 0.31189999999999996,
+            "mean_G_LoRA": -0.019829547271719015,
+            "proteins": 422
+          },
+          {
+            "distance_max": 0.39970000000000006,
+            "distance_min": 0.35860000000000003,
+            "mean_G_LoRA": -0.016365061297335302,
+            "proteins": 422
+          },
+          {
+            "distance_max": 0.4438,
+            "distance_min": 0.39970000000000006,
+            "mean_G_LoRA": -0.016138828456095648,
+            "proteins": 422
+          },
+          {
+            "distance_max": 0.6388,
+            "distance_min": 0.4438,
+            "mean_G_LoRA": -0.013912166751856378,
+            "proteins": 423
+          }
+        ],
+        "spearman_pvalue": 5.220890016400999e-05,
+        "spearman_rho": 0.08793149248330215
+      },
+      "lora8": {
+        "distance_definition": "1 - structural_similarity_10k",
+        "linear_intercept": 0.05121952770800923,
+        "linear_slope": -0.06653605998762568,
+        "quintiles": [
+          {
+            "distance_max": 0.31189999999999996,
+            "distance_min": 0.1352,
+            "mean_G_LoRA": 0.03302426117789273,
+            "proteins": 422
+          },
+          {
+            "distance_max": 0.35860000000000003,
+            "distance_min": 0.31189999999999996,
+            "mean_G_LoRA": 0.029085518608539144,
+            "proteins": 422
+          },
+          {
+            "distance_max": 0.39970000000000006,
+            "distance_min": 0.35860000000000003,
+            "mean_G_LoRA": 0.025685234651502464,
+            "proteins": 422
+          },
+          {
+            "distance_max": 0.4438,
+            "distance_min": 0.39970000000000006,
+            "mean_G_LoRA": 0.023564728934675275,
+            "proteins": 422
+          },
+          {
+            "distance_max": 0.6388,
+            "distance_min": 0.4438,
+            "mean_G_LoRA": 0.018392157313428782,
+            "proteins": 423
+          }
+        ],
+        "spearman_pvalue": 4.742472103042305e-21,
+        "spearman_rho": -0.20289585784495187
+      }
+    },
+    "50k": {
+      "lora64": {
+        "distance_definition": "1 - structural_similarity_50k",
+        "linear_intercept": -0.008268236526378234,
+        "linear_slope": 0.01617208673253687,
+        "quintiles": [
+          {
+            "distance_max": 0.31189999999999996,
+            "distance_min": 0.1352,
+            "mean_G_LoRA": -0.0029625996604179723,
+            "proteins": 422
+          },
+          {
+            "distance_max": 0.35860000000000003,
+            "distance_min": 0.31189999999999996,
+            "mean_G_LoRA": -0.0038993606762897184,
+            "proteins": 422
+          },
+          {
+            "distance_max": 0.39970000000000006,
+            "distance_min": 0.35860000000000003,
+            "mean_G_LoRA": -0.002026337387914062,
+            "proteins": 422
+          },
+          {
+            "distance_max": 0.4438,
+            "distance_min": 0.39970000000000006,
+            "mean_G_LoRA": -0.0017471883617708312,
+            "proteins": 422
+          },
+          {
+            "distance_max": 0.6388,
+            "distance_min": 0.4438,
+            "mean_G_LoRA": -4.183275194250155e-05,
+            "proteins": 423
+          }
+        ],
+        "spearman_pvalue": 0.035149084790621364,
+        "spearman_rho": 0.04585369530237347
+      },
+      "lora8": {
+        "distance_definition": "1 - structural_similarity_50k",
+        "linear_intercept": 0.037831410217393995,
+        "linear_slope": -0.043979057788124803,
+        "quintiles": [
+          {
+            "distance_max": 0.31189999999999996,
+            "distance_min": 0.1352,
+            "mean_G_LoRA": 0.02606867306869384,
+            "proteins": 422
+          },
+          {
+            "distance_max": 0.35860000000000003,
+            "distance_min": 0.31189999999999996,
+            "mean_G_LoRA": 0.024086799807170226,
+            "proteins": 422
+          },
+          {
+            "distance_max": 0.39970000000000006,
+            "distance_min": 0.35860000000000003,
+            "mean_G_LoRA": 0.02017336396417076,
+            "proteins": 422
+          },
+          {
+            "distance_max": 0.4438,
+            "distance_min": 0.39970000000000006,
+            "mean_G_LoRA": 0.018801131261966586,
+            "proteins": 422
+          },
+          {
+            "distance_max": 0.6388,
+            "distance_min": 0.4438,
+            "mean_G_LoRA": 0.016635687151803268,
+            "proteins": 423
+          }
+        ],
+        "spearman_pvalue": 9.494267640754595e-09,
+        "spearman_rho": -0.12450734071908724
+      }
+    }
+  },
+  "seed11_gates": {
+    "10k": {
+      "lora64": {
+        "remote_ood_test": {
+          "A_DTFT": 0.27319960630997464,
+          "F_gap": -0.05262675264284112,
+          "G_LoRA": -0.01437760810339661,
+          "borderline_gap": false,
+          "candidate_gap": false,
+          "distance_trend": {
+            "distance_definition": "1 - structural_similarity_10k",
+            "linear_intercept": -0.04972945631755623,
+            "linear_slope": 0.0634155462376766,
+            "quintiles": [
+              {
+                "distance_max": 0.5184,
+                "distance_min": 0.5023,
+                "mean_G_LoRA": -0.015668587596911202,
+                "proteins": 22
+              },
+              {
+                "distance_max": 0.5297000000000001,
+                "distance_min": 0.5184,
+                "mean_G_LoRA": -0.01975023335429463,
+                "proteins": 22
+              },
+              {
+                "distance_max": 0.5496,
+                "distance_min": 0.5297000000000001,
+                "mean_G_LoRA": -0.01723049211705156,
+                "proteins": 21
+              },
+              {
+                "distance_max": 0.5661,
+                "distance_min": 0.5496,
+                "mean_G_LoRA": -0.009376390047007101,
+                "proteins": 23
+              },
+              {
+                "distance_max": 0.6388,
+                "distance_min": 0.5661,
+                "mean_G_LoRA": -0.014356277139623334,
+                "proteins": 23
+              }
+            ],
+            "spearman_pvalue": 0.2886302681604252,
+            "spearman_rho": 0.10160738692780287
+          },
+          "paired_backbone_bootstrap": {
+            "A_DTFT": {
+              "lower_95": 0.2566661194043923,
+              "upper_95": 0.2901191709093085
+            },
+            "F_gap": {
+              "lower_95": -0.06853204961248473,
+              "upper_95": -0.0372777675762351
+            },
+            "G_LoRA": {
+              "lower_95": -0.01848778575703387,
+              "upper_95": -0.010296441240085972
+            }
+          },
+          "raw_nll": {
+            "base": 2.1652678341847285,
+            "dtft": 1.8920682278747538,
+            "lora": 1.8776906197713572
+          },
+          "registered_borderline_lower": 0.08,
+          "registered_gap_threshold": 0.1,
+          "replication_trigger": false
+        },
+        "standard_test": {
+          "A_DTFT": 0.32106149857717514,
+          "F_gap": -0.05584613747766523,
+          "G_LoRA": -0.017930044588326144,
+          "borderline_gap": false,
+          "candidate_gap": false,
+          "distance_trend": {
+            "distance_definition": "1 - structural_similarity_10k",
+            "linear_intercept": -0.03227838861126111,
+            "linear_slope": 0.03981628495601355,
+            "quintiles": [
+              {
+                "distance_max": 0.30828,
+                "distance_min": 0.1352,
+                "mean_G_LoRA": -0.020436438636994986,
+                "proteins": 400
+              },
+              {
+                "distance_max": 0.35436,
+                "distance_min": 0.30828,
+                "mean_G_LoRA": -0.02022937157819158,
+                "proteins": 400
+              },
+              {
+                "distance_max": 0.3932,
+                "distance_min": 0.35436,
+                "mean_G_LoRA": -0.01658679561811454,
+                "proteins": 399
+              },
+              {
+                "distance_max": 0.43320000000000003,
+                "distance_min": 0.3932,
+                "mean_G_LoRA": -0.016670557790017033,
+                "proteins": 400
+              },
+              {
+                "distance_max": 0.4998,
+                "distance_min": 0.43320000000000003,
+                "mean_G_LoRA": -0.01367774248026714,
+                "proteins": 401
+              }
+            ],
+            "spearman_pvalue": 7.063140516333675e-05,
+            "spearman_rho": 0.08874477222848146
+          },
+          "paired_backbone_bootstrap": {
+            "A_DTFT": {
+              "lower_95": 0.3164786044649976,
+              "upper_95": 0.3258173959661348
+            },
+            "F_gap": {
+              "lower_95": -0.059851362690740775,
+              "upper_95": -0.05176446190592937
+            },
+            "G_LoRA": {
+              "lower_95": -0.01920999815023623,
+              "upper_95": -0.016613832706581694
+            }
+          },
+          "raw_nll": {
+            "base": 2.0873696215672775,
+            "dtft": 1.7663081229901023,
+            "lora": 1.7483780784017762
+          },
+          "registered_borderline_lower": 0.08,
+          "registered_gap_threshold": 0.1,
+          "replication_trigger": false
+        }
+      },
+      "lora8": {
+        "remote_ood_test": {
+          "A_DTFT": 0.27319960630997464,
+          "F_gap": 0.062091574202912565,
+          "G_LoRA": 0.01696339362740229,
+          "borderline_gap": false,
+          "candidate_gap": false,
+          "distance_trend": {
+            "distance_definition": "1 - structural_similarity_10k",
+            "linear_intercept": 0.008516376552154049,
+            "linear_slope": 0.015850467809311927,
+            "quintiles": [
+              {
+                "distance_max": 0.5184,
+                "distance_min": 0.5023,
+                "mean_G_LoRA": 0.01484091250463712,
+                "proteins": 22
+              },
+              {
+                "distance_max": 0.5297000000000001,
+                "distance_min": 0.5184,
+                "mean_G_LoRA": 0.023276559328329404,
+                "proteins": 22
+              },
+              {
+                "distance_max": 0.5496,
+                "distance_min": 0.5297000000000001,
+                "mean_G_LoRA": 0.01193973493675269,
+                "proteins": 21
+              },
+              {
+                "distance_max": 0.5661,
+                "distance_min": 0.5496,
+                "mean_G_LoRA": 0.015055131907453745,
+                "proteins": 23
+              },
+              {
+                "distance_max": 0.6388,
+                "distance_min": 0.5661,
+                "mean_G_LoRA": 0.02033870806519651,
+                "proteins": 23
+              }
+            ],
+            "spearman_pvalue": 0.9374885047763911,
+            "spearman_rho": 0.0075290731482904275
+          },
+          "paired_backbone_bootstrap": {
+            "A_DTFT": {
+              "lower_95": 0.2566661194043923,
+              "upper_95": 0.2901191709093085
+            },
+            "F_gap": {
+              "lower_95": 0.05131352993794618,
+              "upper_95": 0.07339886746698057
+            },
+            "G_LoRA": {
+              "lower_95": 0.01409458701336993,
+              "upper_95": 0.01985497876505353
+            }
+          },
+          "raw_nll": {
+            "base": 2.1652678341847285,
+            "dtft": 1.8920682278747538,
+            "lora": 1.909031621502156
+          },
+          "registered_borderline_lower": 0.08,
+          "registered_gap_threshold": 0.1,
+          "replication_trigger": false
+        },
+        "standard_test": {
+          "A_DTFT": 0.32106149857717514,
+          "F_gap": 0.0805556044532733,
+          "G_LoRA": 0.025863303084558087,
+          "borderline_gap": true,
+          "candidate_gap": false,
+          "distance_trend": {
+            "distance_definition": "1 - structural_similarity_10k",
+            "linear_intercept": 0.053124468856199626,
+            "linear_slope": -0.07199820633636425,
+            "quintiles": [
+              {
+                "distance_max": 0.30828,
+                "distance_min": 0.1352,
+                "mean_G_LoRA": 0.03328398767860533,
+                "proteins": 400
+              },
+              {
+                "distance_max": 0.35436,
+                "distance_min": 0.30828,
+                "mean_G_LoRA": 0.02896341472841021,
+                "proteins": 400
+              },
+              {
+                "distance_max": 0.3932,
+                "distance_min": 0.35436,
+                "mean_G_LoRA": 0.026548941916694224,
+                "proteins": 399
+              },
+              {
+                "distance_max": 0.43320000000000003,
+                "distance_min": 0.3932,
+                "mean_G_LoRA": 0.023888790124969472,
+                "proteins": 400
+              },
+              {
+                "distance_max": 0.4998,
+                "distance_min": 0.43320000000000003,
+                "mean_G_LoRA": 0.0195082600396474,
+                "proteins": 401
+              }
+            ],
+            "spearman_pvalue": 4.223344064236727e-17,
+            "spearman_rho": -0.18644171310026494
+          },
+          "paired_backbone_bootstrap": {
+            "A_DTFT": {
+              "lower_95": 0.3164786044649976,
+              "upper_95": 0.3258173959661348
+            },
+            "F_gap": {
+              "lower_95": 0.07754526860962409,
+              "upper_95": 0.08357908321492839
+            },
+            "G_LoRA": {
+              "lower_95": 0.024871854545530574,
+              "upper_95": 0.026876048501503758
+            }
+          },
+          "raw_nll": {
+            "base": 2.0873696215672775,
+            "dtft": 1.7663081229901023,
+            "lora": 1.7921714260746604
+          },
+          "registered_borderline_lower": 0.08,
+          "registered_gap_threshold": 0.1,
+          "replication_trigger": true
+        }
+      }
+    },
+    "50k": {
+      "lora64": {
+        "remote_ood_test": {
+          "A_DTFT": 0.33554118238551456,
+          "F_gap": 0.0017881503759769341,
+          "G_LoRA": 0.0005999980914384029,
+          "borderline_gap": false,
+          "candidate_gap": false,
+          "distance_trend": {
+            "distance_definition": "1 - structural_similarity_50k",
+            "linear_intercept": -0.048835902014265534,
+            "linear_slope": 0.0905653427720401,
+            "quintiles": [
+              {
+                "distance_max": 0.5101,
+                "distance_min": 0.5001,
+                "mean_G_LoRA": -0.006744124341082524,
+                "proteins": 22
+              },
+              {
+                "distance_max": 0.5196000000000001,
+                "distance_min": 0.5101,
+                "mean_G_LoRA": -0.0033878587512971912,
+                "proteins": 21
+              },
+              {
+                "distance_max": 0.5316000000000001,
+                "distance_min": 0.5196000000000001,
+                "mean_G_LoRA": 0.0008559178282653049,
+                "proteins": 23
+              },
+              {
+                "distance_max": 0.5566,
+                "distance_min": 0.5316000000000001,
+                "mean_G_LoRA": 0.002562181420852395,
+                "proteins": 22
+              },
+              {
+                "distance_max": 0.6388,
+                "distance_min": 0.5566,
+                "mean_G_LoRA": 0.00394946153584139,
+                "proteins": 23
+              }
+            ],
+            "spearman_pvalue": 0.171651293834269,
+            "spearman_rho": 0.13066418040311212
+          },
+          "paired_backbone_bootstrap": {
+            "A_DTFT": {
+              "lower_95": 0.3179058662739523,
+              "upper_95": 0.35346394421984484
+            },
+            "F_gap": {
+              "lower_95": -0.01091065689790214,
+              "upper_95": 0.014184237347631034
+            },
+            "G_LoRA": {
+              "lower_95": -0.003661659215670937,
+              "upper_95": 0.004770872261644282
+            }
+          },
+          "raw_nll": {
+            "base": 2.1652678341847285,
+            "dtft": 1.829726651799214,
+            "lora": 1.8303266498906523
+          },
+          "registered_borderline_lower": 0.08,
+          "registered_gap_threshold": 0.1,
+          "replication_trigger": false
+        },
+        "standard_test": {
+          "A_DTFT": 0.3973258445849992,
+          "F_gap": -0.006586011430920275,
+          "G_LoRA": -0.0026167925542368575,
+          "borderline_gap": false,
+          "candidate_gap": false,
+          "distance_trend": {
+            "distance_definition": "1 - structural_similarity_50k",
+            "linear_intercept": -0.008547674163436993,
+            "linear_slope": 0.01705193311276399,
+            "quintiles": [
+              {
+                "distance_max": 0.30828,
+                "distance_min": 0.1352,
+                "mean_G_LoRA": -0.0025491328314382624,
+                "proteins": 400
+              },
+              {
+                "distance_max": 0.35436,
+                "distance_min": 0.30828,
+                "mean_G_LoRA": -0.004752761052299252,
+                "proteins": 400
+              },
+              {
+                "distance_max": 0.3932,
+                "distance_min": 0.35436,
+                "mean_G_LoRA": -0.0018932288446135244,
+                "proteins": 399
+              },
+              {
+                "distance_max": 0.43320000000000003,
+                "distance_min": 0.3932,
+                "mean_G_LoRA": -0.0025694421509433025,
+                "proteins": 400
+              },
+              {
+                "distance_max": 0.4998,
+                "distance_min": 0.43320000000000003,
+                "mean_G_LoRA": 0.0006251530997297364,
+                "proteins": 401
+              }
+            ],
+            "spearman_pvalue": 0.052737201295154475,
+            "spearman_rho": 0.04332087568023311
+          },
+          "paired_backbone_bootstrap": {
+            "A_DTFT": {
+              "lower_95": 0.3920496449088463,
+              "upper_95": 0.4027021768929007
+            },
+            "F_gap": {
+              "lower_95": -0.009829054654298461,
+              "upper_95": -0.0033834857985674005
+            },
+            "G_LoRA": {
+              "lower_95": -0.003906277408732828,
+              "upper_95": -0.001345185581014963
+            }
+          },
+          "raw_nll": {
+            "base": 2.0873696215672775,
+            "dtft": 1.6900437769822783,
+            "lora": 1.6874269844280414
+          },
+          "registered_borderline_lower": 0.08,
+          "registered_gap_threshold": 0.1,
+          "replication_trigger": false
+        }
+      },
+      "lora8": {
+        "remote_ood_test": {
+          "A_DTFT": 0.33554118238551456,
+          "F_gap": 0.05336297604014369,
+          "G_LoRA": 0.017905476076119697,
+          "borderline_gap": false,
+          "candidate_gap": false,
+          "distance_trend": {
+            "distance_definition": "1 - structural_similarity_50k",
+            "linear_intercept": 0.04593739049022137,
+            "linear_slope": -0.053691417658569475,
+            "quintiles": [
+              {
+                "distance_max": 0.5101,
+                "distance_min": 0.5001,
+                "mean_G_LoRA": 0.017631077662411412,
+                "proteins": 22
+              },
+              {
+                "distance_max": 0.5196000000000001,
+                "distance_min": 0.5101,
+                "mean_G_LoRA": 0.020795982020176577,
+                "proteins": 21
+              },
+              {
+                "distance_max": 0.5316000000000001,
+                "distance_min": 0.5196000000000001,
+                "mean_G_LoRA": 0.01837784576910369,
+                "proteins": 23
+              },
+              {
+                "distance_max": 0.5566,
+                "distance_min": 0.5316000000000001,
+                "mean_G_LoRA": 0.01613510935192162,
+                "proteins": 22
+              },
+              {
+                "distance_max": 0.6388,
+                "distance_min": 0.5566,
+                "mean_G_LoRA": 0.013664714514516186,
+                "proteins": 23
+              }
+            ],
+            "spearman_pvalue": 0.5534091486408194,
+            "spearman_rho": -0.056850765127035734
+          },
+          "paired_backbone_bootstrap": {
+            "A_DTFT": {
+              "lower_95": 0.3179058662739523,
+              "upper_95": 0.35346394421984484
+            },
+            "F_gap": {
+              "lower_95": 0.0426742985949228,
+              "upper_95": 0.06377147742974668
+            },
+            "G_LoRA": {
+              "lower_95": 0.01434731894680349,
+              "upper_95": 0.02141305917562842
+            }
+          },
+          "raw_nll": {
+            "base": 2.1652678341847285,
+            "dtft": 1.829726651799214,
+            "lora": 1.8476321278753336
+          },
+          "registered_borderline_lower": 0.08,
+          "registered_gap_threshold": 0.1,
+          "replication_trigger": false
+        },
+        "standard_test": {
+          "A_DTFT": 0.3973258445849992,
+          "F_gap": 0.052645973075558065,
+          "G_LoRA": 0.020917605716245236,
+          "borderline_gap": false,
+          "candidate_gap": false,
+          "distance_trend": {
+            "distance_definition": "1 - structural_similarity_50k",
+            "linear_intercept": 0.03977620380332404,
+            "linear_slope": -0.04966253310432109,
+            "quintiles": [
+              {
+                "distance_max": 0.30828,
+                "distance_min": 0.1352,
+                "mean_G_LoRA": 0.02633749697735834,
+                "proteins": 400
+              },
+              {
+                "distance_max": 0.35436,
+                "distance_min": 0.30828,
+                "mean_G_LoRA": 0.023310415092501122,
+                "proteins": 400
+              },
+              {
+                "distance_max": 0.3932,
+                "distance_min": 0.35436,
+                "mean_G_LoRA": 0.02134330982692655,
+                "proteins": 399
+              },
+              {
+                "distance_max": 0.43320000000000003,
+                "distance_min": 0.3932,
+                "mean_G_LoRA": 0.018896921677506593,
+                "proteins": 400
+              },
+              {
+                "distance_max": 0.4998,
+                "distance_min": 0.43320000000000003,
+                "mean_G_LoRA": 0.016955804142406414,
+                "proteins": 401
+              }
+            ],
+            "spearman_pvalue": 3.216436086711461e-08,
+            "spearman_rho": -0.1232427479194174
+          },
+          "paired_backbone_bootstrap": {
+            "A_DTFT": {
+              "lower_95": 0.3920496449088463,
+              "upper_95": 0.4027021768929007
+            },
+            "F_gap": {
+              "lower_95": 0.049899139088998616,
+              "upper_95": 0.05542014201135716
+            },
+            "G_LoRA": {
+              "lower_95": 0.019816266866489064,
+              "upper_95": 0.022030834407965084
+            }
+          },
+          "raw_nll": {
+            "base": 2.0873696215672775,
+            "dtft": 1.6900437769822783,
+            "lora": 1.7109613826985235
+          },
+          "registered_borderline_lower": 0.08,
+          "registered_gap_threshold": 0.1,
+          "replication_trigger": false
+        }
+      }
+    }
+  },
+  "seed23_replication": {
+    "10k/lora8": {
+      "remote_ood_test": {
+        "A_DTFT": 0.27374700930308693,
+        "F_gap": 0.06788661703240109,
+        "G_LoRA": 0.0185837583843238,
+        "borderline_gap": false,
+        "candidate_gap": false,
+        "paired_backbone_bootstrap": {
+          "A_DTFT": {
+            "lower_95": 0.2574852827495803,
+            "upper_95": 0.29062147719365317
+          },
+          "F_gap": {
+            "lower_95": 0.057316885681274,
+            "upper_95": 0.07925372736007943
+          },
+          "G_LoRA": {
+            "lower_95": 0.0157151640621385,
+            "upper_95": 0.021588638131569433
+          }
+        },
+        "raw_nll": {
+          "base": 2.1652678341847285,
+          "dtft": 1.8915208248816415,
+          "lora": 1.9101045832659653
+        },
+        "registered_borderline_lower": 0.08,
+        "registered_gap_threshold": 0.1,
+        "replication_trigger": false
+      },
+      "standard_test": {
+        "A_DTFT": 0.32137539233606627,
+        "F_gap": 0.0774241461641268,
+        "G_LoRA": 0.02488221534978119,
+        "borderline_gap": false,
+        "candidate_gap": false,
+        "paired_backbone_bootstrap": {
+          "A_DTFT": {
+            "lower_95": 0.31684980143568275,
+            "upper_95": 0.32607426257051797
+          },
+          "F_gap": {
+            "lower_95": 0.07452386962443555,
+            "upper_95": 0.08036253742905243
+          },
+          "G_LoRA": {
+            "lower_95": 0.023924204148327806,
+            "upper_95": 0.025835933178260943
+          }
+        },
+        "raw_nll": {
+          "base": 2.0873696215672775,
+          "dtft": 1.7659942292312112,
+          "lora": 1.7908764445809924
+        },
+        "registered_borderline_lower": 0.08,
+        "registered_gap_threshold": 0.1,
+        "replication_trigger": false
+      }
+    }
+  },
+  "selected_learning_rates": {
+    "dtft": 1e-05,
+    "ft": 1e-05,
+    "lora64": 0.0001,
+    "lora8": 0.0001
+  },
+  "torch_compile": false
+}

@@ -1,0 +1,21 @@
+{
+  "adapter_weight_decay": 0.0,
+  "batch_size": 32,
+  "compile_mode": "max-autotune",
+  "compile_training": false,
+  "coordinate_noise_angstrom": 0.1,
+  "diagnostic_panel": null,
+  "early_stopping_patience_checks": 4,
+  "epochs": 10,
+  "instrument_checkpoints": false,
+  "lr": 1e-07,
+  "manifest": "protein/data/compact_gate1_corrected_sign/megascale_gate1_compact_seed42.parquet",
+  "minimum_epochs": 2.0,
+  "mode": "ft",
+  "num_workers": 6,
+  "output_dir": "protein/runs/megascale_gate1_compact_corrected_sign/gate1_compact/evidence/ft/seed_11",
+  "precision": "bf16",
+  "save_checkpoints": true,
+  "seed": 11,
+  "validation_fraction": 0.5
+}

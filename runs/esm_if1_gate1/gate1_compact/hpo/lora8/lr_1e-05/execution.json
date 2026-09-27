@@ -1,0 +1,6 @@
+{
+  "requested": false,
+  "enabled": false,
+  "mode": "max-autotune",
+  "resume_checkpoint": "protein/runs/megascale_gate1_compact_corrected_sign/gate1_compact/hpo/lora8/lr_1e-05/checkpoints/epoch_1.pt"
+}

@@ -1,0 +1,12 @@
+{
+  "fair_esm_nll": 0.9832493662834167,
+  "huggingface_nll": 0.9832493662834167,
+  "masked_logits_max_abs_difference": 0.0,
+  "masked_logits_mean_abs_difference": 0.0,
+  "nll_absolute_difference": 0.0,
+  "passed": true,
+  "tolerance": {
+    "logits_max_abs": 0.0005,
+    "nll_abs": 1e-05
+  }
+}

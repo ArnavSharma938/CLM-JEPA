@@ -1,15 +1,49 @@
+# Python environments and caches
 .venv/
-models/
-data/external/
-
-# Generated run state stays local. Compact summaries already committed remain
-# tracked, but new checkpoints, logs, prediction shards, and archives are ignored.
-runs/**
+.venv-*/
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .pytest_tmp/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Editors and operating-system files
 .idea/
 .vscode/
+.kilo/
 .DS_Store
 Thumbs.db
+
+# Local models and tensor/checkpoint formats
+models/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.npy
+*.npz
+
+# Generated run state. JSON/JSONL scientific results remain visible to Git.
+runs/**/checkpoints/
+runs/**/cache/
+*.log
+*.pid
+wandb/
+
+# Downloaded/generated protein inputs and bulky intermediates
+data/protein/**/external/**
+data/protein/**/*.parquet
+data/protein/**/*.lmdb
+data/protein/**/*.tar
+data/protein/**/*.tar.gz
+data/protein/**/*.zip
+data/protein/**/cache/
+data/protein/**/tmp*/
+
+# Local packaging/build output
+build/
+dist/
+*.egg-info/
