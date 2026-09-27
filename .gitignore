@@ -26,9 +26,9 @@ models/
 *.npy
 *.npz
 
-# Generated run state. JSON/JSONL scientific results remain visible to Git.
-runs/**/checkpoints/
-runs/**/cache/
+# Generated experiment outputs and local transfer staging.
+runs/
+.transfer_staging/
 *.log
 *.pid
 wandb/
