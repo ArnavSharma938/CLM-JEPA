@@ -197,3 +197,35 @@ and analysis reports matched their remote hashes. Since the run converged, only 
 selected best model checkpoint—not a redundant resumable optimizer-state checkpoint—
 was retained from this run. After verification, the sole Thunder instance (`keqktlpk`,
 1x L40) was deleted; `tnr status` reported no remaining instances.
+
+## Correction note — validation/test peptide overlap (2026-09-27)
+
+An exact sequence audit found 100 peptide sequences shared between the frozen
+validation and test manifests, affecting 152 validation pairs and 150 test pairs.
+For the corrected test evaluation panel, those 150 test pairs were excluded. The
+training and validation manifests were not changed, and the frozen test manifest was
+left intact. The corrected panel contains 2,213 pairs across 481 receptor clusters.
+The existing Base, epoch-1 best `1e-4` DTFT, SVD-r8 and SVD-r64 per-pair outputs were
+reused; the same four fixed decoys per retained pair were verified across all models.
+No model was retrained, no new model evaluation was run, and Gate 1 was not launched.
+
+Recomputed Stage-4 values use equal receptor-cluster weighting and the existing
+20,000-replicate cluster bootstrap:
+
+- `A_DTFT=0.197383`, 95% CI [0.166372, 0.231341].
+- `C_DTFT=0.065071`, 95% CI [0.030862, 0.101965]; `C/A=0.330`.
+- Stage 4 remains passed: both gains have positive lower confidence bounds and
+  `C/A` remains above 0.10.
+
+Recomputed Stage-5 retention on the same corrected panel:
+
+- Rank 8: `R8=0.911300`, `Q8=0.480876`.
+- Rank 64: `R64=0.965485`, `Q64=0.754678`.
+- Rank-64 still does not preserve >=90% of both signals; Stage 5 remains passed and
+  the task is still not `LOW-RANK-EASY`.
+
+The Gate-0 Stage-4/5 scientific conclusions are unchanged. Relative to the original
+full panel, `A_DTFT` shifts by +0.004572, `C_DTFT` by +0.005505, `C/A` by +0.020735;
+rank-8 `R/Q` shift by -0.001522/+0.027286 and rank-64 `R/Q` by -0.002209/+0.005216.
+These are modest estimate changes with no classification change. This correction
+annotates, and does not replace, the historical full-panel results above.

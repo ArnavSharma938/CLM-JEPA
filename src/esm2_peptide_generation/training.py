@@ -263,6 +263,7 @@ def train(
     workers: int = 2,
     attention_backend: str = "sdpa",
     compile_mode: str | None = None,
+    adaptation_mode: str = "dtft",
     maximum_optimizer_steps: int | None = None,
     initial_validation: dict | None = None,
     minimum_epochs_for_stopping: int = 0,
@@ -283,7 +284,7 @@ def train(
     config = {
         "model_id": MODEL_ID,
         "model_revision": MODEL_REVISION,
-        "mode": "dtft",
+        "mode": adaptation_mode,
         "seed": seed,
         "peak_learning_rate": peak_lr,
         "optimizer": {"name": "AdamW", "betas": [0.9, 0.999], "eps": 1e-8, "weight_decay": 0.01, "fused": True},
@@ -303,9 +304,21 @@ def train(
     }
     _atomic_json(output_dir / "config.json", config)
     model, tokenizer = load_base_model(attention_backend)
-    counts = configure_adaptation(model, "dtft")
-    if counts["trainable_parameters"] != 648_806_400 or counts["target_matrix_count"] != 198:
-        raise RuntimeError("DTFT trainable set is not exactly the 198 dense target matrices")
+    counts = configure_adaptation(model, adaptation_mode)
+    expected_trainables = {
+        "dtft": 648_806_400,
+        "lora8": 6_082_560,
+        "lora64": 48_660_480,
+    }
+    if adaptation_mode not in expected_trainables:
+        raise ValueError(f"unsupported Propedia adaptation mode: {adaptation_mode}")
+    if (
+        counts["trainable_parameters"] != expected_trainables[adaptation_mode]
+        or counts["target_matrix_count"] != 198
+    ):
+        raise RuntimeError(
+            f"{adaptation_mode} trainable set is not exactly the expected 198-matrix target set"
+        )
     model.to(device)
     if compile_mode:
         model = torch.compile(model, mode=compile_mode, dynamic=True)
@@ -336,6 +349,10 @@ def train(
             raise RuntimeError("resume checkpoint validation split changed")
         if payload["config"]["peak_learning_rate"] != peak_lr:
             raise RuntimeError("resume checkpoint peak learning rate changed")
+        if payload["config"].get("mode", "dtft") != adaptation_mode:
+            raise RuntimeError("resume checkpoint adaptation mode changed")
+        if payload["config"].get("schedule_epochs") != config["schedule_epochs"]:
+            raise RuntimeError("resume checkpoint schedule horizon changed")
         planned_steps = int(payload["progress"]["planned_steps"])
     else:
         optimizer.zero_grad(set_to_none=True)
